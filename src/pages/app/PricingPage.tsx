@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap } from 'lucide-react'
+import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 export default function PricingPage() {
@@ -17,9 +17,12 @@ export default function PricingPage() {
   return (
     <div className="pricing-page animate-fade-in">
       <div className="pricing-header">
+        <button className="btn-back-link" onClick={() => navigate(-1)}>
+          <ArrowLeft size={16} /> Kembali
+        </button>
         <span className="section-badge"><Sparkles size={14} /> TOKO LANGGANAN</span>
         <h1>Pilih Paket Skincluv</h1>
-        <p className="page-subtitle">Tingkatkan kuota AI untuk perawatan kulit harian tanpa batas.</p>
+        <p className="page-subtitle">Tingkatkan kuota analisis untuk perawatan kulit harian tanpa batas.</p>
       </div>
 
       <div className="pricing-grid">
@@ -27,14 +30,14 @@ export default function PricingPage() {
         <div className="pricing-card free-card glass-card">
           <div className="plan-header">
             <h3>Paket Gratis</h3>
-            <p>Untuk mencoba fitur AI dasar</p>
+            <p>Untuk mencoba fitur analisis dasar</p>
             <div className="plan-price">Rp 0 <span>/ bulan</span></div>
           </div>
           <ul className="plan-features">
-            <li><CheckCircle2 size={16} className="icon-check" /> 10 Universal AI Usage / Bulan</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> 10 Analisis Kulit / Bulan</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Scan Wajah Dasar</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Scan Ingredient Produk</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Tanya Jawab AI</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Scan Komposisi Produk</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Tanya Jawab Spesialis</li>
           </ul>
           <div className="plan-footer">
             <button className="btn btn-outline btn-block" disabled={!isPro}>
@@ -48,19 +51,19 @@ export default function PricingPage() {
           <div className="popular-badge"><Crown size={14} /> REKOMENDASI</div>
           <div className="plan-header">
             <h3>Skincluv PRO</h3>
-            <p>Scan Sepuasnya & Chat AI Tanpa Batas</p>
+            <p>Analisis Sepuasnya & Konsultasi Tanpa Batas</p>
             <div className="plan-price">Rp 49.000 <span>/ bulan</span></div>
           </div>
           <ul className="plan-features">
-            <li><Zap size={16} className="icon-gold" /> <strong>3.000 Universal AI Usage</strong> / Bulan</li>
-            <li><Zap size={16} className="icon-gold" /> Analisis Wajah & Rekomendasi Medis Mendalam</li>
-            <li><Zap size={16} className="icon-gold" /> Peringatan Bahan Berbahaya & Alergi Otomatis</li>
-            <li><Zap size={16} className="icon-gold" /> Konsultasi AI Gaya Gen Z Professional 24/7</li>
-            <li><Zap size={16} className="icon-gold" /> Prioritas Respon Server Cepat</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>3.000 Analisis Kulit</strong> / Bulan</li>
+            <li><Zap size={16} className="icon-sky" /> Analisis Wajah & Rekomendasi Spesialis Mendalam</li>
+            <li><Zap size={16} className="icon-sky" /> Peringatan Bahan Berbahaya & Alergi Otomatis</li>
+            <li><Zap size={16} className="icon-sky" /> Konsultasi Obrolan 24/7 Dengan Memory</li>
+            <li><Zap size={16} className="icon-sky" /> Prioritas Respon Server Cepat</li>
           </ul>
           <div className="plan-footer">
             {isPro ? (
-              <button className="btn btn-success btn-block" disabled>
+              <button className="btn btn-secondary btn-block" disabled>
                 <ShieldCheck size={18} /> Paket PRO Aktif
               </button>
             ) : (
@@ -73,43 +76,50 @@ export default function PricingPage() {
       </div>
 
       <style>{`
-        .pricing-page { padding-bottom: 120px; max-width: 800px; margin: 0 auto; }
-        .pricing-header { text-align: center; margin-bottom: var(--space-2xl); }
+        .pricing-page { padding-bottom: 60px; max-width: 840px; margin: 0 auto; width: 100%; }
+        .pricing-header { text-align: center; margin-bottom: var(--space-xl); position: relative; }
+        .btn-back-link {
+          position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px;
+          background: transparent; border: none; color: var(--color-primary); font-family: var(--font-heading);
+          font-weight: 700; font-size: 0.875rem; cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm);
+        }
+        .btn-back-link:hover { background: var(--color-surface-container-low); }
+
         .section-badge {
           display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
-          font-weight: 800; color: var(--color-brand-300); background: rgba(168,85,247,0.1);
-          padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(168,85,247,0.3); margin-bottom: 8px;
+          font-weight: 700; color: var(--color-primary); background: var(--color-secondary-container);
+          padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid var(--color-secondary-fixed-dim); margin-bottom: 8px;
         }
-        .pricing-header h1 { font-size: 2rem; margin: 4px 0; }
+        .pricing-header h1 { font-size: 2rem; margin: 4px 0; color: var(--color-primary); }
         .page-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; }
 
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-xl); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-xl); }
         .pricing-card {
-          padding: var(--space-xl); border-radius: var(--radius-2xl);
+          padding: var(--space-xl); border-radius: var(--radius-xl);
           display: flex; flex-direction: column; justify-content: space-between; position: relative;
-          border: 1px solid var(--color-border); background: var(--color-surface-glass);
+          border: 1px solid var(--color-secondary-container); background: var(--color-surface-container-lowest);
+          box-shadow: var(--shadow-sky); transition: all 0.2s ease;
         }
         .pro-card {
-          border-color: var(--color-brand-400);
-          background: linear-gradient(180deg, rgba(168,85,247,0.12) 0%, rgba(20,15,35,0.9) 100%);
-          box-shadow: 0 12px 40px rgba(107, 33, 168, 0.25);
+          border-color: var(--color-primary-container);
+          background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
         }
         .popular-badge {
-          position: absolute; top: -14px; right: 24px; background: linear-gradient(135deg, #FBBF24, #D97706);
-          color: white; font-size: 0.6875rem; font-weight: 800; padding: 4px 12px; border-radius: 12px;
-          display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+          position: absolute; top: -12px; right: 24px; background: var(--color-tertiary-container);
+          color: white; font-size: 0.6875rem; font-weight: 800; padding: 4px 12px; border-radius: var(--radius-full);
+          display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(222, 135, 18, 0.25);
         }
 
-        .plan-header h3 { font-size: 1.5rem; margin: 0 0 4px 0; }
+        .plan-header h3 { font-size: 1.35rem; margin: 0 0 4px 0; color: var(--color-text-main); }
         .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 16px; }
-        .plan-price { font-size: 2.25rem; font-weight: 800; color: white; margin-bottom: var(--space-lg); }
-        .plan-price span { font-size: 0.875rem; font-weight: 400; color: var(--color-text-muted); }
+        .plan-price { font-size: 2rem; font-weight: 800; color: var(--color-primary); margin-bottom: var(--space-lg); font-family: var(--font-heading); }
+        .plan-price span { font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); }
 
-        .plan-features { list-style: none; padding: 0; margin: 0 0 var(--space-2xl) 0; display: flex; flex-direction: column; gap: 12px; }
-        .plan-features li { display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: var(--color-text-secondary); }
-        .icon-check { color: var(--color-brand-300); flex-shrink: 0; }
-        .icon-gold { color: #FBBF24; flex-shrink: 0; }
-        .btn-glow { box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4); gap: 8px; }
+        .plan-features { list-style: none; padding: 0; margin: 0 0 var(--space-xl) 0; display: flex; flex-direction: column; gap: 12px; }
+        .plan-features li { display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: var(--color-text-main); }
+        .icon-check { color: var(--color-primary); flex-shrink: 0; }
+        .icon-sky { color: var(--color-primary-container); flex-shrink: 0; }
+        .btn-glow { gap: 8px; }
         .btn-block { width: 100%; justify-content: center; }
       `}</style>
     </div>

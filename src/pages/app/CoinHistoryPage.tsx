@@ -1,169 +1,166 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Coins, ArrowUpRight, ArrowDownLeft, RefreshCw, History } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Coins, History, ArrowDownLeft, ArrowUpRight, Filter } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
+interface Ledger {
+  id: string
+  amount: number
+  transaction_type: 'CREDIT' | 'DEBIT'
+  description: string
+  created_at: string
+}
+
 export default function CoinHistoryPage() {
-  const { session, coinBalance } = useAuthStore()
+  const navigate = useNavigate()
+  const { user, coinBalance } = useAuthStore()
+  const [ledgers, setLedgers] = useState<Ledger[]>([])
+  const [filter, setFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL')
   const [loading, setLoading] = useState(true)
-  const [transactions, setTransactions] = useState<any[]>([])
-  const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all')
-
-  const fetchCoinHistory = async () => {
-    if (!session?.user) return
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('coin_transactions')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-
-      if (!error && data) {
-        setTransactions(data)
-      }
-    } catch (err) {
-      console.error('Fetch coin history error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
-    fetchCoinHistory()
-  }, [session])
+    if (!user) return
+    fetchLedgers()
+  }, [user])
 
-  const filteredTx = transactions.filter(t => {
-    if (filter === 'income') return t.amount > 0
-    if (filter === 'expense') return t.amount < 0
-    return true
-  })
+  const fetchLedgers = async () => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('coin_ledgers')
+      .select('id, amount, transaction_type, description, created_at')
+      .eq('user_id', user?.id)
+      .order('created_at', { ascending: false })
+
+    if (data) setLedgers(data)
+    setLoading(false)
+  }
+
+  const filtered = ledgers.filter(l => filter === 'ALL' ? true : l.transaction_type === filter)
 
   return (
     <div className="coin-history-page animate-fade-in">
-      <div className="history-header">
-        <Link to="/profile" className="back-link">
-          <ArrowLeft size={18} /> Profil Saya
-        </Link>
-        <h1>Riwayat Koin Darurat</h1>
-        <p className="page-subtitle">Daftar pemasukan koin dari misi dan penggunaan fitur AI.</p>
+      <button className="btn-back-link" onClick={() => navigate(-1)}>
+        <ArrowLeft size={16} /> Kembali
+      </button>
+
+      <div className="page-header">
+        <h1>Riwayat Mutasi Koin</h1>
+        <p className="page-subtitle">Rincian perolehan dan penggunaan Koin Darurat Skincluv kamu.</p>
       </div>
 
-      {/* Balance Summary Header */}
-      <div className="balance-banner glass-card">
-        <div className="banner-left">
-          <Coins size={36} className="coin-gold-icon" />
+      {/* Coin Balance Card */}
+      <div className="balance-card stich-bento-card">
+        <div className="balance-left">
+          <span className="coin-icon">🪙</span>
           <div>
-            <span className="banner-label">Saldo Koin Saat Ini</span>
-            <div className="banner-amount">{coinBalance?.balance ?? 0} Koin</div>
+            <span className="balance-label">Total Saldo Koin</span>
+            <span className="balance-val">{coinBalance?.balance ?? 1250} Coins</span>
           </div>
         </div>
-        <span className="banner-badge">Tidak Pernah Hangus</span>
+        <Link to="/missions" className="btn btn-primary btn-sm">
+          + Dapatkan Koin
+        </Link>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="filter-tabs">
-        <button className={`tab-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
-          Semua ({transactions.length})
-        </button>
-        <button className={`tab-btn ${filter === 'income' ? 'active' : ''}`} onClick={() => setFilter('income')}>
-          Pemasukan ({transactions.filter(t => t.amount > 0).length})
-        </button>
-        <button className={`tab-btn ${filter === 'expense' ? 'active' : ''}`} onClick={() => setFilter('expense')}>
-          Pengeluaran ({transactions.filter(t => t.amount < 0).length})
-        </button>
-      </div>
-
-      {/* Transaction List */}
-      <div className="tx-list">
-        {loading ? (
-          <div className="loading-state">
-            <RefreshCw size={24} className="animate-spin text-brand" />
-            <p>Memuat riwayat koin...</p>
+      {/* Filter Tabs & History List Card */}
+      <div className="history-card stich-bento-card">
+        <div className="filter-row">
+          <span className="filter-title"><Filter size={16} /> Filter Mutasi:</span>
+          <div className="tabs">
+            <button className={`tab-btn ${filter === 'ALL' ? 'active' : ''}`} onClick={() => setFilter('ALL')}>
+              Semua
+            </button>
+            <button className={`tab-btn ${filter === 'CREDIT' ? 'active' : ''}`} onClick={() => setFilter('CREDIT')}>
+              Pemasukan (+)
+            </button>
+            <button className={`tab-btn ${filter === 'DEBIT' ? 'active' : ''}`} onClick={() => setFilter('DEBIT')}>
+              Pengeluaran (-)
+            </button>
           </div>
-        ) : filteredTx.length === 0 ? (
-          <div className="empty-state glass-card">
-            <History size={48} className="empty-icon" />
-            <h3>Belum Ada Mutasi Koin</h3>
-            <p>Selesaikan misi harian untuk mengumpulkan koin gratis!</p>
-            <Link to="/missions" className="btn btn-primary btn-sm mt-md">Buka Misi Harian</Link>
-          </div>
-        ) : (
-          filteredTx.map(t => {
-            const isIncome = t.amount > 0
-            const dateFormatted = new Date(t.created_at).toLocaleDateString('id-ID', {
-              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            })
+        </div>
 
-            return (
-              <div key={t.id} className="tx-item glass-card">
-                <div className="tx-left">
-                  <div className={`tx-icon-circle ${isIncome ? 'income' : 'expense'}`}>
-                    {isIncome ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
-                  </div>
-                  <div>
-                    <h4 className="tx-title">{t.notes || (isIncome ? 'Hadiah Misi' : 'Penggunaan AI')}</h4>
-                    <span className="tx-date">{dateFormatted}</span>
-                  </div>
+        <div className="ledger-list">
+          {loading ? (
+            <p className="status-text">Memuat riwayat mutasi...</p>
+          ) : filtered.length === 0 ? (
+            <p className="status-text">Belum ada riwayat mutasi koin.</p>
+          ) : (
+            filtered.map((item) => (
+              <div key={item.id} className="ledger-item">
+                <div className={`icon-circle ${item.transaction_type === 'CREDIT' ? 'icon-credit' : 'icon-debit'}`}>
+                  {item.transaction_type === 'CREDIT' ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
                 </div>
-                <div className={`tx-amount ${isIncome ? 'income' : 'expense'}`}>
-                  {isIncome ? `+${t.amount}` : t.amount} Koin
+                <div className="ledger-info">
+                  <h4>{item.description}</h4>
+                  <span className="ledger-date">
+                    {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className={`ledger-amount ${item.transaction_type === 'CREDIT' ? 'amount-credit' : 'amount-debit'}`}>
+                  {item.transaction_type === 'CREDIT' ? '+' : '-'}{item.amount} 🪙
                 </div>
               </div>
-            )
-          })
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       <style>{`
-        .coin-history-page { padding-bottom: 120px; max-width: 600px; margin: 0 auto; }
-        .history-header { margin-bottom: var(--space-lg); }
-        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--color-brand-300); font-size: 0.875rem; text-decoration: none; margin-bottom: 4px; }
-        .history-header h1 { font-size: 1.5rem; margin: 0; }
-        .page-subtitle { color: var(--color-text-muted); font-size: 0.875rem; margin-top: 2px; }
-
-        .balance-banner {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: var(--space-lg); border-radius: var(--radius-xl); margin-bottom: var(--space-lg);
-          background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(245,158,11,0.15));
-          border: 1px solid rgba(245,158,11,0.3);
+        .coin-history-page { padding-bottom: 60px; max-width: 680px; margin: 0 auto; width: 100%; }
+        .btn-back-link {
+          display: inline-flex; align-items: center; gap: 6px; background: transparent; border: none;
+          color: var(--color-primary); font-family: var(--font-heading); font-weight: 700; font-size: 0.875rem;
+          cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); margin-bottom: 12px;
         }
-        .banner-left { display: flex; align-items: center; gap: 14px; }
-        .coin-gold-icon { color: #FBBF24; filter: drop-shadow(0 2px 8px rgba(251, 191, 36, 0.4)); }
-        .banner-label { font-size: 0.75rem; color: var(--color-text-muted); display: block; }
-        .banner-amount { font-size: 1.5rem; font-weight: 800; color: white; }
-        .banner-badge { font-size: 0.75rem; font-weight: 700; color: #FBBF24; background: rgba(251,191,36,0.1); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(251,191,36,0.3); }
+        .btn-back-link:hover { background: var(--color-surface-container-low); }
 
-        .filter-tabs { display: flex; gap: 8px; margin-bottom: var(--space-lg); }
+        .page-header { margin-bottom: var(--space-lg); }
+        .page-header h1 { font-size: 1.875rem; margin: 0 0 4px 0; color: var(--color-primary); font-family: var(--font-heading); }
+        .page-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; margin: 0; }
+
+        .stich-bento-card {
+          background: var(--color-surface-container-lowest);
+          border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl);
+          padding: var(--space-xl);
+          box-shadow: var(--shadow-sky);
+          margin-bottom: var(--space-lg);
+        }
+
+        .balance-card { display: flex; justify-content: space-between; align-items: center; }
+        .balance-left { display: flex; align-items: center; gap: 12px; }
+        .coin-icon { font-size: 32px; }
+        .balance-label { font-size: 0.75rem; color: var(--color-secondary); display: block; }
+        .balance-val { font-size: 1.5rem; font-weight: 800; color: var(--color-primary); font-family: var(--font-heading); }
+
+        .filter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-size: 0.875rem; font-weight: 700; color: var(--color-text-main); display: flex; align-items: center; gap: 6px; }
+        .tabs { display: flex; gap: 6px; background: var(--color-surface-container); padding: 4px; border-radius: var(--radius-md); }
         .tab-btn {
-          padding: 8px 16px; border-radius: var(--radius-full); background: rgba(255,255,255,0.05);
-          border: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 0.8125rem;
-          font-weight: 600; cursor: pointer; transition: all 0.2s;
+          border: none; background: transparent; padding: 6px 12px; border-radius: var(--radius-sm);
+          font-family: var(--font-heading); font-size: 0.75rem; font-weight: 600; color: var(--color-secondary); cursor: pointer;
         }
-        .tab-btn:hover { color: white; background: rgba(255,255,255,0.1); }
-        .tab-btn.active { background: var(--color-brand-500); color: white; border-color: var(--color-brand-400); }
+        .tab-btn.active { background: var(--color-surface-container-lowest); color: var(--color-primary); font-weight: 700; box-shadow: var(--shadow-sm); }
 
-        .tx-list { display: flex; flex-direction: column; gap: 10px; }
-        .loading-state, .empty-state { text-align: center; padding: 48px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .empty-icon { color: var(--color-text-muted); opacity: 0.5; }
-
-        .tx-item {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 12px 16px; border-radius: var(--radius-lg); border: 1px solid var(--color-border);
+        .ledger-list { display: flex; flex-direction: column; gap: 8px; }
+        .ledger-item {
+          display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-lg);
+          background: var(--color-surface-container-low); border: 1px solid var(--color-secondary-container);
         }
-        .tx-left { display: flex; align-items: center; gap: 12px; }
-        .tx-icon-circle {
-          width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        }
-        .tx-icon-circle.income { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-        .tx-icon-circle.expense { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .icon-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .icon-credit { background: var(--color-success-soft); color: var(--color-success); }
+        .icon-debit { background: #fef2f2; color: var(--color-error); }
 
-        .tx-title { font-size: 0.875rem; margin: 0 0 2px 0; }
-        .tx-date { font-size: 0.75rem; color: var(--color-text-muted); }
-        .tx-amount { font-weight: 800; font-size: 0.9375rem; }
-        .tx-amount.income { color: #22c55e; }
-        .tx-amount.expense { color: #ef4444; }
+        .ledger-info { flex: 1; }
+        .ledger-info h4 { font-size: 0.875rem; margin: 0 0 2px 0; color: var(--color-text-main); }
+        .ledger-date { font-size: 0.75rem; color: var(--color-text-muted); }
+
+        .ledger-amount { font-size: 0.9375rem; font-weight: 800; font-family: var(--font-heading); }
+        .amount-credit { color: var(--color-success); }
+        .amount-debit { color: var(--color-error); }
+
+        .status-text { text-align: center; color: var(--color-text-muted); font-size: 0.875rem; padding: 20px 0; }
       `}</style>
     </div>
   )

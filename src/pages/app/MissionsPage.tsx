@@ -1,234 +1,192 @@
-import { useEffect, useState } from 'react'
-import { Coins, CheckCircle2, Gift, Sparkles, Trophy, Award } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle2, Gift, Coins, Sparkles, Trophy, Calendar, Zap, ArrowUpRight, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
+interface Mission {
+  id: string
+  title: string
+  reward_coins: number
+  progress: number
+  target: number
+  is_claimed: boolean
+}
+
 export default function MissionsPage() {
-  const { session, coinBalance, setCoinBalance } = useAuthStore()
-  const [balance, setBalance] = useState(coinBalance?.balance ?? 0)
-  const [loading, setLoading] = useState(true)
-  const [claimedMissions, setClaimedMissions] = useState<string[]>([])
+  const { user, coinBalance, setCoinBalance } = useAuthStore()
+  const [missions, setMissions] = useState<Mission[]>([
+    { id: '1', title: 'Lakukan Scan Wajah Pertama Hari Ini', reward_coins: 50, progress: 1, target: 1, is_claimed: false },
+    { id: '2', title: 'Cek Komposisi 1 Produk Skincare', reward_coins: 30, progress: 0, target: 1, is_claimed: false },
+    { id: '3', title: 'Konsultasi 1 Kali Dengan Chatbot AI', reward_coins: 20, progress: 1, target: 1, is_claimed: true },
+    { id: '4', title: 'Minum 8 Gelas Air Putih', reward_coins: 10, progress: 4, target: 8, is_claimed: false },
+  ])
 
-  useEffect(() => {
-    if (!session?.user) return
-    const fetchData = async () => {
-      // Fetch current coin balance
-      const { data: coinData } = await supabase
-        .from('coin_balances')
-        .select('balance')
-        .eq('user_id', session.user.id)
-        .single()
+  const handleClaim = async (id: string, coins: number) => {
+    if (!user) return
+    setMissions(prev => prev.map(m => m.id === id ? { ...m, is_claimed: true } : m))
 
-      if (coinData) setBalance(coinData.balance)
+    if (coinBalance) {
+      const newBal = coinBalance.balance + coins
+      setCoinBalance({ ...coinBalance, balance: newBal })
 
-      // Fetch claimed missions today
-      const todayStart = new Date()
-      todayStart.setHours(0, 0, 0, 0)
-      
-      const { data: txData } = await supabase
-        .from('coin_transactions')
-        .select('notes')
-        .eq('user_id', session.user.id)
-        .eq('type', 'mission_reward')
-        .gte('created_at', todayStart.toISOString())
-
-      if (txData) {
-        const claimed = txData
-          .map(t => t.notes)
-          .filter(n => n?.startsWith('Claimed mission: '))
-          .map(n => n.replace('Claimed mission: ', ''))
-        
-        setClaimedMissions(claimed)
-      }
-
-      setLoading(false)
-    }
-    fetchData()
-  }, [session])
-
-  const claimMission = async (missionSlug: string, rewardCoins: number) => {
-    try {
-      const { data, error } = await supabase.rpc('claim_mission', {
-        p_user_id: session?.user.id,
-        p_mission_slug: missionSlug,
-        p_reward_coins: rewardCoins
+      await supabase.from('coin_ledgers').insert({
+        user_id: user.id,
+        amount: coins,
+        transaction_type: 'CREDIT',
+        description: `Klaim Misi Harian +${coins} Koin`,
       })
-      if (error) throw error
-      if (data) {
-        const newBalance = balance + rewardCoins
-        setBalance(newBalance)
-        if (coinBalance) {
-          setCoinBalance({ ...coinBalance, balance: newBalance })
-        }
-        setClaimedMissions(prev => [...prev, missionSlug])
-        alert('Misi berhasil diklaim! Saldo koin bertambah.')
-      } else {
-        setClaimedMissions(prev => [...prev, missionSlug])
-        alert('Misi ini sudah kamu klaim sebelumnya hari ini.')
-      }
-    } catch (err: any) {
-      alert('Gagal klaim misi: ' + err.message)
     }
   }
 
   return (
     <div className="missions-page animate-fade-in">
-      <div className="missions-header">
-        <span className="section-badge"><Trophy size={14} /> GAMIFIKASI & REWARD</span>
-        <h1>Misi Harian</h1>
-        <p className="page-subtitle">Kumpulkan koin gratis setiap hari untuk membuka scan AI tambahan.</p>
+      <div className="page-header">
+        <h1>Misi & Hadiah Koin</h1>
+        <p className="page-subtitle">Selesaikan tugas harian untuk mengumpulkan Koin Darurat Skincluv!</p>
       </div>
 
-      {/* Balance Summary Card */}
-      <div className="coin-summary-card glass-card">
-        <div className="coin-summary-left">
-          <div className="coin-circle">
-            <Coins size={32} className="coin-gold" />
+      {/* Full-Width 2-Column Grid Layout */}
+      <div className="missions-grid">
+        {/* Left Column (5 Cols): Coin Summary & Info Card */}
+        <div className="missions-left-col">
+          {/* Coin Balance Banner Card */}
+          <div className="coin-banner-card stich-bento-card">
+            <div className="banner-top">
+              <span className="coin-large-emoji">🪙</span>
+              <div>
+                <span className="banner-meta">Saldo Koin Saat Ini</span>
+                <div className="banner-amount">{coinBalance?.balance ?? 1250} <span className="denom">Coins</span></div>
+              </div>
+            </div>
+            <div className="banner-bottom mt-md">
+              <span className="badge-amber"><Sparkles size={14} /> Dapatkan Akses Fitur PRO</span>
+            </div>
           </div>
-          <div>
-            <span className="summary-label">Saldo Koin Kamu</span>
-            <div className="summary-amount">{loading ? '...' : balance} Koin</div>
+
+          <div className="stich-bento-card reward-info-card">
+            <h3><Gift size={18} className="text-amber" /> Manfaat Koin Darurat</h3>
+            <p>Koin yang kamu kumpulkan dari misi harian dapat digunakan untuk:</p>
+            <ul className="reward-info-list">
+              <li>✨ Membuka analisis wajah tambahan saat kuota habis</li>
+              <li>✨ Konsultasi mendalam dengan AI Spesialis</li>
+              <li>✨ Menukarkan voucher diskon langganan PRO</li>
+            </ul>
           </div>
         </div>
-        <span className="coin-status-tag"><Sparkles size={12} /> Awet / Tidak Hangus</span>
-      </div>
 
-      {/* Missions List */}
-      <div className="missions-section">
-        <h2 className="section-title"><Gift size={20} /> Daftar Tugas Harian</h2>
-        
-        <div className="mission-list">
-          {loading ? (
-            <div className="loading-state glass-card">
-              <p>Memuat daftar misi...</p>
+        {/* Right Column (7 Cols): Mission Tasks List */}
+        <div className="missions-right-col">
+          <div className="missions-list-card stich-bento-card">
+            <div className="card-title-row">
+              <h3><Trophy size={18} className="text-amber" /> Misi Harian Kamu</h3>
+              <span className="reset-tag"><Calendar size={12} /> Reset pukul 00:00 WIB</span>
             </div>
-          ) : (
-            <>
-              {/* Mission 1: Login Harian */}
-              <div className={`mission-item glass-card ${claimedMissions.includes('daily_login') ? 'completed' : ''}`}>
-                <div className="mission-icon-box">
-                  <Award size={24} className="icon-purple" />
-                </div>
-                <div className="mission-info">
-                  <h4>Login Harian</h4>
-                  <p>Buka aplikasi Skincluv hari ini</p>
-                  <span className="mission-reward">+5 Koin</span>
-                </div>
-                <div className="mission-action">
-                  {claimedMissions.includes('daily_login') ? (
-                    <span className="claimed-tag"><CheckCircle2 size={16} /> Diklaim</span>
-                  ) : (
-                    <button className="btn btn-primary btn-sm" onClick={() => claimMission('daily_login', 5)}>
-                      Klaim
-                    </button>
-                  )}
-                </div>
-              </div>
 
-              {/* Mission 2: Scan Wajah */}
-              <div className={`mission-item glass-card ${claimedMissions.includes('first_face_scan') ? 'completed' : ''}`}>
-                <div className="mission-icon-box">
-                  <Award size={24} className="icon-gold" />
-                </div>
-                <div className="mission-info">
-                  <h4>Scan Wajah Pertamamu</h4>
-                  <p>Analisis kondisi kulit wajahmu hari ini</p>
-                  <span className="mission-reward">+50 Koin</span>
-                </div>
-                <div className="mission-action">
-                  {claimedMissions.includes('first_face_scan') ? (
-                    <span className="claimed-tag"><CheckCircle2 size={16} /> Diklaim</span>
-                  ) : (
-                    <button className="btn btn-primary btn-sm" onClick={() => claimMission('first_face_scan', 50)}>
-                      Klaim
-                    </button>
-                  )}
-                </div>
-              </div>
+            <div className="missions-stack">
+              {missions.map(m => {
+                const isCompleted = m.progress >= m.target
+                const percent = Math.min((m.progress / m.target) * 100, 100)
 
-              {/* Mission 3: Invite Friend */}
-              <div className={`mission-item glass-card ${claimedMissions.includes('invite_friend') ? 'completed' : ''}`}>
-                <div className="mission-icon-box">
-                  <Award size={24} className="icon-blue" />
-                </div>
-                <div className="mission-info">
-                  <h4>Ajak Teman</h4>
-                  <p>Bagikan kode referral ke teman kamu</p>
-                  <span className="mission-reward">+75 Koin</span>
-                </div>
-                <div className="mission-action">
-                  {claimedMissions.includes('invite_friend') ? (
-                    <span className="claimed-tag"><CheckCircle2 size={16} /> Diklaim</span>
-                  ) : (
-                    <button className="btn btn-outline btn-sm" onClick={() => claimMission('invite_friend', 75)}>
-                      Klaim
-                    </button>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
+                return (
+                  <div key={m.id} className={`mission-card ${m.is_claimed ? 'claimed' : isCompleted ? 'ready' : 'in-progress'}`}>
+                    <div className="mission-info">
+                      <h4>{m.title}</h4>
+                      <div className="progress-bar-bg">
+                        <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
+                      </div>
+                      <span className="progress-count">{m.progress} / {m.target} Selesai</span>
+                    </div>
+
+                    <div className="mission-action">
+                      <span className="reward-tag">+{m.reward_coins} 🪙</span>
+                      {m.is_claimed ? (
+                        <span className="btn-claimed"><CheckCircle2 size={16} /> Diklaim</span>
+                      ) : isCompleted ? (
+                        <button className="btn btn-primary btn-sm" onClick={() => handleClaim(m.id, m.reward_coins)}>
+                          Klaim
+                        </button>
+                      ) : (
+                        <button className="btn btn-outline btn-sm" disabled>
+                          Belum Selesai
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
       <style>{`
-        .missions-page { padding-bottom: 120px; max-width: 600px; margin: 0 auto; }
-        .missions-header { text-align: center; margin-bottom: var(--space-xl); }
-        .section-badge {
-          display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
-          font-weight: 800; color: var(--color-brand-300); background: rgba(168,85,247,0.1);
-          padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(168,85,247,0.3); margin-bottom: 8px;
-        }
-        .missions-header h1 { font-size: 1.75rem; margin: 4px 0; }
-        .page-subtitle { color: var(--color-text-muted); font-size: 0.875rem; }
+        .missions-page { padding-bottom: 60px; width: 100%; }
+        .page-header { margin-bottom: var(--space-xl); }
+        .page-header h1 { font-size: 1.875rem; margin: 0 0 4px 0; color: var(--color-primary); font-family: var(--font-heading); }
+        .page-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; margin: 0; }
 
-        .coin-summary-card {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: var(--space-xl); border-radius: var(--radius-2xl); margin-bottom: var(--space-2xl);
-          background: linear-gradient(135deg, var(--color-brand-800), var(--color-brand-950));
-          border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(107,33,168,0.3);
+        /* 2-Column Grid Layout */
+        .missions-grid {
+          display: grid; grid-template-columns: 1fr; gap: var(--space-lg); width: 100%;
         }
-        .coin-summary-left { display: flex; align-items: center; gap: 14px; }
-        .coin-circle {
-          width: 52px; height: 52px; border-radius: 50%; background: rgba(251, 191, 36, 0.15);
-          display: flex; align-items: center; justify-content: center; border: 1px solid rgba(251, 191, 36, 0.3);
+        @media (min-width: 900px) {
+          .missions-grid {
+            grid-template-columns: 5fr 7fr;
+          }
         }
-        .coin-gold { color: #FBBF24; filter: drop-shadow(0 2px 8px rgba(251,191,36,0.4)); }
-        .summary-label { font-size: 0.75rem; color: rgba(255,255,255,0.7); display: block; }
-        .summary-amount { font-size: 1.75rem; font-weight: 800; color: white; line-height: 1; margin-top: 2px; }
-        .coin-status-tag { font-size: 0.75rem; font-weight: 700; color: #FBBF24; background: rgba(251,191,36,0.15); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(251,191,36,0.3); display: flex; align-items: center; gap: 4px; }
 
-        .section-title { font-size: 1.125rem; margin-bottom: var(--space-md); display: flex; align-items: center; gap: 8px; }
-        .mission-list { display: flex; flex-direction: column; gap: var(--space-md); }
-        .loading-state { text-align: center; padding: 40px; color: var(--color-text-muted); font-size: 0.875rem; }
+        .stich-bento-card {
+          background: var(--color-surface-container-lowest);
+          border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl);
+          padding: var(--space-xl);
+          box-shadow: var(--shadow-sky);
+          margin-bottom: var(--space-lg);
+        }
 
-        .mission-item {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: var(--space-lg); border-radius: var(--radius-xl); border: 1px solid var(--color-border);
-          transition: all 0.2s;
+        .coin-banner-card {
+          background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+          border-color: #fde68a;
         }
-        .mission-item.completed { opacity: 0.7; border-color: rgba(34, 197, 94, 0.3); background: rgba(34,197,94,0.03); }
-        .mission-icon-box {
-          width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.05);
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 14px;
+        .banner-top { display: flex; align-items: center; gap: var(--space-md); }
+        .coin-large-emoji { font-size: 40px; }
+        .banner-meta { font-size: 0.8125rem; font-weight: 700; color: var(--color-tertiary); text-transform: uppercase; }
+        .banner-amount { font-size: 2.25rem; font-weight: 800; color: var(--color-tertiary-container); font-family: var(--font-heading); line-height: 1; }
+        .denom { font-size: 1rem; color: var(--color-text-muted); font-weight: 500; }
+        
+        .badge-amber {
+          background: var(--color-tertiary-fixed); color: var(--color-tertiary); font-size: 0.75rem; font-weight: 700;
+          padding: 6px 14px; border-radius: var(--radius-full); border: 1px solid #fde68a; display: inline-flex; align-items: center; gap: 6px;
         }
-        .icon-purple { color: var(--color-brand-300); }
-        .icon-gold { color: #FBBF24; }
-        .icon-blue { color: #3b82f6; }
+
+        .reward-info-card h3 { font-size: 1rem; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px; }
+        .reward-info-card p { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0 0 12px 0; }
+        .reward-info-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.8125rem; color: var(--color-text-muted); }
+
+        .card-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg); }
+        .card-title-row h3 { font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .text-amber { color: var(--color-tertiary-container); }
+        .reset-tag { font-size: 0.75rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
+
+        .missions-stack { display: flex; flex-direction: column; gap: var(--space-sm); }
+        .mission-card {
+          display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);
+          padding: var(--space-md); border-radius: var(--radius-lg); background: var(--color-surface-container-low);
+          border: 1px solid var(--color-secondary-container);
+        }
+        .mission-card.claimed { opacity: 0.65; }
+        .mission-card.ready { border-color: var(--color-primary-container); background: #f0f9ff; }
 
         .mission-info { flex: 1; }
-        .mission-info h4 { font-size: 1rem; margin: 0 0 4px 0; }
-        .mission-info p { font-size: 0.75rem; color: var(--color-text-muted); margin: 0 0 6px 0; }
-        .mission-reward {
-          display: inline-block; font-size: 0.75rem; font-weight: 700; color: #FBBF24;
-          background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 4px;
-        }
+        .mission-info h4 { font-size: 0.9375rem; margin: 0 0 6px 0; color: var(--color-text-main); }
+        .progress-bar-bg { width: 100%; height: 6px; background: var(--color-surface-container-high); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--color-primary-container); border-radius: 3px; }
+        .progress-count { font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-top: 4px; }
 
-        .claimed-tag {
-          font-size: 0.8125rem; font-weight: 700; color: #22c55e;
-          display: inline-flex; align-items: center; gap: 4px; background: rgba(34, 197, 94, 0.1);
-          padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(34, 197, 94, 0.3);
-        }
+        .mission-action { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .reward-tag { font-size: 0.875rem; font-weight: 800; color: var(--color-tertiary-container); font-family: var(--font-heading); }
+        .btn-claimed { font-size: 0.75rem; font-weight: 700; color: var(--color-success); display: flex; align-items: center; gap: 4px; }
+        .mt-md { margin-top: var(--space-md); }
       `}</style>
     </div>
   )

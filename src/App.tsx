@@ -41,6 +41,7 @@ export default function App() {
         <Route path="/face-scan" element={<FaceScanPage />} />
         <Route path="/ingredient-scan" element={<IngredientScanPage />} />
         <Route path="/chatbot" element={<ChatbotPage />} />
+        <Route path="/chatbot/:sessionId" element={<ChatbotPage />} />
         <Route path="/missions" element={<MissionsPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />

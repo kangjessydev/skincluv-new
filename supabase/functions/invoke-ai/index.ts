@@ -68,6 +68,9 @@ Deno.serve(async (req: Request) => {
       return jsonError('Missing required fields: feature_slug, messages', 400)
     }
 
+    // Truncate message history to last 6 messages to keep latency low & prevent gateway timeouts
+    const trimmedMessages = messages.slice(-6)
+
     // ---- 3. Load feature + prompt + model config (in parallel) ----
     const [featureRes, subscriptionRes] = await Promise.all([
       supabaseService
@@ -222,15 +225,27 @@ Deno.serve(async (req: Request) => {
     }
 
     // ---- 7. Build prompt context ----
-    // Fetch active skin profile for context injection
-    const { data: skinProfile } = await supabaseService
-      .from('skin_profiles')
-      .select('skin_type, skin_concerns, analysis_notes')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .maybeSingle()
+    // Fetch active skin profile & user profile for context injection
+    const [skinProfileRes, userProfileRes] = await Promise.all([
+      supabaseService
+        .from('skin_profiles')
+        .select('skin_type, skin_concerns, analysis_notes')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabaseService
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ])
+
+    const skinProfile = skinProfileRes.data
+    const userProfile = userProfileRes.data
+    const userName = userProfile?.full_name?.split(' ')[0] || user.user_metadata?.full_name || 'Bestie'
 
     const promptContext: Record<string, string> = {
+      user_name: userName,
       skin_type: skinProfile?.skin_type ?? 'unknown',
       skin_concerns: skinProfile?.skin_concerns?.join(', ') ?? 'none',
       analysis_notes: skinProfile?.analysis_notes ?? '',
@@ -250,7 +265,7 @@ Deno.serve(async (req: Request) => {
         modelName: model.model_name,
         apiKey,
         systemPrompt,
-        messages,
+        messages: trimmedMessages,
         parameters: model.parameters as Record<string, number>,
       })
     } catch (err) {

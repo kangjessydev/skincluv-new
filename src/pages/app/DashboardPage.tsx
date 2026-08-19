@@ -1,13 +1,16 @@
 import { useAuthStore } from '@/store/authStore'
-import { Link } from 'react-router-dom'
-import { ScanFace, ScanLine, MessageSquareHeart, ChevronRight, Activity, Sun, Crown, Zap, Gift, ShieldAlert, Droplets } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ScanFace, ScanLine, MessageSquareHeart, ChevronRight, Activity, Sun, Crown, Zap, Gift, ShieldAlert, Droplets, Check, Info, Star, GlassWater, Moon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function DashboardPage() {
   const { profile, activeSkinProfile, subscription } = useAuthStore()
-  const [greeting, setGreeting] = useState('Halo')
+  const navigate = useNavigate()
+  const [greeting, setGreeting] = useState('Good Morning')
   const [usageCount, setUsageCount] = useState<number>(0)
+
+  const userName = profile?.full_name?.split(' ')[0] || 'Sarah'
 
   const subTierSlug = (subscription as any)?.subscription_tiers?.slug
   const subTierName = (subscription as any)?.subscription_tiers?.name
@@ -19,10 +22,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const hour = new Date().getHours()
-    if (hour < 12) setGreeting('Selamat Pagi')
-    else if (hour < 15) setGreeting('Selamat Siang')
-    else if (hour < 18) setGreeting('Selamat Sore')
-    else setGreeting('Selamat Malam')
+    if (hour < 12) setGreeting('Good Morning')
+    else if (hour < 15) setGreeting('Good Afternoon')
+    else if (hour < 18) setGreeting('Good Afternoon')
+    else setGreeting('Good Evening')
   }, [])
 
   useEffect(() => {
@@ -39,267 +42,309 @@ export default function DashboardPage() {
   }, [profile?.id])
 
   const maxLimit = isPro ? 3000 : 10
-  const usagePercent = Math.min((usageCount / maxLimit) * 100, 100)
 
   return (
-    <div className="dashboard-page animate-fade-in">
-      {/* Header Banner */}
-      <div className="dashboard-header glass-card">
-        <div className="greeting-text">
-          <p className="greeting-time">{greeting},</p>
-          <h1>{profile?.full_name?.split(' ')[0] ?? 'Skincluver'} ✨</h1>
-        </div>
-        <div className="weather-widget">
-          <Sun size={16} className="icon-amber" />
-          <span>UV Index: Sedang</span>
-        </div>
-      </div>
+    <div className="dashboard-stich animate-fade-in">
+      {/* 1. Header Greeting Section */}
+      <section className="dashboard-greeting-sec">
+        <h1 className="greeting-title">{greeting}, {userName}</h1>
+        <p className="greeting-sub">Your skin is looking hydrated today. Let's keep up the routine.</p>
+      </section>
 
-      {/* Main Responsive Grid Container */}
-      <div className="dashboard-grid">
-        {/* LEFT COLUMN (Profile, Membership & Daily Context) */}
-        <div className="dashboard-col-left">
-          {/* Membership Status & Quota Progress Banner */}
-          <div className="card-banner glass-card">
-            <div className="banner-top">
-              {isPro ? (
-                <span className="badge-pill badge-gold"><Crown size={14} /> VIP PRO Member</span>
-              ) : (
-                <span className="badge-pill badge-sky"><Zap size={14} /> Free Member</span>
-              )}
-              {!isPro && (
-                <Link to="/pricing" className="btn btn-primary btn-sm btn-upgrade-dash">
-                  <Crown size={14} /> Upgrade PRO
-                </Link>
-              )}
+      {/* 2. Welcome & Quick Scan Actions Bento Grid */}
+      <section className="bento-grid-top">
+        {/* Skin Score Summary Card (Spans 8 Cols on Desktop) */}
+        <div className="bento-card skin-score-card">
+          <div className="card-top-row">
+            <div>
+              <span className="meta-label">Overall Skin Score</span>
+              <div className="score-flex">
+                <span className="score-val">85</span>
+                <span className="score-badge">Great</span>
+              </div>
             </div>
-
-            <div className="dash-usage-block">
-              <div className="dash-usage-meta">
-                <span>Kuota Analisis Bulan Ini</span>
-                <strong>{usageCount} / {maxLimit} Penggunaan</strong>
-              </div>
-              <div className="dash-progress-bar">
-                <div className="dash-progress-fill" style={{ width: `${usagePercent}%` }} />
-              </div>
+            {/* Gauge Circular Ring */}
+            <div className="gauge-wrapper">
+              <svg className="gauge-svg" viewBox="0 0 36 36">
+                <path className="gauge-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeWidth="3" />
+                <path className="gauge-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeDasharray="85, 100" strokeWidth="3" />
+              </svg>
+              <Star size={18} className="gauge-icon" />
             </div>
           </div>
 
-          {/* Skin Profile Summary Card */}
-          {!activeSkinProfile ? (
-            <div className="alert-card glass-card">
-              <div className="alert-content">
-                <h3><ShieldAlert size={18} className="text-sky" /> Belum Punya Profil Kulit?</h3>
-                <p>Lengkapi profil kulitmu agar analisis & rekomendasi produk 100% akurat!</p>
+          {/* Metric Breakdown Rings */}
+          <div className="metrics-grid">
+            <div className="metric-box">
+              <div className="mini-ring">
+                <span className="ring-percent text-sky">85%</span>
               </div>
-              <Link to="/profile" className="btn btn-primary btn-sm">Isi Profil</Link>
+              <span className="ring-label">HYDRATION</span>
             </div>
-          ) : (
-            <div className="skin-summary-card glass-card">
-              <div className="summary-header">
-                <h3><Activity size={18} className="text-sky" /> Profil Kulit Aktif</h3>
-                <Link to="/profile" className="edit-link">Edit Profil</Link>
-              </div>
-              <div className="summary-tags">
-                <span className="tag type-tag">{activeSkinProfile.skin_type.toUpperCase()}</span>
-                {activeSkinProfile.skin_concerns.map(c => (
-                  <span key={c} className="tag concern-tag">{c}</span>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Daily Skincare Tips */}
-          <div className="tips-card glass-card">
-            <div className="tips-title">
-              <Droplets size={18} className="text-sky" />
-              <h3>Tips Skincare & Hidrasi</h3>
-            </div>
-            <p>Jangan lupa reapply sunscreen setiap 3 jam sekali, dan pastikan kebutuhan cairan tubuhmu tercukupi hari ini!</p>
-          </div>
-
-          {/* Daily Mission Teaser */}
-          <div className="mission-teaser-card glass-card">
-            <div className="teaser-left">
-              <Gift size={22} className="text-sky" />
-              <div>
-                <h4>Misi Harian & Koin</h4>
-                <p>Kumpulkan koin gratis dari tugas harian</p>
+            <div className="metric-box">
+              <div className="mini-ring">
+                <span className="ring-percent text-sky-dark">92%</span>
               </div>
+              <span className="ring-label">TEXTURE</span>
             </div>
-            <Link to="/missions" className="btn btn-outline btn-sm">Buka Misi</Link>
+
+            <div className="metric-box">
+              <div className="mini-ring">
+                <span className="ring-percent text-amber">45%</span>
+              </div>
+              <span className="ring-label">OILINESS</span>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN (Core Skincare Action Cards) */}
-        <div className="dashboard-col-right">
-          <h2 className="section-title">Fitur Konsultasi & Perawatan</h2>
-          
-          <div className="quick-actions">
-            {/* Face Scan */}
-            <Link to="/face-scan" className="action-card scan-face glass-card">
-              <div className="action-icon icon-bg-sky">
-                <ScanFace size={26} />
-              </div>
-              <div className="action-info">
-                <h3>Analisis Kondisi Wajah</h3>
-                <p>Deteksi jerawat, kemerahan, & kerutan dari foto selfie</p>
-              </div>
-              <div className="action-arrow-wrapper">
-                <ChevronRight className="action-arrow" />
-              </div>
-            </Link>
+        {/* Quick Scan Action Cards (2 Stacked Buttons) */}
+        <div className="quick-scan-stack">
+          {/* Scan Wajah */}
+          <button className="bento-card scan-btn-card" onClick={() => navigate('/face-scan')}>
+            <div className="scan-icon-circle icon-bg-sky">
+              <ScanFace size={24} />
+            </div>
+            <div className="scan-text">
+              <h3>Scan Wajah</h3>
+              <p>Analyze your skin condition</p>
+            </div>
+            <ChevronRight className="scan-arrow" size={20} />
+          </button>
 
-            {/* Ingredient Scan */}
-            <Link to="/ingredient-scan" className="action-card scan-ingredient glass-card">
-              <div className="action-icon icon-bg-cyan">
-                <ScanLine size={26} />
-              </div>
-              <div className="action-info">
-                <h3>Cek Komposisi Bahan</h3>
-                <p>Ketahui apakah kandungan produk aman & bebas alergi untuk kulitmu</p>
-              </div>
-              <div className="action-arrow-wrapper">
-                <ChevronRight className="action-arrow" />
-              </div>
-            </Link>
+          {/* Scan Ingredient */}
+          <button className="bento-card scan-btn-card" onClick={() => navigate('/ingredient-scan')}>
+            <div className="scan-icon-circle icon-bg-amber">
+              <ScanLine size={24} />
+            </div>
+            <div className="scan-text">
+              <h3>Scan Ingredient</h3>
+              <p>Check product safety</p>
+            </div>
+            <ChevronRight className="scan-arrow" size={20} />
+          </button>
+        </div>
+      </section>
 
-            {/* Chatbot Specialist */}
-            <Link to="/chatbot" className="action-card chatbot-ai glass-card">
-              <div className="action-icon icon-bg-blue">
-                <MessageSquareHeart size={26} />
+      {/* 3. Today's Routine & Daily Missions Grid */}
+      <section className="bento-grid-bottom">
+        {/* Today's Routine List (7 Cols Desktop) */}
+        <div className="bento-card routine-card">
+          <div className="card-header">
+            <h2>Today's Routine</h2>
+            <span className="routine-badge">Morning</span>
+          </div>
+
+          <div className="routine-list">
+            {/* Step 1 Completed */}
+            <div className="routine-item item-completed">
+              <div className="check-box checked">
+                <Check size={14} />
               </div>
-              <div className="action-info">
-                <h3>Konsultasi Skincare Specialist</h3>
-                <p>Tanya jawab rutinitas & masalah kulit 24/7 kapan saja</p>
+              <div className="product-thumb-placeholder">🧴</div>
+              <div className="routine-info">
+                <h4 className="line-through">Gentle Cleanser</h4>
+                <p>Step 1</p>
               </div>
-              <div className="action-arrow-wrapper">
-                <ChevronRight className="action-arrow" />
+            </div>
+
+            {/* Step 2 Active */}
+            <div className="routine-item item-active">
+              <div className="check-box active-box" />
+              <div className="product-thumb-placeholder">💧</div>
+              <div className="routine-info">
+                <h4>Hydrating Serum</h4>
+                <p>Step 2</p>
               </div>
-            </Link>
+              <button className="btn-info-icon" title="Product Info">
+                <Info size={18} />
+              </button>
+            </div>
+
+            {/* Step 3 Pending */}
+            <div className="routine-item item-pending">
+              <div className="check-box pending-box" />
+              <div className="product-thumb-placeholder">✨</div>
+              <div className="routine-info">
+                <h4>Daily Moisturizer</h4>
+                <p>Step 3</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Daily Missions Quick-View (5 Cols Desktop) */}
+        <div className="bento-card missions-card">
+          <div className="card-header">
+            <h2>Daily Missions</h2>
+            <Link to="/missions" className="view-all-link">View All</Link>
+          </div>
+
+          <div className="missions-stack">
+            {/* Mission 1 */}
+            <div className="mission-row">
+              <div className="mission-icon-box box-amber">
+                <GlassWater size={18} />
+              </div>
+              <div className="mission-meta">
+                <h4>Drink 8 Glasses of Water</h4>
+                <div className="mission-progress-bar">
+                  <div className="fill-bar" style={{ width: '50%' }} />
+                </div>
+                <span className="mission-count">4/8</span>
+              </div>
+            </div>
+
+            {/* Mission 2 */}
+            <div className="mission-row">
+              <div className="mission-icon-box box-blue">
+                <Moon size={18} />
+              </div>
+              <div className="mission-meta">
+                <h4>Complete Night Routine</h4>
+                <div className="mission-progress-bar">
+                  <div className="fill-bar" style={{ width: '0%' }} />
+                </div>
+                <span className="mission-count">0/1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <style>{`
-        .dashboard-page { width: 100%; }
+        .dashboard-stich { width: 100%; padding-bottom: 40px; }
 
-        .dashboard-header {
-          display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
-          padding: var(--space-lg); border-radius: var(--radius-xl); margin-bottom: var(--space-lg);
-          background: var(--color-surface-2); border: 1px solid var(--color-border);
-          box-shadow: var(--shadow-sm);
-        }
-        .greeting-time { color: var(--color-text-muted); font-size: 0.8125rem; margin-bottom: 2px; font-weight: 500; }
-        .greeting-text h1 { font-size: 1.5rem; margin: 0; color: var(--color-text-primary); }
+        .dashboard-greeting-sec { margin-bottom: var(--space-xl); }
+        .greeting-title { font-size: 2rem; font-weight: 700; color: var(--color-primary); margin: 0 0 4px 0; font-family: var(--font-heading); }
+        .greeting-sub { font-size: 1.125rem; color: var(--color-text-muted); margin: 0; }
 
-        .weather-widget {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: #fef3c7; border: 1px solid rgba(245, 158, 11, 0.3);
-          padding: 5px 12px; border-radius: var(--radius-full);
-          font-size: 0.75rem; color: #d97706; font-weight: 700;
-          white-space: nowrap; flex-shrink: 0;
-        }
-        .icon-amber { color: #f59e0b; flex-shrink: 0; }
-
-        /* Responsive Grid: Desktop (2 Columns, >=900px) vs Mobile (1 Column, <900px) */
-        .dashboard-grid {
+        /* Bento Grid Top */
+        .bento-grid-top {
           display: grid;
           grid-template-columns: 1fr;
           gap: var(--space-lg);
-          width: 100%;
+          margin-bottom: var(--space-xl);
         }
         @media (min-width: 900px) {
-          .dashboard-grid {
-            grid-template-columns: 1fr 1fr;
-            align-items: start;
-            gap: var(--space-xl);
+          .bento-grid-top {
+            grid-template-columns: 8fr 4fr;
           }
         }
 
-        .dashboard-col-left, .dashboard-col-right {
-          display: flex; flex-direction: column; gap: var(--space-lg); width: 100%;
+        .bento-card {
+          background: var(--color-surface-container-lowest);
+          border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl);
+          padding: var(--space-xl);
+          box-shadow: var(--shadow-sky);
         }
 
-        .section-title { font-size: 1.125rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
-
-        /* Membership Banner */
-        .card-banner { padding: var(--space-lg); }
-        .banner-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .badge-pill {
-          font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: var(--radius-full);
-          display: inline-flex; align-items: center; gap: 6px;
+        /* Skin Score Card */
+        .skin-score-card { display: flex; flex-direction: column; justify-content: space-between; }
+        .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-xl); }
+        .meta-label { font-size: 0.875rem; color: var(--color-secondary); font-weight: 600; display: block; margin-bottom: 4px; }
+        .score-flex { display: flex; align-items: baseline; gap: 12px; }
+        .score-val { font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1; font-family: var(--font-heading); }
+        .score-badge {
+          background: var(--color-success-soft); color: var(--color-primary); font-size: 0.8125rem;
+          font-weight: 700; padding: 2px 10px; border-radius: var(--radius-md); border: 1px solid var(--color-secondary-container);
         }
-        .badge-sky { background: var(--color-brand-100); color: var(--color-brand-600); border: 1px solid var(--color-border-sky); }
-        .badge-gold { background: #fef3c7; color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .btn-upgrade-dash { font-size: 0.75rem; padding: 4px 12px; text-decoration: none; gap: 4px; }
 
-        .dash-usage-block { margin-top: 4px; }
-        .dash-usage-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 6px; }
-        .dash-progress-bar { width: 100%; height: 8px; background: var(--color-surface-3); border-radius: 4px; overflow: hidden; }
-        .dash-progress-fill { height: 100%; background: var(--color-brand-600); border-radius: 4px; transition: width 0.5s ease-out; }
+        .gauge-wrapper { position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; }
+        .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .gauge-bg { stroke: var(--color-secondary-container); }
+        .gauge-fill { stroke: var(--color-primary-container); }
+        .gauge-icon { position: absolute; color: var(--color-primary-container); }
 
-        /* Alert & Skin Profile Cards */
-        .alert-card {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: var(--space-lg); border-color: var(--color-border-sky);
-          background: #f0f9ff; gap: 12px;
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
+        .metric-box {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          padding: var(--space-md); background: var(--color-surface-bg); border-radius: var(--radius-lg);
         }
-        .alert-content h3 { font-size: 0.9375rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-        .alert-content p { font-size: 0.75rem; color: var(--color-text-secondary); margin: 0; }
-        .text-sky { color: var(--color-brand-600); flex-shrink: 0; }
+        .mini-ring { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+        .ring-percent { font-size: 0.9375rem; font-weight: 700; font-family: var(--font-heading); }
+        .ring-label { font-size: 0.6875rem; color: var(--color-text-muted); font-weight: 700; letter-spacing: 0.05em; margin-top: 4px; }
+        .text-sky { color: var(--color-primary); }
+        .text-sky-dark { color: var(--color-primary-container); }
+        .text-amber { color: var(--color-tertiary-container); }
 
-        .skin-summary-card { padding: var(--space-lg); }
-        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .summary-header h3 { font-size: 0.9375rem; margin: 0; display: flex; align-items: center; gap: 8px; }
-        .edit-link { font-size: 0.75rem; color: var(--color-brand-600); text-decoration: none; font-weight: 600; }
+        /* Quick Scan Stack */
+        .quick-scan-stack { display: flex; flex-direction: column; gap: var(--space-md); }
+        .scan-btn-card {
+          display: flex; align-items: center; gap: 16px; padding: var(--space-lg);
+          cursor: pointer; text-align: left; transition: all 0.2s ease; width: 100%;
+        }
+        .scan-btn-card:hover { transform: translateY(-2px); border-color: var(--color-primary-container); }
+        .scan-icon-circle {
+          width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .icon-bg-sky { background: var(--color-secondary-fixed); color: var(--color-primary); }
+        .icon-bg-amber { background: var(--color-tertiary-fixed); color: var(--color-tertiary); }
+        .scan-text { flex: 1; }
+        .scan-text h3 { font-size: 1.125rem; margin: 0 0 2px 0; }
+        .scan-text p { font-size: 0.75rem; color: var(--color-text-muted); margin: 0; }
+        .scan-arrow { color: var(--color-secondary); transition: color 0.2s; }
+        .scan-btn-card:hover .scan-arrow { color: var(--color-primary-container); }
+
+        /* Bento Grid Bottom */
+        .bento-grid-bottom {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: var(--space-lg);
+        }
+        @media (min-width: 900px) {
+          .bento-grid-bottom {
+            grid-template-columns: 7fr 5fr;
+          }
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg); }
+        .card-header h2 { font-size: 1.25rem; margin: 0; }
+        .routine-badge {
+          background: var(--color-secondary-fixed); color: var(--color-primary); font-size: 0.75rem;
+          font-weight: 700; padding: 4px 12px; border-radius: var(--radius-md);
+        }
+        .view-all-link { font-size: 0.8125rem; font-weight: 700; color: var(--color-primary); text-decoration: none; }
+
+        .routine-list { display: flex; flex-direction: column; gap: 12px; }
+        .routine-item {
+          display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-lg);
+          border: 1px solid var(--color-secondary-container); background: var(--color-surface-container-lowest);
+        }
+        .item-completed { opacity: 0.7; background: var(--color-surface-bg); border-color: rgba(0,0,0,0.05); }
+        .item-active { border-color: var(--color-primary-container); box-shadow: var(--shadow-sky); }
         
-        .summary-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-        .tag { padding: 4px 12px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700; }
-        .type-tag { background: var(--color-brand-600); color: white; }
-        .concern-tag { background: var(--color-brand-100); border: 1px solid var(--color-border-sky); color: var(--color-brand-700); }
-
-        /* Action Cards */
-        .quick-actions { display: flex; flex-direction: column; gap: 12px; }
-        .action-card {
-          padding: var(--space-md) var(--space-lg); display: flex; align-items: center; gap: var(--space-md);
-          text-decoration: none; transition: all 0.2s ease; position: relative;
-          background: var(--color-surface-2); border: 1px solid var(--color-border);
+        .check-box {
+          width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--color-outline-variant);
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        .action-card:hover { transform: translateY(-2px); border-color: var(--color-brand-400); box-shadow: var(--shadow-md); }
-        
-        .action-icon {
-          width: 44px; height: 44px; border-radius: var(--radius-lg);
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: white;
-        }
-        .icon-bg-sky { background: #0284c7; }
-        .icon-bg-cyan { background: #0ea5e9; }
-        .icon-bg-blue { background: #0284c7; }
+        .check-box.checked { background: var(--color-primary-container); border-color: transparent; color: white; }
+        .check-box.active-box { border-color: var(--color-primary-container); }
 
-        .action-info { flex: 1; min-width: 0; }
-        .action-info h3 { font-size: 0.9375rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .action-info p { font-size: 0.75rem; color: var(--color-text-secondary); margin: 0; line-height: 1.4; }
-        
-        .action-arrow-wrapper {
-          width: 32px; height: 32px; border-radius: 50%; background: var(--color-surface-1);
-          display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;
+        .product-thumb-placeholder {
+          width: 48px; height: 48px; border-radius: var(--radius-md); background: var(--color-surface-container-low);
+          display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid var(--color-secondary-container);
         }
-        .action-card:hover .action-arrow-wrapper { background: var(--color-brand-100); }
-        .action-arrow { color: var(--color-brand-600); }
+        .routine-info { flex: 1; }
+        .routine-info h4 { font-size: 0.9375rem; margin: 0 0 2px 0; }
+        .routine-info p { font-size: 0.75rem; color: var(--color-text-muted); margin: 0; }
+        .line-through { text-decoration: line-through; color: var(--color-text-muted); }
+        .btn-info-icon { background: transparent; border: none; color: var(--color-primary-container); cursor: pointer; padding: 4px; }
 
-        /* Tips & Mission Teaser */
-        .tips-card { padding: var(--space-lg); background: #f0f9ff; border-color: var(--color-border-sky); }
-        .tips-title { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-        .tips-title h3 { font-size: 0.875rem; color: var(--color-brand-700); margin: 0; }
-        .tips-card p { font-size: 0.8125rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
-
-        .mission-teaser-card {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: var(--space-md) var(--space-lg); gap: 12px;
+        .missions-stack { display: flex; flex-direction: column; gap: 12px; }
+        .mission-row { display: flex; items-center; gap: 12px; padding: 12px; background: var(--color-surface-bg); border-radius: var(--radius-lg); }
+        .mission-icon-box {
+          width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        .teaser-left { display: flex; align-items: center; gap: 12px; }
-        .teaser-left h4 { font-size: 0.875rem; margin: 0 0 2px 0; }
-        .teaser-left p { font-size: 0.75rem; color: var(--color-text-muted); margin: 0; }
+        .box-amber { background: var(--color-tertiary-fixed); color: var(--color-tertiary); }
+        .box-blue { background: var(--color-secondary-fixed); color: var(--color-primary); }
+
+        .mission-meta { flex: 1; }
+        .mission-meta h4 { font-size: 0.875rem; margin: 0 0 6px 0; }
+        .mission-progress-bar { width: 100%; height: 6px; background: var(--color-surface-container-high); border-radius: 3px; overflow: hidden; }
+        .fill-bar { height: 100%; background: var(--color-primary-container); border-radius: 3px; }
+        .mission-count { font-size: 0.75rem; color: var(--color-text-muted); text-align: right; display: block; margin-top: 2px; }
       `}</style>
     </div>
   )

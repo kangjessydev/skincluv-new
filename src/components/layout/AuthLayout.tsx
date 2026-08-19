@@ -1,15 +1,12 @@
 import { Outlet } from 'react-router-dom'
 
 /**
- * Auth layout — wraps login/register pages with a full-page
- * gradient background and centered card.
+ * Auth layout — wraps login/register pages with a clean
+ * solid background and centered pure white card.
  */
 export default function AuthLayout() {
   return (
     <div className="auth-layout">
-      <div className="auth-bg-glow" />
-      <div className="auth-bg-glow auth-bg-glow--2" />
-
       <div className="auth-container">
         {/* Logo / Brand */}
         <div className="auth-brand animate-fade-in">
@@ -17,11 +14,11 @@ export default function AuthLayout() {
             <span>✦</span>
           </div>
           <h1 className="auth-brand-name gradient-text">Skincluv</h1>
-          <p className="auth-brand-tagline">Your AI-powered skin care companion</p>
+          <p className="auth-brand-tagline">Asisten Kesehatan & Perawatan Kulitmu</p>
         </div>
 
         {/* Page content (login/register form) */}
-        <div className="auth-card glass-card animate-slide-up">
+        <div className="auth-card glass-card animate-fade-in">
           <Outlet />
         </div>
       </div>
@@ -32,29 +29,9 @@ export default function AuthLayout() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--gradient-dark);
+          background: var(--color-surface-1);
           padding: var(--space-md);
           position: relative;
-          overflow: hidden;
-        }
-
-        .auth-bg-glow {
-          position: absolute;
-          width: 500px;
-          height: 500px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(107, 33, 168, 0.35) 0%, transparent 70%);
-          top: -200px;
-          left: -150px;
-          pointer-events: none;
-        }
-
-        .auth-bg-glow--2 {
-          background: radial-gradient(circle, rgba(244, 63, 143, 0.25) 0%, transparent 70%);
-          top: auto;
-          bottom: -200px;
-          left: auto;
-          right: -150px;
         }
 
         .auth-container {
@@ -72,31 +49,38 @@ export default function AuthLayout() {
         }
 
         .auth-logo {
-          width: 64px;
-          height: 64px;
-          background: var(--gradient-brand);
+          width: 56px;
+          height: 56px;
+          background: var(--color-brand-600);
           border-radius: var(--radius-lg);
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto var(--space-md);
-          font-size: 28px;
-          box-shadow: var(--shadow-glow);
-          animation: float 3s ease-in-out infinite;
+          font-size: 24px;
+          color: white;
+          box-shadow: var(--shadow-accent);
         }
 
         .auth-brand-name {
           font-size: 2rem;
           margin-bottom: var(--space-xs);
+          color: var(--color-text-primary);
+          font-family: var(--font-heading);
         }
 
         .auth-brand-tagline {
-          color: var(--color-text-muted);
+          color: var(--color-text-secondary);
           font-size: 0.875rem;
+          font-family: var(--font-body);
         }
 
         .auth-card {
           padding: var(--space-xl);
+          background: var(--color-surface-2);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-md);
         }
       `}</style>
     </div>

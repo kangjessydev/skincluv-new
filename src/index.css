@@ -1,99 +1,94 @@
 /* ============================================================
-   Skincluv — Global Design System
+   Skincluv — Master Design System (Stich 2-Column Shell)
    
-   Theme: Fresh Sky Blue & Pure White (Clinical Beauty & Hydration)
-   Typography: Inter (Google Fonts)
-   Approach: Dual Layout Shell (Desktop Left Sidebar + Mobile Bottom Nav)
+   Theme: Sky Blue & Atmospheric Ambient Glow (Airy Glassmorphism)
+   Typography: Quicksand (Google Fonts)
+   Architecture: Rigid 2-Column Shell (Collapsible Rail Sidebar 256px/72px + Content Area)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&display=swap');
 
-/* ---- CSS Variables ---- */
+/* ---- CSS Variables & Stich Design Tokens ---- */
 :root {
-  /* Fresh Sky Blue & Ocean Water Brand Palette */
-  --color-brand-900: #0c4a6e;
-  --color-brand-800: #075985;
-  --color-brand-700: #0369a1;
-  --color-brand-600: #0284c7;  /* Primary Sky Blue */
-  --color-brand-500: #0ea5e9;
-  --color-brand-400: #38bdf8;
-  --color-brand-300: #7dd3fc;
-  --color-brand-200: #bae6fd;
-  --color-brand-100: #e0f2fe;  /* Soft Sky Blue Tint */
-  --color-brand-50:  #f0f9ff;
+  /* Typography Family — Quicksand Airy Aesthetics */
+  --font-heading: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body:    'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Accent — Soft Coral Rose for highlight tags */
-  --color-accent-500: #f43f5e;
-  --color-accent-100: #ffe4e6;
+  /* Stich Primary Palette (Sky Blue) */
+  --color-primary:               #006591;
+  --color-on-primary:            #ffffff;
+  --color-primary-container:     #0ea5e9;
+  --color-on-primary-container:  #003751;
+  --color-primary-fixed:         #c9e6ff;
+  --color-primary-fixed-dim:     #89ceff;
 
-  /* Gold — Warm Honey Amber */
-  --color-gold-500: #f59e0b;
-  --color-gold-400: #fbbf24;
-  --color-gold-100: #fef3c7;
+  /* Stich Secondary Palette (Pale Azure) */
+  --color-secondary:             #50616b;
+  --color-on-secondary:          #ffffff;
+  --color-secondary-container:   #d3e5f1;
+  --color-on-secondary-container:#566771;
+  --color-secondary-fixed:       #d3e5f1;
+  --color-secondary-fixed-dim:   #b7c9d5;
 
-  /* Clean Neutrals & Solid Surfaces */
-  --color-surface-1: #f8fafc;      /* Fresh Slate Vanilla Milk Background */
-  --color-surface-2: #ffffff;      /* Pure White Solid Card */
-  --color-surface-3: #f1f5f9;      /* Subtle Neutral Accent */
-  --color-surface-card: #ffffff;   /* Pure White Solid Card */
-  --color-surface-glass: #ffffff;  /* Clean White */
+  /* Stich Tertiary Palette (Honey Amber Gold) */
+  --color-tertiary:              #8a5100;
+  --color-on-tertiary:           #ffffff;
+  --color-tertiary-container:    #de8712;
+  --color-on-tertiary-container: #4d2b00;
+  --color-tertiary-fixed:        #ffdcbd;
 
-  --color-text-primary:   #0f172a;  /* Deep Slate Navy — Ultra Crisp & High Contrast */
-  --color-text-secondary: #475569;  /* Elegant Slate Gray */
-  --color-text-muted:     #94a3b8;  /* Soft Slate Muted */
-  --color-text-on-accent: #ffffff;
+  /* Neutrals & Surfaces */
+  --color-surface-bg:               #F8FAFC;
+  --color-surface:                  #f6faff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low:    #f0f4fa;
+  --color-surface-container:        #eaeef4;
+  --color-surface-container-high:   #e4e8ee;
+  
+  /* Text & Outline Tokens */
+  --color-text-main:       #0F172A;
+  --color-text-muted:      #64748B;
+  --color-on-surface:      #171c20;
+  --color-on-surface-variant:#3e4850;
+  --color-outline:         #6e7881;
+  --color-outline-variant: #bec8d2;
 
-  --color-border:         #e2e8f0;  /* Crisp Light Border */
-  --color-border-sky:     #bae6fd;  /* Sky Tint Border */
-  --color-border-strong:  #cbd5e1;
+  /* Accents & Status */
+  --color-accent-rose:   #FFF1F2;
+  --color-success-soft:  #F0FDF4;
+  --color-success:       #10b981;
+  --color-warning:       #de8712;
+  --color-error:         #ba1a1a;
 
-  /* Status colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error:   #ef4444;
-  --color-info:    #0284c7;
-
-  /* NO GRADIENTS — Clean Solid Palette */
-  --gradient-brand:    #0284c7;
-  --gradient-dark:     #f8fafc;
-  --gradient-card:     #ffffff;
-  --gradient-glow:     transparent;
-
-  /* Spacing */
-  --space-xs:  4px;
-  --space-sm:  8px;
+  /* Spacing Scale */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs:  8px;
+  --space-sm:  12px;
   --space-md:  16px;
   --space-lg:  24px;
   --space-xl:  32px;
   --space-2xl: 48px;
   --space-3xl: 64px;
 
-  /* Border radius — Crisp & Clean Rounded */
-  --radius-sm:   8px;
-  --radius-md:   12px;
-  --radius-lg:   16px;
-  --radius-xl:   20px;
+  /* Border Radius Tokens */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  24px;
   --radius-full: 9999px;
 
-  /* Shadows — Soft Clean Elevation */
-  --shadow-sm:    0 2px 8px rgba(15, 23, 42, 0.04);
-  --shadow-md:    0 4px 16px rgba(15, 23, 42, 0.06);
+  /* Elevation & Shadow System */
+  --shadow-sm:    0 2px 8px rgba(14, 165, 233, 0.04);
+  --shadow-md:    0 4px 16px rgba(14, 165, 233, 0.06);
+  --shadow-sky:   0 10px 15px -3px rgba(14, 165, 233, 0.08);
   --shadow-lg:    0 8px 30px rgba(15, 23, 42, 0.08);
-  --shadow-glow:  none;
-  --shadow-accent: 0 4px 14px rgba(2, 132, 199, 0.2);
 
-  /* Transitions */
-  --transition-fast:   150ms ease;
-  --transition-base:   250ms ease;
-  --transition-slow:   400ms ease;
-
-  /* Safe area for mobile */
-  --safe-top:    env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-
-  /* Nav height */
-  --nav-height: 68px;
-  --sidebar-width: 260px;
+  /* Layout Dimensions */
+  --nav-height: 64px;
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 72px;
 }
 
 /* ---- Reset & Base ---- */
@@ -110,13 +105,15 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--color-surface-1);
-  color: var(--color-text-primary);
-  line-height: 1.5;
+  font-family: var(--font-body);
+  background: var(--color-surface-bg);
+  color: var(--color-text-main);
+  line-height: 1.6;
   min-height: 100dvh;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
 }
 
 #root {
@@ -125,39 +122,76 @@ body {
   flex-direction: column;
 }
 
-/* ---- Typography ---- */
-h1 { font-size: 1.875rem; font-weight: 800; line-height: 1.25; color: var(--color-text-primary); letter-spacing: -0.5px; }
-h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; color: var(--color-text-primary); letter-spacing: -0.3px; }
-h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; color: var(--color-text-primary); }
-h4 { font-size: 0.9375rem; font-weight: 600; color: var(--color-text-primary); }
+/* ---- Atmospheric Ambient Glow Orbs ---- */
+.ambient-orb-1 {
+  position: fixed;
+  top: -120px;
+  left: -100px;
+  width: 550px;
+  height: 550px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.09) 0%, rgba(14, 165, 233, 0.02) 50%, transparent 70%);
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
 
-p { line-height: 1.6; color: var(--color-text-secondary); }
+.ambient-orb-2 {
+  position: fixed;
+  bottom: -150px;
+  right: -100px;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 101, 145, 0.07) 0%, rgba(211, 229, 241, 0.03) 50%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- Typography Scale (Quicksand 100%) ---- */
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-heading);
+  color: var(--color-text-main);
+}
+
+h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 600; line-height: 1.3; }
+h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+h4 { font-size: 1.00rem; font-weight: 600; line-height: 1.5; }
+
+p, span, div, input, button, select, textarea, .font-body {
+  font-family: var(--font-body);
+}
+
+p { line-height: 1.6; color: var(--color-text-muted); font-size: 1rem; }
 
 a {
-  color: var(--color-brand-600);
+  color: var(--color-primary);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: all 0.2s ease;
 }
-a:hover { color: var(--color-brand-700); }
+a:hover { color: var(--color-primary-container); }
 
 /* ---- Scrollbar ---- */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb { background: var(--color-outline-variant); border-radius: var(--radius-full); }
 
 /* ---- Utility Classes ---- */
 
-/* Solid Clean Card */
+/* Stich Solid Surface Card */
 .glass-card {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-secondary-container);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sky);
 }
 
-/* Solid Brand Text */
 .gradient-text {
-  color: var(--color-brand-600);
+  color: var(--color-primary);
+  font-family: var(--font-heading);
+  font-weight: 700;
 }
 
 /* ---- Buttons ---- */
@@ -165,15 +199,15 @@ a:hover { color: var(--color-brand-700); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   padding: 10px 20px;
-  font-family: inherit;
+  font-family: var(--font-heading);
   font-size: 0.875rem;
   font-weight: 600;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   border: none;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
   user-select: none;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
@@ -186,45 +220,43 @@ a:hover { color: var(--color-brand-700); }
 }
 
 .btn-primary {
-  background: var(--color-brand-600);
-  color: white;
-  box-shadow: var(--shadow-accent);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-sm);
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-brand-700);
+  opacity: 0.92;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .btn-secondary {
-  background: var(--color-brand-100);
-  color: var(--color-brand-700);
-  border: 1px solid var(--color-brand-200);
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
 }
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-brand-200);
+  background: var(--color-surface-container-high);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--color-brand-600);
-  border: 1px solid var(--color-brand-200);
+  color: var(--color-primary);
+  border: 1px solid var(--color-secondary-container);
 }
 .btn-outline:hover:not(:disabled) {
-  background: var(--color-brand-50);
-  border-color: var(--color-brand-400);
+  background: var(--color-surface-container-low);
+  border-color: var(--color-primary);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-secondary);
 }
 .btn-ghost:hover:not(:disabled) {
-  background: var(--color-surface-3);
-  color: var(--color-text-primary);
+  background: var(--color-surface-container-low);
+  color: var(--color-primary);
 }
 
 .btn-sm {
@@ -245,27 +277,27 @@ a:hover { color: var(--color-brand-700); }
 .input {
   width: 100%;
   padding: 12px 16px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-primary);
-  font-family: inherit;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-secondary-container);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-main);
+  font-family: var(--font-body);
   font-size: 0.875rem;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 .input::placeholder {
   color: var(--color-text-muted);
 }
 .input:focus {
   outline: none;
-  border-color: var(--color-brand-400);
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
 }
 
 /* ---- Responsive Containers ---- */
 .container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 0 var(--space-md);
 }

@@ -1,35 +1,59 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
-import { Sparkles, Scan, MessageCircle, Target, User, Coins } from 'lucide-react'
+import { useState } from 'react'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Sparkles, Scan, MessageCircle, Target, User, Bell, Camera, PanelLeftClose, PanelLeftOpen, Crown } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 const navItems = [
-  { to: '/',                icon: Sparkles,       label: 'Home' },
-  { to: '/face-scan',       icon: Scan,           label: 'Analisis Wajah' },
-  { to: '/ingredient-scan', icon: Scan,           label: 'Cek Komposisi' },
-  { to: '/chatbot',         icon: MessageCircle,  label: 'Konsultasi Chat' },
-  { to: '/missions',        icon: Target,         label: 'Misi & Hadiah' },
-  { to: '/profile',         icon: User,           label: 'Profil Saya' },
+  { to: '/',                icon: Sparkles,       label: 'Beranda' },
+  { to: '/face-scan',       icon: Scan,           label: 'Scan Wajah' },
+  { to: '/ingredient-scan', icon: Scan,           label: 'Scan Ingredient' },
+  { to: '/chatbot',         icon: MessageCircle,  label: 'Chatbot' },
+  { to: '/missions',        icon: Target,         label: 'Missions' },
+  { to: '/profile',         icon: User,           label: 'Profile' },
 ]
 
 export default function AppLayout() {
-  const { coinBalance, profile } = useAuthStore()
+  const { coinBalance, profile, subscription } = useAuthStore()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const isPro = subscription?.status === 'active'
+  const userName = profile?.full_name?.split(' ')[0] || 'Sarah'
+
+  const getPageTitle = () => {
+    const path = location.pathname
+    if (path === '/') return 'Beranda'
+    if (path.startsWith('/face-scan')) return 'Scan Wajah'
+    if (path.startsWith('/ingredient-scan')) return 'Scan Ingredient'
+    if (path.startsWith('/chatbot')) return 'Chatbot'
+    if (path.startsWith('/missions')) return 'Missions'
+    if (path.startsWith('/profile')) return 'Profile'
+    if (path.startsWith('/pricing')) return 'Toko Langganan'
+    if (path.startsWith('/coin-history')) return 'Riwayat Koin'
+    if (path.startsWith('/transactions')) return 'Riwayat Tagihan'
+    if (path.startsWith('/checkout')) return 'Pembayaran'
+    return 'Skincluv'
+  }
 
   return (
-    <div className="app-shell">
-      {/* ============================================================ */}
-      {/* 1. DESKTOP LEFT SIDEBAR NAVIGATION (>= 769px)               */}
-      {/* ============================================================ */}
-      <aside className="desktop-sidebar">
-        {/* Brand Header */}
-        <NavLink to="/" className="sidebar-brand">
-          <span className="brand-icon">✦</span>
-          <span className="brand-name">Skincluv</span>
-        </NavLink>
+    <div className={`app-shell-stich ${isCollapsed ? 'sidebar-is-collapsed' : 'sidebar-is-expanded'}`}>
+      {/* Ambient Atmospheric Glow Orbs */}
+      <div className="ambient-orb-1" />
+      <div className="ambient-orb-2" />
 
-        {/* Navigation Links */}
-        <nav className="sidebar-nav">
-          <span className="sidebar-nav-title">Menu Utama</span>
+      {/* ============================================================ */}
+      {/* 1. DESKTOP COLLAPSIBLE LEFT SIDEBAR (COLUMN 1)               */}
+      {/* ============================================================ */}
+      <aside className="stich-sidebar-desktop">
+        <div className="sidebar-header-clean">
+          <NavLink to="/" className="sidebar-brand-left">
+            <span className="brand-star">✦</span>
+            {!isCollapsed && <span className="brand-title-text">Skincluv</span>}
+          </NavLink>
+        </div>
+
+        <nav className="sidebar-menu">
           {navItems.map(({ to, icon: Icon, label }) => {
             const isActive = to === '/'
               ? location.pathname === '/'
@@ -38,256 +62,528 @@ export default function AppLayout() {
               <NavLink
                 key={to}
                 to={to}
-                className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                className={`sidebar-link ${isActive ? 'active' : ''}`}
               >
-                <Icon size={18} className="sidebar-item-icon" />
-                <span>{label}</span>
+                <Icon size={20} className="link-icon" />
+                {!isCollapsed && <span className="link-label">{label}</span>}
+                
+                {isCollapsed && (
+                  <div className="collapsed-tooltip">
+                    {label}
+                  </div>
+                )}
               </NavLink>
             )
           })}
         </nav>
-
-        {/* Sidebar Footer — User & Coins */}
-        <div className="sidebar-footer">
-          <NavLink to="/coin-history" className="sidebar-coin-card">
-            <Coins size={20} className="icon-gold" />
-            <div className="coin-meta">
-              <span className="label">Koin Darurat</span>
-              <strong className="amount">{coinBalance?.balance ?? 0} Koin</strong>
-            </div>
-          </NavLink>
-
-          <NavLink to="/profile" className="sidebar-user-card">
-            <div className="avatar-circle">
-              <User size={16} />
-            </div>
-            <div className="user-meta">
-              <span className="name">{profile?.full_name || 'Pelanggan Skincluv'}</span>
-              <span className="role">Akun Saya</span>
-            </div>
-          </NavLink>
-        </div>
       </aside>
 
       {/* ============================================================ */}
-      {/* 2. MOBILE TOP HEADER (<= 768px)                               */}
+      {/* 2. CONTENT AREA (COLUMN 2: TOP BAR + MAIN CANVAS)            */}
       {/* ============================================================ */}
-      <header className="mobile-header">
-        <div className="mobile-header-inner container">
-          <NavLink to="/" className="mobile-brand">
-            <span className="brand-icon">✦</span>
-            <span className="brand-name">Skincluv</span>
+      <div className="stich-content-area">
+        {/* Sticky Top Bar (Pinned 100%, never scrolls out of view!) */}
+        <header className="stich-top-header">
+          <div className="header-inner">
+            <div className="page-title-group">
+              <button
+                className="topbar-toggle-btn"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                title={isCollapsed ? "Perluas Sidebar" : "Ciutkan Sidebar"}
+              >
+                {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+              </button>
+              <h1 className="header-active-page-title">{getPageTitle()}</h1>
+            </div>
+
+            <div className="header-actions">
+              {/* AI Luxury "Upgrade PRO" Badge (Only visible when user is NOT PRO) */}
+              {!isPro && (
+                <button
+                  className="topbar-pro-badge"
+                  onClick={() => navigate('/pricing')}
+                  title="Upgrade ke Skincluv PRO"
+                >
+                  <Sparkles size={14} className="pro-sparkle-icon" />
+                  <Crown size={14} className="pro-crown-icon" />
+                  <span>Upgrade PRO</span>
+                </button>
+              )}
+
+              {/* Coin Balance Badge */}
+              <NavLink to="/coin-history" className="header-coin-badge" title="Riwayat Koin">
+                <span className="coin-icon">🪙</span>
+                <span className="coin-val">{coinBalance?.balance ?? 1250}</span>
+              </NavLink>
+
+              <button className="header-icon-btn" title="Notifikasi">
+                <Bell size={18} />
+              </button>
+
+              <NavLink to="/profile" className="header-profile-pill">
+                <div className="profile-avatar">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <span className="profile-name-desktop">{userName}</span>
+              </NavLink>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Viewport Canvas (Scrolls internally ONLY if content overflows) */}
+        <main className={`stich-main-canvas ${location.pathname.startsWith('/chatbot') ? 'is-chatbot-canvas' : ''}`}>
+          <div className="main-container">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 3. FLOATING BOTTOM NAVBAR (Mobile <= 768px)                   */}
+      {/* ============================================================ */}
+      <nav className="stich-floating-bottom-nav">
+        <div className="floating-nav-inner">
+          <NavLink to="/" className={`floating-nav-item ${location.pathname === '/' ? 'active' : ''}`}>
+            <Sparkles size={20} />
+            <span className="nav-text">Beranda</span>
           </NavLink>
 
-          <div className="mobile-actions">
-            <NavLink to="/coin-history" className="mobile-coin-badge">
-              <span className="coin-icon">🪙</span>
-              <span className="coin-amount">{coinBalance?.balance ?? 0}</span>
-            </NavLink>
+          <NavLink to="/chatbot" className={`floating-nav-item ${location.pathname.startsWith('/chatbot') ? 'active' : ''}`}>
+            <MessageCircle size={20} />
+            <span className="nav-text">Chatbot</span>
+          </NavLink>
 
-            <NavLink to="/profile" className="mobile-profile-btn">
-              <User size={18} />
-            </NavLink>
+          <div className="floating-center-action">
+            <button
+              className="center-camera-btn"
+              onClick={() => navigate('/face-scan')}
+              title="Quick Face Scan"
+            >
+              <Camera size={26} />
+            </button>
           </div>
-        </div>
-      </header>
 
-      {/* ============================================================ */}
-      {/* 3. MAIN CONTENT VIEWPORT AREA                                */}
-      {/* ============================================================ */}
-      <main className="app-main-viewport">
-        <div className="main-content-container container">
-          <Outlet />
-        </div>
-      </main>
+          <NavLink to="/missions" className={`floating-nav-item ${location.pathname.startsWith('/missions') ? 'active' : ''}`}>
+            <Target size={20} />
+            <span className="nav-text">Missions</span>
+          </NavLink>
 
-      {/* ============================================================ */}
-      {/* 4. MOBILE BOTTOM NAVIGATION BAR (<= 768px)                    */}
-      {/* ============================================================ */}
-      <nav className="mobile-bottom-nav">
-        <div className="bottom-nav-inner">
-          {navItems.map(({ to, icon: Icon, label }) => {
-            const isActive = to === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(to)
-            return (
-              <NavLink
-                key={to}
-                to={to}
-                className={`mobile-nav-item ${isActive ? 'active' : ''}`}
-              >
-                <div className="mobile-nav-icon">
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-                  {isActive && <div className="active-dot" />}
-                </div>
-                <span className="mobile-nav-label">
-                  {label === 'Analisis Wajah' ? 'Wajah' : label === 'Cek Komposisi' ? 'Bahan' : label === 'Konsultasi Chat' ? 'Chat' : label === 'Misi & Hadiah' ? 'Misi' : label === 'Profil Saya' ? 'Profil' : 'Home'}
-                </span>
-              </NavLink>
-            )
-          })}
+          <NavLink to="/profile" className={`floating-nav-item ${location.pathname.startsWith('/profile') ? 'active' : ''}`}>
+            <User size={20} />
+            <span className="nav-text">Profile</span>
+          </NavLink>
         </div>
       </nav>
 
       <style>{`
-        .app-shell {
-          min-height: 100dvh;
+        .app-shell-stich {
+          height: 100dvh;
+          width: 100vw;
           display: flex;
-          width: 100%;
-          background: var(--color-surface-1);
+          background: var(--color-surface-bg);
+          font-family: var(--font-body);
+          position: relative;
+          overflow: hidden; /* Prevents phantom body scrolling! */
         }
 
         /* -------------------------------------------------------------
-           DESKTOP SIDEBAR STYLES (>= 769px)
+           1. DESKTOP SIDEBAR STYLES (COLUMN 1)
            ------------------------------------------------------------- */
         @media (min-width: 769px) {
-          .desktop-sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: sticky;
+          .stich-sidebar-desktop {
+            position: fixed;
+            left: 0;
             top: 0;
-            background: var(--color-surface-2);
-            border-right: 1px solid var(--color-border);
+            height: 100vh;
+            background: var(--color-surface-container-lowest);
+            border-right: 1px solid var(--color-secondary-container);
             display: flex;
             flex-direction: column;
-            padding: var(--space-xl) var(--space-md) var(--space-lg) var(--space-md);
-            z-index: 100;
-            flex-shrink: 0;
+            padding: var(--space-md) var(--space-xs);
+            z-index: 40;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
           }
-          .mobile-header, .mobile-bottom-nav {
-            display: none !important;
+          .sidebar-is-expanded .stich-sidebar-desktop {
+            width: var(--sidebar-width);
           }
-          .app-main-viewport {
-            flex: 1;
-            min-width: 0;
-            padding-top: var(--space-xl);
-            padding-bottom: 60px;
+          .sidebar-is-collapsed .stich-sidebar-desktop {
+            width: var(--sidebar-collapsed-width);
+            align-items: center;
+          }
+        }
+        @media (max-width: 768px) {
+          .stich-sidebar-desktop { display: none !important; }
+        }
+
+        .sidebar-header-clean {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          padding: 0 var(--space-xs) var(--space-md) var(--space-xs);
+          border-bottom: 1px solid var(--color-secondary-container);
+          margin-bottom: var(--space-md);
+          height: 48px;
+          width: 100%;
+        }
+        .sidebar-brand-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-decoration: none;
+        }
+        .brand-star {
+          font-size: 24px;
+          color: var(--color-primary);
+          line-height: 1;
+        }
+        .brand-title-text {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--color-primary);
+          font-family: var(--font-heading);
+          letter-spacing: -0.02em;
+        }
+
+        .sidebar-menu {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          flex: 1;
+          width: 100%;
+        }
+
+        .sidebar-link {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          border-radius: var(--radius-lg);
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--color-secondary);
+          text-decoration: none;
+          transition: all 0.2s ease;
+          position: relative;
+        }
+        .sidebar-is-collapsed .sidebar-link {
+          justify-content: center;
+          padding: 12px 0;
+        }
+        .sidebar-link:hover {
+          background: var(--color-surface-container-low);
+          color: var(--color-primary);
+        }
+        .sidebar-link.active {
+          background: var(--color-primary);
+          color: var(--color-on-primary);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .collapsed-tooltip {
+          position: absolute;
+          left: calc(100% + 12px);
+          top: 50%;
+          transform: translateY(-50%);
+          background: var(--color-text-main);
+          color: white;
+          padding: 6px 12px;
+          border-radius: var(--radius-md);
+          font-size: 0.75rem;
+          font-weight: 700;
+          white-space: nowrap;
+          box-shadow: var(--shadow-lg);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+          z-index: 100;
+        }
+        .sidebar-link:hover .collapsed-tooltip {
+          opacity: 1;
+        }
+
+        /* -------------------------------------------------------------
+           2. CONTENT AREA STYLES (COLUMN 2: TOP BAR + CANVAS)
+           ------------------------------------------------------------- */
+        .stich-content-area {
+          flex: 1;
+          min-width: 0;
+          height: 100dvh;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          z-index: 1;
+          overflow: hidden; /* TopBar never scrolls offscreen! */
+          transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @media (min-width: 769px) {
+          .sidebar-is-expanded .stich-content-area {
+            margin-left: var(--sidebar-width);
+          }
+          .sidebar-is-collapsed .stich-content-area {
+            margin-left: var(--sidebar-collapsed-width);
           }
         }
 
-        .sidebar-brand {
+        .stich-top-header {
+          flex-shrink: 0;
+          height: var(--nav-height);
+          z-index: 30;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--color-secondary-container);
+        }
+
+        .header-inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 100%;
+          padding: 0 var(--space-lg);
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+        }
+
+        .page-title-group {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .topbar-toggle-btn {
+          background: transparent;
+          border: none;
+          color: var(--color-secondary);
+          cursor: pointer;
+          padding: 6px;
+          border-radius: var(--radius-md);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .topbar-toggle-btn:hover {
+          color: var(--color-primary);
+          background: var(--color-surface-container-low);
+        }
+
+        .header-active-page-title {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--color-primary);
+          font-family: var(--font-heading);
+          margin: 0;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        /* AI Luxury Upgrade PRO Badge */
+        .topbar-pro-badge {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 12px;
+          background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(245, 158, 11, 0.08));
+          border: 1px solid rgba(245, 158, 11, 0.38);
+          border-radius: var(--radius-full);
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: #b45309;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+        }
+        .topbar-pro-badge:hover {
+          background: linear-gradient(135deg, rgba(251, 191, 36, 0.24), rgba(245, 158, 11, 0.16));
+          border-color: rgba(245, 158, 11, 0.65);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22);
+        }
+        .pro-sparkle-icon {
+          color: #f59e0b;
+          animation: sparkleSpin 3.5s linear infinite;
+        }
+        .pro-crown-icon {
+          color: #d97706;
+        }
+        @keyframes sparkleSpin {
+          0% { transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.15) rotate(180deg); }
+          100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .header-coin-badge {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          background: rgba(212, 229, 241, 0.5);
+          border-radius: var(--radius-md);
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: var(--color-text-main);
+          text-decoration: none;
+        }
+
+        .header-icon-btn {
+          background: transparent;
+          border: none;
+          color: var(--color-secondary);
+          cursor: pointer;
+          padding: 6px;
+          border-radius: var(--radius-md);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .header-icon-btn:hover { color: var(--color-primary); }
+
+        .header-profile-pill {
           display: flex;
           align-items: center;
           gap: 8px;
           text-decoration: none;
-          padding: 0 var(--space-sm) var(--space-lg) var(--space-sm);
-          border-bottom: 1px solid var(--color-border);
-          margin-bottom: var(--space-lg);
+          padding-left: 8px;
+          border-left: 1px solid var(--color-outline-variant);
         }
-        .brand-icon { font-size: 22px; color: var(--color-brand-600); }
-        .brand-name { font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); letter-spacing: -0.5px; }
 
-        .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .sidebar-nav-title { font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; padding: 0 12px 6px 12px; letter-spacing: 0.5px; }
+        .profile-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: var(--color-primary-container);
+          color: var(--color-on-primary-container);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.75rem;
+        }
 
-        .sidebar-nav-item {
-          display: flex; align-items: center; gap: 12px;
-          padding: 10px 14px; border-radius: var(--radius-md);
-          color: var(--color-text-secondary); text-decoration: none;
-          font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease;
+        .profile-name-desktop {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--color-text-main);
         }
-        .sidebar-nav-item:hover {
-          background: var(--color-brand-50); color: var(--color-brand-600);
-        }
-        .sidebar-nav-item.active {
-          background: var(--color-brand-100); color: var(--color-brand-600);
-          font-weight: 700; border: 1px solid var(--color-border-sky);
-        }
-        .sidebar-item-icon { color: inherit; }
-
-        .sidebar-footer { display: flex; flex-direction: column; gap: 10px; margin-top: auto; padding-top: var(--space-md); border-top: 1px solid var(--color-border); }
-        .sidebar-coin-card {
-          display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-          background: #fef3c7; border: 1px solid rgba(245, 158, 11, 0.3);
-          border-radius: var(--radius-md); text-decoration: none; transition: all 0.2s;
-        }
-        .sidebar-coin-card:hover { transform: translateY(-1px); }
-        .icon-gold { color: #d97706; }
-        .coin-meta { display: flex; flex-direction: column; }
-        .coin-meta .label { font-size: 0.6875rem; color: #92400e; }
-        .coin-meta .amount { font-size: 0.875rem; color: #78350f; font-weight: 800; }
-
-        .sidebar-user-card {
-          display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-          background: var(--color-surface-1); border: 1px solid var(--color-border);
-          border-radius: var(--radius-md); text-decoration: none; color: var(--color-text-primary);
-        }
-        .avatar-circle {
-          width: 32px; height: 32px; border-radius: 50%; background: var(--color-brand-100);
-          color: var(--color-brand-600); display: flex; align-items: center; justify-content: center;
-        }
-        .user-meta { display: flex; flex-direction: column; font-size: 0.75rem; overflow: hidden; }
-        .user-meta .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-meta .role { color: var(--color-text-muted); font-size: 0.6875rem; }
-
-        /* -------------------------------------------------------------
-           MOBILE STYLES (<= 768px)
-           ------------------------------------------------------------- */
         @media (max-width: 768px) {
-          .app-shell {
-            flex-direction: column;
-          }
-          .desktop-sidebar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            overflow: hidden !important;
-            pointer-events: none !important;
-          }
-          .app-main-viewport {
-            flex: 1;
-            width: 100%;
-            padding-top: var(--space-md);
+          .profile-name-desktop { display: none; }
+        }
+
+        /* Main Viewport Canvas (Scrolls internally ONLY when content overflows!) */
+        .stich-main-canvas {
+          flex: 1;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          padding-top: var(--space-md);
+          padding-bottom: var(--space-md);
+          width: 100%;
+        }
+        .stich-main-canvas.is-chatbot-canvas {
+          overflow: hidden !important;
+          padding-top: var(--space-xs) !important;
+          padding-bottom: 0 !important;
+        }
+        .is-chatbot-canvas .main-container {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          padding-bottom: 0 !important;
+        }
+        @media (max-width: 768px) {
+          .stich-main-canvas {
             padding-bottom: 90px;
           }
+        }
+        .main-container {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 var(--space-lg);
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-          .mobile-header {
-            position: sticky; top: 0; z-index: 100;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--color-border);
-            padding: calc(var(--safe-top) + 10px) 0 10px;
-            width: 100%;
+        /* -------------------------------------------------------------
+           3. FLOATING BOTTOM NAVBAR (Mobile <= 768px)
+           ------------------------------------------------------------- */
+        @media (min-width: 769px) {
+          .stich-floating-bottom-nav { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          .stich-floating-bottom-nav {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--color-secondary-container);
+            border-radius: var(--radius-2xl);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15);
+            height: 68px;
           }
-          .mobile-header-inner { display: flex; align-items: center; justify-content: space-between; }
-          .mobile-brand { display: flex; align-items: center; gap: 6px; text-decoration: none; }
-
-          .mobile-actions { display: flex; align-items: center; gap: var(--space-sm); }
-          .mobile-coin-badge {
-            display: flex; align-items: center; gap: 4px; padding: 5px 10px;
-            background: #fef3c7; border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: var(--radius-full); text-decoration: none; font-size: 0.8125rem;
-            font-weight: 700; color: #d97706;
+          .floating-nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 100%;
+            padding: 0 8px;
+            position: relative;
           }
-          .mobile-profile-btn {
-            width: 34px; height: 34px; border-radius: 50%; background: var(--color-surface-2);
-            border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center;
-            color: var(--color-brand-600);
+          .floating-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            color: var(--color-secondary);
+            text-decoration: none;
+            flex: 1;
+            padding: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
           }
-
-          .mobile-bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid var(--color-border);
-            box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.05);
-            padding-bottom: var(--safe-bottom);
-            width: 100%;
+          .floating-nav-item.active {
+            color: var(--color-primary);
+            font-weight: 700;
           }
-          .bottom-nav-inner {
-            display: flex; align-items: center; justify-content: space-around;
-            height: var(--nav-height); padding: 0 var(--space-xs); max-width: 600px; margin: 0 auto;
+          .floating-center-action {
+            position: relative;
+            width: 60px;
+            display: flex;
+            justify-content: center;
           }
-          .mobile-nav-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 2px; text-decoration: none; color: var(--color-text-muted); padding: 4px;
+          .center-camera-btn {
+            position: absolute;
+            top: -28px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            color: white;
+            border: 4px solid var(--color-surface-bg);
+            box-shadow: 0 8px 20px rgba(0, 101, 145, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
           }
-          .mobile-nav-item.active { color: var(--color-brand-600); font-weight: 700; }
-          .mobile-nav-icon { position: relative; display: flex; align-items: center; justify-content: center; }
-          .active-dot { position: absolute; bottom: -4px; width: 4px; height: 4px; border-radius: 50%; background: var(--color-brand-600); }
-          .mobile-nav-label { font-size: 0.6875rem; font-weight: 600; }
+          .center-camera-btn:active {
+            transform: scale(0.92);
+          }
         }
       `}</style>
     </div>
