@@ -1,10 +1,23 @@
-import { useState, useRef, useCallback } from 'react'
-import { Camera, Upload, RotateCcw, Loader2, CheckCircle2, AlertCircle, ChevronRight, Sparkles, ShieldCheck, Activity, Info, Lock } from 'lucide-react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import {
+  Camera,
+  Upload,
+  RotateCcw,
+  AlertCircle,
+  Sparkles,
+  ShieldCheck,
+  Activity,
+  Info,
+  CheckCircle2,
+  Scan,
+  RefreshCw,
+  Zap,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 
-type Step = 'upload' | 'validating' | 'valid' | 'invalid' | 'analyzing' | 'result' | 'error'
+type Step = 'upload' | 'processing' | 'rejected' | 'result' | 'error'
 
 interface ValidationResult {
   is_valid_face: boolean
@@ -41,7 +54,7 @@ const CONCERN_LABELS: Record<string, string> = {
 
 export default function FaceScanPage() {
   const { user, activeSkinProfile, setActiveSkinProfile } = useAuthStore()
-  const { invoke, isLoading } = useInvokeAI()
+  const { invoke } = useInvokeAI()
 
   const [step, setStep] = useState<Step>('upload')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -50,8 +63,29 @@ export default function FaceScanPage() {
   const [validation, setValidation] = useState<ValidationResult | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [statusText, setStatusText] = useState('Mengecek kejelasan foto & deteksi wajah...')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Dynamic Real-Time Contextual Processing Message Rotation
+  useEffect(() => {
+    if (step !== 'processing') return
+
+    const messagesList = [
+      'Mengecek kejelasan foto & deteksi wajah...',
+      'Wajah terdeteksi! Memproses fitur dermatologi...',
+      'Menganalisis kadar minyak, kelembapan, & pori-pori...',
+      'Menyusun diagnosa kulit terpersonalisasi...',
+    ]
+
+    let idx = 0
+    const interval = setInterval(() => {
+      idx = (idx + 1) % messagesList.length
+      setStatusText(messagesList[idx])
+    }, 1300)
+
+    return () => clearInterval(interval)
+  }, [step])
 
   const processImage = useCallback((file: File) => {
     const preview = URL.createObjectURL(file)
@@ -66,6 +100,7 @@ export default function FaceScanPage() {
     }
     reader.readAsDataURL(file)
     setStep('upload')
+    setErrorMsg(null)
   }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,59 +124,58 @@ export default function FaceScanPage() {
     if (file) processImage(file)
   }
 
-  const validateFace = async () => {
+  // Unified 1-Click Scan Handler (Validation + Analysis in 1 Smooth Action)
+  const startUnifiedScan = async () => {
     if (!imageBase64) return
-    setStep('validating')
+
+    setStep('processing')
     setErrorMsg(null)
+    setValidation(null)
+    setAnalysis(null)
+    setStatusText('Mengecek kejelasan foto & deteksi wajah...')
 
     try {
-      const result = await invoke<ValidationResult>({
+      // Step 1: Validate Face
+      const validRes = await invoke<ValidationResult>({
         feature_slug: 'face_validation',
         messages: [{ role: 'user', content: 'Validasi foto wajah ini untuk kejelasan & pencahayaan.' }],
         input_context: { image_base64: imageBase64 },
       })
 
-      if (!result || typeof result !== 'object') {
-        setErrorMsg('Gagal memvalidasi foto wajah. Silakan pastikan foto wajah terlihat jelas dan coba lagi.')
+      if (!validRes || typeof validRes !== 'object') {
+        setErrorMsg('Tidak dapat memverifikasi foto. Silakan pastikan pencahayaan cukup dan foto wajah terlihat jelas.')
         setStep('error')
         return
       }
 
-      setValidation(result)
-      if (result.is_valid_face) {
-        setStep('valid')
-      } else {
-        setStep('invalid')
+      setValidation(validRes)
+
+      // If Face Validation Fails (e.g. coffee cup, blurry, non-human photo)
+      if (!validRes.is_valid_face) {
+        setStep('rejected')
+        return
       }
-    } catch (err: any) {
-      console.error('Validation error:', err)
-      setErrorMsg(err.message || 'Gagal memvalidasi foto wajah.')
-      setStep('error')
-    }
-  }
 
-  const analyzeSkin = async () => {
-    if (!imageBase64) return
-    setStep('analyzing')
-    setErrorMsg(null)
+      // Step 2: Analyze Skin (Runs automatically right after validation success!)
+      setStatusText('Wajah terdeteksi! Memproses analisis tipe & kondisi kulit...')
 
-    try {
-      const result = await invoke<AnalysisResult>({
+      const analysisRes = await invoke<AnalysisResult>({
         feature_slug: 'face_analysis',
         messages: [{ role: 'user', content: 'Analisis kondisi kulit wajah secara detail.' }],
         input_context: { image_base64: imageBase64 },
       })
 
-      if (!result || typeof result !== 'object') {
+      if (!analysisRes || typeof analysisRes !== 'object') {
         setErrorMsg('Gagal menganalisis kulit wajah. Silakan coba lagi.')
         setStep('error')
         return
       }
 
-      setAnalysis(result)
+      setAnalysis(analysisRes)
       setStep('result')
 
-      if (user && result.skin_type) {
+      // Save to database
+      if (user && analysisRes.skin_type) {
         try {
           const { data: existing } = await supabase
             .from('skin_profiles')
@@ -155,8 +189,8 @@ export default function FaceScanPage() {
             const { data } = await supabase
               .from('skin_profiles')
               .update({
-                skin_type: result.skin_type,
-                skin_concerns: result.skin_concerns ?? [],
+                skin_type: analysisRes.skin_type,
+                skin_concerns: analysisRes.skin_concerns ?? [],
               })
               .eq('id', existing.id)
               .select()
@@ -167,8 +201,8 @@ export default function FaceScanPage() {
               .from('skin_profiles')
               .insert({
                 user_id: user.id,
-                skin_type: result.skin_type,
-                skin_concerns: result.skin_concerns ?? [],
+                skin_type: analysisRes.skin_type,
+                skin_concerns: analysisRes.skin_concerns ?? [],
                 is_active: true,
               })
               .select()
@@ -184,8 +218,8 @@ export default function FaceScanPage() {
         }
       }
     } catch (err: any) {
-      console.error('Analysis error:', err)
-      setErrorMsg(err.message || 'Gagal menganalisis kondisi kulit.')
+      console.error('Unified scan error:', err)
+      setErrorMsg(err.message || 'Terjadi kendala saat memproses foto.')
       setStep('error')
     }
   }
@@ -202,331 +236,407 @@ export default function FaceScanPage() {
 
   return (
     <div className="face-scan-page animate-fade-in">
-      <div className="page-header">
-        <h1>Analisis Kondisi Wajah</h1>
-        <p className="page-subtitle">Ambil atau unggah foto selfie wajahmu untuk deteksi tipe & masalah kulit secara mendalam.</p>
-      </div>
-
-      {/* Stich Step Bar Indicator */}
-      <div className="step-bar">
-        <div className={`step-item ${['upload', 'validating', 'valid', 'invalid', 'analyzing', 'result'].includes(step) ? 'step-item--done' : ''}`}>
-          <div className="step-dot">1</div>
-          <span>Upload</span>
-          <div className={`step-line ${['validating', 'valid', 'analyzing', 'result'].includes(step) ? 'step-line--done' : ''}`} />
+      {/* Header Banner */}
+      <div className="scan-banner-card">
+        <div className="banner-icon-box">
+          <Scan size={28} />
         </div>
-
-        <div className={`step-item ${['validating', 'valid', 'analyzing', 'result'].includes(step) ? 'step-item--done' : ''}`}>
-          <div className="step-dot">2</div>
-          <span>Validasi</span>
-          <div className={`step-line ${['analyzing', 'result'].includes(step) ? 'step-line--done' : ''}`} />
-        </div>
-
-        <div className={`step-item ${['analyzing', 'result'].includes(step) ? 'step-item--done' : ''}`}>
-          <div className="step-dot">3</div>
-          <span>Analisis</span>
-          <div className={`step-line ${step === 'result' ? 'step-line--done' : ''}`} />
-        </div>
-
-        <div className={`step-item ${step === 'result' ? 'step-item--done' : ''}`}>
-          <div className="step-dot">4</div>
-          <span>Hasil</span>
+        <div className="banner-text">
+          <h2>AI Face Health Scanner</h2>
+          <p>Dapatkan diagnosa tipe kulit, kelembapan, dan kondisi jerawat presisi berbasis AI dalam sekali foto.</p>
         </div>
       </div>
 
-      {/* Full-Width 2-Column Grid Layout */}
-      <div className="facescan-grid">
-        {/* Left Column (7 Cols): Scanner Canvas */}
-        <div className="scan-main-col">
-          {/* Step UPLOAD & PREVIEW */}
-          {step === 'upload' && (
-            <div className="upload-area">
-              {!imagePreview ? (
+      {/* Main Content Layout */}
+      <div className="scan-main-grid">
+        {/* Left Column: Upload / Processing / Rejected / Result Box */}
+        <div className="scan-primary-box">
+          {/* STATE 1 & 2: Upload Input or Processing State */}
+          {(step === 'upload' || step === 'processing') && (
+            <div className="upload-wrapper-card">
+              {imagePreview ? (
+                <div className="preview-container">
+                  <img src={imagePreview} alt="Wajah" className="face-preview-img" />
+
+                  {/* Animated AI Laser Beam Overlay during Processing */}
+                  {step === 'processing' && (
+                    <div className="laser-scanner-overlay">
+                      <div className="laser-beam" />
+                    </div>
+                  )}
+
+                  {step === 'upload' && (
+                    <button className="btn-change-photo" onClick={reset} title="Ganti Foto">
+                      <RotateCcw size={16} /> Ganti Foto
+                    </button>
+                  )}
+                </div>
+              ) : (
                 <div
-                  className="drop-zone stich-bento-card"
+                  className="dropzone-area"
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <div className="drop-zone-icon-box">
+                  <div className="dropzone-circle">
                     <Camera size={36} />
                   </div>
-                  <h3 className="drop-zone-title">Upload Foto Wajah</h3>
-                  <p className="drop-zone-sub">Drag & drop atau klik untuk memilih foto selfie</p>
-                  <span className="drop-zone-hint">Format JPG, PNG, WEBP (Maksimal 5MB)</span>
-                  
-                  <div className="drop-zone-actions">
-                    <button className="btn btn-primary btn-sm">
-                      <Upload size={16} /> Pilih Foto
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="preview-container stich-bento-card">
-                  <img src={imagePreview} alt="Preview Wajah" className="preview-img" />
-                  <div className="preview-actions">
-                    <button className="btn btn-secondary btn-sm" onClick={reset}>
-                      <RotateCcw size={16} /> Ganti Foto
-                    </button>
-                    <button className="btn btn-primary" onClick={validateFace}>
-                      <CheckCircle2 size={16} /> Mulai Validasi Wajah
-                    </button>
-                  </div>
+                  <h3>Unggah Foto Wajah Kamu</h3>
+                  <p>Tarik & lepas foto di sini, atau klik untuk memilih gambar</p>
+                  <span className="dropzone-hint">Format JPG, PNG, WEBP (Maks. 5MB)</span>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden-input"
+                  />
                 </div>
               )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
+              {/* Action Controls */}
+              {step === 'upload' && imagePreview && (
+                <div className="action-button-group">
+                  <button className="btn btn-primary btn-block btn-lg" onClick={startUnifiedScan}>
+                    <Sparkles size={20} /> Analisis Kesehatan Kulit
+                  </button>
+                </div>
+              )}
+
+              {/* Live AI Orbit Spinner & Contextual Status */}
+              {step === 'processing' && (
+                <div className="processing-status-card animate-fade-in">
+                  <div className="ai-orbit-spinner">
+                    <div className="outer-orbit-ring" />
+                    <div className="inner-orbit-ring" />
+                    <Sparkles size={24} className="center-ai-sparkle" />
+                  </div>
+                  <h4 className="processing-title">{statusText}</h4>
+                  <p className="processing-sub">Kecerdasan buatan Skincluv sedang menganalisis piksel foto wajah kamu...</p>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Step VALIDATING / ANALYZING LOADING */}
-          {(step === 'validating' || step === 'analyzing') && (
-            <div className="loading-state stich-bento-card">
-              {imagePreview && <img src={imagePreview} alt="Target" className="preview-img preview-img--blur" />}
-              <div className="loading-overlay">
-                <Loader2 size={44} className="animate-spin loading-spinner" />
-                <p className="loading-label">
-                  {step === 'validating' ? 'Memvalidasi Foto Wajah...' : 'Menganalisis Kondisi Kulit...'}
-                </p>
-                <p className="loading-sub">
-                  {step === 'validating' ? 'Memastikan pencahayaan & deteksi posisi wajah' : 'Mendeteksi tipe kulit, kelembaban, & sensitivitas'}
-                </p>
+          {/* STATE 3: Smart Rejection Card (Foto Bukan Wajah / Tidak Sesuai) */}
+          {step === 'rejected' && (
+            <div className="rejection-card animate-fade-in">
+              <div className="rejection-icon-wrapper">
+                <AlertCircle size={44} />
               </div>
-            </div>
-          )}
+              <h3>Foto Wajah Tidak Terdeteksi</h3>
+              <p className="rejection-reason">
+                {validation?.reason || 'Foto yang diunggah terdeteksi sebagai objek lain atau bukan wajah manusia.'}
+              </p>
 
-          {/* Step VALIDATION RESULT: VALID */}
-          {step === 'valid' && validation && (
-            <div className="result-card stich-bento-card animate-fade-in">
-              <CheckCircle2 size={48} className="result-icon result-icon--valid" />
-              <h2>Wajah Terdeteksi Jelas!</h2>
-              <p className="result-reason">{validation.reason}</p>
-              <div className="action-buttons">
-                <button className="btn btn-secondary" onClick={reset}>
-                  Ganti Foto
-                </button>
-                <button className="btn btn-primary" onClick={analyzeSkin}>
-                  <Sparkles size={16} /> Lanjut Analisis Kulit
-                </button>
+              <div className="rejection-tips-box">
+                <h4>Tips Pengambilan Foto yang Tepat:</h4>
+                <ul>
+                  <li>✔️ Gunakan foto wajah asli manusia dengan posisi menghadap lurus.</li>
+                  <li>✔️ Pastikan pencahayaan cukup terang & wajah tidak tertutup masker/topi.</li>
+                  <li>✔️ Hindari foto objek benda, pemandangan, atau foto buram.</li>
+                </ul>
               </div>
-            </div>
-          )}
 
-          {/* Step VALIDATION RESULT: INVALID */}
-          {step === 'invalid' && validation && (
-            <div className="result-card stich-bento-card animate-fade-in">
-              <AlertCircle size={48} className="result-icon result-icon--invalid" />
-              <h2>Foto Tidak Valid</h2>
-              <p className="result-reason">{validation.reason}</p>
-              <button className="btn btn-primary btn-block" onClick={reset}>
-                <RotateCcw size={16} /> Coba Foto Lain
+              <button className="btn btn-primary btn-block btn-lg" onClick={reset}>
+                <RefreshCw size={18} /> Ambil Ulang Foto Wajah
               </button>
             </div>
           )}
 
-          {/* Step FINAL RESULT */}
-          {step === 'result' && analysis && (
-            <div className="analysis-result animate-fade-in">
-              <div className="result-photo stich-bento-card">
-                {imagePreview && <img src={imagePreview} alt="Hasil Wajah" className="preview-img" />}
-                <div className="result-badge">
-                  <ShieldCheck size={16} /> Analisis Selesai (Akurasi {Math.round(analysis.confidence * 100)}%)
-                </div>
-              </div>
-
-              <div className="notes-card stich-bento-card">
-                <h3>Catatan Spesialis Skincluv</h3>
-                <p>{analysis.analysis_notes}</p>
-              </div>
-
-              <div className="action-buttons">
-                <button className="btn btn-outline btn-block" onClick={reset}>
-                  <RotateCcw size={16} /> Scan Ulang
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step ERROR */}
+          {/* STATE 4: Error Card */}
           {step === 'error' && (
-            <div className="result-card stich-bento-card animate-fade-in">
-              <AlertCircle size={48} className="result-icon result-icon--invalid" />
-              <h2>Terjadi Kesalahan</h2>
-              <p className="result-reason">{errorMsg}</p>
-              <button className="btn btn-primary btn-block" onClick={reset}>
+            <div className="error-card animate-fade-in">
+              <AlertCircle size={44} className="error-icon" />
+              <h3>Terjadi Kendala</h3>
+              <p>{errorMsg || 'Terjadi kesalahan sistem saat menganalisis foto.'}</p>
+              <button className="btn btn-outline btn-block" onClick={reset}>
                 <RotateCcw size={16} /> Coba Lagi
               </button>
             </div>
           )}
-        </div>
 
-        {/* Right Column (5 Cols): Info, Tips & Result Summary */}
-        <div className="scan-side-col">
-          {step === 'result' && analysis ? (
-            <>
-              {/* Tipe Kulit Card */}
-              <div className="skin-type-card stich-bento-card">
-                <span className="skin-label">Tipe Kulit Terdeteksi</span>
-                <div className="skin-type">{SKIN_TYPE_LABELS[analysis.skin_type]}</div>
-                <div className="confidence-bar">
-                  <div className="confidence-fill" style={{ width: `${analysis.confidence * 100}%` }} />
+          {/* STATE 5: Result Card (Layar Hasil Analisis Kulit) */}
+          {step === 'result' && analysis && (
+            <div className="result-main-container animate-fade-in">
+              {/* Image & Confidence Badge */}
+              <div className="result-hero-box">
+                {imagePreview && <img src={imagePreview} alt="Wajah" className="result-face-img" />}
+                <div className="result-badge-confidence">
+                  <CheckCircle2 size={16} /> Analisis Selesai (Akurasi {Math.round((analysis.confidence || 0.9) * 100)}%)
                 </div>
-                <span className="confidence-text">Tingkat keyakinan diagnosa: {Math.round(analysis.confidence * 100)}%</span>
               </div>
 
-              {/* Masalah Kulit */}
-              {analysis.skin_concerns.length > 0 && (
-                <div className="concerns-section stich-bento-card">
-                  <h3>Indikasi Kondisi Kulit</h3>
-                  <div className="concern-tags">
-                    {analysis.skin_concerns.map((c) => (
-                      <span key={c} className="concern-tag">
-                        {CONCERN_LABELS[c] ?? c}
+              {/* Skin Type Score Box */}
+              <div className="result-score-card">
+                <span className="score-subtitle">TIPE KULIT TERDETEKSI</span>
+                <h3 className="score-title">{SKIN_TYPE_LABELS[analysis.skin_type] || analysis.skin_type}</h3>
+                <div className="score-progress-bar">
+                  <div className="progress-fill" style={{ width: `${Math.round((analysis.confidence || 0.9) * 100)}%` }} />
+                </div>
+                <span className="score-confidence-text">Tingkat keyakinan diagnosa: {Math.round((analysis.confidence || 0.9) * 100)}%</span>
+              </div>
+
+              {/* Skin Concerns Pill List */}
+              <div className="result-concerns-card">
+                <h4>Indikasi Kondisi Kulit</h4>
+                <div className="concerns-pill-group">
+                  {analysis.skin_concerns?.length > 0 ? (
+                    analysis.skin_concerns.map((c) => (
+                      <span key={c} className="concern-pill">
+                        {CONCERN_LABELS[c] || c}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="concern-pill pill-healthy">Kulit Tampak Sehat & Seimbang</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Detailed AI Analysis Notes */}
+              {analysis.analysis_notes && (
+                <div className="result-notes-card">
+                  <div className="notes-header">
+                    <Activity size={18} /> Catatan Diagnosa AI Skincluv
+                  </div>
+                  <p>{analysis.analysis_notes}</p>
+                </div>
+              )}
+
+              <button className="btn btn-outline btn-block btn-lg" onClick={reset}>
+                <RefreshCw size={18} /> Pindai Wajah Baru
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Tips & Active Skin Profile Info */}
+        <div className="scan-secondary-sidebar">
+          {activeSkinProfile && (
+            <div className="active-profile-card">
+              <div className="card-header">
+                <ShieldCheck size={20} className="header-icon" />
+                <h3>Profil Kulit Saat Ini</h3>
+              </div>
+              <div className="profile-detail-rows">
+                <div className="detail-row">
+                  <span className="row-label">Tipe Kulit:</span>
+                  <span className="row-val">{SKIN_TYPE_LABELS[activeSkinProfile.skin_type] || activeSkinProfile.skin_type}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="row-label">Fokus Kulit:</span>
+                  <div className="mini-pill-wrap">
+                    {activeSkinProfile.skin_concerns?.map((c) => (
+                      <span key={c} className="mini-pill">
+                        {CONCERN_LABELS[c] || c}
                       </span>
                     ))}
                   </div>
                 </div>
-              )}
-            </>
-          ) : (
-            <>
-              {/* Tips Foto Box */}
-              <div className="stich-bento-card tips-card">
-                <h3><Info size={18} className="text-sky" /> Panduan Foto Selfie Ideal</h3>
-                <ul className="tips-list">
-                  <li>✨ <strong>Pencahayaan Terang:</strong> Ambil foto di dekat jendela atau ruang terang.</li>
-                  <li>✨ <strong>Tanpa Riasan Tebal:</strong> Sebaiknya ambil foto saat wajah bersih sesudah cuci muka.</li>
-                  <li>✨ <strong>Posisi Tegak Lurus:</strong> Posisikan wajah tepat di tengah bingkai kamera.</li>
-                </ul>
               </div>
-
-              {/* Privacy Guarantee Card */}
-              <div className="stich-bento-card privacy-card">
-                <Lock size={24} className="text-sky mb-xs" />
-                <h4>Kerahasiaan Foto Terjamin</h4>
-                <p>Foto selfie kamu diproses secara privat dengan enkripsi dan tidak akan pernah dibagikan ke pihak ketiga.</p>
-              </div>
-            </>
+            </div>
           )}
+
+          <div className="scan-tips-card">
+            <div className="card-header">
+              <Info size={20} className="header-icon" />
+              <h3>Panduan Foto Presisi</h3>
+            </div>
+            <ul className="tips-list">
+              <li>✦ Gunakan foto wajah lurus dengan ekspresi netral.</li>
+              <li>✦ Hindari pencahayaan terlalu gelap atau bayangan kuat.</li>
+              <li>✦ Pastikan wajah tidak tertutup rambut, masker, atau kacamata hitam.</li>
+              <li>✦ Privasi dijamin: Foto hanya diproses untuk analisis dermatologi AI.</li>
+            </ul>
+          </div>
         </div>
       </div>
 
       <style>{`
-        .face-scan-page { padding-bottom: 60px; width: 100%; }
-        .page-header { margin-bottom: var(--space-xl); }
-        .page-header h1 { font-size: 1.875rem; margin: 0 0 4px 0; color: var(--color-primary); font-family: var(--font-heading); }
-        .page-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; margin: 0; }
-
-        /* Step bar */
-        .step-bar {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: var(--space-xl); max-width: 700px;
-        }
-        .step-item {
-          display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; flex: 1;
-          font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); font-family: var(--font-heading);
-        }
-        .step-item--done { color: var(--color-primary); }
-        .step-dot {
-          width: 32px; height: 32px; border-radius: 50%; background: var(--color-surface-container-lowest);
-          border: 1px solid var(--color-secondary-container); display: flex; align-items: center; justify-content: center;
-          font-size: 0.8125rem; font-weight: 700; transition: all 0.2s; box-shadow: var(--shadow-sm);
-        }
-        .step-item--done .step-dot { background: var(--color-primary); border-color: transparent; color: white; }
-        .step-line { position: absolute; top: 16px; left: 60%; right: -40%; height: 2px; background: var(--color-secondary-container); z-index: -1; }
-        .step-line--done { background: var(--color-primary); }
-
-        /* 2-Column Grid Layout */
-        .facescan-grid {
-          display: grid; grid-template-columns: 1fr; gap: var(--space-lg); width: 100%;
-        }
-        @media (min-width: 900px) {
-          .facescan-grid {
-            grid-template-columns: 7fr 5fr;
-          }
+        .face-scan-page {
+          display: flex; flex-direction: column; gap: var(--space-lg); width: 100%; max-width: 1100px; margin: 0 auto;
         }
 
-        .stich-bento-card {
-          background: var(--color-surface-container-lowest);
-          border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl);
-          padding: var(--space-xl);
-          box-shadow: var(--shadow-sky);
-          margin-bottom: var(--space-lg);
+        .scan-banner-card {
+          display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) var(--space-lg);
+          background: linear-gradient(135deg, rgba(212, 229, 241, 0.4) 0%, rgba(238, 246, 252, 0.8) 100%);
+          border: 1px solid var(--color-secondary-container); border-radius: var(--radius-2xl);
+        }
+        .banner-icon-box {
+          width: 52px; height: 52px; border-radius: 50%; background: var(--color-primary); color: white;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sky);
+        }
+        .banner-text h2 { font-size: 1.35rem; font-weight: 700; color: var(--color-primary); margin: 0 0 4px 0; font-family: var(--font-heading); }
+        .banner-text p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0; }
+
+        .scan-main-grid {
+          display: grid; grid-template-columns: 1fr 340px; gap: var(--space-lg); align-items: start;
+        }
+        @media (max-width: 900px) {
+          .scan-main-grid { grid-template-columns: 1fr; }
         }
 
-        /* Dropzone */
-        .drop-zone {
-          border: 2px dashed var(--color-secondary-fixed-dim); text-align: center; cursor: pointer;
-          transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: var(--space-sm);
-          background: var(--color-surface-container-low);
-        }
-        .drop-zone:hover { border-color: var(--color-primary-container); background: var(--color-secondary-container); }
-        .drop-zone-icon-box {
-          width: 64px; height: 64px; border-radius: 50%; background: var(--color-secondary-fixed);
-          color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
-        }
-        .drop-zone-title { font-size: 1.25rem; font-weight: 700; color: var(--color-text-main); margin: 0; }
-        .drop-zone-sub { color: var(--color-text-muted); font-size: 0.875rem; margin: 0; }
-        .drop-zone-hint { color: var(--color-secondary); font-size: 0.75rem; font-weight: 600; }
-        .drop-zone-actions { margin-top: var(--space-sm); }
-
-        .preview-container { display: flex; flex-direction: column; gap: var(--space-md); }
-        .preview-img { width: 100%; max-height: 380px; object-fit: cover; border-radius: var(--radius-lg); display: block; border: 1px solid var(--color-secondary-container); }
-        .preview-img--blur { filter: blur(4px); opacity: 0.5; }
-        .preview-actions { display: flex; gap: var(--space-sm); justify-content: space-between; }
-
-        .loading-state { position: relative; overflow: hidden; min-height: 340px; display: flex; align-items: center; justify-content: center; }
-        .loading-overlay { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-md); }
-        .loading-spinner { color: var(--color-primary); }
-        .loading-label { font-size: 1.125rem; font-weight: 700; color: var(--color-text-main); margin: 0; }
-        .loading-sub { color: var(--color-text-muted); font-size: 0.875rem; margin: 0; }
-
-        .result-card { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); text-align: center; }
-        .result-icon { color: var(--color-primary); }
-        .result-icon--valid { color: var(--color-success); }
-        .result-icon--invalid { color: var(--color-error); }
-        .result-card h2 { font-size: 1.5rem; margin: 0; color: var(--color-text-main); }
-        .result-reason { color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.6; }
-
-        .action-buttons { width: 100%; display: flex; gap: var(--space-sm); }
-
-        .analysis-result { display: flex; flex-direction: column; gap: var(--space-lg); }
-        .result-photo { position: relative; }
-        .result-badge {
-          position: absolute; bottom: var(--space-sm); left: 50%; transform: translateX(-50%);
-          background: var(--color-success-soft); border: 1px solid #bbf7d0; color: #16a34a; padding: 6px 16px;
-          border-radius: var(--radius-full); font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: var(--shadow-sm);
+        .scan-primary-box {
+          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-2xl); padding: var(--space-lg); box-shadow: var(--shadow-sm);
         }
 
-        .skin-type-card { text-align: center; }
-        .skin-label { font-size: 0.75rem; color: var(--color-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-xs); font-weight: 700; }
-        .skin-type { font-size: 2.25rem; font-weight: 800; margin-bottom: var(--space-md); color: var(--color-primary); font-family: var(--font-heading); }
-        .confidence-bar { height: 8px; background: var(--color-surface-container-high); border-radius: var(--radius-full); overflow: hidden; margin-bottom: 6px; }
-        .confidence-fill { height: 100%; background: var(--color-primary-container); border-radius: var(--radius-full); transition: width 1s ease; }
-        .confidence-text { font-size: 0.75rem; color: var(--color-text-muted); }
+        /* Upload & Dropzone Area */
+        .upload-wrapper-card { display: flex; flex-direction: column; gap: var(--space-md); }
+        .dropzone-area {
+          border: 2px dashed var(--color-secondary-container); border-radius: var(--radius-2xl);
+          padding: var(--space-2xl) var(--space-md); text-align: center; cursor: pointer; transition: all 0.2s ease;
+          background: var(--color-surface-container-low); display: flex; flex-direction: column; align-items: center;
+        }
+        .dropzone-area:hover {
+          border-color: var(--color-primary-container); background: rgba(238, 246, 252, 0.6);
+        }
+        .dropzone-circle {
+          width: 68px; height: 68px; border-radius: 50%; background: var(--color-secondary-fixed);
+          color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-md);
+        }
+        .dropzone-area h3 { font-size: 1.15rem; font-weight: 700; color: var(--color-primary); margin: 0 0 6px 0; font-family: var(--font-heading); }
+        .dropzone-area p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0 0 8px 0; }
+        .dropzone-hint { font-size: 0.75rem; color: var(--color-secondary); font-weight: 600; }
+        .hidden-input { display: none; }
 
-        .concerns-section h3 { font-size: 1rem; margin-bottom: var(--space-sm); }
-        .concern-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
-        .concern-tag { padding: 6px 14px; background: var(--color-secondary-container); border: 1px solid var(--color-secondary-fixed-dim); border-radius: var(--radius-full); font-size: 0.8125rem; color: var(--color-primary); font-weight: 700; }
+        /* Preview Container & Holographic Laser Beam Overlay */
+        .preview-container {
+          position: relative; width: 100%; max-height: 420px; border-radius: var(--radius-2xl); overflow: hidden;
+          background: #000; display: flex; align-items: center; justify-content: center;
+        }
+        .face-preview-img { width: 100%; height: 100%; max-height: 420px; object-fit: cover; }
 
-        .notes-card h3 { font-size: 1rem; margin-bottom: var(--space-sm); }
-        .notes-card p { color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7; }
+        .laser-scanner-overlay {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(180deg, rgba(14, 165, 233, 0.1) 0%, rgba(14, 165, 233, 0) 100%);
+        }
+        .laser-beam {
+          position: absolute; left: 0; right: 0; height: 3px;
+          background: linear-gradient(90deg, transparent 0%, #0ea5e9 50%, transparent 100%);
+          box-shadow: 0 0 15px #0ea5e9, 0 0 25px #0ea5e9;
+          animation: laserScan 2.2s ease-in-out infinite alternate;
+        }
+        @keyframes laserScan {
+          0% { top: 5%; }
+          100% { top: 92%; }
+        }
 
-        /* Side Column Cards */
-        .tips-card h3 { font-size: 1rem; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px; }
-        .tips-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.6; }
+        .btn-change-photo {
+          position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);
+          color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: var(--radius-full);
+          padding: 6px 14px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;
+          transition: all 0.2s;
+        }
+        .btn-change-photo:hover { background: rgba(0, 0, 0, 0.85); }
 
-        .privacy-card h4 { font-size: 1rem; margin: 0 0 4px 0; color: var(--color-text-main); }
-        .privacy-card p { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; line-height: 1.5; }
-        .text-sky { color: var(--color-primary); }
-        .mb-xs { margin-bottom: var(--space-xs); }
-        .btn-block { width: 100%; justify-content: center; }
+        /* Live AI Orbit Spinner & Status Card */
+        .processing-status-card {
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          padding: var(--space-lg); background: var(--color-surface-container-low); border-radius: var(--radius-2xl);
+          border: 1px solid var(--color-secondary-container); gap: 10px;
+        }
+        .ai-orbit-spinner {
+          position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+        }
+        .outer-orbit-ring {
+          position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(14, 165, 233, 0.2);
+          border-top-color: var(--color-primary); animation: orbitSpin 1.4s linear infinite;
+        }
+        .inner-orbit-ring {
+          position: absolute; inset: 6px; border-radius: 50%; border: 2px dashed rgba(14, 165, 233, 0.4);
+          animation: orbitSpinReverse 2.5s linear infinite;
+        }
+        .center-ai-sparkle { color: var(--color-primary); animation: pulseSparkle 1.5s ease-in-out infinite; }
+
+        @keyframes orbitSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes orbitSpinReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+        @keyframes pulseSparkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } }
+
+        .processing-title { font-size: 1rem; font-weight: 700; color: var(--color-primary); margin: 0; transition: all 0.3s; }
+        .processing-sub { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; }
+
+        /* Smart Rejection Card (Foto Bukan Wajah) */
+        .rejection-card {
+          display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-xl);
+          background: rgba(254, 242, 242, 0.7); border: 1px solid rgba(248, 113, 113, 0.4); border-radius: var(--radius-2xl); gap: var(--space-md);
+        }
+        .rejection-icon-wrapper {
+          width: 72px; height: 72px; border-radius: 50%; background: #fee2e2; color: #dc2626;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .rejection-card h3 { font-size: 1.35rem; font-weight: 700; color: #991b1b; margin: 0; font-family: var(--font-heading); }
+        .rejection-reason { font-size: 0.9375rem; color: #7f1d1d; margin: 0; line-height: 1.5; max-width: 500px; }
+
+        .rejection-tips-box {
+          background: white; border: 1px solid rgba(248, 113, 113, 0.3); border-radius: var(--radius-xl);
+          padding: var(--space-md) var(--space-lg); text-align: left; width: 100%; max-width: 520px;
+        }
+        .rejection-tips-box h4 { font-size: 0.875rem; font-weight: 700; color: #991b1b; margin: 0 0 8px 0; }
+        .rejection-tips-box ul { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.8125rem; color: var(--color-text-main); }
+
+        /* Error Card */
+        .error-card {
+          display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-xl);
+          gap: var(--space-md); color: var(--color-error);
+        }
+        .error-icon { color: var(--color-error); }
+        .error-card h3 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+        .error-card p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0; }
+
+        /* Result Main Container */
+        .result-main-container { display: flex; flex-direction: column; gap: var(--space-lg); }
+        .result-hero-box { position: relative; width: 100%; max-height: 320px; border-radius: var(--radius-2xl); overflow: hidden; }
+        .result-face-img { width: 100%; height: 100%; max-height: 320px; object-fit: cover; }
+        .result-badge-confidence {
+          position: absolute; bottom: 12px; left: 12px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
+          color: #065f46; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-full);
+          padding: 6px 14px; font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+        }
+
+        .result-score-card {
+          background: var(--color-surface-container-low); border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl); padding: var(--space-md) var(--space-lg); display: flex; flex-direction: column; gap: 6px;
+        }
+        .score-subtitle { font-size: 0.75rem; font-weight: 700; color: var(--color-secondary); letter-spacing: 0.05em; }
+        .score-title { font-size: 1.6rem; font-weight: 700; color: var(--color-primary); margin: 0; font-family: var(--font-heading); }
+        .score-progress-bar { height: 8px; width: 100%; background: var(--color-secondary-container); border-radius: var(--radius-full); overflow: hidden; margin: 4px 0; }
+        .progress-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.6s ease; }
+        .score-confidence-text { font-size: 0.75rem; color: var(--color-text-muted); }
+
+        .result-concerns-card { display: flex; flex-direction: column; gap: 8px; }
+        .result-concerns-card h4 { font-size: 0.875rem; font-weight: 700; color: var(--color-primary); margin: 0; }
+        .concerns-pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .concern-pill {
+          background: var(--color-secondary-container); color: var(--color-primary); font-size: 0.8125rem; font-weight: 700;
+          padding: 6px 14px; border-radius: var(--radius-full); border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+        .pill-healthy { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+        .result-notes-card {
+          background: var(--color-surface-container-low); border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl); padding: var(--space-md); font-size: 0.875rem; line-height: 1.6; color: var(--color-text-main);
+        }
+        .notes-header { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--color-primary); margin-bottom: 6px; }
+
+        /* Secondary Sidebar */
+        .scan-secondary-sidebar { display: flex; flex-direction: column; gap: var(--space-md); }
+        .active-profile-card, .scan-tips-card {
+          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-2xl); padding: var(--space-md) var(--space-lg); box-shadow: var(--shadow-sm);
+        }
+        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .card-header h3 { font-size: 1rem; font-weight: 700; color: var(--color-primary); margin: 0; font-family: var(--font-heading); }
+        .header-icon { color: var(--color-primary); }
+
+        .profile-detail-rows { display: flex; flex-direction: column; gap: 10px; font-size: 0.875rem; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; }
+        .row-label { color: var(--color-text-muted); }
+        .row-val { font-weight: 700; color: var(--color-primary); }
+        .mini-pill-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+        .mini-pill { background: var(--color-secondary-container); color: var(--color-primary); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); }
+
+        .tips-list { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.8125rem; color: var(--color-text-muted); line-height: 1.5; }
       `}</style>
     </div>
   )
