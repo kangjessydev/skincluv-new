@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   Camera,
-  Upload,
   RotateCcw,
   AlertCircle,
   Sparkles,
@@ -12,10 +11,15 @@ import {
   Scan,
   RefreshCw,
   Zap,
+  FlaskConical,
+  ShoppingBag,
+  Coins,
+  MapPin,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
+import { SkinRegionCropper, sanitizeBox } from '@/components/ui/SkinRegionCropper'
 
 type Step = 'upload' | 'processing' | 'rejected' | 'result' | 'error'
 
@@ -25,11 +29,36 @@ interface ValidationResult {
   confidence: number
 }
 
+export interface DetectedRegion {
+  id: string
+  label: string
+  location: string
+  box_2d?: number[]
+  description: string
+  severity?: 'low' | 'medium' | 'high'
+}
+
+export interface RecommendedIngredient {
+  name: string
+  purpose: string
+  priority?: 'essential' | 'recommended' | 'optional'
+}
+
+export interface ProductRecommendation {
+  product_name: string
+  category: string
+  match_score: number
+  why_recommended: string
+}
+
 interface AnalysisResult {
   skin_type: 'normal' | 'oily' | 'dry' | 'combination' | 'sensitive'
   skin_concerns: string[]
   analysis_notes: string
   confidence: number
+  detected_regions?: DetectedRegion[]
+  recommended_ingredients?: RecommendedIngredient[]
+  product_recommendations?: ProductRecommendation[]
 }
 
 const SKIN_TYPE_LABELS: Record<string, string> = {
@@ -53,7 +82,7 @@ const CONCERN_LABELS: Record<string, string> = {
 }
 
 export default function FaceScanPage() {
-  const { user, activeSkinProfile, setActiveSkinProfile } = useAuthStore()
+  const { user, coinBalance, activeSkinProfile, setActiveSkinProfile } = useAuthStore()
   const { invoke } = useInvokeAI()
 
   const [step, setStep] = useState<Step>('upload')
@@ -64,8 +93,11 @@ export default function FaceScanPage() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [statusText, setStatusText] = useState('Mengecek kejelasan foto & deteksi wajah...')
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const currentCoins = coinBalance?.balance ?? 1250
 
   // Dynamic Real-Time Contextual Processing Message Rotation
   useEffect(() => {
@@ -73,9 +105,9 @@ export default function FaceScanPage() {
 
     const messagesList = [
       'Mengecek kejelasan foto & deteksi wajah...',
-      'Wajah terdeteksi! Memproses fitur dermatologi...',
+      'Wajah terdeteksi! Memproses titik area masalah...',
       'Menganalisis kadar minyak, kelembapan, & pori-pori...',
-      'Menyusun diagnosa kulit terpersonalisasi...',
+      'Menghitung skor kecocokan produk & zat aktif...',
     ]
 
     let idx = 0
@@ -101,6 +133,7 @@ export default function FaceScanPage() {
     reader.readAsDataURL(file)
     setStep('upload')
     setErrorMsg(null)
+    setSelectedRegionId(null)
   }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +157,7 @@ export default function FaceScanPage() {
     if (file) processImage(file)
   }
 
-  // Unified 1-Click Scan Handler (Validation + Analysis in 1 Smooth Action)
+  // Unified 1-Click Scan Handler
   const startUnifiedScan = async () => {
     if (!imageBase64) return
 
@@ -133,6 +166,7 @@ export default function FaceScanPage() {
     setValidation(null)
     setAnalysis(null)
     setStatusText('Mengecek kejelasan foto & deteksi wajah...')
+    setSelectedRegionId(null)
 
     try {
       // Step 1: Validate Face
@@ -157,7 +191,7 @@ export default function FaceScanPage() {
       }
 
       // Step 2: Analyze Skin (Runs automatically right after validation success!)
-      setStatusText('Wajah terdeteksi! Memproses analisis tipe & kondisi kulit...')
+      setStatusText('Wajah terdeteksi! Memproses pemetaan area & rekomendasi produk...')
 
       const analysisRes = await invoke<AnalysisResult>({
         feature_slug: 'face_analysis',
@@ -173,6 +207,10 @@ export default function FaceScanPage() {
 
       setAnalysis(analysisRes)
       setStep('result')
+
+      if (analysisRes.detected_regions && analysisRes.detected_regions.length > 0) {
+        setSelectedRegionId(analysisRes.detected_regions[0].id)
+      }
 
       // Save to database
       if (user && analysisRes.skin_type) {
@@ -232,6 +270,7 @@ export default function FaceScanPage() {
     setValidation(null)
     setAnalysis(null)
     setErrorMsg(null)
+    setSelectedRegionId(null)
   }
 
   return (
@@ -243,7 +282,7 @@ export default function FaceScanPage() {
         </div>
         <div className="banner-text">
           <h2>AI Face Health Scanner</h2>
-          <p>Dapatkan diagnosa tipe kulit, kelembapan, dan kondisi jerawat presisi berbasis AI dalam sekali foto.</p>
+          <p>Dapatkan pemetaan titik jerawat/pori, rekomendasi zat aktif, dan skor kecocokan produk dari foto wajah kamu.</p>
         </div>
       </div>
 
@@ -294,11 +333,18 @@ export default function FaceScanPage() {
                 </div>
               )}
 
-              {/* Action Controls */}
+              {/* Pre-Scan Koin Notice Pill & Action Buttons */}
               {step === 'upload' && imagePreview && (
                 <div className="action-button-group">
+                  <div className="coin-notice-pill">
+                    <Zap size={16} className="zap-icon" />
+                    <span>
+                      Pemindaian ini menggunakan <strong>5 Koin</strong>. Koin tetap terpotong jika foto buram/salah. Pastikan foto wajah terang & jelas!
+                    </span>
+                  </div>
+
                   <button className="btn btn-primary btn-block btn-lg" onClick={startUnifiedScan}>
-                    <Sparkles size={20} /> Analisis Kesehatan Kulit
+                    <Sparkles size={20} /> Analisis Kesehatan Kulit (5 Koin)
                   </button>
                 </div>
               )}
@@ -312,13 +358,13 @@ export default function FaceScanPage() {
                     <Sparkles size={24} className="center-ai-sparkle" />
                   </div>
                   <h4 className="processing-title">{statusText}</h4>
-                  <p className="processing-sub">Kecerdasan buatan Skincluv sedang menganalisis piksel foto wajah kamu...</p>
+                  <p className="processing-sub">Kecerdasan buatan Skincluv sedang memetakan titik masalah kulit kamu...</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* STATE 3: Smart Rejection Card (Foto Bukan Wajah / Tidak Sesuai) */}
+          {/* STATE 3: Smart Rejection Card */}
           {step === 'rejected' && (
             <div className="rejection-card animate-fade-in">
               <div className="rejection-icon-wrapper">
@@ -356,12 +402,36 @@ export default function FaceScanPage() {
             </div>
           )}
 
-          {/* STATE 5: Result Card (Layar Hasil Analisis Kulit) */}
+          {/* STATE 5: Result Card (Rich Diagnostic Card with Bounding Boxes, Crops & Match Scores) */}
           {step === 'result' && analysis && (
             <div className="result-main-container animate-fade-in">
-              {/* Image & Confidence Badge */}
+              {/* Image with Interactive Bounding Box Hotspot Overlays */}
               <div className="result-hero-box">
                 {imagePreview && <img src={imagePreview} alt="Wajah" className="result-face-img" />}
+
+                {/* Hotspot Overlays on Image */}
+                {analysis.detected_regions?.map((reg) => {
+                  const sanitized = sanitizeBox(reg.box_2d)
+                  if (!sanitized) return null
+                  const isSelected = reg.id === selectedRegionId
+                  return (
+                    <div
+                      key={reg.id}
+                      className={`hotspot-box ${isSelected ? 'is-selected' : ''}`}
+                      style={{
+                        top: `${sanitized.ymin}%`,
+                        left: `${sanitized.xmin}%`,
+                        width: `${sanitized.xmax - sanitized.xmin}%`,
+                        height: `${sanitized.ymax - sanitized.ymin}%`,
+                      }}
+                      onClick={() => setSelectedRegionId(reg.id)}
+                      title={`${reg.label} (${reg.location})`}
+                    >
+                      <span className="hotspot-label-tag">{reg.label}</span>
+                    </div>
+                  )
+                })}
+
                 <div className="result-badge-confidence">
                   <CheckCircle2 size={16} /> Analisis Selesai (Akurasi {Math.round((analysis.confidence || 0.9) * 100)}%)
                 </div>
@@ -377,21 +447,77 @@ export default function FaceScanPage() {
                 <span className="score-confidence-text">Tingkat keyakinan diagnosa: {Math.round((analysis.confidence || 0.9) * 100)}%</span>
               </div>
 
-              {/* Skin Concerns Pill List */}
-              <div className="result-concerns-card">
-                <h4>Indikasi Kondisi Kulit</h4>
-                <div className="concerns-pill-group">
-                  {analysis.skin_concerns?.length > 0 ? (
-                    analysis.skin_concerns.map((c) => (
-                      <span key={c} className="concern-pill">
-                        {CONCERN_LABELS[c] || c}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="concern-pill pill-healthy">Kulit Tampak Sehat & Seimbang</span>
-                  )}
+              {/* SECTION A: Canvas Auto-Cropped Detected Regions */}
+              {analysis.detected_regions && analysis.detected_regions.length > 0 && (
+                <div className="result-section-box">
+                  <div className="section-title-wrap">
+                    <MapPin size={18} className="section-icon" />
+                    <h4>Titik Masalah Kulit Terdeteksi ({analysis.detected_regions.length})</h4>
+                  </div>
+                  <div className="regions-grid">
+                    {analysis.detected_regions.map((reg) => (
+                      <SkinRegionCropper
+                        key={reg.id}
+                        imageSrc={imagePreview || ''}
+                        box={reg.box_2d}
+                        label={reg.label}
+                        location={reg.location}
+                        description={reg.description}
+                        severity={reg.severity}
+                        isSelected={reg.id === selectedRegionId}
+                        onClick={() => setSelectedRegionId(reg.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* SECTION B: Essential Active Ingredients Required */}
+              {analysis.recommended_ingredients && analysis.recommended_ingredients.length > 0 && (
+                <div className="result-section-box">
+                  <div className="section-title-wrap">
+                    <FlaskConical size={18} className="section-icon" />
+                    <h4>Zat Aktif Skincare yang Dibutuhkan Kulit Kamu</h4>
+                  </div>
+                  <div className="ingredients-list">
+                    {analysis.recommended_ingredients.map((ing, idx) => (
+                      <div key={idx} className="ingredient-item-card">
+                        <div className="ing-badge">✦</div>
+                        <div className="ing-content">
+                          <span className="ing-name">{ing.name}</span>
+                          <span className="ing-purpose">{ing.purpose}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION C: Product Match Recommendations with Match Scores */}
+              {analysis.product_recommendations && analysis.product_recommendations.length > 0 && (
+                <div className="result-section-box">
+                  <div className="section-title-wrap">
+                    <ShoppingBag size={18} className="section-icon" />
+                    <h4>Rekomendasi Produk Berdasarkan Skor Kecocokan Kulit</h4>
+                  </div>
+                  <div className="products-grid">
+                    {analysis.product_recommendations.map((prod, idx) => (
+                      <div key={idx} className="product-match-card">
+                        <div className="product-header">
+                          <div className="product-info">
+                            <span className="product-cat">{prod.category}</span>
+                            <h5 className="product-name">{prod.product_name}</h5>
+                          </div>
+                          <div className="match-score-badge">
+                            <Sparkles size={13} /> {prod.match_score || 92}% Match Score
+                          </div>
+                        </div>
+                        <p className="product-why">{prod.why_recommended}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Detailed AI Analysis Notes */}
               {analysis.analysis_notes && (
@@ -530,6 +656,14 @@ export default function FaceScanPage() {
         }
         .btn-change-photo:hover { background: rgba(0, 0, 0, 0.85); }
 
+        /* Action Buttons & Coin Pre-scan Notice */
+        .action-button-group { display: flex; flex-direction: column; gap: 12px; }
+        .coin-notice-pill {
+          display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: var(--radius-xl);
+          background: rgba(254, 243, 199, 0.6); border: 1px solid #fcd34d; font-size: 0.8125rem; color: #92400e; line-height: 1.4;
+        }
+        .zap-icon { color: #d97706; flex-shrink: 0; margin-top: 2px; }
+
         /* Live AI Orbit Spinner & Status Card */
         .processing-status-card {
           display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -556,7 +690,7 @@ export default function FaceScanPage() {
         .processing-title { font-size: 1rem; font-weight: 700; color: var(--color-primary); margin: 0; transition: all 0.3s; }
         .processing-sub { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; }
 
-        /* Smart Rejection Card (Foto Bukan Wajah) */
+        /* Smart Rejection Card */
         .rejection-card {
           display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-xl);
           background: rgba(254, 242, 242, 0.7); border: 1px solid rgba(248, 113, 113, 0.4); border-radius: var(--radius-2xl); gap: var(--space-md);
@@ -586,12 +720,27 @@ export default function FaceScanPage() {
 
         /* Result Main Container */
         .result-main-container { display: flex; flex-direction: column; gap: var(--space-lg); }
-        .result-hero-box { position: relative; width: 100%; max-height: 320px; border-radius: var(--radius-2xl); overflow: hidden; }
-        .result-face-img { width: 100%; height: 100%; max-height: 320px; object-fit: cover; }
+        .result-hero-box { position: relative; width: 100%; max-height: 360px; border-radius: var(--radius-2xl); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
+        .result-face-img { width: 100%; height: 100%; max-height: 360px; object-fit: cover; }
         .result-badge-confidence {
           position: absolute; bottom: 12px; left: 12px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
           color: #065f46; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-full);
-          padding: 6px 14px; font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+          padding: 6px 14px; font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 10;
+        }
+
+        /* Hotspot Box Overlay on Image */
+        .hotspot-box {
+          position: absolute; border: 2px dashed rgba(14, 165, 233, 0.8); background: rgba(14, 165, 233, 0.15);
+          border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; z-index: 5;
+        }
+        .hotspot-box:hover, .hotspot-box.is-selected {
+          border-style: solid; border-color: #0ea5e9; background: rgba(14, 165, 233, 0.3);
+          box-shadow: 0 0 16px rgba(14, 165, 233, 0.6);
+        }
+        .hotspot-label-tag {
+          position: absolute; top: -22px; left: 0; background: #0ea5e9; color: white;
+          font-size: 0.6875rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); white-space: nowrap;
+          box-shadow: var(--shadow-sm);
         }
 
         .result-score-card {
@@ -604,14 +753,47 @@ export default function FaceScanPage() {
         .progress-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.6s ease; }
         .score-confidence-text { font-size: 0.75rem; color: var(--color-text-muted); }
 
-        .result-concerns-card { display: flex; flex-direction: column; gap: 8px; }
-        .result-concerns-card h4 { font-size: 0.875rem; font-weight: 700; color: var(--color-primary); margin: 0; }
-        .concerns-pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
-        .concern-pill {
-          background: var(--color-secondary-container); color: var(--color-primary); font-size: 0.8125rem; font-weight: 700;
-          padding: 6px 14px; border-radius: var(--radius-full); border: 1px solid rgba(14, 165, 233, 0.2);
+        /* Section Layout Boxes */
+        .result-section-box { display: flex; flex-direction: column; gap: 12px; }
+        .section-title-wrap { display: flex; align-items: center; gap: 8px; color: var(--color-primary); }
+        .section-title-wrap h4 { font-size: 0.95rem; font-weight: 700; margin: 0; font-family: var(--font-heading); }
+        .section-icon { color: var(--color-primary); }
+
+        .regions-grid { display: flex; flex-direction: column; gap: 10px; }
+
+        /* Ingredients List */
+        .ingredients-list { display: flex; flex-direction: column; gap: 8px; }
+        .ingredient-item-card {
+          display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl); box-shadow: var(--shadow-sm);
         }
-        .pill-healthy { background: #dcfce7; color: #166534; border-color: #86efac; }
+        .ing-badge {
+          width: 28px; height: 28px; border-radius: 50%; background: var(--color-secondary-fixed);
+          color: var(--color-primary); font-weight: 700; display: flex; align-items: center; justify-content: center;
+          font-size: 0.875rem; flex-shrink: 0;
+        }
+        .ing-content { display: flex; flex-direction: column; gap: 2px; }
+        .ing-name { font-size: 0.9375rem; font-weight: 700; color: var(--color-primary); }
+        .ing-purpose { font-size: 0.8125rem; color: var(--color-text-main); line-height: 1.4; }
+
+        /* Product Match Cards */
+        .products-grid { display: flex; flex-direction: column; gap: 10px; }
+        .product-match-card {
+          display: flex; flex-direction: column; gap: 8px; padding: 14px;
+          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl); box-shadow: var(--shadow-sm);
+        }
+        .product-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .product-info { display: flex; flex-direction: column; gap: 2px; }
+        .product-cat { font-size: 0.75rem; font-weight: 700; color: var(--color-secondary); text-transform: uppercase; }
+        .product-name { font-size: 0.95rem; font-weight: 700; color: var(--color-primary); margin: 0; }
+        .match-score-badge {
+          display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--radius-full);
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(14, 165, 233, 0.12));
+          border: 1px solid rgba(16, 185, 129, 0.4); color: #047857; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+        }
+        .product-why { font-size: 0.8125rem; color: var(--color-text-main); margin: 0; line-height: 1.4; }
 
         .result-notes-card {
           background: var(--color-surface-container-low); border: 1px solid var(--color-secondary-container);
