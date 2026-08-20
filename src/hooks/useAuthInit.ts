@@ -23,19 +23,20 @@ export function useAuthInit() {
   } = useAuthStore()
 
   const hydrateUserData = useCallback(
-    async (userId: string) => {
+    async (userObj: any) => {
       setLoading(true)
+      const userId = userObj.id
       try {
         // Fetch all user data in parallel
         const [profileRes, skinProfileRes, coinRes, subRes] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', userId).single(),
+          supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
           supabase
             .from('skin_profiles')
             .select('*')
             .eq('user_id', userId)
             .eq('is_active', true)
             .maybeSingle(),
-          supabase.from('coin_balances').select('*').eq('user_id', userId).single(),
+          supabase.from('coin_balances').select('*').eq('user_id', userId).maybeSingle(),
           supabase
             .from('subscriptions')
             .select('*, subscription_tiers(slug, name)')
@@ -44,7 +45,29 @@ export function useAuthInit() {
             .maybeSingle(),
         ])
 
-        setProfile(profileRes.data ?? null)
+        let profileData = profileRes.data
+
+        // Auto-heal/Ensure profile exists in public.profiles with full_name
+        const metaName = userObj.user_metadata?.full_name || userObj.email?.split('@')[0] || 'Pengguna Skincluv'
+
+        if (!profileData) {
+          const { data: newProf } = await supabase
+            .from('profiles')
+            .upsert({ id: userId, full_name: metaName })
+            .select()
+            .maybeSingle()
+          profileData = newProf
+        } else if (!profileData.full_name && metaName) {
+          const { data: updatedProf } = await supabase
+            .from('profiles')
+            .update({ full_name: metaName })
+            .eq('id', userId)
+            .select()
+            .maybeSingle()
+          profileData = updatedProf
+        }
+
+        setProfile(profileData ?? null)
         setActiveSkinProfile(skinProfileRes.data ?? null)
         setCoinBalance(coinRes.data ?? null)
         setSubscription(subRes.data ?? null)
@@ -64,7 +87,7 @@ export function useAuthInit() {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        hydrateUserData(session.user.id)
+        hydrateUserData(session.user)
       } else {
         setLoading(false)
         setInitialized(true)
@@ -78,12 +101,16 @@ export function useAuthInit() {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        hydrateUserData(session.user.id)
+        hydrateUserData(session.user)
       } else {
         reset()
+        setLoading(false)
+        setInitialized(true)
       }
     })
 
-    return () => subscription.unsubscribe()
-  }, [setUser, setSession, setLoading, setInitialized, hydrateUserData, reset])
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [setSession, setUser, hydrateUserData, reset, setLoading, setInitialized])
 }
