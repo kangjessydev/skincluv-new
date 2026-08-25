@@ -6,16 +6,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   ScanFace,
   FlaskConical,
-  MessageCircle,
   ChevronRight,
   Sparkles,
-  Crown,
-  CheckCircle2,
-  Info,
   Star,
   Target,
-  ArrowRight,
-  ShieldCheck,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'

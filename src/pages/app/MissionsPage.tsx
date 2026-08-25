@@ -5,13 +5,9 @@ import { useState, useEffect } from 'react'
 import {
   CheckCircle2,
   Gift,
-  Coins,
   Sparkles,
   Trophy,
   Calendar,
-  Zap,
-  ArrowUpRight,
-  ShieldCheck,
   Loader2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'

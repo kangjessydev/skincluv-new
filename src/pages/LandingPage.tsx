@@ -9,14 +9,9 @@ import {
   MessageCircle,
   ShieldCheck,
   CheckCircle2,
-  ChevronRight,
-  Zap,
   ArrowRight,
-  HelpCircle,
-  Heart,
   Calendar,
   Layers,
-  Users,
 } from 'lucide-react'
 
 const features = [
