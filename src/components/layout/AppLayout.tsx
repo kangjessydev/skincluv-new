@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, ScanFace, FlaskConical, MessageCircle, Target, User, Bell, Camera, PanelLeftClose, PanelLeftOpen, Crown, LogOut, ChevronDown, Receipt, History, X } from 'lucide-react'
+import { Sparkles, ScanFace, FlaskConical, MessageCircle, Target, User, Bell, Camera, PanelLeftClose, PanelLeftOpen, Crown, LogOut, ChevronDown, Receipt, History, X, Coins } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
