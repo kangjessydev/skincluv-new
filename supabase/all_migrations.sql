@@ -718,6 +718,11 @@ $$;
 -- ----------------------------------------------------------------
 -- credit_coins — atomically credit coins for mission completion
 -- ----------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.credit_coins(uuid, integer, uuid, text);
+DROP FUNCTION IF EXISTS public.credit_coins(uuid, integer, uuid);
+DROP FUNCTION IF EXISTS public.credit_coins(uuid, integer);
+DROP FUNCTION IF EXISTS public.credit_coins;
+
 CREATE OR REPLACE FUNCTION public.credit_coins(
   p_user_id    uuid,
   p_amount     integer,

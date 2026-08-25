@@ -52,6 +52,11 @@ CREATE POLICY "missions_select_active" ON public.missions
   FOR SELECT TO authenticated USING (is_active = true);
 
 -- 4. Atomic Credit Coins Function (SECURITY DEFINER)
+DROP FUNCTION IF EXISTS public.credit_coins(uuid, integer, uuid, text);
+DROP FUNCTION IF EXISTS public.credit_coins(uuid, integer, uuid);
+DROP FUNCTION IF EXISTS public.credit_coins(uuid, integer);
+DROP FUNCTION IF EXISTS public.credit_coins;
+
 CREATE OR REPLACE FUNCTION public.credit_coins(
   p_user_id    uuid,
   p_amount     integer,
