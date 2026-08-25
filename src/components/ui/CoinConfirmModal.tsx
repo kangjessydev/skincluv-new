@@ -51,17 +51,17 @@ export default function CoinConfirmModal({
           <div className="coin-breakdown">
             <div className="breakdown-row">
               <span>Biaya penggunaan</span>
-              <span className="breakdown-cost">-{coinCost} 🪙</span>
+              <span className="breakdown-cost">-{coinCost} Koin</span>
             </div>
             <div className="breakdown-row">
               <span>Saldo kamu</span>
-              <span>{currentBalance} 🪙</span>
+              <span>{currentBalance} Koin</span>
             </div>
             <div className="breakdown-divider" />
             <div className="breakdown-row breakdown-result">
-              <span>Sisa setelah</span>
+              <span>Sisa setelah pemotongan</span>
               <span className={balanceAfter < 0 ? 'text-error' : 'text-success'}>
-                {balanceAfter < 0 ? '0' : balanceAfter} 🪙
+                {balanceAfter < 0 ? '0' : balanceAfter} Koin
                 {balanceAfter < 0 && ' (tidak cukup)'}
               </span>
             </div>

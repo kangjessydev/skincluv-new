@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, Loader2, Sparkles, KeyRound } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Loader2, Sparkles, KeyRound, Send, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 /**
- * LoginPage — Ported from scan-2 UI design.
- * Combines Google OAuth, Magic Link, and Email/Password login.
+ * LoginPage — Ported 100% faithfully from scan-2 UI design.
+ * Pure vector icons only (no emojis).
  */
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -76,8 +76,10 @@ export default function LoginPage() {
   if (magicLinkSent) {
     return (
       <div className="auth-success-box">
-        <div className="auth-success-icon">📬</div>
-        <h2 className="auth-success-title">Cek email kamu!</h2>
+        <div className="auth-success-icon-badge">
+          <CheckCircle2 size={36} className="text-emerald-500" />
+        </div>
+        <h2 className="auth-success-title">Cek email kamu</h2>
         <p className="auth-success-desc">
           Kami kirimkan link masuk langsung ke email <strong>{email}</strong>. Klik link tersebut untuk masuk tanpa password.
         </p>
@@ -104,14 +106,14 @@ export default function LoginPage() {
         <p className="login-subtitle">
           {isMagicLink
             ? 'Kami kirimkan link verifikasi instan ke email kamu'
-            : 'Masuk ke ruang konsultasi kulit pribadi kamu'}
+            : 'Masuk ke ruang konsultasi kulit pribadi Anda secara instan'}
         </p>
       </div>
 
       {/* ERROR ALERT */}
       {error && (
         <div className="auth-alert-error">
-          <span>⚠️</span>
+          <AlertCircle size={18} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -197,7 +199,10 @@ export default function LoginPage() {
           {isLoading ? (
             <Loader2 size={20} className="animate-spin" />
           ) : isMagicLink ? (
-            '✉️ Kirim Magic Link'
+            <>
+              <Send size={18} />
+              <span>Kirim Magic Link</span>
+            </>
           ) : (
             'Masuk Ke Akun'
           )}
@@ -444,6 +449,7 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 8px;
           margin-top: 6px;
           box-shadow: 0 8px 16px -4px rgba(15, 103, 132, 0.25);
         }
@@ -506,8 +512,15 @@ export default function LoginPage() {
           padding: 12px 0;
         }
 
-        .auth-success-icon {
-          font-size: 48px;
+        .auth-success-icon-badge {
+          width: 64px;
+          height: 64px;
+          border-radius: 20px;
+          background: #ecfdf5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 4px;
         }
 
         .auth-success-title {

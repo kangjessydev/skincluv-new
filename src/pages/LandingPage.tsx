@@ -99,12 +99,14 @@ export default function LandingPage() {
       {/* NAVIGATION BAR */}
       <header className="landing-navbar">
         <div className="landing-nav-inner">
-          <div className="landing-brand">
-            <span className="brand-logo">✨</span>
+          <Link to="/" className="landing-brand">
+            <div className="brand-logo bg-gradient-to-br from-[#0f6784] to-sky-400 text-white rounded-xl p-2 flex items-center justify-center">
+              <Sparkles size={20} />
+            </div>
             <span className="brand-title">
               Skin<span className="text-primary">cluv</span>
             </span>
-          </div>
+          </Link>
 
           <nav className="landing-nav-links">
             <a href="#features">Fitur</a>

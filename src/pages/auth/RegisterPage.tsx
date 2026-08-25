@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 /**
- * RegisterPage — Ported from scan-2 UI design.
- * Full registration flow with Google OAuth & Email/Password.
+ * RegisterPage — Ported 100% faithfully from scan-2 UI design.
+ * Pure vector icons only (no emojis).
  */
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
@@ -69,8 +69,10 @@ export default function RegisterPage() {
   if (registered) {
     return (
       <div className="auth-success-box">
-        <div className="auth-success-icon">🎉</div>
-        <h2 className="auth-success-title">Akun Berhasil Dibuat!</h2>
+        <div className="auth-success-icon-badge">
+          <CheckCircle2 size={36} className="text-emerald-500" />
+        </div>
+        <h2 className="auth-success-title">Akun Berhasil Dibuat</h2>
         <p className="auth-success-desc">
           Cek email kamu di <strong>{email}</strong> untuk konfirmasi pendaftaran. Setelah dikonfirmasi, kamu bisa langsung masuk.
         </p>
@@ -86,13 +88,13 @@ export default function RegisterPage() {
       {/* HEADER TITLE */}
       <div className="register-header">
         <h2 className="register-title">Buat Akun Baru</h2>
-        <p className="register-subtitle">Mulai perjalanan perawatan & konsultasi kulit sehat kamu</p>
+        <p className="register-subtitle">Mulai perjalanan perawatan & konsultasi kulit sehat Anda</p>
       </div>
 
       {/* ERROR ALERT */}
       {error && (
         <div className="auth-alert-error">
-          <span>⚠️</span>
+          <AlertCircle size={18} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -453,8 +455,15 @@ export default function RegisterPage() {
           padding: 12px 0;
         }
 
-        .auth-success-icon {
-          font-size: 48px;
+        .auth-success-icon-badge {
+          width: 64px;
+          height: 64px;
+          border-radius: 20px;
+          background: #ecfdf5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 4px;
         }
 
         .auth-success-title {

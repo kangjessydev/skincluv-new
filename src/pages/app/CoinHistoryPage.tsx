@@ -72,10 +72,10 @@ export default function CoinHistoryPage() {
       {/* Coin Balance Card */}
       <div className="balance-card stich-bento-card">
         <div className="balance-left">
-          <span className="coin-icon">🪙</span>
+          <Coins size={28} className="text-amber-500" />
           <div>
             <span className="balance-label">Total Saldo Koin</span>
-            <span className="balance-val">{coinBalance?.balance ?? 1250} Coins</span>
+            <span className="balance-val">{coinBalance?.balance ?? 50} Koin</span>
           </div>
         </div>
         <Link to="/missions" className="btn btn-primary btn-sm">
@@ -118,7 +118,7 @@ export default function CoinHistoryPage() {
                   </span>
                 </div>
                 <div className={`ledger-amount ${isCredit(item.type) ? 'amount-credit' : 'amount-debit'}`}>
-                  {isCredit(item.type) ? '+' : '-'}{item.amount} 🪙
+                  {isCredit(item.type) ? '+' : '-'}{item.amount} Koin
                 </div>
               </div>
             ))

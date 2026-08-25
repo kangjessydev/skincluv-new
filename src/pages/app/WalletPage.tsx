@@ -217,9 +217,9 @@ export default function WalletPage() {
             <h2>Paket PRO <Crown size={20} className="inline-icon" /></h2>
             <p>Scan Sepuasnya & Chat AI Tanpa Batas!</p>
             <ul>
-              <li>✨ 3.000 Universal AI Usage / Bulan</li>
-              <li>✨ Analisis Wajah & Rekomendasi Medis</li>
-              <li>✨ Peringatan Bahan Berbahaya Otomatis</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> 3.000 Universal AI Usage / Bulan</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Analisis Wajah & Rekomendasi Medis</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Peringatan Bahan Berbahaya Otomatis</li>
             </ul>
           </div>
           <div className="sub-action">

@@ -493,9 +493,9 @@ export default function FaceScanPage() {
               <div className="rejection-tips-box">
                 <h4>Tips Pengambilan Foto yang Tepat:</h4>
                 <ul>
-                  <li>✔️ Gunakan foto wajah asli manusia dengan posisi menghadap lurus.</li>
-                  <li>✔️ Pastikan pencahayaan cukup terang & wajah tidak tertutup masker/topi.</li>
-                  <li>✔️ Hindari foto objek benda, pemandangan, atau foto buram.</li>
+                  <li><CheckCircle2 size={16} className="text-emerald-500 inline mr-2" /> Gunakan foto wajah asli manusia dengan posisi menghadap lurus.</li>
+                  <li><CheckCircle2 size={16} className="text-emerald-500 inline mr-2" /> Pastikan pencahayaan cukup terang & wajah tidak tertutup masker/topi.</li>
+                  <li><CheckCircle2 size={16} className="text-emerald-500 inline mr-2" /> Hindari foto objek benda, pemandangan, atau foto buram.</li>
                 </ul>
               </div>
 

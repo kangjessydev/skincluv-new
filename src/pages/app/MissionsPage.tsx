@@ -221,11 +221,11 @@ export default function MissionsPage() {
           {/* Coin Balance Banner Card */}
           <div className="coin-banner-card stich-bento-card">
             <div className="banner-top">
-              <span className="coin-large-emoji">🪙</span>
+              <Coins size={36} className="text-amber-500" />
               <div>
                 <span className="banner-meta">Saldo Koin Saat Ini</span>
                 <div className="banner-amount">
-                  {currentBalanceDisplay} <span className="denom">Coins</span>
+                  {currentBalanceDisplay} <span className="denom">Koin</span>
                 </div>
               </div>
             </div>
@@ -242,9 +242,9 @@ export default function MissionsPage() {
             </h3>
             <p>Koin yang kamu kumpulkan dari misi harian dapat digunakan untuk:</p>
             <ul className="reward-info-list">
-              <li>✨ Membuka analisis wajah tambahan saat kuota gratis habis</li>
-              <li>✨ Konsultasi mendalam dengan Skinsistant AI</li>
-              <li>✨ Menukarkan voucher diskon langganan PRO</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Membuka analisis wajah tambahan saat kuota gratis habis</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Konsultasi mendalam dengan Skinsistant AI</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Menukarkan voucher diskon langganan PRO</li>
             </ul>
           </div>
         </div>
@@ -294,7 +294,7 @@ export default function MissionsPage() {
                       </div>
 
                       <div className="mission-action">
-                        <span className="reward-tag">+{m.reward_coins} 🪙</span>
+                        <span className="reward-tag">+{m.reward_coins} Koin</span>
                         {m.is_claimed ? (
                           <span className="btn-claimed">
                             <CheckCircle2 size={16} /> Diklaim

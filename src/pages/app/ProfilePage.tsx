@@ -199,10 +199,10 @@ export default function ProfilePage() {
           {/* Emergency Coins Card */}
           <div className="card coins-card glass-card">
             <div className="coins-left">
-              <span className="coin-emoji">🪙</span>
+              <Coins size={28} className="text-amber-500" />
               <div>
                 <span className="coins-label">Saldo Koin</span>
-                <span className="coins-amount">{coinBalance?.balance ?? 1250} Coins</span>
+                <span className="coins-amount">{coinBalance?.balance ?? 50} Koin</span>
               </div>
             </div>
             <Link to="/coin-history" className="btn btn-secondary btn-sm">

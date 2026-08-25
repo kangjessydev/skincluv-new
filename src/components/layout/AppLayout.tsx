@@ -138,7 +138,7 @@ export default function AppLayout() {
 
               {/* Coin Balance Badge */}
               <NavLink to="/coin-history" className="header-coin-badge" title="Riwayat Koin">
-                <span className="coin-icon">🪙</span>
+                <Coins size={16} className="text-amber-500" />
                 <span className="coin-val">{coinBalance?.balance ?? 0}</span>
               </NavLink>
 
@@ -163,7 +163,7 @@ export default function AppLayout() {
                   <div className="user-dropdown-menu animate-fade-in">
                     <div className="dropdown-user-info">
                       <span className="info-name">{fullUserName}</span>
-                      <span className="info-role">{isPro ? '✨ Skincluv PRO Member' : 'Free Explorer'}</span>
+                      <span className="info-role">{isPro ? 'Skincluv PRO Member' : 'Free Explorer'}</span>
                     </div>
 
                     <div className="dropdown-divider" />

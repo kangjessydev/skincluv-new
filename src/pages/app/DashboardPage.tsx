@@ -148,10 +148,10 @@ export default function DashboardPage() {
       <div className="dashboard-header-banner">
         <div className="banner-left">
           <span className="banner-badge">
-            <Sparkles size={14} /> {isPro ? '✨ Skincluv PRO Member' : 'Free Explorer'}
+            <Sparkles size={14} /> {isPro ? 'Skincluv PRO Member' : 'Free Explorer'}
           </span>
           <h1 className="banner-greeting">
-            {greeting}, <span className="highlight-name">{userName}</span>! 👋
+            {greeting}, <span className="highlight-name">{userName}</span>
           </h1>
           <p className="banner-subtext">
             Kondisi kulitmu hari ini terpantau <strong className="text-emerald-300">Sehat & Optimal</strong>. Mari pantau perkembangannya!
@@ -172,7 +172,7 @@ export default function DashboardPage() {
             <Coins size={24} className="text-amber-300 animate-bounce" />
           </div>
           <div>
-            <h3 className="coin-bonus-title">Bonus Koin Pengguna Baru! 🪙</h3>
+            <h3 className="coin-bonus-title">Bonus Koin Pengguna Baru</h3>
             <p className="coin-bonus-desc">Klaim +50 Koin gratis dengan menyelesaikan misi pertama kamu hari ini.</p>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
           <div className="coins-display">
             <Coins size={28} className="text-amber-500" />
             <span className="coins-amount">{userCoins.toLocaleString()}</span>
-            <span className="coins-unit">🪙</span>
+            <span className="coins-label">Koin</span>
           </div>
           <div className="coins-action-row">
             <Link to="/pricing" className="topup-btn">
@@ -378,7 +378,7 @@ export default function DashboardPage() {
                 <div key={m.id} className="mini-mission-item">
                   <div className="mini-mission-info">
                     <span className="mini-mission-name">{m.name}</span>
-                    <span className="mini-mission-reward">+{m.coin_reward} 🪙</span>
+                    <span className="mini-mission-reward">+{m.coin_reward} Koin</span>
                   </div>
                   <div className="mini-mission-progress-bar">
                     <div

@@ -43,7 +43,7 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        <h1 className="success-title">Selamat! Kamu Resmi Menjadi Member PRO 🎉</h1>
+        <h1 className="success-title">Selamat! Kamu Resmi Menjadi Member PRO</h1>
         <p className="success-subtitle">
           Nikmati akses analisis kulit cerdas & komunikasi tanpa batas bersama AI Skincluv.
         </p>
