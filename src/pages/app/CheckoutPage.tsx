@@ -336,7 +336,9 @@ export default function CheckoutPage() {
   }
 
   const payCode = tripayDetail?.pay_code || invoice?.pay_code || invoice?.reference || reference
-  const qrUrl = tripayDetail?.qr_url || invoice?.qr_url || tripayDetail?.qr_string
+  const rawQrUrl = tripayDetail?.qr_url || invoice?.qr_url
+  const qrString = tripayDetail?.qr_string || invoice?.qr_string
+  const qrUrl = rawQrUrl || (qrString ? `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrString)}` : null)
   const method = tripayDetail?.payment_method || invoice?.method || 'Virtual Account'
   const isPaid = invoice?.status === 'PAID'
   const isExpired = invoice?.status === 'EXPIRED' || timeLeft === 'Expired'
