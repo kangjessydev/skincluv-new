@@ -1,24 +1,48 @@
+// src/pages/app/IngredientScanPage.tsx
+// 100% Faithful Port of scan-2 Ingredient Scan UI for Skincluv with Reordered Tabs (Foto Kemasan Default, Ketik Komposisi Second)
+
 import { useState, useRef } from 'react'
-import { FileText, Camera, Upload, RotateCcw, Loader2, AlertCircle, CheckCircle2, ShieldAlert, Sparkles, ChevronRight, Info, ShieldCheck, HelpCircle, BookOpen } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  FlaskConical,
+  Camera,
+  FileText,
+  Coins,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  ShieldAlert,
+  Upload,
+  X,
+  ArrowLeft,
+  Sparkles,
+  Loader2,
+  Tag,
+} from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
+import { isActivePremium } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 
-type InputMode = 'text' | 'image'
-type Step = 'input' | 'analyzing' | 'result' | 'error'
+type TabMode = 'image' | 'text'
 
 interface IngredientItem {
   name: string
   function: string
-  safety_level: 'safe' | 'caution' | 'avoid'
-  notes: string
+  status?: 'Optimal' | 'Watch' | 'Neutral'
+  safety_level?: 'safe' | 'caution' | 'avoid'
+  notes?: string
 }
 
 interface IngredientAnalysisResult {
+  is_valid_skincare?: boolean
   product_name?: string
-  safety_score: number
-  overall_recommendation: string
-  key_ingredients: IngredientItem[]
+  clinical_summary?: string
+  safety_score?: number
+  overall_recommendation?: string
+  suitable_for_skin_types?: string[]
+  key_ingredients?: IngredientItem[]
+  ingredients_breakdown?: IngredientItem[]
 }
 
 const SAMPLE_INGREDIENTS = [
@@ -28,16 +52,25 @@ const SAMPLE_INGREDIENTS = [
 ]
 
 export default function IngredientScanPage() {
-  const { user, coinBalance } = useAuthStore()
+  const navigate = useNavigate()
+  const { coinBalance, subscription } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
-  const currentCoins = coinBalance?.balance ?? 0
 
-  const [mode, setMode] = useState<InputMode>('text')
-  const [step, setStep] = useState<Step>('input')
-  const [ingredientText, setIngredientText] = useState('')
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const isPro = isActivePremium(subscription)
+  const userCoins = coinBalance?.balance ?? 0
+
+  // TAB ORDER DIRECTIVE: Default to 'image' (Foto Kemasan) first, 'text' (Ketik Komposisi) second
+  const [activeTab, setActiveTab] = useState<TabMode>('image')
+
+  // Form & Image States
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
-  const [analysis, setAnalysis] = useState<IngredientAnalysisResult | null>(null)
+  const [inputText, setInputText] = useState('')
+
+  // Processing & Result States
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [scanResult, setScanResult] = useState<IngredientAnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -50,8 +83,9 @@ export default function IngredientScanPage() {
       return
     }
     setErrorMsg(null)
-    const preview = URL.createObjectURL(file)
-    setImagePreview(preview)
+    setSelectedFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    setScanResult(null)
 
     const reader = new FileReader()
     reader.onload = (ev) => {
@@ -65,8 +99,15 @@ export default function IngredientScanPage() {
     e.preventDefault()
     const file = e.dataTransfer.files?.[0]
     if (!file) return
-    const preview = URL.createObjectURL(file)
-    setImagePreview(preview)
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('File harus berupa gambar (JPG, PNG, WEBP)')
+      return
+    }
+    setErrorMsg(null)
+    setSelectedFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    setScanResult(null)
+
     const reader = new FileReader()
     reader.onload = (ev) => {
       const result = ev.target?.result as string
@@ -75,384 +116,694 @@ export default function IngredientScanPage() {
     reader.readAsDataURL(file)
   }
 
-  const analyze = async () => {
-    if (mode === 'text' && !ingredientText.trim()) {
-      setErrorMsg('Masukkan teks komposisi produk terlebih dahulu.')
+  const handleClearImage = () => {
+    setSelectedFile(null)
+    setPreviewUrl(null)
+    setImageBase64(null)
+    setScanResult(null)
+  }
+
+  const handleStartAnalysis = async () => {
+    if (activeTab === 'image' && !imageBase64) {
+      setErrorMsg('Pilih atau unggah foto kemasan produk terlebih dahulu.')
       return
     }
-    if (mode === 'image' && !imageBase64) {
-      setErrorMsg('Pilih foto kemasan produk terlebih dahulu.')
+    if (activeTab === 'text' && !inputText.trim()) {
+      setErrorMsg('Masukkan atau tempelkan teks komposisi produk terlebih dahulu.')
       return
     }
 
-    setStep('analyzing')
+    setIsAnalyzing(true)
     setErrorMsg(null)
 
     try {
       const input_context: Record<string, string> = {}
-      if (mode === 'text') input_context.ingredient_text = ingredientText
-      if (mode === 'image' && imageBase64) input_context.image_base64 = imageBase64
+      if (activeTab === 'text') input_context.ingredient_text = inputText
+      if (activeTab === 'image' && imageBase64) input_context.image_base64 = imageBase64
 
       const result = await invoke<IngredientAnalysisResult>({
         feature_slug: 'ingredient_scan',
-        messages: [{ role: 'user', content: mode === 'text' ? ingredientText : 'Analisis komposisi dari foto kemasan produk ini.' }],
+        messages: [{
+          role: 'user',
+          content: activeTab === 'text'
+            ? inputText
+            : 'Analisis komposisi bahan dari foto kemasan produk skincare ini.'
+        }],
         input_context,
       })
 
       if (!result || typeof result !== 'object') {
-        setErrorMsg('Gagal menganalisis komposisi produk. Silakan periksa teks/foto dan coba lagi.')
-        setStep('error')
+        setErrorMsg('Gagal menganalisis komposisi produk. Silakan periksa foto/teks dan coba lagi.')
         return
       }
 
-      setAnalysis(result)
-      setStep('result')
+      setScanResult(result)
     } catch (err: any) {
       console.error('Ingredient scan error:', err)
       setErrorMsg(err.message || 'Gagal menganalisis komposisi produk.')
-      setStep('error')
+    } finally {
+      setIsAnalyzing(false)
     }
   }
 
-  const reset = () => {
-    setStep('input')
-    setIngredientText('')
-    setImagePreview(null)
-    setImageBase64(null)
-    setAnalysis(null)
-    setErrorMsg(null)
-  }
-
-  const getSafetyBadge = (level: 'safe' | 'caution' | 'avoid') => {
-    switch (level) {
-      case 'safe':
-        return <span className="safety-badge safety-badge--safe"><CheckCircle2 size={12} /> Aman</span>
-      case 'caution':
-        return <span className="safety-badge safety-badge--caution"><Info size={12} /> Perhatian</span>
-      case 'avoid':
-        return <span className="safety-badge safety-badge--avoid"><AlertCircle size={12} /> Hindari</span>
+  // Helper for Status Badges
+  const getIngredientStatusBadge = (item: IngredientItem) => {
+    const statusText = item.status || (item.safety_level === 'safe' ? 'Optimal' : item.safety_level === 'caution' ? 'Watch' : 'Neutral')
+    if (statusText === 'Optimal' || item.safety_level === 'safe') {
+      return <span className="status-pill status-optimal"><CheckCircle2 size={12} /> Optimal</span>
     }
+    if (statusText === 'Watch' || item.safety_level === 'caution') {
+      return <span className="status-pill status-watch"><Info size={12} /> Perhatian</span>
+    }
+    return <span className="status-pill status-neutral"><AlertCircle size={12} /> Neutral</span>
   }
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'score--good'
-    if (score >= 60) return 'score--medium'
-    return 'score--poor'
-  }
+  const ingredientList = scanResult?.ingredients_breakdown || scanResult?.key_ingredients || []
+  const skinTypeList = scanResult?.suitable_for_skin_types || ['Normal', 'Kombinasi', 'Berminyak', 'Sensitif']
 
   return (
-    <div className="ingredient-page animate-fade-in">
-      <div className="page-header">
-        <h1>Cek Komposisi Skincare</h1>
-        <p className="page-subtitle">Pindai foto kemasan atau ketik daftar bahan untuk mendeteksi bahaya & kesesuaian produk.</p>
-      </div>
-
-      {/* Input mode tabs */}
-      {step === 'input' && (
-        <div className="mode-tabs">
-          <button
-            className={`tab-btn ${mode === 'text' ? 'tab-btn--active' : ''}`}
-            onClick={() => setMode('text')}
-          >
-            <FileText size={16} /> Ketik Komposisi
-          </button>
-          <button
-            className={`tab-btn ${mode === 'image' ? 'tab-btn--active' : ''}`}
-            onClick={() => setMode('image')}
-          >
-            <Camera size={16} /> Scan Foto Kemasan
-          </button>
-        </div>
-      )}
-
-      {/* Full-Width 2-Column Grid Layout */}
-      <div className="ingredient-grid">
-        {/* Left Column (7 Cols): Main Action Canvas */}
-        <div className="scan-main-col">
-          {step === 'input' && (
-            <div className="input-card stich-bento-card">
-              {mode === 'text' ? (
-                <div className="text-mode">
-                  <label className="input-label">Daftar Bahan / Ingredients (dipisah koma):</label>
-                  <textarea
-                    className="ingredient-textarea"
-                    rows={6}
-                    placeholder="Contoh: Aqua, Niacinamide, Glycerin, Centella Asiatica Extract..."
-                    value={ingredientText}
-                    onChange={(e) => setIngredientText(e.target.value)}
-                  />
-
-                  <div className="samples-box">
-                    <span className="samples-label">Coba contoh produk:</span>
-                    <div className="sample-buttons">
-                      {SAMPLE_INGREDIENTS.map((sample, idx) => (
-                        <button
-                          key={idx}
-                          className="sample-btn"
-                          onClick={() => setIngredientText(sample)}
-                        >
-                          Sampel #{idx + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="image-mode">
-                  {!imagePreview ? (
-                    <div
-                      className="drop-zone"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <div className="drop-zone-icon-box">
-                        <Camera size={36} />
-                      </div>
-                      <h3 className="drop-zone-title">Upload Foto Kemasan Produk</h3>
-                      <p className="drop-zone-sub">Foto bagian daftar bahan (Ingredients) secara jelas</p>
-                      <span className="drop-zone-hint">Format JPG, PNG, WEBP (Maksimal 5MB)</span>
-                      <button className="btn btn-primary btn-sm mt-sm">
-                        <Upload size={16} /> Pilih Foto
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="preview-box">
-                      <img src={imagePreview} alt="Kemasan" className="preview-img" />
-                      <button className="btn btn-secondary btn-sm mt-sm" onClick={() => { setImagePreview(null); setImageBase64(null) }}>
-                        <RotateCcw size={16} /> Ganti Foto
-                      </button>
-                    </div>
-                  )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleFileChange}
-                    style={{ display: 'none' }}
-                  />
-                </div>
-              )}
-
-              {errorMsg && <div className="error-box"><AlertCircle size={16} /> {errorMsg}</div>}
-
-              <button
-                className="btn btn-primary btn-block mt-lg"
-                onClick={analyze}
-                disabled={mode === 'text' ? !ingredientText.trim() : !imageBase64}
-              >
-                <Sparkles size={16} /> Mulai Pindai Komposisi
-              </button>
-            </div>
-          )}
-
-          {/* ANALYZING LOADING */}
-          {step === 'analyzing' && (
-            <div className="loading-card stich-bento-card">
-              <Loader2 size={44} className="animate-spin loading-spinner" />
-              <h3>Menganalisis Kandungan Skincare...</h3>
-              <p>Memeriksa potensi komedogenik, iritan, & kecocokan dengan jenis kulitmu.</p>
-            </div>
-          )}
-
-          {/* RESULT */}
-          {step === 'result' && analysis && (
-            <div className="result-container animate-fade-in">
-              <div className="ingredients-list-card stich-bento-card">
-                <h3>Detail Kandungan Terdeteksi ({analysis.key_ingredients.length})</h3>
-                <div className="ingredients-stack">
-                  {analysis.key_ingredients.map((item, idx) => (
-                    <div key={idx} className="ingredient-item">
-                      <div className="ingredient-main">
-                        <span className="ingredient-name">{item.name}</span>
-                        {getSafetyBadge(item.safety_level)}
-                      </div>
-                      <span className="ingredient-fn">Fungsi: {item.function}</span>
-                      <p className="ingredient-notes">{item.notes}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="action-row mt-md">
-                <button className="btn btn-primary btn-block" onClick={reset}>
-                  <RotateCcw size={16} /> Pindai Produk Lain
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ERROR */}
-          {step === 'error' && (
-            <div className="error-card stich-bento-card animate-fade-in">
-              <AlertCircle size={44} className="error-icon" />
-              <h2>Analisis Gagal</h2>
-              <p>{errorMsg}</p>
-              <button className="btn btn-primary btn-block" onClick={reset}>
-                <RotateCcw size={16} /> Coba Lagi
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column (5 Cols): Side Info / Safety Score Result */}
-        <div className="scan-side-col">
-          {step === 'result' && analysis ? (
-            <div className={`score-card stich-bento-card ${getScoreColor(analysis.safety_score)}`}>
-              <div className="score-header">
-                <div>
-                  <span className="score-meta">Tingkat Keamanan Produk</span>
-                  <div className="score-display">
-                    <span className="score-num">{analysis.safety_score}</span>
-                    <span className="score-denom">/100</span>
-                  </div>
-                </div>
-                <div className="score-ring">
-                  <ShieldCheck size={36} />
-                </div>
-              </div>
-              <p className="recommendation-text">{analysis.overall_recommendation}</p>
-            </div>
-          ) : (
-            <>
-              {/* Guide Card */}
-              <div className="stich-bento-card guide-card">
-                <h3><BookOpen size={18} className="text-sky" /> Panduan Komposisi Skincare</h3>
-                <p>AI Skincluv akan mencocokkan setiap nama kimia produk dengan database dermatologi untuk mendeteksi:</p>
-                <ul className="guide-list">
-                  <li>🟢 <strong>Bahan Aman & Melembabkan:</strong> Hyaluronic Acid, Niacinamide, Glycerin, Ceramides.</li>
-                  <li>🟡 <strong>Perhatian Terbatas:</strong> Eksfoliator (AHA/BHA), Retinol, Fragrance.</li>
-                  <li>🔴 <strong>Potensi Iritasi / Alergi:</strong> Alcohol Denat konsentrasi tinggi, Paraben sintetis.</li>
-                </ul>
-              </div>
-
-              <div className="stich-bento-card help-card">
-                <HelpCircle size={24} className="text-sky mb-xs" />
-                <h4>Di mana menemukan label komposisi?</h4>
-                <p>Cari bagian "Ingredients" atau "Komposisi" di bagian belakang dus kotak atau kemasan botol produkmu.</p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
+    <div className="scan2-ingredient-root animate-fade-in">
+      {/* Coin Deduction Modal */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
-          isOpen={!!pendingCoinConfirm}
+          isOpen={true}
           coinCost={pendingCoinConfirm.coinCost}
-          currentBalance={currentCoins}
-          featureName={pendingCoinConfirm.featureName}
+          currentBalance={pendingCoinConfirm.currentBalance}
+          featureName="Scan Ingredient AI"
           onConfirm={confirmCoinUsage}
           onCancel={cancelCoinUsage}
         />
       )}
 
+      {/* Header Bar */}
+      <div className="ingredient-header-bar">
+        <div>
+          <Link to="/" className="back-link">
+            <ArrowLeft size={14} /> Kembali ke Dashboard
+          </Link>
+          <h1 className="header-title">
+            <div className="header-icon-box">
+              <FlaskConical size={20} className="text-amber-600" />
+            </div>
+            <span>Scan Ingredient Skincare</span>
+          </h1>
+          <p className="header-subtitle">
+            Cek tingkat keamanan kandungan bahan kosmetik sebelum Anda membelinya.
+          </p>
+        </div>
+
+        <div className="coin-cost-pill">
+          <Coins size={14} className="text-amber-500" />
+          <span>{isPro ? '0 Koin (Pro Member)' : '10 Koin / Scan'}</span>
+        </div>
+      </div>
+
+      {/* Alert Error Box */}
+      {errorMsg && (
+        <div className="error-alert-box">
+          <AlertCircle size={18} className="shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* Main 2-Column Grid */}
+      <div className="ingredient-main-grid">
+        {/* Left Column (Input Panel) */}
+        <div className="input-panel-card">
+          {/* Tab Switcher: Tab 1 = Scan Foto Kemasan, Tab 2 = Ketik Teks Bahan */}
+          <div className="tab-switcher-pill">
+            <button
+              onClick={() => { setActiveTab('image'); setErrorMsg(null); }}
+              className={`tab-btn ${activeTab === 'image' ? 'tab-btn-active' : ''}`}
+            >
+              <Camera size={16} />
+              <span>Unggah Foto Label</span>
+            </button>
+            <button
+              onClick={() => { setActiveTab('text'); setErrorMsg(null); }}
+              className={`tab-btn ${activeTab === 'text' ? 'tab-btn-active' : ''}`}
+            >
+              <FileText size={16} />
+              <span>Ketik Teks Bahan</span>
+            </button>
+          </div>
+
+          {/* TAB 1: Scan Foto Kemasan */}
+          {activeTab === 'image' ? (
+            <div className="dropzone-container">
+              {previewUrl ? (
+                <div className="preview-image-box">
+                  <img src={previewUrl} alt="Preview Label Kemasan" className="preview-img" />
+                  <button onClick={handleClearImage} className="btn-clear-img">
+                    <X size={14} /> Hapus
+                  </button>
+                </div>
+              ) : (
+                <label
+                  className="upload-dropzone"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                >
+                  <div className="dropzone-avatar bg-amber-50 text-amber-600">
+                    <Upload size={24} />
+                  </div>
+                  <span className="dropzone-title">Foto Kemasan / Komposisi</span>
+                  <span className="dropzone-hint">Format JPG, PNG, WEBP maks 10MB</span>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden-file-input"
+                  />
+                </label>
+              )}
+            </div>
+          ) : (
+            /* TAB 2: Ketik Teks Bahan */
+            <div className="text-input-container">
+              <label className="input-field-label">
+                Tempelkan Teks Komposisi (Ingredients):
+              </label>
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Contoh: Aqua, Niacinamide 5%, Glycerin, Centella Asiatica Extract, Phenoxyethanol..."
+                className="ingredient-textarea"
+                rows={6}
+              />
+
+              <div className="sample-chips-box">
+                <span className="sample-kicker">Coba sampel komposisi:</span>
+                <div className="sample-chips">
+                  {SAMPLE_INGREDIENTS.map((sample, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setInputText(sample)}
+                      className="chip-btn"
+                    >
+                      Sampel #{idx + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Submit Button */}
+          <button
+            onClick={handleStartAnalysis}
+            disabled={
+              isAnalyzing ||
+              (activeTab === 'image' && !imageBase64) ||
+              (activeTab === 'text' && !inputText.trim())
+            }
+            className={`btn-analyze-submit ${
+              (activeTab === 'image' && imageBase64) || (activeTab === 'text' && inputText.trim())
+                ? 'btn-enabled'
+                : 'btn-disabled'
+            }`}
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Mengekstrak & Menganalisis Komposisi...</span>
+              </>
+            ) : (
+              <>
+                <FlaskConical size={18} />
+                <span>Analisis Bahan Skincare</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Right Column (Results Panel) */}
+        <div className="result-panel-card">
+          {isAnalyzing ? (
+            <div className="skeleton-loading-box">
+              <div className="skeleton-line skeleton-title" />
+              <div className="skeleton-line skeleton-box-large" />
+              <div className="skeleton-line skeleton-row" />
+              <div className="skeleton-line skeleton-row" />
+            </div>
+          ) : scanResult ? (
+            <div className="results-content-stack">
+              <div>
+                <span className="result-kicker-tag">HASIL ANALISIS KOMPOSISI</span>
+                <h2 className="result-product-title">
+                  {scanResult.product_name || 'Komposisi Produk Skincare'}
+                </h2>
+              </div>
+
+              <div className="clinical-summary-card">
+                <p className="summary-label">Rangkuman Klinis AI:</p>
+                <p className="summary-text">
+                  {scanResult.clinical_summary || scanResult.overall_recommendation || 'Produk mengandung komposisi yang seimbang untuk perawatan harian kulit Anda.'}
+                </p>
+              </div>
+
+              <div className="skin-compatibility-row">
+                <span className="compat-label">Cocok Untuk:</span>
+                <div className="compat-pills">
+                  {skinTypeList.map((st, idx) => (
+                    <span key={idx} className="compat-pill">
+                      <CheckCircle2 size={12} className="text-teal-600" />
+                      {st}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="breakdown-title">Rincian Keamanan Bahan:</h3>
+                <div className="breakdown-items-list">
+                  {ingredientList.length > 0 ? (
+                    ingredientList.map((item, idx) => (
+                      <div key={idx} className="ingredient-item-row">
+                        <div>
+                          <p className="item-name">{item.name}</p>
+                          <p className="item-func">{item.function || item.notes || 'Bahan aktif pendukung formula'}</p>
+                        </div>
+                        {getIngredientStatusBadge(item)}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="empty-breakdown-text">Seluruh kandungan bahan utama telah terverifikasi aman.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Empty State */
+            <div className="empty-results-box">
+              <div className="empty-icon-avatar">
+                <FlaskConical size={36} className="text-amber-500" />
+              </div>
+              <p className="empty-title">Belum Ada Analisis</p>
+              <p className="empty-desc">
+                Unggah foto label kemasan atau ketik teks bahan kosmetik Anda di panel sebelah kiri untuk melihat analisis klinis mendalam.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mandatory Medical Disclaimer Box */}
+      <div className="medical-disclaimer-box">
+        <ShieldAlert size={20} className="disclaimer-icon" />
+        <div>
+          <strong className="disclaimer-title">PENTING (Penafian Medis):</strong> Hasil analisis kecerdasan buatan (AI) ini bersifat sebagai panduan edukasi perawatan kulit mandiri dan referensi kosmetik luar. Aplikasi ini tidak menggantikan diagnosis, konsultasi, atau perawatan klinis dari dokter spesialis kulit dan kelamin (Dermatolog). Jika Anda mengalami iritasi parah atau masalah kulit kronis, segera konsultasikan dengan tenaga medis profesional.
+        </div>
+      </div>
+
+      {/* VANILLA CSS SCAN INGREDIENT STYLING */}
       <style>{`
-        .ingredient-page { padding-bottom: 60px; width: 100%; }
-        .page-header { margin-bottom: var(--space-lg); }
-        .page-header h1 { font-size: 1.875rem; margin: 0 0 4px 0; color: var(--color-primary); font-family: var(--font-heading); }
-        .page-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; margin: 0; }
+        .scan2-ingredient-root {
+          width: 100%;
+          max-width: 1100px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
 
-        .mode-tabs { display: flex; gap: var(--space-xs); margin-bottom: var(--space-lg); background: var(--color-surface-container); padding: 4px; border-radius: var(--radius-lg); max-width: 500px; }
+        .ingredient-header-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 16px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .back-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #0f6784;
+          text-decoration: none;
+          margin-bottom: 6px;
+        }
+
+        .header-title {
+          font-size: 1.5rem;
+          font-weight: 900;
+          color: #0f172a;
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .header-icon-box {
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          background: #fef3c7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .header-subtitle {
+          font-size: 0.825rem;
+          color: #64748b;
+          margin: 4px 0 0 0;
+        }
+
+        .coin-cost-pill {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          padding: 8px 16px;
+          border-radius: 9999px;
+          font-size: 0.775rem;
+          font-weight: 800;
+          color: #92400e;
+        }
+
+        .error-alert-box {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #991b1b;
+          padding: 12px 16px;
+          border-radius: 16px;
+          font-size: 0.825rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .ingredient-main-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+          .ingredient-main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* INPUT PANEL CARD */
+        .input-panel-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 28px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .tab-switcher-pill {
+          display: flex;
+          background: #f1f5f9;
+          padding: 4px;
+          border-radius: 16px;
+        }
+
         .tab-btn {
-          flex: 1; padding: 10px; border-radius: var(--radius-md); border: none; background: transparent;
-          font-family: var(--font-heading); font-size: 0.875rem; font-weight: 600; color: var(--color-secondary);
-          display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s;
-        }
-        .tab-btn--active { background: var(--color-surface-container-lowest); color: var(--color-primary); box-shadow: var(--shadow-sm); font-weight: 700; }
-
-        /* 2-Column Grid Layout */
-        .ingredient-grid {
-          display: grid; grid-template-columns: 1fr; gap: var(--space-lg); width: 100%;
-        }
-        @media (min-width: 900px) {
-          .ingredient-grid {
-            grid-template-columns: 7fr 5fr;
-          }
-        }
-
-        .stich-bento-card {
-          background: var(--color-surface-container-lowest);
-          border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl);
-          padding: var(--space-xl);
-          box-shadow: var(--shadow-sky);
-          margin-bottom: var(--space-lg);
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px;
+          border: none;
+          background: transparent;
+          border-radius: 12px;
+          font-size: 0.775rem;
+          font-weight: 800;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
 
-        .input-label { font-size: 0.875rem; font-weight: 600; color: var(--color-text-main); margin-bottom: 8px; display: block; }
+        .tab-btn-active {
+          background: #ffffff;
+          color: #0f172a;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .dropzone-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-height: 200px;
+        }
+
+        .upload-dropzone {
+          flex: 1;
+          border: 2px dashed #cbd5e1;
+          border-radius: 20px;
+          background: #f8fafc;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .upload-dropzone:hover {
+          border-color: #f59e0b;
+          background: #fffbeb;
+        }
+
+        .dropzone-avatar {
+          width: 52px;
+          height: 52px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 8px;
+        }
+
+        .dropzone-title { font-size: 0.85rem; font-weight: 800; color: #1e293b; }
+        .dropzone-hint { font-size: 0.725rem; color: #94a3b8; margin-top: 4px; }
+        .hidden-file-input { display: none; }
+
+        .preview-image-box {
+          position: relative;
+          width: 100%;
+          border-radius: 20px;
+          overflow: hidden;
+          border: 2px solid #fde68a;
+        }
+
+        .preview-img { width: 100%; height: 220px; object-fit: cover; }
+
+        .btn-clear-img {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: rgba(15, 23, 42, 0.8);
+          color: #ffffff;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 9999px;
+          font-size: 0.725rem;
+          font-weight: 800;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .text-input-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          flex: 1;
+        }
+
+        .input-field-label { font-size: 0.775rem; font-weight: 800; color: #334155; }
+
         .ingredient-textarea {
-          width: 100%; padding: 14px; border: 1px solid var(--color-secondary-container); border-radius: var(--radius-lg);
-          font-family: var(--font-body); font-size: 0.875rem; background: var(--color-surface-container-low); color: var(--color-text-main);
-          resize: vertical; outline: none; transition: border 0.2s;
-        }
-        .ingredient-textarea:focus { border-color: var(--color-primary-container); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
-
-        .samples-box { margin-top: var(--space-md); }
-        .samples-label { font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 6px; }
-        .sample-buttons { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
-        .sample-btn {
-          padding: 4px 10px; background: var(--color-secondary-container); border: 1px solid var(--color-secondary-fixed-dim);
-          border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 600; color: var(--color-primary); cursor: pointer;
+          width: 100%;
+          padding: 14px;
+          font-size: 0.8rem;
+          font-family: inherit;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 16px;
+          resize: none;
+          outline: none;
+          transition: border-color 0.2s ease;
         }
 
-        .drop-zone {
-          border: 2px dashed var(--color-secondary-fixed-dim); text-align: center; cursor: pointer;
-          border-radius: var(--radius-lg); padding: var(--space-xl); background: var(--color-surface-container-low);
-          display: flex; flex-direction: column; align-items: center; gap: 8px;
+        .ingredient-textarea:focus { border-color: #f59e0b; }
+
+        .sample-chips-box { display: flex; flex-direction: column; gap: 6px; }
+        .sample-kicker { font-size: 0.7rem; font-weight: 800; color: #94a3b8; }
+        .sample-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip-btn {
+          background: #f1f5f9;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 10px;
+          font-size: 0.725rem;
+          font-weight: 800;
+          color: #475569;
+          cursor: pointer;
         }
-        .drop-zone-icon-box {
-          width: 56px; height: 56px; border-radius: 50%; background: var(--color-secondary-fixed); color: var(--color-primary);
-          display: flex; align-items: center; justify-content: center;
+
+        .chip-btn:hover { background: #e2e8f0; color: #0f172a; }
+
+        .btn-analyze-submit {
+          width: 100%;
+          padding: 14px;
+          border-radius: 16px;
+          border: none;
+          font-size: 0.875rem;
+          font-weight: 900;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        .drop-zone-title { font-size: 1.125rem; font-weight: 700; margin: 0; color: var(--color-text-main); }
-        .drop-zone-sub { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; }
-        .drop-zone-hint { font-size: 0.75rem; color: var(--color-secondary); }
 
-        .preview-box { text-align: center; }
-        .preview-img { max-height: 300px; border-radius: var(--radius-lg); border: 1px solid var(--color-secondary-container); }
-
-        .loading-card { text-align: center; padding: var(--space-2xl); display: flex; flex-direction: column; align-items: center; gap: var(--space-md); }
-        .loading-spinner { color: var(--color-primary); }
-
-        .score-card { display: flex; flex-direction: column; gap: var(--space-md); }
-        .score-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .score-meta { font-size: 0.8125rem; font-weight: 700; color: var(--color-secondary); text-transform: uppercase; }
-        .score-display { display: flex; align-items: baseline; gap: 4px; }
-        .score-num { font-size: 3rem; font-weight: 800; color: var(--color-primary); font-family: var(--font-heading); line-height: 1; }
-        .score-denom { font-size: 1rem; color: var(--color-text-muted); }
-        .score-ring { width: 56px; height: 56px; border-radius: 50%; background: var(--color-secondary-container); color: var(--color-primary); display: flex; align-items: center; justify-content: center; }
-        .recommendation-text { font-size: 0.9375rem; color: var(--color-text-main); line-height: 1.6; margin: 0; }
-
-        .ingredients-list-card h3 { font-size: 1.125rem; margin: 0 0 var(--space-md) 0; }
-        .ingredients-stack { display: flex; flex-direction: column; gap: var(--space-sm); }
-        .ingredient-item {
-          padding: var(--space-md); border-radius: var(--radius-lg); background: var(--color-surface-container-low);
-          border: 1px solid var(--color-secondary-container);
+        .btn-enabled {
+          background: linear-gradient(90deg, #d97706 0%, #0f6784 100%);
+          color: #ffffff;
+          box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
         }
-        .ingredient-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .ingredient-name { font-weight: 700; font-size: 0.9375rem; color: var(--color-text-main); }
-        .safety-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.6875rem; font-weight: 700; }
-        .safety-badge--safe { background: var(--color-success-soft); color: var(--color-success); border: 1px solid #bbf7d0; }
-        .safety-badge--caution { background: var(--color-tertiary-fixed); color: var(--color-tertiary); border: 1px solid #fde68a; }
-        .safety-badge--avoid { background: #fef2f2; color: var(--color-error); border: 1px solid #fecaca; }
 
-        .ingredient-fn { font-size: 0.75rem; color: var(--color-primary); font-weight: 600; display: block; margin-bottom: 4px; }
-        .ingredient-notes { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; line-height: 1.5; }
+        .btn-enabled:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
-        .guide-card h3 { font-size: 1rem; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px; }
-        .guide-card p { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0 0 12px 0; }
-        .guide-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.8125rem; color: var(--color-text-muted); }
+        /* RESULTS PANEL CARD */
+        .result-panel-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 28px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+          min-height: 380px;
+        }
 
-        .help-card h4 { font-size: 0.9375rem; margin: 0 0 4px 0; color: var(--color-text-main); }
-        .help-card p { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; }
-        .text-sky { color: var(--color-primary); }
-        .mt-sm { margin-top: var(--space-sm); }
-        .mt-md { margin-top: var(--space-md); }
-        .mt-lg { margin-top: var(--space-lg); }
-        .mb-xs { margin-bottom: var(--space-xs); }
-        .btn-block { width: 100%; justify-content: center; }
+        .empty-results-box {
+          margin: auto;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          max-width: 320px;
+        }
+
+        .empty-icon-avatar {
+          width: 64px;
+          height: 64px;
+          border-radius: 24px;
+          background: #fffbeb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 12px;
+        }
+
+        .empty-title { font-size: 1rem; font-weight: 900; color: #1e293b; margin: 0; }
+        .empty-desc { font-size: 0.775rem; color: #64748b; margin: 4px 0 0 0; line-height: 1.5; }
+
+        .results-content-stack { display: flex; flex-direction: column; gap: 16px; }
+
+        .result-kicker-tag {
+          font-size: 0.65rem;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          color: #d97706;
+          background: #fffbeb;
+          padding: 3px 10px;
+          border-radius: 6px;
+        }
+
+        .result-product-title { font-size: 1.15rem; font-weight: 900; color: #0f172a; margin: 8px 0 0 0; }
+
+        .clinical-summary-card {
+          background: #f8fafc;
+          border: 1px solid #f1f5f9;
+          border-radius: 16px;
+          padding: 16px;
+        }
+
+        .summary-label { font-size: 0.75rem; font-weight: 800; color: #334155; margin: 0 0 4px 0; }
+        .summary-text { font-size: 0.8rem; color: #475569; line-height: 1.55; margin: 0; }
+
+        .skin-compatibility-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .compat-label { font-size: 0.75rem; font-weight: 800; color: #334155; }
+        .compat-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+        .compat-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.725rem;
+          font-weight: 800;
+          color: #0f766e;
+          background: #ccfbf1;
+          border: 1px solid #99f6e4;
+          padding: 2px 10px;
+          border-radius: 8px;
+        }
+
+        .breakdown-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 10px; }
+        .breakdown-items-list { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
+
+        .ingredient-item-row {
+          background: #f8fafc;
+          border: 1px solid #f1f5f9;
+          padding: 10px 14px;
+          border-radius: 14px;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .item-name { font-size: 0.8rem; font-weight: 800; color: #0f172a; margin: 0; }
+        .item-func { font-size: 0.725rem; color: #64748b; margin: 2px 0 0 0; }
+
+        .status-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.675rem;
+          font-weight: 900;
+          padding: 2px 8px;
+          border-radius: 6px;
+          white-space: nowrap;
+        }
+
+        .status-optimal { background: #d1fae5; color: #065f46; }
+        .status-watch { background: #fef3c7; color: #92400e; }
+        .status-neutral { background: #f1f5f9; color: #475569; }
+
+        /* MEDICAL DISCLAIMER */
+        .medical-disclaimer-box {
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          color: #78350f;
+          padding: 16px;
+          border-radius: 20px;
+          font-size: 0.775rem;
+          line-height: 1.55;
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .disclaimer-icon { color: #d97706; shrink: 0; margin-top: 2px; }
+        .disclaimer-title { font-weight: 900; }
       `}</style>
     </div>
   )
