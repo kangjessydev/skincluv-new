@@ -19,6 +19,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
+import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 
 interface Message {
   id: string
@@ -42,8 +43,9 @@ export default function ChatbotPage() {
   const { sessionId } = useParams<{ sessionId?: string }>()
   const navigate = useNavigate()
 
-  const { user, profile } = useAuthStore()
-  const { invoke } = useInvokeAI()
+  const { user, profile, coinBalance } = useAuthStore()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
+  const currentCoins = coinBalance?.balance ?? 0
 
   const [sessions, setSessions] = useState<Session[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -69,11 +71,11 @@ export default function ChatbotPage() {
     return () => clearInterval(interval)
   }, [isSending, thinkingSteps])
 
-  // Fetch sessions list on user load or when messages update
+  // Fetch sessions list on user load
   useEffect(() => {
     if (!user?.id) return
     fetchSessions()
-  }, [user?.id, sessionId])
+  }, [user?.id])
 
   // Fetch messages when URL param `sessionId` changes
   useEffect(() => {
@@ -644,6 +646,17 @@ export default function ChatbotPage() {
           </button>
         </div>
       </div>
+
+      {pendingCoinConfirm && (
+        <CoinConfirmModal
+          isOpen={!!pendingCoinConfirm}
+          coinCost={pendingCoinConfirm.coinCost}
+          currentBalance={currentCoins}
+          featureName={pendingCoinConfirm.featureName}
+          onConfirm={confirmCoinUsage}
+          onCancel={cancelCoinUsage}
+        />
+      )}
 
       <style>{`
         .gemini-chat-page {

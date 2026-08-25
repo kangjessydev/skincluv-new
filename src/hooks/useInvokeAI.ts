@@ -1,7 +1,7 @@
 // src/hooks/useInvokeAI.ts
 // Generic hook untuk memanggil invoke-ai Edge Function (with Backward Compatibility Adapter)
 
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export interface InvokeAIRequest {
@@ -20,9 +20,43 @@ export interface InvokeAIResponse {
   tokens_used: number
 }
 
+// State yang di-expose untuk menampilkan CoinConfirmModal
+export interface PendingCoinConfirm {
+  coinCost: number
+  featureName: string
+}
+
 export function useInvokeAI() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // State untuk coin confirmation modal (pengganti window.confirm)
+  const [pendingCoinConfirm, setPendingCoinConfirm] = useState<PendingCoinConfirm | null>(null)
+
+  // Resolver untuk menunggu keputusan user dari modal
+  const resolverRef = useRef<((confirmed: boolean) => void) | null>(null)
+
+  // Dipanggil dari CoinConfirmModal saat user klik "Gunakan Koin"
+  const confirmCoinUsage = useCallback(() => {
+    setPendingCoinConfirm(null)
+    resolverRef.current?.(true)
+    resolverRef.current = null
+  }, [])
+
+  // Dipanggil dari CoinConfirmModal saat user klik "Batal"
+  const cancelCoinUsage = useCallback(() => {
+    setPendingCoinConfirm(null)
+    resolverRef.current?.(false)
+    resolverRef.current = null
+  }, [])
+
+  // Menampilkan modal dan menunggu keputusan user (Promise-based)
+  const askCoinConfirmation = (coinCost: number, featureName: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      resolverRef.current = resolve
+      setPendingCoinConfirm({ coinCost, featureName })
+    })
+  }
 
   const invoke = async <T = any>(req: InvokeAIRequest): Promise<T | null> => {
     setIsLoading(true)
@@ -57,16 +91,22 @@ export function useInvokeAI() {
       let res = await callEdge(formattedPayload.use_coins)
 
       // Handle 402 Payment Required (Quota exceeded)
+      // Tampilkan modal konfirmasi — bukan window.confirm() blocking
       if (res.error && res.error.message?.includes('402')) {
-        const wantsToUseCoin = window.confirm(
-          'Kuota gratis kamu sudah habis 😢\nApakah kamu ingin menggunakan 5 Koin untuk melanjutkan?'
-        )
-        if (wantsToUseCoin) {
-          res = await callEdge(true)
-        } else {
-          setError('Dibatalkan. Kamu butuh koin untuk melanjutkan.')
+        const COIN_COST = 5
+        const featureLabel =
+          feature_slug === 'face_analysis' ? 'Scan Wajah' :
+          feature_slug === 'ingredient_scan' ? 'Scan Ingredient' :
+          feature_slug === 'chatbot' ? 'Chatbot AI' : 'fitur ini'
+
+        const confirmed = await askCoinConfirmation(COIN_COST, featureLabel)
+
+        if (!confirmed) {
+          setError('Dibatalkan. Tambah koin dengan menyelesaikan misi harian.')
           return null
         }
+
+        res = await callEdge(true)
       }
 
       const { data, error: fnError } = res
@@ -87,14 +127,13 @@ export function useInvokeAI() {
 
       const contentStr = data.content ?? ''
 
-      // If caller expects a parsed JSON object (e.g. FaceScanPage or IngredientScanPage)
-      // Attempt to parse JSON string automatically
+      // Jika caller expect JSON object (FaceScanPage, IngredientScanPage), parse otomatis
       try {
         const cleanedStr = contentStr.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '')
         const parsed = JSON.parse(cleanedStr)
         return parsed as T
       } catch {
-        // If content is not JSON (e.g. Chatbot raw text), return data as is
+        // Jika content bukan JSON (Chatbot raw text), return data as is
         return data as unknown as T
       }
     } catch (err: any) {
@@ -106,5 +145,15 @@ export function useInvokeAI() {
     }
   }
 
-  return { invoke, isLoading, error, clearError: () => setError(null) }
+  return {
+    invoke,
+    isLoading,
+    error,
+    clearError: () => setError(null),
+    // Modal state — gunakan ini di komponen yang memanggil useInvokeAI
+    pendingCoinConfirm,
+    confirmCoinUsage,
+    cancelCoinUsage,
+  }
 }
+

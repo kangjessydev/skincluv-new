@@ -23,18 +23,28 @@ export default function MissionsPage() {
 
   const handleClaim = async (id: string, coins: number) => {
     if (!user) return
+
+    // Optimistic UI update
     setMissions(prev => prev.map(m => m.id === id ? { ...m, is_claimed: true } : m))
 
-    if (coinBalance) {
-      const newBal = coinBalance.balance + coins
-      setCoinBalance({ ...coinBalance, balance: newBal })
+    // Insert ke coin_transactions (nama tabel yang benar sesuai schema)
+    const { error } = await supabase.from('coin_transactions').insert({
+      user_id: user.id,
+      amount: coins,
+      type: 'mission_reward',
+      notes: `Klaim Misi Harian +${coins} Koin`,
+    })
 
-      await supabase.from('coin_ledgers').insert({
-        user_id: user.id,
-        amount: coins,
-        transaction_type: 'CREDIT',
-        description: `Klaim Misi Harian +${coins} Koin`,
-      })
+    if (error) {
+      // Rollback optimistic update jika insert gagal
+      setMissions(prev => prev.map(m => m.id === id ? { ...m, is_claimed: false } : m))
+      console.error('[MissionsPage] Gagal insert coin_transactions:', error)
+      return
+    }
+
+    // Update coin balance di store setelah DB berhasil
+    if (coinBalance) {
+      setCoinBalance({ ...coinBalance, balance: coinBalance.balance + coins })
     }
   }
 

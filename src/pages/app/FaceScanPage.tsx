@@ -20,6 +20,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { SkinRegionCropper, sanitizeBox } from '@/components/ui/SkinRegionCropper'
+import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 
 type Step = 'upload' | 'processing' | 'rejected' | 'result' | 'error'
 
@@ -194,7 +195,7 @@ const enrichAnalysisResult = (res: AnalysisResult): AnalysisResult => {
 
 export default function FaceScanPage() {
   const { user, coinBalance, activeSkinProfile, setActiveSkinProfile } = useAuthStore()
-  const { invoke } = useInvokeAI()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
 
   const [step, setStep] = useState<Step>('upload')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -208,7 +209,7 @@ export default function FaceScanPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const currentCoins = coinBalance?.balance ?? 1250
+  const currentCoins = coinBalance?.balance ?? 0
 
   // Dynamic Real-Time Contextual Processing Message Rotation
   useEffect(() => {
@@ -691,6 +692,17 @@ export default function FaceScanPage() {
           </div>
         </div>
       </div>
+
+      {pendingCoinConfirm && (
+        <CoinConfirmModal
+          isOpen={!!pendingCoinConfirm}
+          coinCost={pendingCoinConfirm.coinCost}
+          currentBalance={currentCoins}
+          featureName={pendingCoinConfirm.featureName}
+          onConfirm={confirmCoinUsage}
+          onCancel={cancelCoinUsage}
+        />
+      )}
 
       <style>{`
         .face-scan-page {

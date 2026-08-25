@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { User, Activity, AlertCircle, Save, Crown, Coins, Receipt, History, ArrowRight, ShieldCheck, Zap, LogOut } from 'lucide-react'
+import { isActivePremium } from '@/utils/subscriptionHelpers'
 
 const SKIN_TYPES = [
   { id: 'normal', label: 'Normal' },
@@ -26,13 +27,7 @@ export default function ProfilePage() {
 
   const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number; name: string } | null>(null)
 
-  const subTierSlug = (subscription as any)?.subscription_tiers?.slug
-  const subTierName = (subscription as any)?.subscription_tiers?.name
-  const isPro = subscription?.status === 'active' && (
-    subTierSlug === 'premium' || 
-    subTierName?.toLowerCase() === 'premium' ||
-    subTierName?.toLowerCase() === 'pro'
-  )
+  const isPro = isActivePremium(subscription)
 
   useEffect(() => {
     if (!profile?.id) return

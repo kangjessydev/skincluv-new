@@ -16,6 +16,7 @@ import CheckoutPage from '@/pages/app/CheckoutPage'
 import TransactionHistoryPage from '@/pages/app/TransactionHistoryPage'
 import PricingPage from '@/pages/app/PricingPage'
 import CoinHistoryPage from '@/pages/app/CoinHistoryPage'
+import LandingPage from '@/pages/LandingPage'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 
 export default function App() {
@@ -34,6 +35,9 @@ export default function App() {
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
         <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
       </Route>
+
+      {/* Public landing page (when unauthenticated) */}
+      {!user && <Route path="/" element={<LandingPage />} />}
 
       {/* Protected app routes */}
       <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>

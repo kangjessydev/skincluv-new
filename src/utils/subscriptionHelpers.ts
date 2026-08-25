@@ -1,0 +1,17 @@
+// src/utils/subscriptionHelpers.ts
+// Centralized helper for subscription tier status checks
+
+export function isActivePremium(subscription: any): boolean {
+  if (!subscription) return false
+  if (subscription.status !== 'active') return false
+
+  const slug = subscription?.subscription_tiers?.slug
+  const name = subscription?.subscription_tiers?.name?.toLowerCase()
+
+  return (
+    slug === 'premium' ||
+    slug === 'pro' ||
+    name === 'premium' ||
+    name === 'pro'
+  )
+}

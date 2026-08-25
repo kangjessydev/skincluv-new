@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ScanFace, ScanLine, MessageSquareHeart, ChevronRight, Activity, Sun, Crown, Zap, Gift, ShieldAlert, Droplets, Check, Info, Star, GlassWater, Moon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { isActivePremium } from '@/utils/subscriptionHelpers'
 
 export default function DashboardPage() {
   const { profile, activeSkinProfile, subscription } = useAuthStore()
@@ -12,13 +13,7 @@ export default function DashboardPage() {
 
   const userName = profile?.full_name?.split(' ')[0] || 'Sarah'
 
-  const subTierSlug = (subscription as any)?.subscription_tiers?.slug
-  const subTierName = (subscription as any)?.subscription_tiers?.name
-  const isPro = subscription?.status === 'active' && (
-    subTierSlug === 'premium' || 
-    subTierName?.toLowerCase() === 'premium' ||
-    subTierName?.toLowerCase() === 'pro'
-  )
+  const isPro = isActivePremium(subscription)
 
   useEffect(() => {
     const hour = new Date().getHours()

@@ -4,39 +4,59 @@ import { ArrowLeft, Coins, History, ArrowDownLeft, ArrowUpRight, Filter } from '
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
-interface Ledger {
+// Type yang sesuai dengan schema coin_transactions
+interface CoinTransaction {
   id: string
   amount: number
-  transaction_type: 'CREDIT' | 'DEBIT'
-  description: string
+  type: 'mission_reward' | 'ai_usage' | 'admin_adjustment'
+  notes: string | null
   created_at: string
 }
+
+// Mapping type ke label yang user-friendly
+const TYPE_LABEL: Record<string, string> = {
+  mission_reward: 'Hadiah Misi',
+  ai_usage: 'Penggunaan AI',
+  admin_adjustment: 'Penyesuaian Admin',
+}
+
+// Mapping type ke arah transaksi (credit/debit)
+const isCredit = (type: string) => type === 'mission_reward' || type === 'admin_adjustment'
+
+type FilterType = 'ALL' | 'CREDIT' | 'DEBIT'
 
 export default function CoinHistoryPage() {
   const navigate = useNavigate()
   const { user, coinBalance } = useAuthStore()
-  const [ledgers, setLedgers] = useState<Ledger[]>([])
-  const [filter, setFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL')
+  const [transactions, setTransactions] = useState<CoinTransaction[]>([])
+  const [filter, setFilter] = useState<FilterType>('ALL')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
-    fetchLedgers()
+    fetchTransactions()
   }, [user])
 
-  const fetchLedgers = async () => {
+  const fetchTransactions = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('coin_ledgers')
-      .select('id, amount, transaction_type, description, created_at')
+    const { data, error } = await supabase
+      .from('coin_transactions')
+      .select('id, amount, type, notes, created_at')
       .eq('user_id', user?.id)
       .order('created_at', { ascending: false })
 
-    if (data) setLedgers(data)
+    if (error) {
+      console.error('[CoinHistoryPage] Gagal fetch coin_transactions:', error)
+    }
+    if (data) setTransactions(data)
     setLoading(false)
   }
 
-  const filtered = ledgers.filter(l => filter === 'ALL' ? true : l.transaction_type === filter)
+  const filtered = transactions.filter(t => {
+    if (filter === 'ALL') return true
+    if (filter === 'CREDIT') return isCredit(t.type)
+    return !isCredit(t.type)
+  })
 
   return (
     <div className="coin-history-page animate-fade-in">
@@ -88,17 +108,17 @@ export default function CoinHistoryPage() {
           ) : (
             filtered.map((item) => (
               <div key={item.id} className="ledger-item">
-                <div className={`icon-circle ${item.transaction_type === 'CREDIT' ? 'icon-credit' : 'icon-debit'}`}>
-                  {item.transaction_type === 'CREDIT' ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+                <div className={`icon-circle ${isCredit(item.type) ? 'icon-credit' : 'icon-debit'}`}>
+                  {isCredit(item.type) ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
                 </div>
                 <div className="ledger-info">
-                  <h4>{item.description}</h4>
+                  <h4>{item.notes || TYPE_LABEL[item.type] || item.type}</h4>
                   <span className="ledger-date">
                     {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <div className={`ledger-amount ${item.transaction_type === 'CREDIT' ? 'amount-credit' : 'amount-debit'}`}>
-                  {item.transaction_type === 'CREDIT' ? '+' : '-'}{item.amount} 🪙
+                <div className={`ledger-amount ${isCredit(item.type) ? 'amount-credit' : 'amount-debit'}`}>
+                  {isCredit(item.type) ? '+' : '-'}{item.amount} 🪙
                 </div>
               </div>
             ))

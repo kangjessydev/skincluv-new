@@ -1,18 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { isActivePremium } from '@/utils/subscriptionHelpers'
 
 export default function PricingPage() {
   const navigate = useNavigate()
   const { subscription } = useAuthStore()
 
-  const subTierSlug = (subscription as any)?.subscription_tiers?.slug
-  const subTierName = (subscription as any)?.subscription_tiers?.name
-  const isPro = subscription?.status === 'active' && (
-    subTierSlug === 'premium' || 
-    subTierName?.toLowerCase() === 'premium' ||
-    subTierName?.toLowerCase() === 'pro'
-  )
+  const isPro = isActivePremium(subscription)
 
   return (
     <div className="pricing-page animate-fade-in">

@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { FileText, Camera, Upload, RotateCcw, Loader2, AlertCircle, CheckCircle2, ShieldAlert, Sparkles, ChevronRight, Info, ShieldCheck, HelpCircle, BookOpen } from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
+import { useAuthStore } from '@/store/authStore'
+import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 
 type InputMode = 'text' | 'image'
 type Step = 'input' | 'analyzing' | 'result' | 'error'
@@ -26,7 +28,9 @@ const SAMPLE_INGREDIENTS = [
 ]
 
 export default function IngredientScanPage() {
-  const { invoke } = useInvokeAI()
+  const { user, coinBalance } = useAuthStore()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
+  const currentCoins = coinBalance?.balance ?? 0
 
   const [mode, setMode] = useState<InputMode>('text')
   const [step, setStep] = useState<Step>('input')
@@ -332,6 +336,17 @@ export default function IngredientScanPage() {
           )}
         </div>
       </div>
+
+      {pendingCoinConfirm && (
+        <CoinConfirmModal
+          isOpen={!!pendingCoinConfirm}
+          coinCost={pendingCoinConfirm.coinCost}
+          currentBalance={currentCoins}
+          featureName={pendingCoinConfirm.featureName}
+          onConfirm={confirmCoinUsage}
+          onCancel={cancelCoinUsage}
+        />
+      )}
 
       <style>{`
         .ingredient-page { padding-bottom: 60px; width: 100%; }

@@ -1,25 +1,51 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Scan, MessageCircle, Target, User, Bell, Camera, PanelLeftClose, PanelLeftOpen, Crown } from 'lucide-react'
+import { Sparkles, ScanFace, FlaskConical, MessageCircle, Target, User, Bell, Camera, PanelLeftClose, PanelLeftOpen, Crown, LogOut, ChevronDown, Receipt, History, X } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { supabase } from '@/lib/supabase'
+import { isActivePremium } from '@/utils/subscriptionHelpers'
 
 const navItems = [
   { to: '/',                icon: Sparkles,       label: 'Beranda' },
-  { to: '/face-scan',       icon: Scan,           label: 'Scan Wajah' },
-  { to: '/ingredient-scan', icon: Scan,           label: 'Scan Ingredient' },
+  { to: '/face-scan',       icon: ScanFace,       label: 'Scan Wajah' },
+  { to: '/ingredient-scan', icon: FlaskConical,   label: 'Scan Ingredient' },
   { to: '/chatbot',         icon: MessageCircle,  label: 'Chatbot' },
   { to: '/missions',        icon: Target,         label: 'Missions' },
   { to: '/profile',         icon: User,           label: 'Profile' },
 ]
 
 export default function AppLayout() {
-  const { coinBalance, profile, subscription } = useAuthStore()
+  const { coinBalance, profile, subscription, reset } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
+  const [isMobileScanModalOpen, setIsMobileScanModalOpen] = useState(false)
 
-  const isPro = subscription?.status === 'active'
-  const userName = profile?.full_name?.split(' ')[0] || 'Sarah'
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const isPro = isActivePremium(subscription)
+  const userName = profile?.full_name?.split(' ')[0] || 'Pengguna'
+  const fullUserName = profile?.full_name || 'Pengguna Skincluv'
+  const userEmail = profile?.username ? `@${profile.username}` : 'User'
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsUserDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = async () => {
+    setIsUserDropdownOpen(false)
+    await supabase.auth.signOut()
+    reset()
+    navigate('/login')
+  }
 
   const getPageTitle = () => {
     const path = location.pathname
@@ -113,19 +139,53 @@ export default function AppLayout() {
               {/* Coin Balance Badge */}
               <NavLink to="/coin-history" className="header-coin-badge" title="Riwayat Koin">
                 <span className="coin-icon">🪙</span>
-                <span className="coin-val">{coinBalance?.balance ?? 1250}</span>
+                <span className="coin-val">{coinBalance?.balance ?? 0}</span>
               </NavLink>
 
               <button className="header-icon-btn" title="Notifikasi">
                 <Bell size={18} />
               </button>
 
-              <NavLink to="/profile" className="header-profile-pill">
-                <div className="profile-avatar">
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-                <span className="profile-name-desktop">{userName}</span>
-              </NavLink>
+              {/* Profile Pill with Dropdown */}
+              <div className="header-profile-wrap" ref={dropdownRef}>
+                <button
+                  className="header-profile-pill"
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                >
+                  <div className="profile-avatar">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="profile-name-desktop">{userName}</span>
+                  <ChevronDown size={14} className={`dropdown-arrow ${isUserDropdownOpen ? 'open' : ''}`} />
+                </button>
+
+                {isUserDropdownOpen && (
+                  <div className="user-dropdown-menu animate-fade-in">
+                    <div className="dropdown-user-info">
+                      <span className="info-name">{fullUserName}</span>
+                      <span className="info-role">{isPro ? '✨ Skincluv PRO Member' : 'Free Explorer'}</span>
+                    </div>
+
+                    <div className="dropdown-divider" />
+
+                    <button className="dropdown-item" onClick={() => { setIsUserDropdownOpen(false); navigate('/profile') }}>
+                      <User size={16} /> Profil Saya
+                    </button>
+                    <button className="dropdown-item" onClick={() => { setIsUserDropdownOpen(false); navigate('/transactions') }}>
+                      <Receipt size={16} /> Riwayat Tagihan
+                    </button>
+                    <button className="dropdown-item" onClick={() => { setIsUserDropdownOpen(false); navigate('/coin-history') }}>
+                      <History size={16} /> Riwayat Mutasi Koin
+                    </button>
+
+                    <div className="dropdown-divider" />
+
+                    <button className="dropdown-item text-error-item" onClick={handleLogout}>
+                      <LogOut size={16} /> Keluar Akun
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
@@ -156,8 +216,8 @@ export default function AppLayout() {
           <div className="floating-center-action">
             <button
               className="center-camera-btn"
-              onClick={() => navigate('/face-scan')}
-              title="Quick Face Scan"
+              onClick={() => setIsMobileScanModalOpen(true)}
+              title="Pilih Fitur Scan"
             >
               <Camera size={26} />
             </button>
@@ -174,6 +234,53 @@ export default function AppLayout() {
           </NavLink>
         </div>
       </nav>
+
+      {/* Mobile Scan Quick Action Sheet */}
+      {isMobileScanModalOpen && (
+        <div className="mobile-scan-overlay" onClick={() => setIsMobileScanModalOpen(false)}>
+          <div className="mobile-scan-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-header">
+              <h3>Pilih Analisis AI</h3>
+              <button className="sheet-close-btn" onClick={() => setIsMobileScanModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="sheet-actions">
+              <button
+                className="sheet-action-card"
+                onClick={() => {
+                  setIsMobileScanModalOpen(false)
+                  navigate('/face-scan')
+                }}
+              >
+                <div className="action-icon-wrap icon-sky">
+                  <ScanFace size={24} />
+                </div>
+                <div className="action-text">
+                  <span className="action-title">Scan Wajah</span>
+                  <span className="action-desc">Analisis pori, hidrasi, & masalah kulit dari foto</span>
+                </div>
+              </button>
+
+              <button
+                className="sheet-action-card"
+                onClick={() => {
+                  setIsMobileScanModalOpen(false)
+                  navigate('/ingredient-scan')
+                }}
+              >
+                <div className="action-icon-wrap icon-purple">
+                  <FlaskConical size={24} />
+                </div>
+                <div className="action-text">
+                  <span className="action-title">Scan Ingredient</span>
+                  <span className="action-desc">Cek keamanan bahan produk skincare</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .app-shell-stich {
@@ -445,13 +552,97 @@ export default function AppLayout() {
         }
         .header-icon-btn:hover { color: var(--color-primary); }
 
+        .header-profile-wrap {
+          position: relative;
+        }
+
         .header-profile-pill {
           display: flex;
           align-items: center;
           gap: 8px;
-          text-decoration: none;
-          padding-left: 8px;
-          border-left: 1px solid var(--color-outline-variant);
+          background: transparent;
+          border: none;
+          padding: 4px 8px;
+          border-radius: var(--radius-lg);
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .header-profile-pill:hover {
+          background: var(--color-surface-container-low);
+        }
+
+        .dropdown-arrow {
+          color: var(--color-secondary);
+          transition: transform 0.2s ease;
+        }
+        .dropdown-arrow.open {
+          transform: rotate(180deg);
+        }
+
+        .user-dropdown-menu {
+          position: absolute;
+          right: 0;
+          top: calc(100% + 8px);
+          width: 220px;
+          background: var(--color-surface-container-lowest);
+          border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-xl);
+          box-shadow: 0 12px 32px rgba(0, 101, 145, 0.12);
+          padding: var(--space-xs);
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .dropdown-user-info {
+          padding: var(--space-xs) var(--space-sm);
+          display: flex;
+          flex-direction: column;
+        }
+        .info-name {
+          font-weight: 700;
+          font-size: 0.875rem;
+          color: var(--color-text-main);
+        }
+        .info-role {
+          font-size: 0.75rem;
+          color: var(--color-primary);
+          font-weight: 600;
+        }
+
+        .dropdown-divider {
+          height: 1px;
+          background: var(--color-secondary-container);
+          margin: 4px 0;
+        }
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          padding: 8px 12px;
+          border-radius: var(--radius-md);
+          border: none;
+          background: transparent;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--color-text-main);
+          cursor: pointer;
+          transition: background 0.15s;
+          text-align: left;
+        }
+        .dropdown-item:hover {
+          background: var(--color-surface-container-low);
+          color: var(--color-primary);
+        }
+        .text-error-item {
+          color: var(--color-error);
+        }
+        .text-error-item:hover {
+          background: #fef2f2;
+          color: var(--color-error);
         }
 
         .profile-avatar {
@@ -584,6 +775,78 @@ export default function AppLayout() {
           .center-camera-btn:active {
             transform: scale(0.92);
           }
+
+          /* Mobile Scan Action Sheet */
+          .mobile-scan-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: flex-end;
+            animation: fadeIn 0.15s ease;
+          }
+          .mobile-scan-sheet {
+            width: 100%;
+            background: var(--color-surface-container-lowest);
+            border-top-left-radius: var(--radius-2xl);
+            border-top-right-radius: var(--radius-2xl);
+            padding: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            animation: slideUp 0.2s ease;
+          }
+          .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .sheet-header h3 {
+            font-size: 1.125rem;
+            font-family: var(--font-heading);
+            margin: 0;
+          }
+          .sheet-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+          }
+          .sheet-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+          }
+          .sheet-action-card {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--color-surface-container-low);
+            border: 1px solid var(--color-secondary-container);
+            border-radius: var(--radius-xl);
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+          }
+          .action-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+          .icon-sky { background: var(--color-primary-fixed); color: var(--color-primary); }
+          .icon-purple { background: #f3e8ff; color: #9333ea; }
+          .action-text { display: flex; flex-direction: column; }
+          .action-title { font-weight: 700; font-size: 0.9375rem; color: var(--color-text-main); }
+          .action-desc { font-size: 0.75rem; color: var(--color-text-muted); }
         }
       `}</style>
     </div>
