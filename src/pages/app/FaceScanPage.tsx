@@ -13,7 +13,6 @@ import {
   Zap,
   FlaskConical,
   ShoppingBag,
-  Coins,
   MapPin,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'

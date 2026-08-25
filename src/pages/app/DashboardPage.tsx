@@ -12,11 +12,7 @@ import {
   TrendingUp,
   Coins,
   ChevronRight,
-  ShieldCheck,
-  Award,
-  Zap,
   CheckCircle2,
-  Calendar,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'

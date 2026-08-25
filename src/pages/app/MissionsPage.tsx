@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import {
   CheckCircle2,
   Gift,
+  Coins,
   Sparkles,
   Trophy,
   Calendar,
