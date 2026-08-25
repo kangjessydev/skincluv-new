@@ -138,25 +138,58 @@ export default function MissionsPage() {
     )
 
     try {
-      // 1. Insert into coin_transactions (audit log)
-      const { error: txErr } = await supabase.from('coin_transactions').insert({
-        user_id: user.id,
-        amount: coins,
-        type: 'mission_reward',
-        notes: `Klaim Misi Harian +${coins} Koin`,
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionId)
+
+      // 1. Call credit_coins RPC (Atomic Security Definer execution)
+      const { data: updatedBal, error: rpcErr } = await supabase.rpc('credit_coins', {
+        p_user_id: user.id,
+        p_amount: coins,
+        p_mission_id: isUuid ? missionId : null,
+        p_notes: `Klaim Misi Harian +${coins} Koin`,
       })
 
-      if (txErr) {
-        console.error('[MissionsPage] Gagal insert coin_transactions:', txErr)
-        // Rollback optimistic update
-        setMissions((prev) =>
-          prev.map((m) => (m.id === missionId ? { ...m, is_claimed: false } : m))
-        )
-        return
+      if (rpcErr) {
+        console.warn('[MissionsPage] RPC credit_coins fallback to direct query:', rpcErr)
+        // Fallback: direct insert to coin_transactions
+        const { error: txErr } = await supabase.from('coin_transactions').insert({
+          user_id: user.id,
+          amount: coins,
+          type: 'mission_reward',
+          notes: `Klaim Misi Harian +${coins} Koin`,
+        })
+
+        if (txErr) {
+          console.error('[MissionsPage] Gagal insert coin_transactions:', txErr)
+          // Rollback optimistic update jika gagal total
+          setMissions((prev) =>
+            prev.map((m) => (m.id === missionId ? { ...m, is_claimed: false } : m))
+          )
+          return
+        }
+
+        // Direct upsert to coin_balances
+        const currentBal = coinBalance?.balance ?? 0
+        const newBal = currentBal + coins
+        const { data: directBal } = await supabase
+          .from('coin_balances')
+          .upsert({
+            user_id: user.id,
+            balance: newBal,
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .maybeSingle()
+
+        setCoinBalance(directBal ?? { id: user.id, user_id: user.id, balance: newBal, updated_at: new Date().toISOString() })
+      } else if (updatedBal) {
+        setCoinBalance(updatedBal)
+      } else {
+        const currentBal = coinBalance?.balance ?? 0
+        setCoinBalance({ id: user.id, user_id: user.id, balance: currentBal + coins, updated_at: new Date().toISOString() })
       }
 
-      // 2. Upsert user_missions status to mark completed
-      if (!missionId.startsWith('m')) {
+      // 2. Mark user_missions completed if DB mission
+      if (isUuid) {
         await supabase.from('user_missions').upsert({
           user_id: user.id,
           mission_id: missionId,
@@ -165,23 +198,6 @@ export default function MissionsPage() {
           completed_at: new Date().toISOString(),
         })
       }
-
-      // 3. Upsert / Update user's coin_balances in DB
-      const currentBal = coinBalance?.balance ?? 0
-      const newBal = currentBal + coins
-
-      const { data: updatedBal } = await supabase
-        .from('coin_balances')
-        .upsert({
-          user_id: user.id,
-          balance: newBal,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .maybeSingle()
-
-      // 4. Update Zustand auth store
-      setCoinBalance(updatedBal ?? { id: user.id, user_id: user.id, balance: newBal, updated_at: new Date().toISOString() })
     } catch (err) {
       console.error('[MissionsPage] Unexpected claim error:', err)
     }

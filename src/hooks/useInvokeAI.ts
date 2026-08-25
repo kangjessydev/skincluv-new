@@ -3,6 +3,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 
 export interface InvokeAIRequest {
   feature_slug?: string
@@ -27,6 +28,7 @@ export interface PendingCoinConfirm {
 }
 
 export function useInvokeAI() {
+  const { user, setCoinBalance } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -123,6 +125,18 @@ export function useInvokeAI() {
         console.error('[useInvokeAI] Edge Function Logical Error:', data)
         setError(data?.error ?? 'Terjadi kesalahan saat memproses data.')
         return null
+      }
+
+      // Real-time UI refresh: Jika coins/quota terpotong, fetch saldo koin terbaru
+      if (user?.id) {
+        supabase
+          .from('coin_balances')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle()
+          .then(({ data: updatedCoin }) => {
+            if (updatedCoin) setCoinBalance(updatedCoin)
+          })
       }
 
       const contentStr = data.content ?? ''

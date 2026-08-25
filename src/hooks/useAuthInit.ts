@@ -67,9 +67,35 @@ export function useAuthInit() {
           profileData = updatedProf
         }
 
+        let coinData = coinRes.data
+
+        // Auto-heal/Ensure coin_balances exists for user
+        if (!coinData) {
+          try {
+            const { data: createdCoin } = await supabase
+              .from('coin_balances')
+              .upsert({ user_id: userId, balance: 50, updated_at: new Date().toISOString() })
+              .select()
+              .maybeSingle()
+
+            if (createdCoin) {
+              coinData = createdCoin
+              // Log welcome coins transaction
+              await supabase.from('coin_transactions').insert({
+                user_id: userId,
+                amount: 50,
+                type: 'mission_reward',
+                notes: 'Koin Selamat Datang (Bonus Pendaftaran)',
+              })
+            }
+          } catch (cErr) {
+            console.error('[useAuthInit] Failed to create welcome coins:', cErr)
+          }
+        }
+
         setProfile(profileData ?? null)
         setActiveSkinProfile(skinProfileRes.data ?? null)
-        setCoinBalance(coinRes.data ?? null)
+        setCoinBalance(coinData ?? { id: userId, user_id: userId, balance: 50, updated_at: new Date().toISOString() })
         setSubscription(subRes.data ?? null)
       } catch (err) {
         console.error('[useAuthInit] hydrateUserData error:', err)
