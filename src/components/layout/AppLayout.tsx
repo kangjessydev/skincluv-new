@@ -1,39 +1,171 @@
+// src/components/layout/AppLayout.tsx
+// 100% Faithful Port of scan-2 Navigation Shell (Desktop Sidebar rounded pills, TopHeader glass, Mobile BottomNav + Drag BottomSheet)
+
 import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, ScanFace, FlaskConical, MessageCircle, Target, User, Bell, Camera, PanelLeftClose, PanelLeftOpen, Crown, LogOut, ChevronDown, Receipt, History, X, Coins } from 'lucide-react'
+import {
+  Sparkles,
+  ScanFace,
+  FlaskConical,
+  MessageCircle,
+  Target,
+  User,
+  Bell,
+  Coins,
+  ChevronRight,
+  ChevronDown,
+  LogOut,
+  Receipt,
+  History,
+  Store,
+  BarChart3,
+  Lightbulb,
+  ArrowLeft,
+  X,
+  Plus,
+} from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
 
-const navItems = [
-  { to: '/',                icon: Sparkles,       label: 'Beranda' },
-  { to: '/face-scan',       icon: ScanFace,       label: 'Scan Wajah' },
-  { to: '/ingredient-scan', icon: FlaskConical,   label: 'Scan Ingredient' },
-  { to: '/chatbot',         icon: MessageCircle,  label: 'Chatbot' },
-  { to: '/missions',        icon: Target,         label: 'Missions' },
-  { to: '/profile',         icon: User,           label: 'Profile' },
-]
+interface MenuItem {
+  id: string
+  label: string
+  desc: string
+  icon: any
+  route: string
+  color: string
+  bg: string
+  showInPopular?: boolean
+  showInSidebar?: boolean
+}
 
 export default function AppLayout() {
   const { coinBalance, profile, subscription, reset } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
-  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  // Dropdown States
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
-  const [isMobileScanModalOpen, setIsMobileScanModalOpen] = useState(false)
+  const [isCoinDropdownOpen, setIsCoinDropdownOpen] = useState(false)
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false)
+
+  // Mobile BottomSheet Drawer States
+  const [isBottomMenuOpen, setIsBottomMenuOpen] = useState(false)
+  const [startY, setStartY] = useState(0)
+  const [currentY, setCurrentY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const coinRef = useRef<HTMLDivElement>(null)
+  const notifRef = useRef<HTMLDivElement>(null)
 
   const isPro = isActivePremium(subscription)
   const userName = profile?.full_name?.split(' ')[0] || 'Pengguna'
   const fullUserName = profile?.full_name || 'Pengguna Skincluv'
   const userEmail = profile?.username ? `@${profile.username}` : 'User'
+  const userCoins = coinBalance?.balance ?? 100
 
-  // Close dropdown on click outside
+  // Navigation Menus Registry
+  const menuItems: MenuItem[] = [
+    {
+      id: 'home',
+      label: 'Home',
+      desc: 'Beranda utama SkinCluv',
+      icon: Sparkles,
+      route: '/',
+      color: 'text-[#0f6784]',
+      bg: 'bg-[#eaf4fa]',
+      showInSidebar: true,
+    },
+    {
+      id: 'scan-face',
+      label: 'Face Scan',
+      desc: 'Analisis kondisi kulit wajahmu dengan AI',
+      icon: ScanFace,
+      route: '/face-scan',
+      color: 'text-violet-600',
+      bg: 'bg-violet-50',
+      showInPopular: true,
+      showInSidebar: true,
+    },
+    {
+      id: 'scan-ingredient',
+      label: 'Ingredients',
+      desc: 'Cek keamanan bahan produk skincare',
+      icon: FlaskConical,
+      route: '/ingredient-scan',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      showInPopular: true,
+      showInSidebar: true,
+    },
+    {
+      id: 'chat',
+      label: 'Skinsistant',
+      desc: 'Konsultasi masalah kulit dengan AI',
+      icon: MessageCircle,
+      route: '/chatbot',
+      color: 'text-indigo-600',
+      bg: 'bg-indigo-50',
+      showInPopular: true,
+      showInSidebar: true,
+    },
+    {
+      id: 'insight',
+      label: 'Skin Insight',
+      desc: 'Lihat ringkasan progres kulit Anda',
+      icon: BarChart3,
+      route: '/profile',
+      color: 'text-[#0f6784]',
+      bg: 'bg-[#eaf4fa]',
+      showInPopular: true,
+      showInSidebar: true,
+    },
+    {
+      id: 'missions',
+      label: 'Misi Glow',
+      desc: 'Kumpulkan koin & hadiah menarik',
+      icon: Target,
+      route: '/missions',
+      color: 'text-yellow-600',
+      bg: 'bg-yellow-50',
+      showInSidebar: true,
+    },
+    {
+      id: 'shop',
+      label: 'Toko Koin',
+      desc: 'Tukar koin atau beli paket langganan PRO',
+      icon: Store,
+      route: '/pricing',
+      color: 'text-rose-600',
+      bg: 'bg-rose-50',
+      showInSidebar: true,
+    },
+    {
+      id: 'profile',
+      label: 'Profil Akun',
+      desc: 'Pengaturan profil & riwayat transaksi',
+      icon: User,
+      route: '/profile',
+      color: 'text-sky-600',
+      bg: 'bg-sky-50',
+      showInSidebar: true,
+    },
+  ]
+
+  // Close all dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as HTMLElement
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsUserDropdownOpen(false)
+      }
+      if (coinRef.current && !coinRef.current.contains(target)) {
+        setIsCoinDropdownOpen(false)
+      }
+      if (notifRef.current && !notifRef.current.contains(target)) {
+        setIsNotifDropdownOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -49,55 +181,108 @@ export default function AppLayout() {
 
   const getPageTitle = () => {
     const path = location.pathname
-    if (path === '/') return 'Beranda'
-    if (path.startsWith('/face-scan')) return 'Scan Wajah'
+    if (path === '/') return 'SkinCluv Dashboard'
+    if (path.startsWith('/face-scan')) return 'Scan Wajah AI'
     if (path.startsWith('/ingredient-scan')) return 'Scan Ingredient'
-    if (path.startsWith('/chatbot')) return 'Chatbot'
-    if (path.startsWith('/missions')) return 'Missions'
-    if (path.startsWith('/profile')) return 'Profile'
-    if (path.startsWith('/pricing')) return 'Toko Langganan'
-    if (path.startsWith('/coin-history')) return 'Riwayat Koin'
+    if (path.startsWith('/chatbot')) return 'Skinsistant AI Chat'
+    if (path.startsWith('/missions')) return 'Misi & Hadiah'
+    if (path.startsWith('/profile')) return 'Profil Akun'
+    if (path.startsWith('/pricing')) return 'Toko Koin & PRO'
+    if (path.startsWith('/coin-history')) return 'Mutasi Koin'
     if (path.startsWith('/transactions')) return 'Riwayat Tagihan'
     if (path.startsWith('/checkout')) return 'Pembayaran'
-    return 'Skincluv'
+    return 'SkinCluv'
   }
 
+  // Pointer/Touch Drag handlers for Mobile BottomSheet
+  const touchStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    setStartY(e.clientY)
+    setIsDragging(true)
+    if (e.currentTarget.setPointerCapture) {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    }
+  }
+
+  const touchMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return
+    const delta = e.clientY - startY
+    if (isBottomMenuOpen) {
+      setCurrentY(Math.max(0, delta))
+    } else {
+      setCurrentY(Math.min(0, delta))
+    }
+  }
+
+  const touchEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return
+    setIsDragging(false)
+    if (e.currentTarget.releasePointerCapture) {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      } catch {}
+    }
+
+    const dragged = currentY
+    setCurrentY(0)
+
+    if (Math.abs(dragged) < 10) {
+      setIsBottomMenuOpen(!isBottomMenuOpen)
+      return
+    }
+
+    if (!isBottomMenuOpen && dragged < -25) {
+      setIsBottomMenuOpen(true)
+    } else if (isBottomMenuOpen && dragged > 25) {
+      setIsBottomMenuOpen(false)
+    }
+  }
+
+  const navigateMobile = (route: string) => {
+    setIsBottomMenuOpen(false)
+    navigate(route)
+  }
+
+  const popularMenuItems = menuItems.filter((m) => m.showInPopular)
+
   return (
-    <div className={`app-shell-stich ${isCollapsed ? 'sidebar-is-collapsed' : 'sidebar-is-expanded'}`}>
+    <div className="scan2-app-shell">
       {/* Ambient Atmospheric Glow Orbs */}
       <div className="ambient-orb-1" />
       <div className="ambient-orb-2" />
 
       {/* ============================================================ */}
-      {/* 1. DESKTOP COLLAPSIBLE LEFT SIDEBAR (COLUMN 1)               */}
+      {/* 🖥️ DESKTOP SIDEBAR NAVIGATION (hidden md:flex w-64)         */}
       {/* ============================================================ */}
-      <aside className="stich-sidebar-desktop">
-        <div className="sidebar-header-clean">
-          <NavLink to="/" className="sidebar-brand-left">
-            <span className="brand-star">✦</span>
-            {!isCollapsed && <span className="brand-title-text">Skincluv</span>}
-          </NavLink>
+      <aside className="scan2-desktop-sidebar">
+        {/* Logo & Brand Header */}
+        <div className="sidebar-brand-box">
+          <div className="brand-icon-avatar">
+            <Sparkles size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className="brand-name-text">
+              Skin<span className="text-[#0f6784]">Cluv</span>
+            </h1>
+            <p className="brand-tagline">YOUR RADIANT JOURNEY</p>
+          </div>
         </div>
 
-        <nav className="sidebar-menu">
-          {navItems.map(({ to, icon: Icon, label }) => {
-            const isActive = to === '/'
+        {/* Rounded Pill Navigation Menu */}
+        <nav className="sidebar-menu-list">
+          {menuItems.filter((m) => m.showInSidebar).map((item) => {
+            const Icon = item.icon
+            const active = item.route === '/'
               ? location.pathname === '/'
-              : location.pathname.startsWith(to)
+              : location.pathname.startsWith(item.route)
+
             return (
               <NavLink
-                key={to}
-                to={to}
-                className={`sidebar-link ${isActive ? 'active' : ''}`}
+                key={item.id}
+                to={item.route}
+                className={`sidebar-pill-link ${active ? 'active-pill' : ''}`}
               >
-                <Icon size={20} className="link-icon" />
-                {!isCollapsed && <span className="link-label">{label}</span>}
-                
-                {isCollapsed && (
-                  <div className="collapsed-tooltip">
-                    {label}
-                  </div>
-                )}
+                <Icon size={18} className="link-icon" />
+                <span className="link-text">{item.label}</span>
               </NavLink>
             )
           })}
@@ -105,749 +290,780 @@ export default function AppLayout() {
       </aside>
 
       {/* ============================================================ */}
-      {/* 2. CONTENT AREA (COLUMN 2: TOP BAR + MAIN CANVAS)            */}
+      {/* 🖥️ MAIN CONTENT AREA & STICKY TOP HEADER                    */}
       {/* ============================================================ */}
-      <div className="stich-content-area">
-        {/* Sticky Top Bar (Pinned 100%, never scrolls out of view!) */}
-        <header className="stich-top-header">
-          <div className="header-inner">
-            <div className="page-title-group">
-              <button
-                className="topbar-toggle-btn"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                title={isCollapsed ? "Perluas Sidebar" : "Ciutkan Sidebar"}
-              >
-                {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+      <div className="scan2-content-area">
+        {/* Sticky Glass Top Header */}
+        <header className="scan2-top-header">
+          {/* Left Context: Back Button & Page Title */}
+          <div className="header-left-group">
+            {location.pathname !== '/' && (
+              <button onClick={() => navigate(-1)} className="mobile-back-btn">
+                <ArrowLeft size={18} />
               </button>
-              <h1 className="header-active-page-title">{getPageTitle()}</h1>
+            )}
+            <h1 className="header-page-title">{getPageTitle()}</h1>
+          </div>
+
+          {/* Right Context: Balance, Notifications & Profile */}
+          <div className="header-right-actions">
+            {/* Coin Balance Pill & Popover Dropdown */}
+            <div className="relative-popover-wrap" ref={coinRef}>
+              <button
+                className="coin-balance-pill"
+                onClick={() => {
+                  setIsCoinDropdownOpen(!isCoinDropdownOpen)
+                  setIsUserDropdownOpen(false)
+                  setIsNotifDropdownOpen(false)
+                }}
+              >
+                <Coins size={16} className="text-amber-500" />
+                <span className="coin-amount-text">{userCoins.toLocaleString()}</span>
+                <Plus size={12} className="text-amber-600" />
+              </button>
+
+              {isCoinDropdownOpen && (
+                <div className="header-popover-menu animate-fade-in">
+                  <div className="popover-header">
+                    <span className="popover-title">Saldo Skin Coin</span>
+                    <span className="popover-val">{userCoins.toLocaleString()} Koin</span>
+                  </div>
+                  <p className="popover-desc">
+                    Gunakan koin untuk mengakses analisis AI saat kuota gratis habis.
+                  </p>
+                  <div className="popover-actions">
+                    <button
+                      className="btn-popover-primary"
+                      onClick={() => {
+                        setIsCoinDropdownOpen(false)
+                        navigate('/pricing')
+                      }}
+                    >
+                      + Topup / Beli Koin
+                    </button>
+                    <button
+                      className="btn-popover-secondary"
+                      onClick={() => {
+                        setIsCoinDropdownOpen(false)
+                        navigate('/coin-history')
+                      }}
+                    >
+                      Riwayat Mutasi
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="header-actions">
-              {/* AI Luxury "Upgrade PRO" Badge (Only visible when user is NOT PRO) */}
-              {!isPro && (
-                <button
-                  className="topbar-pro-badge"
-                  onClick={() => navigate('/pricing')}
-                  title="Upgrade ke Skincluv PRO"
-                >
-                  <Sparkles size={14} className="pro-sparkle-icon" />
-                  <Crown size={14} className="pro-crown-icon" />
-                  <span>Upgrade PRO</span>
-                </button>
-              )}
-
-              {/* Coin Balance Badge */}
-              <NavLink to="/coin-history" className="header-coin-badge" title="Riwayat Koin">
-                <Coins size={16} className="text-amber-500" />
-                <span className="coin-val">{coinBalance?.balance ?? 0}</span>
-              </NavLink>
-
-              <button className="header-icon-btn" title="Notifikasi">
+            {/* Notification Bell Dropdown */}
+            <div className="relative-popover-wrap" ref={notifRef}>
+              <button
+                className="header-icon-btn"
+                onClick={() => {
+                  setIsNotifDropdownOpen(!isNotifDropdownOpen)
+                  setIsUserDropdownOpen(false)
+                  setIsCoinDropdownOpen(false)
+                }}
+                title="Notifikasi"
+              >
                 <Bell size={18} />
+                <span className="notif-dot" />
               </button>
 
-              {/* Profile Pill with Dropdown */}
-              <div className="header-profile-wrap" ref={dropdownRef}>
-                <button
-                  className="header-profile-pill"
-                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                >
-                  <div className="profile-avatar">
-                    {userName.charAt(0).toUpperCase()}
+              {isNotifDropdownOpen && (
+                <div className="header-popover-menu notif-popover animate-fade-in">
+                  <div className="popover-header">
+                    <span className="popover-title">Notifikasi</span>
                   </div>
-                  <span className="profile-name-desktop">{userName}</span>
-                  <ChevronDown size={14} className={`dropdown-arrow ${isUserDropdownOpen ? 'open' : ''}`} />
-                </button>
-
-                {isUserDropdownOpen && (
-                  <div className="user-dropdown-menu animate-fade-in">
-                    <div className="dropdown-user-info">
-                      <span className="info-name">{fullUserName}</span>
-                      <span className="info-role">{isPro ? 'Skincluv PRO Member' : 'Free Explorer'}</span>
+                  <div className="notif-list">
+                    <div className="notif-item">
+                      <Sparkles size={16} className="text-teal-600 shrink-0" />
+                      <div>
+                        <p className="notif-text">Selamat datang di SkinCluv AI!</p>
+                        <span className="notif-time">Baru saja</span>
+                      </div>
                     </div>
-
-                    <div className="dropdown-divider" />
-
-                    <button className="dropdown-item" onClick={() => { setIsUserDropdownOpen(false); navigate('/profile') }}>
-                      <User size={16} /> Profil Saya
-                    </button>
-                    <button className="dropdown-item" onClick={() => { setIsUserDropdownOpen(false); navigate('/transactions') }}>
-                      <Receipt size={16} /> Riwayat Tagihan
-                    </button>
-                    <button className="dropdown-item" onClick={() => { setIsUserDropdownOpen(false); navigate('/coin-history') }}>
-                      <History size={16} /> Riwayat Mutasi Koin
-                    </button>
-
-                    <div className="dropdown-divider" />
-
-                    <button className="dropdown-item text-error-item" onClick={handleLogout}>
-                      <LogOut size={16} /> Keluar Akun
-                    </button>
+                    <div className="notif-item">
+                      <Coins size={16} className="text-amber-500 shrink-0" />
+                      <div>
+                        <p className="notif-text">Bonus +50 Welcome Coins telah dikreditkan.</p>
+                        <span className="notif-time">Hari ini</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Avatar Pill & Dropdown */}
+            <div className="relative-popover-wrap" ref={dropdownRef}>
+              <button
+                className="header-user-avatar-pill"
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    navigate('/profile')
+                  } else {
+                    setIsUserDropdownOpen(!isUserDropdownOpen)
+                    setIsCoinDropdownOpen(false)
+                    setIsNotifDropdownOpen(false)
+                  }
+                }}
+              >
+                <div className="avatar-circle">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <span className="avatar-name-desktop">{userName}</span>
+                <ChevronDown size={14} className={`dropdown-chevron ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isUserDropdownOpen && (
+                <div className="header-popover-menu profile-popover animate-fade-in">
+                  <div className="profile-user-summary">
+                    <p className="summary-name">{fullUserName}</p>
+                    <span className={`summary-status ${isPro ? 'status-pro' : 'status-free'}`}>
+                      {isPro ? 'Skincluv PRO Member' : 'Free Explorer'}
+                    </span>
+                  </div>
+
+                  <div className="menu-divider" />
+
+                  <button
+                    className="menu-dropdown-item"
+                    onClick={() => {
+                      setIsUserDropdownOpen(false)
+                      navigate('/profile')
+                    }}
+                  >
+                    <User size={16} /> Profil Akun
+                  </button>
+                  <button
+                    className="menu-dropdown-item"
+                    onClick={() => {
+                      setIsUserDropdownOpen(false)
+                      navigate('/transactions')
+                    }}
+                  >
+                    <Receipt size={16} /> Riwayat Tagihan
+                  </button>
+                  <button
+                    className="menu-dropdown-item"
+                    onClick={() => {
+                      setIsUserDropdownOpen(false)
+                      navigate('/coin-history')
+                    }}
+                  >
+                    <History size={16} /> Riwayat Mutasi Koin
+                  </button>
+
+                  <div className="menu-divider" />
+
+                  <button className="menu-dropdown-item text-red-600" onClick={handleLogout}>
+                    <LogOut size={16} /> Keluar Akun
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
 
-        {/* Main Viewport Canvas (Scrolls internally ONLY if content overflows) */}
-        <main className={`stich-main-canvas ${location.pathname.startsWith('/chatbot') ? 'is-chatbot-canvas' : ''}`}>
-          <div className="main-container">
+        {/* Main Canvas Area */}
+        <main className={`scan2-main-canvas ${location.pathname.startsWith('/chatbot') ? 'is-chatbot' : ''}`}>
+          <div className="canvas-container">
             <Outlet />
           </div>
         </main>
       </div>
 
       {/* ============================================================ */}
-      {/* 3. FLOATING BOTTOM NAVBAR (Mobile <= 768px)                   */}
+      {/* 📱 MOBILE BOTTOM NAV & PULL-UP BOTTOMSHEET DRAWER (md:hidden) */}
       {/* ============================================================ */}
-      <nav className="stich-floating-bottom-nav">
-        <div className="floating-nav-inner">
-          <NavLink to="/" className={`floating-nav-item ${location.pathname === '/' ? 'active' : ''}`}>
-            <Sparkles size={20} />
-            <span className="nav-text">Beranda</span>
-          </NavLink>
-
-          <NavLink to="/chatbot" className={`floating-nav-item ${location.pathname.startsWith('/chatbot') ? 'active' : ''}`}>
-            <MessageCircle size={20} />
-            <span className="nav-text">Chatbot</span>
-          </NavLink>
-
-          <div className="floating-center-action">
-            <button
-              className="center-camera-btn"
-              onClick={() => setIsMobileScanModalOpen(true)}
-              title="Pilih Fitur Scan"
-            >
-              <Camera size={26} />
-            </button>
-          </div>
-
-          <NavLink to="/missions" className={`floating-nav-item ${location.pathname.startsWith('/missions') ? 'active' : ''}`}>
-            <Target size={20} />
-            <span className="nav-text">Missions</span>
-          </NavLink>
-
-          <NavLink to="/profile" className={`floating-nav-item ${location.pathname.startsWith('/profile') ? 'active' : ''}`}>
-            <User size={20} />
-            <span className="nav-text">Profile</span>
-          </NavLink>
-        </div>
-      </nav>
-
-      {/* Mobile Scan Quick Action Sheet */}
-      {isMobileScanModalOpen && (
-        <div className="mobile-scan-overlay" onClick={() => setIsMobileScanModalOpen(false)}>
-          <div className="mobile-scan-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="sheet-header">
-              <h3>Pilih Analisis AI</h3>
-              <button className="sheet-close-btn" onClick={() => setIsMobileScanModalOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="sheet-actions">
-              <button
-                className="sheet-action-card"
-                onClick={() => {
-                  setIsMobileScanModalOpen(false)
-                  navigate('/face-scan')
-                }}
-              >
-                <div className="action-icon-wrap icon-sky">
-                  <ScanFace size={24} />
-                </div>
-                <div className="action-text">
-                  <span className="action-title">Scan Wajah</span>
-                  <span className="action-desc">Analisis pori, hidrasi, & masalah kulit dari foto</span>
-                </div>
-              </button>
-
-              <button
-                className="sheet-action-card"
-                onClick={() => {
-                  setIsMobileScanModalOpen(false)
-                  navigate('/ingredient-scan')
-                }}
-              >
-                <div className="action-icon-wrap icon-purple">
-                  <FlaskConical size={24} />
-                </div>
-                <div className="action-text">
-                  <span className="action-title">Scan Ingredient</span>
-                  <span className="action-desc">Cek keamanan bahan produk skincare</span>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
+      {isBottomMenuOpen && (
+        <div
+          className="mobile-backdrop-overlay"
+          onClick={() => setIsBottomMenuOpen(false)}
+        />
       )}
 
+      <div className="mobile-bottomnav-wrapper">
+        <nav
+          className={`mobile-bottomsheet-card ${isBottomMenuOpen ? 'sheet-expanded' : 'sheet-collapsed'}`}
+          style={{
+            transform: isDragging ? `translateY(${currentY}px)` : 'translateY(0)',
+          }}
+        >
+          {/* Pointer Drag Handle Header */}
+          <div
+            className="sheet-drag-handle-bar"
+            onPointerDown={touchStart}
+            onPointerMove={touchMove}
+            onPointerUp={touchEnd}
+            onPointerCancel={touchEnd}
+          >
+            <div className="drag-pill-indicator" />
+          </div>
+
+          {/* EXPANDED BOTTOMSHEET CONTENT */}
+          <div className={`bottomsheet-scroll-body ${isBottomMenuOpen ? 'show-body' : 'hide-body'}`}>
+            {/* Segmen 1: Menu Populer (Grid) */}
+            <div className="sheet-section px-4">
+              <p className="sheet-section-title">MENU POPULER</p>
+              <div className="popular-menu-grid">
+                {popularMenuItems.map((item) => {
+                  const Icon = item.icon
+                  const active = location.pathname.startsWith(item.route)
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => navigateMobile(item.route)}
+                      className="popular-grid-item"
+                    >
+                      <div className={`popular-icon-box ${item.bg} ${item.color} ${active ? 'ring-2 ring-current' : ''}`}>
+                        <Icon size={22} />
+                      </div>
+                      <span className="popular-label">{item.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="sheet-divider" />
+
+            {/* Segmen 2: Semua Menu (List) */}
+            <div className="sheet-section px-4 pb-20">
+              <p className="sheet-section-title">SEMUA MENU</p>
+              <div className="all-menu-stack">
+                {menuItems.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => navigateMobile(item.route)}
+                      className="menu-list-row"
+                    >
+                      <div className={`menu-row-avatar ${item.bg} ${item.color}`}>
+                        <Icon size={20} />
+                      </div>
+                      <div className="menu-row-text">
+                        <p className="row-title">{item.label}</p>
+                        <p className="row-desc">{item.desc}</p>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-300" />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* COLLAPSED 5-TAB FLOATING BOTTOM BAR */}
+          <div className={`bottomnav-tabs-row ${isBottomMenuOpen ? 'hide-tabs' : 'show-tabs'}`}>
+            <div onClick={() => navigateMobile('/')} className={`tab-item ${location.pathname === '/' ? 'active-tab' : ''}`}>
+              <Sparkles size={20} />
+              {location.pathname === '/' && <span className="tab-label">Home</span>}
+            </div>
+
+            <div onClick={() => navigateMobile('/profile')} className={`tab-item ${location.pathname.startsWith('/daily-tips') ? 'active-tab' : ''}`}>
+              <Lightbulb size={20} />
+              {location.pathname.startsWith('/daily-tips') && <span className="tab-label">Tips</span>}
+            </div>
+
+            <div onClick={() => navigateMobile('/face-scan')} className={`tab-item ${location.pathname.startsWith('/face-scan') ? 'active-tab' : ''}`}>
+              <ScanFace size={22} />
+              {location.pathname.startsWith('/face-scan') && <span className="tab-label">Scan</span>}
+            </div>
+
+            <div onClick={() => navigateMobile('/pricing')} className={`tab-item ${location.pathname.startsWith('/pricing') ? 'active-tab' : ''}`}>
+              <Store size={20} />
+              {location.pathname.startsWith('/pricing') && <span className="tab-label">Toko</span>}
+            </div>
+
+            <div onClick={() => navigateMobile('/profile')} className={`tab-item ${location.pathname.startsWith('/profile') ? 'active-tab' : ''}`}>
+              <User size={20} />
+              {location.pathname.startsWith('/profile') && <span className="tab-label">Profil</span>}
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      {/* VANILLA CSS NAVIGATION STYLING */}
       <style>{`
-        .app-shell-stich {
+        .scan2-app-shell {
           height: 100dvh;
           width: 100vw;
           display: flex;
-          background: var(--color-surface-bg);
-          font-family: var(--font-body);
+          background: #f8fafc;
+          font-family: var(--font-body, system-ui, sans-serif);
           position: relative;
-          overflow: hidden; /* Prevents phantom body scrolling! */
+          overflow: hidden;
         }
 
-        /* -------------------------------------------------------------
-           1. DESKTOP SIDEBAR STYLES (COLUMN 1)
-           ------------------------------------------------------------- */
-        @media (min-width: 769px) {
-          .stich-sidebar-desktop {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            background: var(--color-surface-container-lowest);
-            border-right: 1px solid var(--color-secondary-container);
-            display: flex;
-            flex-direction: column;
-            padding: var(--space-md) var(--space-xs);
-            z-index: 40;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-sm);
-          }
-          .sidebar-is-expanded .stich-sidebar-desktop {
-            width: var(--sidebar-width);
-          }
-          .sidebar-is-collapsed .stich-sidebar-desktop {
-            width: var(--sidebar-collapsed-width);
-            align-items: center;
-          }
-        }
-        @media (max-width: 768px) {
-          .stich-sidebar-desktop { display: none !important; }
-        }
-
-        .sidebar-header-clean {
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          padding: 0 var(--space-xs) var(--space-md) var(--space-xs);
-          border-bottom: 1px solid var(--color-secondary-container);
-          margin-bottom: var(--space-md);
-          height: 48px;
-          width: 100%;
-        }
-        .sidebar-brand-left {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          text-decoration: none;
-        }
-        .brand-star {
-          font-size: 24px;
-          color: var(--color-primary);
-          line-height: 1;
-        }
-        .brand-title-text {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: var(--color-primary);
-          font-family: var(--font-heading);
-          letter-spacing: -0.02em;
-        }
-
-        .sidebar-menu {
+        /* 🖥️ DESKTOP SIDEBAR STYLING */
+        .scan2-desktop-sidebar {
+          width: 256px;
+          height: 100dvh;
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(24px);
+          border-right: 1px solid #f1f5f9;
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          flex: 1;
-          width: 100%;
+          padding: 32px 16px;
+          flex-shrink: 0;
+          z-index: 40;
+          box-shadow: 0 10px 40px rgba(15, 103, 132, 0.04);
         }
 
-        .sidebar-link {
+        @media (max-width: 768px) {
+          .scan2-desktop-sidebar { display: none !important; }
+        }
+
+        .sidebar-brand-box {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 12px;
-          border-radius: var(--radius-lg);
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: var(--color-secondary);
-          text-decoration: none;
-          transition: all 0.2s ease;
-          position: relative;
+          padding: 0 12px;
+          margin-bottom: 36px;
         }
-        .sidebar-is-collapsed .sidebar-link {
+
+        .brand-icon-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #0f6784 0%, #38bdf8 100%);
+          display: flex;
+          align-items: center;
           justify-content: center;
-          padding: 12px 0;
-        }
-        .sidebar-link:hover {
-          background: var(--color-surface-container-low);
-          color: var(--color-primary);
-        }
-        .sidebar-link.active {
-          background: var(--color-primary);
-          color: var(--color-on-primary);
-          box-shadow: var(--shadow-sm);
+          box-shadow: 0 4px 12px rgba(15, 103, 132, 0.2);
         }
 
-        .collapsed-tooltip {
-          position: absolute;
-          left: calc(100% + 12px);
-          top: 50%;
-          transform: translateY(-50%);
-          background: var(--color-text-main);
-          color: white;
-          padding: 6px 12px;
-          border-radius: var(--radius-md);
-          font-size: 0.75rem;
-          font-weight: 700;
-          white-space: nowrap;
-          box-shadow: var(--shadow-lg);
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.2s ease;
-          z-index: 100;
-        }
-        .sidebar-link:hover .collapsed-tooltip {
-          opacity: 1;
+        .brand-name-text {
+          font-size: 1.25rem;
+          font-weight: 900;
+          color: #075985;
+          letter-spacing: -0.02em;
+          margin: 0;
+          line-height: 1.1;
         }
 
-        /* -------------------------------------------------------------
-           2. CONTENT AREA STYLES (COLUMN 2: TOP BAR + CANVAS)
-           ------------------------------------------------------------- */
-        .stich-content-area {
-          flex: 1;
-          min-width: 0;
-          height: 100dvh;
+        .brand-tagline {
+          font-size: 0.6rem;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          color: #94a3b8;
+          margin: 2px 0 0 0;
+        }
+
+        .sidebar-menu-list {
           display: flex;
           flex-direction: column;
+          gap: 8px;
+          flex: 1;
+          overflow-y: auto;
+        }
+
+        .sidebar-pill-link {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 20px;
+          font-size: 0.875rem;
+          font-weight: 800;
+          color: #94a3b8;
+          border-radius: 9999px;
+          text-decoration: none;
+          transition: all 0.25s ease;
+        }
+
+        .sidebar-pill-link:hover {
+          background: rgba(234, 244, 250, 0.6);
+          color: #0f6784;
+          transform: translateX(4px);
+        }
+
+        .sidebar-pill-link.active-pill {
+          background: rgba(234, 244, 250, 0.9);
+          color: #0f6784;
+        }
+
+        /* 🖥️ CONTENT AREA & TOP HEADER */
+        .scan2-content-area {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          height: 100dvh;
+          min-width: 0;
           position: relative;
-          z-index: 1;
-          overflow: hidden; /* TopBar never scrolls offscreen! */
-          transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @media (min-width: 769px) {
-          .sidebar-is-expanded .stich-content-area {
-            margin-left: var(--sidebar-width);
-          }
-          .sidebar-is-collapsed .stich-content-area {
-            margin-left: var(--sidebar-collapsed-width);
-          }
         }
 
-        .stich-top-header {
-          flex-shrink: 0;
-          height: var(--nav-height);
+        .scan2-top-header {
+          position: sticky;
+          top: 0;
           z-index: 30;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-bottom: 1px solid var(--color-secondary-container);
-        }
-
-        .header-inner {
+          height: 72px;
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(24px);
+          border-bottom: 1px solid rgba(241, 245, 249, 0.8);
           display: flex;
           align-items: center;
           justify-content: space-between;
-          height: 100%;
-          padding: 0 var(--space-lg);
-          width: 100%;
-          max-width: 1280px;
-          margin: 0 auto;
+          padding: 0 32px;
         }
 
-        .page-title-group {
+        @media (max-width: 768px) {
+          .scan2-top-header {
+            height: 60px;
+            padding: 0 16px;
+          }
+        }
+
+        .header-left-group {
           display: flex;
           align-items: center;
           gap: 12px;
         }
 
-        .topbar-toggle-btn {
-          background: transparent;
-          border: none;
-          color: var(--color-secondary);
-          cursor: pointer;
+        .mobile-back-btn {
+          display: none;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
           padding: 6px;
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-        .topbar-toggle-btn:hover {
-          color: var(--color-primary);
-          background: var(--color-surface-container-low);
+          cursor: pointer;
         }
 
-        .header-active-page-title {
-          font-size: 1.35rem;
-          font-weight: 700;
-          color: var(--color-primary);
-          font-family: var(--font-heading);
+        @media (max-width: 768px) {
+          .mobile-back-btn { display: flex; }
+        }
+
+        .header-page-title {
+          font-size: 1.15rem;
+          font-weight: 900;
+          color: #0f172a;
           margin: 0;
+          letter-spacing: -0.01em;
         }
 
-        .header-actions {
+        .header-right-actions {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
         }
 
-        /* AI Luxury Upgrade PRO Badge */
-        .topbar-pro-badge {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 12px;
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(245, 158, 11, 0.08));
-          border: 1px solid rgba(245, 158, 11, 0.38);
-          border-radius: var(--radius-full);
-          font-size: 0.8125rem;
-          font-weight: 700;
-          color: #b45309;
-          cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
-        }
-        .topbar-pro-badge:hover {
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.24), rgba(245, 158, 11, 0.16));
-          border-color: rgba(245, 158, 11, 0.65);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22);
-        }
-        .pro-sparkle-icon {
-          color: #f59e0b;
-          animation: sparkleSpin 3.5s linear infinite;
-        }
-        .pro-crown-icon {
-          color: #d97706;
-        }
-        @keyframes sparkleSpin {
-          0% { transform: scale(1) rotate(0deg); }
-          50% { transform: scale(1.15) rotate(180deg); }
-          100% { transform: scale(1) rotate(360deg); }
-        }
-
-        .header-coin-badge {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 4px 10px;
-          background: rgba(212, 229, 241, 0.5);
-          border-radius: var(--radius-md);
-          font-size: 0.8125rem;
-          font-weight: 700;
-          color: var(--color-text-main);
-          text-decoration: none;
-        }
-
-        .header-icon-btn {
-          background: transparent;
-          border: none;
-          color: var(--color-secondary);
-          cursor: pointer;
-          padding: 6px;
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-        .header-icon-btn:hover { color: var(--color-primary); }
-
-        .header-profile-wrap {
+        .relative-popover-wrap {
           position: relative;
         }
 
-        .header-profile-pill {
+        .coin-balance-pill {
           display: flex;
           align-items: center;
-          gap: 8px;
-          background: transparent;
-          border: none;
-          padding: 4px 8px;
-          border-radius: var(--radius-lg);
+          gap: 6px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          padding: 6px 14px;
+          border-radius: 9999px;
           cursor: pointer;
-          transition: background 0.15s;
-        }
-        .header-profile-pill:hover {
-          background: var(--color-surface-container-low);
-        }
-
-        .dropdown-arrow {
-          color: var(--color-secondary);
-          transition: transform 0.2s ease;
-        }
-        .dropdown-arrow.open {
-          transform: rotate(180deg);
+          font-weight: 900;
+          font-size: 0.825rem;
+          color: #b45309;
         }
 
-        .user-dropdown-menu {
-          position: absolute;
-          right: 0;
-          top: calc(100% + 8px);
-          width: 220px;
-          background: var(--color-surface-container-lowest);
-          border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl);
-          box-shadow: 0 12px 32px rgba(0, 101, 145, 0.12);
-          padding: var(--space-xs);
-          z-index: 100;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .dropdown-user-info {
-          padding: var(--space-xs) var(--space-sm);
-          display: flex;
-          flex-direction: column;
-        }
-        .info-name {
-          font-weight: 700;
-          font-size: 0.875rem;
-          color: var(--color-text-main);
-        }
-        .info-role {
-          font-size: 0.75rem;
-          color: var(--color-primary);
-          font-weight: 600;
-        }
-
-        .dropdown-divider {
-          height: 1px;
-          background: var(--color-secondary-container);
-          margin: 4px 0;
-        }
-
-        .dropdown-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 8px 12px;
-          border-radius: var(--radius-md);
-          border: none;
-          background: transparent;
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: var(--color-text-main);
-          cursor: pointer;
-          transition: background 0.15s;
-          text-align: left;
-        }
-        .dropdown-item:hover {
-          background: var(--color-surface-container-low);
-          color: var(--color-primary);
-        }
-        .text-error-item {
-          color: var(--color-error);
-        }
-        .text-error-item:hover {
-          background: #fef2f2;
-          color: var(--color-error);
-        }
-
-        .profile-avatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: var(--color-primary-container);
-          color: var(--color-on-primary-container);
+        .header-icon-btn {
+          position: relative;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: 700;
-          font-size: 0.75rem;
+          cursor: pointer;
+          color: #64748b;
         }
 
-        .profile-name-desktop {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: var(--color-text-main);
+        .notif-dot {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #ef4444;
         }
+
+        .header-user-avatar-pill {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          padding: 4px 12px 4px 4px;
+          border-radius: 9999px;
+          cursor: pointer;
+        }
+
+        .avatar-circle {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background: #0f6784;
+          color: #ffffff;
+          font-weight: 900;
+          font-size: 0.8rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .avatar-name-desktop {
+          font-size: 0.825rem;
+          font-weight: 800;
+          color: #1e293b;
+        }
+
         @media (max-width: 768px) {
-          .profile-name-desktop { display: none; }
+          .avatar-name-desktop, .dropdown-chevron { display: none; }
+          .header-user-avatar-pill { padding: 4px; border: none; background: transparent; }
         }
 
-        /* Main Viewport Canvas (Scrolls internally ONLY when content overflows!) */
-        .stich-main-canvas {
+        /* POPOVER MENUS */
+        .header-popover-menu {
+          position: absolute;
+          right: 0;
+          top: calc(100% + 8px);
+          width: 240px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 20px;
+          padding: 16px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          z-index: 50;
+        }
+
+        .popover-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 8px;
+        }
+
+        .popover-title { font-size: 0.75rem; font-weight: 900; color: #94a3b8; text-transform: uppercase; }
+        .popover-val { font-size: 0.85rem; font-weight: 900; color: #d97706; }
+        .popover-desc { font-size: 0.725rem; color: #64748b; margin: 0 0 12px 0; }
+
+        .popover-actions { display: flex; flex-direction: column; gap: 6px; }
+        .btn-popover-primary { background: #0f6784; color: #fff; border: none; padding: 8px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; cursor: pointer; }
+        .btn-popover-secondary { background: #f1f5f9; color: #334155; border: none; padding: 8px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; cursor: pointer; }
+
+        .profile-user-summary { margin-bottom: 8px; }
+        .summary-name { font-size: 0.875rem; font-weight: 900; color: #0f172a; margin: 0 0 4px 0; }
+        .summary-status { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+        .status-pro { background: #dbeafe; color: #1e40af; }
+        .status-free { background: #ecfdf5; color: #047857; }
+
+        .menu-divider { height: 1px; background: #f1f5f9; margin: 8px 0; }
+        .menu-dropdown-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 10px;
+          background: transparent;
+          border: none;
+          border-radius: 10px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #334155;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .menu-dropdown-item:hover { background: #f8fafc; }
+
+        /* CANVAS AREA */
+        .scan2-main-canvas {
           flex: 1;
           overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          padding-top: var(--space-md);
-          padding-bottom: var(--space-md);
-          width: 100%;
-        }
-        .stich-main-canvas.is-chatbot-canvas {
-          overflow: hidden !important;
-          padding-top: var(--space-xs) !important;
-          padding-bottom: 0 !important;
-        }
-        .is-chatbot-canvas .main-container {
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          padding-bottom: 0 !important;
-        }
-        @media (max-width: 768px) {
-          .stich-main-canvas {
-            padding-bottom: 90px;
-          }
-        }
-        .main-container {
-          width: 100%;
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 0 var(--space-lg);
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          padding: 24px 32px 96px 32px;
         }
 
-        /* -------------------------------------------------------------
-           3. FLOATING BOTTOM NAVBAR (Mobile <= 768px)
-           ------------------------------------------------------------- */
+        @media (max-width: 768px) {
+          .scan2-main-canvas { padding: 16px 16px 120px 16px; }
+        }
+
+        .canvas-container { max-width: 1280px; margin: 0 auto; }
+
+        /* 📱 MOBILE BOTTOMNAV & PULL-UP BOTTOMSHEET DRAWER */
+        .mobile-backdrop-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.5);
+          backdrop-filter: blur(4px);
+          z-index: 40;
+        }
+
         @media (min-width: 769px) {
-          .stich-floating-bottom-nav { display: none !important; }
+          .mobile-backdrop-overlay, .mobile-bottomnav-wrapper { display: none !important; }
         }
-        @media (max-width: 768px) {
-          .stich-floating-bottom-nav {
-            position: fixed;
-            bottom: 16px;
-            left: 16px;
-            right: 16px;
-            z-index: 50;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--color-secondary-container);
-            border-radius: var(--radius-2xl);
-            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15);
-            height: 68px;
-          }
-          .floating-nav-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            height: 100%;
-            padding: 0 8px;
-            position: relative;
-          }
-          .floating-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            color: var(--color-secondary);
-            text-decoration: none;
-            flex: 1;
-            padding: 4px;
-            font-size: 0.6875rem;
-            font-weight: 600;
-          }
-          .floating-nav-item.active {
-            color: var(--color-primary);
-            font-weight: 700;
-          }
-          .floating-center-action {
-            position: relative;
-            width: 60px;
-            display: flex;
-            justify-content: center;
-          }
-          .center-camera-btn {
-            position: absolute;
-            top: -28px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--color-primary);
-            color: white;
-            border: 4px solid var(--color-surface-bg);
-            box-shadow: 0 8px 20px rgba(0, 101, 145, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-          }
-          .center-camera-btn:active {
-            transform: scale(0.92);
-          }
 
-          /* Mobile Scan Action Sheet */
-          .mobile-scan-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 9999;
-            display: flex;
-            align-items: flex-end;
-            animation: fadeIn 0.15s ease;
-          }
-          .mobile-scan-sheet {
-            width: 100%;
-            background: var(--color-surface-container-lowest);
-            border-top-left-radius: var(--radius-2xl);
-            border-top-right-radius: var(--radius-2xl);
-            padding: var(--space-lg);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-md);
-            animation: slideUp 0.2s ease;
-          }
-          .sheet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .sheet-header h3 {
-            font-size: 1.125rem;
-            font-family: var(--font-heading);
-            margin: 0;
-          }
-          .sheet-close-btn {
-            background: transparent;
-            border: none;
-            color: var(--color-text-muted);
-            cursor: pointer;
-          }
-          .sheet-actions {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-sm);
-          }
-          .sheet-action-card {
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
-            padding: var(--space-md);
-            background: var(--color-surface-container-low);
-            border: 1px solid var(--color-secondary-container);
-            border-radius: var(--radius-xl);
-            border: none;
-            text-align: left;
-            cursor: pointer;
-            width: 100%;
-          }
-          .action-icon-wrap {
-            width: 44px;
-            height: 44px;
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-          }
-          .icon-sky { background: var(--color-primary-fixed); color: var(--color-primary); }
-          .icon-purple { background: #f3e8ff; color: #9333ea; }
-          .action-text { display: flex; flex-direction: column; }
-          .action-title { font-weight: 700; font-size: 0.9375rem; color: var(--color-text-main); }
-          .action-desc { font-size: 0.75rem; color: var(--color-text-muted); }
+        .mobile-bottomnav-wrapper {
+          position: fixed;
+          inset-x: 0;
+          bottom: 16px;
+          display: flex;
+          justify-content: center;
+          pointer-events: none;
+          z-index: 50;
         }
+
+        .mobile-bottomsheet-card {
+          width: calc(100% - 24px);
+          max-width: 480px;
+          background: #ffffff;
+          border: 1px solid #f1f5f9;
+          border-radius: 40px;
+          box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.12);
+          pointer-events: auto;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .sheet-collapsed { height: 72px; }
+        .sheet-expanded { height: calc(100dvh - 80px); }
+
+        .sheet-drag-handle-bar {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 28px;
+          z-index: 40;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: ns-resize;
+          touch-action: none;
+        }
+
+        .drag-pill-indicator {
+          width: 40px;
+          height: 4px;
+          background: #cbd5e1;
+          border-radius: 9999px;
+        }
+
+        .bottomsheet-scroll-body {
+          position: absolute;
+          inset: 0;
+          padding-top: 32px;
+          overflow-y: auto;
+          transition: opacity 0.3s ease;
+        }
+
+        .show-body { opacity: 1; pointer-events: auto; }
+        .hide-body { opacity: 0; pointer-events: none; }
+
+        .sheet-section-title {
+          font-size: 0.65rem;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          color: #94a3b8;
+          margin-bottom: 12px;
+        }
+
+        .popular-menu-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+
+        .popular-grid-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+        }
+
+        .popular-icon-box {
+          width: 50px;
+          height: 50px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .popular-label {
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #475569;
+          text-align: center;
+        }
+
+        .sheet-divider { height: 1px; background: #f1f5f9; margin: 16px 20px; }
+
+        .all-menu-stack { display: flex; flex-direction: column; gap: 8px; }
+        .menu-list-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          border-radius: 16px;
+          cursor: pointer;
+        }
+
+        .menu-list-row:hover { background: #f8fafc; }
+
+        .menu-row-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          shrink: 0;
+        }
+
+        .menu-row-text { flex: 1; min-width: 0; }
+        .row-title { font-size: 0.85rem; font-weight: 800; color: #0f172a; margin: 0; }
+        .row-desc { font-size: 0.725rem; color: #94a3b8; margin: 2px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* COLLAPSED 5-TAB BAR */
+        .bottomnav-tabs-row {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          height: 72px;
+          display: flex;
+          align-items: center;
+          justify-content: space-around;
+          padding: 0 8px;
+          transition: all 0.3s ease;
+        }
+
+        .show-tabs { opacity: 1; pointer-events: auto; }
+        .hide-tabs { opacity: 0; pointer-events: none; }
+
+        .tab-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          border-radius: 9999px;
+          color: #94a3b8;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .tab-item.active-tab {
+          background: #eaf4fa;
+          color: #0f6784;
+          font-weight: 900;
+        }
+
+        .tab-label { font-size: 0.725rem; font-weight: 900; }
       `}</style>
     </div>
   )
