@@ -140,12 +140,12 @@ export default function MissionsPage() {
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionId)
 
-      // 1. Call credit_coins RPC (Atomic Security Definer execution)
+      // 1. Call credit_coins RPC (Exact signature matching live Supabase)
       const { data: updatedBal, error: rpcErr } = await supabase.rpc('credit_coins', {
-        p_user_id: user.id,
         p_amount: coins,
         p_mission_id: isUuid ? missionId : null,
         p_notes: `Klaim Misi Harian +${coins} Koin`,
+        p_user_id: user.id,
       })
 
       if (rpcErr) {
