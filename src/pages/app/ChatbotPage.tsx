@@ -63,6 +63,33 @@ export default function ChatbotPage() {
     'Bahan aman untuk kulit sensitif',
   ]
 
+  // Contextual Thinking Stages ala ChatGPT / Claude
+  const thinkingStages = [
+    'Memahami pertanyaanmu...',
+    'Menyesuaikan dengan profil kulitmu...',
+    'Menyusun rekomendasi terbaik...',
+    'Masih memproses, mohon tunggu sebentar...',
+  ]
+  const [thinkingStageIndex, setThinkingStageIndex] = useState(0)
+
+  // Rotate thinking stages when isSending is true
+  useEffect(() => {
+    if (!isSending) {
+      setThinkingStageIndex(0)
+      return
+    }
+
+    const t1 = setTimeout(() => setThinkingStageIndex(1), 1600)
+    const t2 = setTimeout(() => setThinkingStageIndex(2), 3200)
+    const t3 = setTimeout(() => setThinkingStageIndex(3), 8000)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [isSending])
+
   // Fetch sessions list on user load, ordered by last_activity DESC
   useEffect(() => {
     if (!user?.id) return
@@ -400,8 +427,14 @@ export default function ChatbotPage() {
             </div>
             <div className="bubble-wrapper">
               <div className="chat-bubble thinking-bubble">
-                <Loader2 size={16} className="animate-spin text-[#0f6784]" />
-                <span>Skinsistant AI sedang berpikir...</span>
+                <div className="bouncing-dots">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <span className="shimmer-think-text">
+                  {thinkingStages[thinkingStageIndex]}
+                </span>
               </div>
             </div>
           </div>
@@ -776,10 +809,64 @@ export default function ChatbotPage() {
         }
 
         .thinking-bubble {
+          background: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
+          border-bottom-left-radius: 4px !important;
           display: flex;
           align-items: center;
-          gap: 8px;
-          color: #64748b;
+          gap: 10px;
+          padding: 10px 16px !important;
+          width: fit-content;
+        }
+
+        .bouncing-dots {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .bouncing-dots span {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #0f6784;
+          animation: dotBounce 1.1s infinite ease-in-out;
+        }
+
+        .bouncing-dots span:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .bouncing-dots span:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+
+        @keyframes dotBounce {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.4;
+          }
+          30% {
+            transform: translateY(-4px);
+            opacity: 1;
+          }
+        }
+
+        .shimmer-think-text {
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #0f6784;
+          animation: thinkShimmer 1.8s infinite ease-in-out;
+          white-space: nowrap;
+        }
+
+        @keyframes thinkShimmer {
+          0%, 100% {
+            opacity: 0.55;
+          }
+          50% {
+            opacity: 1;
+          }
         }
 
         .chat-bubble p {
@@ -791,13 +878,18 @@ export default function ChatbotPage() {
         }
 
         .chat-timestamp {
-          font-size: 0.6875rem;
+          font-size: 0.65rem;
           color: #94a3b8;
-          margin: 4px 6px 0;
+          margin-top: 3px;
+          display: block;
         }
 
         .chat-row.user .chat-timestamp {
           text-align: right;
+        }
+
+        .chat-row.bot .chat-timestamp {
+          text-align: left;
         }
 
         /* STICKY INPUT BAR AT BOTTOM */
