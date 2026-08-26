@@ -1,5 +1,5 @@
 // src/components/layout/AuthLayout.tsx
-// 100% Faithful Port of Claude's Split-Frame Auth Layout — Pure Vanilla CSS
+// 100% Full-Screen Edge-to-Edge & Auto-Responsive Auth Layout — Pure Vanilla CSS
 
 import { Outlet } from 'react-router-dom'
 
@@ -20,20 +20,20 @@ export default function AuthLayout() {
           <div className="visual-top">
             <div className="brand-mark">SKINCLUV</div>
           </div>
-          <div>
+          <div className="visual-body">
             <p className="visual-quote">Kulit Anda punya <span>cerita</span>. Kami bantu membacanya.</p>
             <br />
             <p className="visual-caption">Konsultasi personal berbasis analisis AI, dirancang khusus untuk kondisi kulit Anda.</p>
           </div>
         </div>
 
-        {/* RIGHT — Form Side */}
+        {/* RIGHT — Form Side Outlet */}
         <div className="form-side">
           <Outlet />
         </div>
       </div>
 
-      {/* PURE VANILLA CSS STYLING FROM CLAUDE */}
+      {/* PURE VANILLA CSS STYLING */}
       <style>{`
         :root {
           --teal-900: #0A3E48;
@@ -50,37 +50,27 @@ export default function AuthLayout() {
 
         .claude-auth-root {
           font-family: 'Inter', sans-serif;
-          background: var(--cream);
+          background: #ffffff;
           color: var(--ink);
           min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 32px 16px;
+          width: 100vw;
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden;
           box-sizing: border-box;
         }
 
         .frame {
           width: 100%;
-          max-width: 960px;
-          min-height: 600px;
+          min-height: 100vh;
+          margin: 0;
+          padding: 0;
+          border-radius: 0;
           background: #ffffff;
-          border-radius: 20px;
           overflow: hidden;
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          box-shadow: 0 24px 60px rgba(10, 62, 72, 0.12);
-        }
-
-        @media (max-width: 760px) {
-          .frame {
-            grid-template-columns: 1fr;
-            max-width: 420px;
-            min-height: auto;
-          }
-          .visual {
-            display: none !important;
-          }
+          grid-template-columns: 5fr 7fr;
+          box-shadow: none;
         }
 
         /* LEFT — BRAND VISUAL PANEL */
@@ -88,27 +78,30 @@ export default function AuthLayout() {
           position: relative;
           background: var(--teal-800);
           color: #ffffff;
-          padding: 48px 40px;
+          padding: 64px 48px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           overflow: hidden;
+          width: 100%;
+          min-height: 100vh;
+          box-sizing: border-box;
         }
 
         .scan-field {
           position: absolute;
           inset: 0;
           background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-          background-size: 18px 18px;
-          opacity: 0.5;
+          background-size: 20px 20px;
+          opacity: 0.6;
         }
 
         .rings {
           position: absolute;
-          right: -60px;
-          bottom: -60px;
-          width: 340px;
-          height: 340px;
+          right: -40px;
+          bottom: -40px;
+          width: 380px;
+          height: 380px;
           pointer-events: none;
         }
 
@@ -130,20 +123,23 @@ export default function AuthLayout() {
         }
 
         .brand-mark {
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.14em;
+          font-size: 14px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
           color: var(--teal-100);
         }
 
-        .visual-quote {
+        .visual-body {
           position: relative;
           z-index: 2;
+        }
+
+        .visual-quote {
           font-family: 'Fraunces', serif;
-          font-size: 28px;
+          font-size: 32px;
           line-height: 1.35;
           font-weight: 500;
-          max-width: 320px;
+          max-width: 380px;
           margin: 0;
         }
 
@@ -152,27 +148,58 @@ export default function AuthLayout() {
         }
 
         .visual-caption {
-          position: relative;
-          z-index: 2;
-          font-size: 14px;
+          font-size: 15px;
           color: var(--teal-100);
           line-height: 1.6;
-          max-width: 280px;
+          max-width: 340px;
           margin: 0;
         }
 
         /* RIGHT — FORM SIDE */
         .form-side {
-          padding: 48px 40px;
+          padding: 64px 48px;
           display: flex;
           flex-direction: column;
           justify-content: center;
+          width: 100%;
+          min-height: 100vh;
+          max-width: 520px;
+          margin: 0 auto;
           box-sizing: border-box;
+          background: #ffffff;
         }
 
-        @media (max-width: 480px) {
+        /* TABLET BREAKPOINT (768px - 1023px) */
+        @media (max-width: 1023px) and (min-width: 768px) {
+          .frame {
+            grid-template-columns: 1fr 1fr;
+          }
+          .visual {
+            padding: 48px 32px;
+          }
           .form-side {
-            padding: 32px 24px;
+            padding: 48px 32px;
+            max-width: 100%;
+          }
+          .visual-quote {
+            font-size: 26px;
+          }
+        }
+
+        /* MOBILE BREAKPOINT (< 768px) */
+        @media (max-width: 767px) {
+          .frame {
+            grid-template-columns: 1fr;
+            min-height: 100vh;
+          }
+          .visual {
+            display: none !important;
+          }
+          .form-side {
+            padding: 32px 20px;
+            max-width: 100%;
+            min-height: 100vh;
+            justify-content: center;
           }
         }
       `}</style>
