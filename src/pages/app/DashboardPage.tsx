@@ -1,11 +1,12 @@
 // src/pages/app/DashboardPage.tsx
-// 100% Faithful Port of Claude's Dashboard Page — Pure Vanilla CSS & Strict Mobile Responsiveness
+// Skincluv Design System Harmonized Dashboard (Clean Inter Typography, #0f6784 Brand Palette & Responsive Layout)
 
 import { useNavigate } from 'react-router-dom'
 import {
   ScanFace,
   MessageSquare,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
@@ -18,140 +19,144 @@ export default function DashboardPage() {
   const userCoins = coinBalance?.balance ?? 100
 
   return (
-    <div className="content">
-      {/* 1. STATUS HERO CARD */}
+    <div className="skincluv-dashboard-grid">
+      {/* 1. STATUS HERO BANNER */}
       <div className="status-hero">
-        <div className="dots" />
-        <div className="status-top">
-          <div className="status-label">SKOR KULIT KAMU</div>
-          <div className="trend-chip">
-            <TrendingUp size={12} />
-            <span>↑ +4 minggu ini</span>
+        <div className="hero-pattern-dots" />
+        <div className="hero-top-row">
+          <div className="hero-label">SKOR KULIT KAMU</div>
+          <div className="hero-trend-badge">
+            <TrendingUp size={13} />
+            <span>+4 minggu ini</span>
           </div>
         </div>
-        <div className="status-score">
-          <b>82</b>
-          <span>/ 100 — Sangat Sehat</span>
+        <div className="hero-score-group">
+          <span className="hero-score-num">82</span>
+          <span className="hero-score-sub">/ 100 — Sangat Sehat</span>
         </div>
-        <p className="status-note">
-          Kelembaban stabil. Tekstur T-zone masih perlu perhatian ekstra minggu ini.
+        <p className="hero-description">
+          Kelembaban kulit Anda stabil. Tekstur T-zone masih perlu perhatian ekstra minggu ini.
         </p>
       </div>
 
-      {/* 2. ACTIONS ROW */}
+      {/* 2. QUICK ACTIONS ROW */}
       <div className="actions-row">
-        <div className="card action-card" onClick={() => navigate('/face-scan')}>
-          <div className="action-icon purple">
-            <ScanFace size={20} />
+        <div className="action-card card-face-scan" onClick={() => navigate('/face-scan')}>
+          <div className="action-icon-box purple">
+            <ScanFace size={22} />
           </div>
-          <div className="action-title">Face Scan</div>
-          <div className="action-sub">Analisis kondisi kulit terbaru</div>
+          <div className="action-meta">
+            <h3 className="action-title">Face Scan AI</h3>
+            <p className="action-sub">Analisis kondisi kulit wajah terbaru</p>
+          </div>
         </div>
-        <div className="card action-card" onClick={() => navigate('/chatbot')}>
-          <div className="action-icon teal">
-            <MessageSquare size={20} />
+
+        <div className="action-card card-skinsistant" onClick={() => navigate('/chatbot')}>
+          <div className="action-icon-box teal">
+            <MessageSquare size={22} />
           </div>
-          <div className="action-title">Skinsistant</div>
-          <div className="action-sub">Tanya AI soal bahan & keluhan</div>
+          <div className="action-meta">
+            <h3 className="action-title">Skinsistant AI</h3>
+            <p className="action-sub">Konsultasi bahan & keluhan kulit</p>
+          </div>
         </div>
       </div>
 
-      {/* 3. RETENTION STRIP */}
-      <div className="retention">
-        <div className="section-label">PROGRES KAMU</div>
+      {/* 3. RETENTION / PROGRESS STRIP */}
+      <div className="retention-section">
+        <div className="section-header-title">PROGRES KULIT KAMU</div>
         <div className="retention-strip">
-          <div className="card r-card">
-            <div className="r-num">7 hari</div>
-            <div className="r-cap up">Streak aktif 🔥</div>
+          <div className="retention-card">
+            <div className="r-num">7 Hari</div>
+            <div className="r-cap streak">Streak Aktif 🔥</div>
           </div>
-          <div className="card r-card">
+          <div className="retention-card">
             <div className="r-num">14</div>
-            <div className="r-cap">Total scan</div>
+            <div className="r-cap">Total Scan</div>
           </div>
-          <div className="card r-card">
-            <div className="r-num">2/5</div>
-            <div className="r-cap">Misi Glow minggu ini</div>
+          <div className="retention-card">
+            <div className="r-num">2 / 5</div>
+            <div className="r-cap">Misi Glow Minggu Ini</div>
           </div>
-          <div className="card r-card">
+          <div className="retention-card">
             <div className="r-num">8</div>
-            <div className="r-cap">Produk di rak</div>
+            <div className="r-cap">Produk di Rak Virtual</div>
           </div>
         </div>
       </div>
 
-      {/* 4. SIDE RAIL CARDS */}
-      <div className="side">
-        <div className="card">
-          <div className="side-row">
+      {/* 4. SIDE RAIL CARDS (Desktop side column) */}
+      <div className="side-rail-section">
+        <div className="side-card">
+          <div className="side-card-header">
             <span className="side-title">SALDO SKIN COIN</span>
-            <span className="badge free">
+            <span className={`side-badge ${isPro ? 'badge-pro' : 'badge-free'}`}>
               {isPro ? 'Pro Member' : 'Free Account'}
             </span>
           </div>
-          <div className="wallet-num">{isPro ? 'Pro' : userCoins}</div>
+          <div className="side-stat-value">{isPro ? '⭐️ PRO' : userCoins}</div>
         </div>
-        <div className="card">
-          <div className="side-title" style={{ marginBottom: '8px' }}>
-            DAILY INSIGHT
-          </div>
-          <p className="insight-text">
+
+        <div className="side-card">
+          <div className="side-title mb-2">DAILY INSIGHT</div>
+          <p className="side-text">
             Pastikan selalu memakai sunscreen SPF 30 setiap 3 jam saat beraktivitas di luar ruangan.
           </p>
         </div>
-        <div className="card">
-          <div className="side-row">
+
+        <div className="side-card">
+          <div className="side-card-header">
             <span className="side-title">INDEKS UV HARI INI</span>
-            <span className="badge uv">Sedang (UV 4)</span>
+            <span className="side-badge badge-warning">Sedang (UV 4)</span>
           </div>
-          <p className="insight-text">Disarankan pakai pelembab ber-SPF saat keluar rumah.</p>
+          <p className="side-text">Disarankan memakai pelembab ber-SPF saat keluar rumah.</p>
         </div>
       </div>
 
-      {/* 5. PROMO BANNER CARD */}
-      <div className="card promo">
-        <div className="promo-text">
-          <b>Langganan Premium Rp30.000</b>
-          <span>Dapat +10.000 koin instan & akses AI tanpa batas</span>
+      {/* 5. PROMO UPGRADE CARD */}
+      <div className="promo-banner-card">
+        <div className="promo-meta">
+          <div className="promo-title-row">
+            <Sparkles size={16} className="text-amber-300" />
+            <b className="promo-title">Langganan Skincluv PRO</b>
+          </div>
+          <p className="promo-sub">Dapatkan +10.000 koin instan & konsultasi AI tanpa batas</p>
         </div>
-        <button onClick={() => navigate('/pricing')} className="promo-btn">
-          Upgrade
+        <button onClick={() => navigate('/pricing')} className="promo-action-btn">
+          Upgrade Sekarang
         </button>
       </div>
 
-      {/* 6. RECENT HISTORY CARD */}
-      <div className="history-wrapper">
-        <div className="section-label">RIWAYAT TERBARU</div>
-        <div className="history-list">
-          <div className="history-row-card">
-            <div className="h-left">
-              <span className="h-date">8 Agu</span>
-              <span className="h-type">Scan Wajah AI</span>
-            </div>
-            <span className="h-result">Kombinasi (T-Zone berminyak)</span>
-            <span className="h-badge ok">Optimal</span>
+      {/* 6. RECENT HISTORY SECTION */}
+      <div className="history-section">
+        <div className="section-header-title">RIWAYAT SCAN TERBARU</div>
+        <div className="history-card-container">
+          <div className="history-item-row">
+            <div className="h-date">8 Agu</div>
+            <div className="h-type-title">Scan Wajah AI</div>
+            <div className="h-detail-result">Kombinasi (T-Zone berminyak)</div>
+            <span className="h-status-badge badge-optimal">Optimal</span>
           </div>
-          <div className="history-row-card">
-            <div className="h-left">
-              <span className="h-date">5 Agu</span>
-              <span className="h-type">Scan Ingredient</span>
-            </div>
-            <span className="h-result">Brightening Serum (aman)</span>
-            <span className="h-badge ok">Sehat</span>
+
+          <div className="history-item-row">
+            <div className="h-date">5 Agu</div>
+            <div className="h-type-title">Scan Ingredient</div>
+            <div className="h-detail-result">Brightening Serum (aman)</div>
+            <span className="h-status-badge badge-healthy">Sehat</span>
           </div>
-          <div className="history-row-card">
-            <div className="h-left">
-              <span className="h-date">1 Agu</span>
-              <span className="h-type">Scan Wajah AI</span>
-            </div>
-            <span className="h-result">Kemerahan pipi ringan</span>
-            <span className="h-badge warn">Perlu perhatian</span>
+
+          <div className="history-item-row">
+            <div className="h-date">1 Agu</div>
+            <div className="h-type-title">Scan Wajah AI</div>
+            <div className="h-detail-result">Kemerahan pipi ringan</div>
+            <span className="h-status-badge badge-attention">Perlu Perhatian</span>
           </div>
         </div>
       </div>
 
-      {/* PURE VANILLA CSS STYLING FROM CLAUDE */}
+      {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
       <style>{`
-        .content {
+        .skincluv-dashboard-grid {
           display: grid;
           grid-template-columns: 1fr;
           grid-template-areas:
@@ -161,197 +166,187 @@ export default function DashboardPage() {
             "side"
             "promo"
             "history";
-          gap: 14px;
+          gap: 16px;
           width: 100%;
           max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
+          font-family: 'Inter', sans-serif;
         }
 
-        .card {
-          background: #ffffff;
-          border: 1px solid var(--line, rgba(10,62,72,0.10));
-          border-radius: 16px;
-          padding: 16px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-          box-sizing: border-box;
-          min-width: 0;
-          max-width: 100%;
-        }
-
-        .section-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--ink-soft, #5C6B6B);
-          letter-spacing: 0.04em;
+        .section-header-title {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          color: #64748b;
           margin-bottom: 10px;
+          text-transform: uppercase;
         }
 
-        /* STATUS HERO */
+        /* 1. STATUS HERO BANNER */
         .status-hero {
           grid-area: hero;
-          background: var(--teal-800, #0B4F5C);
+          background: linear-gradient(135deg, #0f6784 0%, #0b4f5c 100%);
           border-radius: 20px;
-          padding: 22px;
+          padding: 24px;
           color: #ffffff;
           position: relative;
           overflow: hidden;
+          box-shadow: 0 8px 24px -6px rgba(15, 103, 132, 0.3);
           box-sizing: border-box;
           min-width: 0;
           width: 100%;
-          max-width: 100%;
         }
 
-        .status-hero .dots {
+        .hero-pattern-dots {
           position: absolute;
           inset: 0;
-          background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
-          background-size: 14px 14px;
+          background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+          background-size: 16px 16px;
         }
 
-        .status-top {
+        .hero-top-row {
           position: relative;
           z-index: 1;
           display: flex;
           align-items: center;
           justify-content: space-between;
           width: 100%;
-          box-sizing: border-box;
         }
 
-        .status-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--teal-100, #DCEEEA);
+        .hero-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: #e0f2fe;
         }
 
-        .trend-chip {
+        .hero-trend-badge {
           display: flex;
           align-items: center;
           gap: 4px;
-          background: rgba(255,255,255,0.14);
-          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(8px);
+          border-radius: 9999px;
           padding: 4px 10px;
-          font-size: 12px;
-          font-weight: 600;
-          color: #8CF0C7;
-          flex-shrink: 0;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #86efac;
         }
 
-        .status-score {
+        .hero-score-group {
           position: relative;
           z-index: 1;
           display: flex;
           align-items: baseline;
-          gap: 6px;
-          margin: 10px 0 6px;
-          flex-wrap: wrap;
+          gap: 8px;
+          margin: 12px 0 6px;
         }
 
-        .status-score b {
-          font-family: 'Fraunces', serif;
-          font-size: 44px;
+        .hero-score-num {
+          font-size: 3.25rem;
+          font-weight: 800;
+          line-height: 1;
+          letter-spacing: -0.03em;
+        }
+
+        .hero-score-sub {
+          font-size: 0.9375rem;
+          color: #bae6fd;
           font-weight: 600;
         }
 
-        .status-score span {
-          font-size: 14px;
-          color: var(--teal-100, #DCEEEA);
-          word-break: break-word;
-        }
-
-        .status-note {
+        .hero-description {
           position: relative;
           z-index: 1;
-          font-size: 13.5px;
+          font-size: 0.875rem;
           line-height: 1.5;
-          color: var(--teal-100, #DCEEEA);
-          max-width: 420px;
+          color: #e0f2fe;
           margin: 0;
           word-break: break-word;
-          overflow-wrap: break-word;
         }
 
-        /* ACTIONS */
+        /* 2. ACTIONS ROW */
         .actions-row {
           grid-area: actions;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          gap: 12px;
           width: 100%;
-          max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
         }
 
         .action-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
           cursor: pointer;
-          transition: transform 0.2s ease, border-color 0.2s ease;
-          padding: 14px 12px;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
           box-sizing: border-box;
           min-width: 0;
-          width: 100%;
         }
 
         .action-card:hover {
           transform: translateY(-2px);
-          border-color: var(--teal-700, #126575);
+          border-color: #0f6784;
+          box-shadow: 0 8px 20px -4px rgba(15, 103, 132, 0.12);
         }
 
-        .action-icon {
-          width: 36px;
-          height: 36px;
-          border-radius: 11px;
+        .action-icon-box {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
         }
 
-        .action-icon.purple {
-          background: #EEEDFE;
-          color: #534AB7;
+        .action-icon-box.purple {
+          background: #f3e8ff;
+          color: #7e22ce;
         }
 
-        .action-icon.teal {
-          background: var(--teal-100, #DCEEEA);
-          color: var(--teal-800, #0B4F5C);
+        .action-icon-box.teal {
+          background: #eaf4fa;
+          color: #0f6784;
         }
 
         .action-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--ink, #1A2B2B);
-          word-break: break-word;
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 2px 0;
         }
 
         .action-sub {
-          font-size: 11.5px;
-          color: var(--ink-soft, #5C6B6B);
-          line-height: 1.35;
+          font-size: 0.75rem;
+          color: #64748b;
+          line-height: 1.4;
+          margin: 0;
           word-break: break-word;
-          overflow-wrap: break-word;
         }
 
-        /* RETENTION STRIP */
-        .retention {
+        /* 3. RETENTION SECTION */
+        .retention-section {
           grid-area: retention;
           width: 100%;
-          max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
         }
 
         .retention-strip {
           display: flex;
-          gap: 10px;
+          gap: 12px;
           overflow-x: auto;
           padding-bottom: 4px;
           width: 100%;
-          max-width: 100%;
           box-sizing: border-box;
         }
 
@@ -359,285 +354,292 @@ export default function DashboardPage() {
           display: none;
         }
 
-        .r-card {
+        .retention-card {
           flex: 0 0 auto;
-          min-width: 114px;
+          min-width: 120px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          padding: 14px 16px;
           box-sizing: border-box;
         }
 
         .r-num {
-          font-family: 'Fraunces', serif;
-          font-size: 20px;
-          font-weight: 600;
-          color: var(--ink, #1A2B2B);
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f172a;
         }
 
         .r-cap {
-          font-size: 11.5px;
-          color: var(--ink-soft, #5C6B6B);
+          font-size: 0.75rem;
+          color: #64748b;
           margin-top: 2px;
         }
 
-        .r-cap.up {
-          color: #3B6D11;
-          font-weight: 600;
+        .r-cap.streak {
+          color: #15803d;
+          font-weight: 700;
         }
 
-        /* SIDE RAIL */
-        .side {
+        /* 4. SIDE RAIL SECTION */
+        .side-rail-section {
           grid-area: side;
           display: grid;
           grid-template-columns: 1fr;
           gap: 12px;
           width: 100%;
-          max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
         }
 
-        /* HIDE SIDE RAIL ON MOBILE (< 900px) MATCHING CLAUDE MOBILE MOCKUP */
         @media (max-width: 899px) {
-          .side {
+          .side-rail-section {
             display: none !important;
           }
         }
 
-        .side-row {
+        .side-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 16px;
+          box-sizing: border-box;
+        }
+
+        .side-card-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
         }
 
         .side-title {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--ink-soft, #5C6B6B);
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #64748b;
+          letter-spacing: 0.04em;
         }
 
-        .badge {
-          font-size: 11px;
-          font-weight: 600;
-          padding: 3px 9px;
-          border-radius: 20px;
+        .side-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 9999px;
         }
 
-        .badge.free {
-          background: var(--teal-100, #DCEEEA);
-          color: var(--teal-800, #0B4F5C);
+        .side-badge.badge-free {
+          background: #eaf4fa;
+          color: #0f6784;
         }
 
-        .badge.uv {
-          background: #FAEEDA;
-          color: #854F0B;
+        .side-badge.badge-pro {
+          background: #fef3c7;
+          color: #b45309;
         }
 
-        .wallet-num {
-          font-family: 'Fraunces', serif;
-          font-size: 24px;
-          font-weight: 600;
-          color: var(--ink, #1A2B2B);
+        .side-badge.badge-warning {
+          background: #ffedd5;
+          color: #c2410c;
         }
 
-        .insight-text {
-          font-size: 13px;
-          line-height: 1.55;
-          color: var(--ink-soft, #5C6B6B);
+        .side-stat-value {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #0f172a;
+        }
+
+        .side-text {
+          font-size: 0.8125rem;
+          line-height: 1.5;
+          color: #475569;
           margin: 0;
         }
 
-        /* PROMO BANNER */
-        .promo {
+        /* 5. PROMO BANNER CARD */
+        .promo-banner-card {
           grid-area: promo;
-          background: linear-gradient(120deg, #E8A87C, #D4813F);
+          background: linear-gradient(135deg, #0f6784 0%, #0369a1 100%);
           border-radius: 16px;
-          padding: 16px 18px;
-          color: #4A1B0C;
+          padding: 18px 20px;
+          color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 12px;
-          border: none;
+          gap: 14px;
           width: 100%;
-          max-width: 100%;
-          min-width: 0;
           box-sizing: border-box;
+          min-width: 0;
+          box-shadow: 0 4px 14px rgba(15, 103, 132, 0.2);
         }
 
-        .promo-text b {
-          display: block;
-          font-size: 14.5px;
+        .promo-title-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
           margin-bottom: 2px;
-          word-break: break-word;
         }
 
-        .promo-text span {
-          font-size: 12px;
-          opacity: 0.85;
-          word-break: break-word;
+        .promo-title {
+          font-size: 0.9375rem;
+          color: #ffffff;
         }
 
-        .promo-btn {
+        .promo-sub {
+          font-size: 0.75rem;
+          color: #e0f2fe;
+          margin: 0;
+        }
+
+        .promo-action-btn {
           background: #ffffff;
-          color: var(--peach-dark, #B96A3D);
-          font-size: 12.5px;
+          color: #0f6784;
+          font-size: 0.8125rem;
           font-weight: 700;
           border: none;
-          border-radius: 20px;
-          padding: 8px 16px;
+          border-radius: 9999px;
+          padding: 8px 18px;
           flex-shrink: 0;
           cursor: pointer;
           transition: transform 0.2s ease;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        .promo-btn:hover {
-          transform: scale(1.05);
+        .promo-action-btn:hover {
+          transform: scale(1.04);
         }
 
-        /* HISTORY WRAPPER & MOBILE CARDS */
-        .history-wrapper {
+        /* 6. RECENT HISTORY SECTION */
+        .history-section {
           grid-area: history;
           width: 100%;
-          max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
         }
 
-        .history-list {
+        .history-card-container {
           display: flex;
           flex-direction: column;
           gap: 8px;
           width: 100%;
-          max-width: 100%;
           box-sizing: border-box;
         }
 
-        .history-row-card {
+        .history-item-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
           background: #ffffff;
-          border: 1px solid var(--line, rgba(10,62,72,0.10));
+          border: 1px solid #e2e8f0;
           border-radius: 14px;
-          padding: 12px 14px;
+          padding: 12px 16px;
           width: 100%;
-          max-width: 100%;
-          min-width: 0;
           box-sizing: border-box;
         }
 
-        .h-left {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          min-width: 0;
-        }
-
         .h-date {
-          font-size: 11.5px;
-          color: var(--ink-soft, #5C6B6B);
-          width: 48px;
+          font-size: 0.75rem;
+          color: #64748b;
+          width: 50px;
           flex-shrink: 0;
         }
 
-        .h-type {
-          font-size: 13.5px;
+        .h-type-title {
+          font-size: 0.875rem;
           font-weight: 600;
-          color: var(--ink, #1A2B2B);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          color: #0f172a;
         }
 
-        .h-result {
-          font-size: 12.5px;
-          color: var(--ink-soft, #5C6B6B);
+        .h-detail-result {
+          font-size: 0.8125rem;
+          color: #64748b;
           display: none;
         }
 
-        .h-badge {
-          font-size: 11px;
-          font-weight: 600;
-          padding: 4px 9px;
-          border-radius: 20px;
+        .h-status-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 9999px;
           flex-shrink: 0;
         }
 
-        .h-badge.ok {
-          background: #EAF3DE;
-          color: #3B6D11;
+        .h-status-badge.badge-optimal {
+          background: #dcfce7;
+          color: #15803d;
         }
 
-        .h-badge.warn {
-          background: #FAEEDA;
-          color: #854F0B;
+        .h-status-badge.badge-healthy {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        .h-status-badge.badge-attention {
+          background: #ffedd5;
+          color: #c2410c;
         }
 
         /* DESKTOP BREAKPOINT (>= 900px) */
         @media (min-width: 900px) {
-          .content {
+          .skincluv-dashboard-grid {
             grid-template-columns: 1fr 1fr 320px;
             grid-template-areas:
               "hero    hero    side"
               "actions actions side"
               "retention retention side"
               "promo   history history";
-            gap: 18px;
+            gap: 20px;
           }
+
           .status-hero {
             padding: 32px;
           }
-          .status-score b {
-            font-size: 56px;
+
+          .hero-score-num {
+            font-size: 3.75rem;
           }
+
           .actions-row {
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
           }
+
           .action-card {
             padding: 20px;
-            gap: 10px;
+            gap: 12px;
           }
-          .action-icon {
-            width: 38px;
-            height: 38px;
-          }
-          .action-title {
-            font-size: 14.5px;
-          }
-          .action-sub {
-            font-size: 12px;
-          }
-          .side {
-            align-content: start;
-          }
-          .history-list {
+
+          .history-card-container {
             background: #ffffff;
-            border: 1px solid var(--line, rgba(10,62,72,0.10));
+            border: 1px solid #e2e8f0;
             border-radius: 16px;
             padding: 8px 16px;
             gap: 0;
           }
-          .history-row-card {
+
+          .history-item-row {
             border: none;
-            border-bottom: 1px solid var(--line, rgba(10,62,72,0.10));
+            border-bottom: 1px solid #f1f5f9;
             border-radius: 0;
             padding: 14px 0;
           }
-          .history-row-card:last-child {
+
+          .history-item-row:last-child {
             border-bottom: none;
           }
-          .h-result {
+
+          .h-detail-result {
             display: block;
             flex: 1;
             margin: 0 16px;
           }
-          .promo {
+
+          .promo-banner-card {
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
           }
-          .promo-btn {
+
+          .promo-action-btn {
             margin-top: 10px;
           }
         }
