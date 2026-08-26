@@ -30,6 +30,7 @@ interface Session {
   id: string
   title: string
   created_at: string
+  last_activity?: string
 }
 
 export default function ChatbotPage() {
@@ -62,7 +63,7 @@ export default function ChatbotPage() {
     'Bahan aman untuk kulit sensitif',
   ]
 
-  // Fetch sessions list on user load
+  // Fetch sessions list on user load, ordered by last_activity DESC
   useEffect(() => {
     if (!user?.id) return
     fetchSessions()
@@ -88,9 +89,9 @@ export default function ChatbotPage() {
     try {
       const { data } = await supabase
         .from('chat_sessions')
-        .select('id, title, created_at')
+        .select('id, title, created_at, last_activity')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('last_activity', { ascending: false, nullsFirst: false })
 
       if (data) setSessions(data)
     } catch (err) {
@@ -101,6 +102,20 @@ export default function ChatbotPage() {
   const fetchMessages = async (sid: string) => {
     setIsLoadingMessages(true)
     try {
+      // Update last_activity timestamp for this active session in DB
+      const nowIso = new Date().toISOString()
+      supabase
+        .from('chat_sessions')
+        .update({ last_activity: nowIso })
+        .eq('id', sid)
+        .then(() => {
+          setSessions((prev) =>
+            [...prev]
+              .map((s) => (s.id === sid ? { ...s, last_activity: nowIso } : s))
+              .sort((a, b) => new Date(b.last_activity || b.created_at).getTime() - new Date(a.last_activity || a.created_at).getTime())
+          )
+        })
+
       const { data, error } = await supabase
         .from('chat_messages')
         .select('id, role, content, created_at')
@@ -129,9 +144,10 @@ export default function ChatbotPage() {
   const createNewSession = async () => {
     if (!user?.id) return null
     try {
+      const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('chat_sessions')
-        .insert({ user_id: user.id, title: 'Diskusi Baru' })
+        .insert({ user_id: user.id, title: 'Diskusi Baru', last_activity: nowIso })
         .select()
         .single()
 
@@ -191,13 +207,34 @@ export default function ChatbotPage() {
     setInputText('')
     setIsSending(true)
 
-    // Save user message to Supabase
+    // Save user message to Supabase & update session title / last_activity
     try {
       await supabase.from('chat_messages').insert({
         session_id: activeSessionId,
         role: 'user',
         content: query,
       })
+
+      const nowIso = new Date().toISOString()
+      const currentSession = sessions.find((s) => s.id === activeSessionId)
+      const isDefaultTitle = !currentSession?.title || currentSession?.title === 'Diskusi Baru'
+      const autoTitle = query.trim().length > 30 ? query.trim().substring(0, 30) + '...' : query.trim()
+
+      const updatePayload: { last_activity: string; title?: string } = { last_activity: nowIso }
+      if (isDefaultTitle) {
+        updatePayload.title = autoTitle
+      }
+
+      await supabase
+        .from('chat_sessions')
+        .update(updatePayload)
+        .eq('id', activeSessionId)
+
+      setSessions((prev) =>
+        [...prev]
+          .map((s) => (s.id === activeSessionId ? { ...s, ...updatePayload } : s))
+          .sort((a, b) => new Date(b.last_activity || b.created_at).getTime() - new Date(a.last_activity || a.created_at).getTime())
+      )
     } catch (err) {
       console.error('Error saving user message:', err)
     }
