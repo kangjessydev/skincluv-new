@@ -1,20 +1,17 @@
+// src/pages/app/ChatbotPage.tsx
+// 100% Faithful Port of Claude's Skinsistant AI Chatbot UI — Pure Vanilla CSS & Real Supabase Integration
+
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Send,
   Sparkles,
   Plus,
-  MessageSquare,
-  Trash2,
   History,
-  FlaskConical,
-  ShieldCheck,
-  Search,
-  Stethoscope,
-  Utensils,
-  Clock,
-  FileText,
-  BrainCircuit,
+  Trash2,
+  Paperclip,
+  Loader2,
+  MessageSquare,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -34,11 +31,6 @@ interface Session {
   created_at: string
 }
 
-interface ThinkingStep {
-  icon: React.ElementType
-  text: string
-}
-
 export default function ChatbotPage() {
   const { sessionId } = useParams<{ sessionId?: string }>()
   const navigate = useNavigate()
@@ -52,24 +44,22 @@ export default function ChatbotPage() {
   const [inputText, setInputText] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
-  const [showHistory, setShowHistory] = useState(false)
-
-  // Dynamic Contextual Thinking Steps (Icons only, NO Emojis)
-  const [thinkingSteps, setThinkingSteps] = useState<ThinkingStep[]>([])
-  const [currentStepIdx, setCurrentStepIdx] = useState(0)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const userName = profile?.full_name?.split(' ')[0] || 'Sarah'
+  const userName = profile?.full_name?.split(' ')[0] || 'Pengguna'
+  const userInitials = profile?.full_name
+    ? profile.full_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+    : 'PE'
 
-  // Dynamic Thinking Step Rotation Timer (every 1.3s)
-  useEffect(() => {
-    if (!isSending || thinkingSteps.length === 0) return
-    const interval = setInterval(() => {
-      setCurrentStepIdx((prev) => (prev + 1) % thinkingSteps.length)
-    }, 1300)
-    return () => clearInterval(interval)
-  }, [isSending, thinkingSteps])
+  // Suggestion Quick Chips
+  const suggestionChips = [
+    'Rekomendasi ingredient',
+    'Tips atasi kemerahan',
+    'Susun skincare routine',
+    'Bahan aman untuk kulit sensitif',
+  ]
 
   // Fetch sessions list on user load
   useEffect(() => {
@@ -87,799 +77,824 @@ export default function ChatbotPage() {
     fetchMessages(sessionId)
   }, [sessionId])
 
+  // Auto-scroll to bottom of chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isSending, currentStepIdx])
+  }, [messages, isSending])
 
   const fetchSessions = async () => {
     if (!user?.id) return
     try {
-      // Clean up orphaned empty sessions from DB
-      const { data: allSessions } = await supabase
+      const { data } = await supabase
         .from('chat_sessions')
         .select('id, title, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (!allSessions) return
-
-      // Filter out sessions that have zero messages
-      const validSessions: Session[] = []
-      for (const s of allSessions) {
-        const { count } = await supabase
-          .from('chat_messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('session_id', s.id)
-
-        if (count && count > 0) {
-          validSessions.push(s)
-        } else if (s.id !== sessionId) {
-          // Delete empty session from DB asynchronously if not currently active
-          supabase.from('chat_sessions').delete().eq('id', s.id).then(() => {})
-        }
-      }
-
-      setSessions(validSessions)
+      if (data) setSessions(data)
     } catch (err) {
-      console.error('Fetch sessions failed:', err)
+      console.error('Failed to fetch sessions:', err)
     }
   }
 
   const fetchMessages = async (sid: string) => {
     setIsLoadingMessages(true)
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('chat_messages')
-        .select('id, role, content, created_at')
+        .select('id, sender, text, created_at')
         .eq('session_id', sid)
         .order('created_at', { ascending: true })
 
-      if (error) {
-        console.warn('Error fetching chat_messages:', error.message)
-        setMessages([])
-        return
-      }
-
       if (data) {
-        const formatted: Message[] = data.map((m: any) => ({
-          id: m.id,
-          sender: m.role === 'user' ? 'user' : 'bot',
-          text: m.content,
-          created_at: m.created_at,
-        }))
-        setMessages(formatted)
+        setMessages(
+          data.map((m) => ({
+            id: m.id,
+            sender: m.sender === 'user' ? 'user' : 'bot',
+            text: m.text,
+            created_at: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }))
+        )
       }
     } catch (err) {
-      console.error('Fetch messages failed:', err)
-      setMessages([])
+      console.error('Failed to fetch messages:', err)
     } finally {
       setIsLoadingMessages(false)
     }
   }
 
-  const handleNewChatClick = () => {
-    setShowHistory(false)
-    navigate('/chatbot')
-  }
-
-  const handleSelectSession = (sid: string) => {
-    setShowHistory(false)
-    if (sid === sessionId) return
-    navigate(`/chatbot/${sid}`)
-  }
-
-  const createSessionInDB = async (): Promise<string | null> => {
+  const createNewSession = async () => {
     if (!user?.id) return null
     try {
       const { data, error } = await supabase
         .from('chat_sessions')
-        .insert({
-          user_id: user.id,
-          title: 'Konsultasi Baru',
-        })
-        .select('id, title, created_at')
+        .insert({ user_id: user.id, title: 'Diskusi Baru' })
+        .select()
         .single()
 
-      if (error || !data) {
-        console.error('Error creating chat_session:', error?.message)
-        return null
+      if (error) throw error
+      if (data) {
+        setSessions((prev) => [data, ...prev])
+        navigate(`/chatbot/${data.id}`)
+        return data.id
       }
-
-      return data.id
     } catch (err) {
-      console.error('createSessionInDB exception:', err)
-      return null
+      console.error('Failed to create session:', err)
     }
+    return null
   }
 
-  // Generate Dynamic Contextual Thinking Steps (strictly Lucide Icons, NO Emojis!)
-  const determineThinkingSteps = (query: string): ThinkingStep[] => {
-    const q = query.toLowerCase()
-    const snippet = query.length > 20 ? query.substring(0, 20) + '...' : query
-
-    const foodKeywords = ['makanan', 'makan', 'minum', 'diet', 'boba', 'gula', 'gorengan', 'minyak', 'sebum', 'nutrisi', 'air']
-    const ingredientKeywords = ['niacinamide', 'retinol', 'serum', 'moisturizer', 'aha', 'bha', 'salicylic', 'hyaluronic', 'toner', 'cleanser', 'sunscreen', 'spf', 'kandungan', 'komposisi', 'efek samping']
-    const concernKeywords = ['jerawat', 'acne', 'kusam', 'kering', 'flek', 'mata panda', 'dark circles', 'komedo', 'pori', 'merah', 'eksim', 'bruntusan']
-    const routineKeywords = ['rutin', 'routine', 'urutan', 'langkah', 'pagi', 'malam', 'cleansing', 'layering']
-
-    if (foodKeywords.some((kw) => q.includes(kw))) {
-      return [
-        { icon: Utensils, text: `Menganalisis korelasi pola makan & produksi sebum...` },
-        { icon: Search, text: `Mengecek pengaruh kadar gula & karbohidrat terhadap kulit...` },
-        { icon: Sparkles, text: `Menyusun saran nutrisi & perawatan kulit dari dalam...` },
-      ]
+  const handleDeleteSession = async (sid: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      await supabase.from('chat_messages').delete().eq('session_id', sid)
+      await supabase.from('chat_sessions').delete().eq('id', sid)
+      setSessions((prev) => prev.filter((s) => s.id !== sid))
+      if (sessionId === sid) {
+        navigate('/chatbot')
+      }
+    } catch (err) {
+      console.error('Failed to delete session:', err)
     }
-
-    if (ingredientKeywords.some((kw) => q.includes(kw))) {
-      return [
-        { icon: FlaskConical, text: `Menganalisis komposisi & molekul bahan aktif...` },
-        { icon: ShieldCheck, text: `Mengecek tingkat keamanan & interaksi bahan...` },
-        { icon: Sparkles, text: `Menyusun panduan dosis & rekomendasi penggunaan...` },
-      ]
-    }
-
-    if (concernKeywords.some((kw) => q.includes(kw))) {
-      return [
-        { icon: Stethoscope, text: `Menganalisis kondisi & sensitivitas tipe kulit...` },
-        { icon: Search, text: `Mencari metode spesifik dermatologi untuk penanganan...` },
-        { icon: FileText, text: `Menyusun urutan langkah penanganan kulit...` },
-      ]
-    }
-
-    if (routineKeywords.some((kw) => q.includes(kw))) {
-      return [
-        { icon: Clock, text: `Menganalisis tahapan perawatan pagi & malam...` },
-        { icon: ShieldCheck, text: `Pemeriksaan jeda waktu & layering bahan aktif...` },
-        { icon: FileText, text: `Merapikan jadwal rutinitas kulit...` },
-      ]
-    }
-
-    return [
-      { icon: Search, text: `Menganalisis pertanyaan: "${snippet}"...` },
-      { icon: BrainCircuit, text: `Menghubungkan dengan basis data medis Skincluv...` },
-      { icon: Sparkles, text: `Menyusun tanggapan terstruktur...` },
-    ]
   }
 
   const handleSendMessage = async (textToSend?: string) => {
     const query = textToSend || inputText
     if (!query.trim() || isSending) return
 
-    // Set contextual thinking steps
-    const steps = determineThinkingSteps(query)
-    setThinkingSteps(steps)
-    setCurrentStepIdx(0)
-
-    setInputText('')
-    setIsSending(true)
-
-    let currentSessionId = sessionId
-
-    // Lazy Session Creation: If no session ID in URL, create DB session now
-    if (!currentSessionId) {
-      currentSessionId = await createSessionInDB()
-      if (!currentSessionId) {
-        setIsSending(false)
-        alert('Gagal membuat sesi obrolan baru. Silakan periksa koneksi kamu.')
-        return
-      }
-      // Instant URL update without full reload
-      navigate(`/chatbot/${currentSessionId}`, { replace: true })
+    let activeSessionId = sessionId
+    if (!activeSessionId) {
+      const newSid = await createNewSession()
+      if (!newSid) return
+      activeSessionId = newSid
     }
 
     const tempUserMsg: Message = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}`,
       sender: 'user',
       text: query,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
+
     setMessages((prev) => [...prev, tempUserMsg])
+    setInputText('')
+    setIsSending(true)
 
+    // Save user message to Supabase
     try {
-      // 1. Save user msg to DB using user_id, session_id, role, content
-      const { error: insertErr } = await supabase.from('chat_messages').insert({
-        session_id: currentSessionId,
-        user_id: user?.id,
-        role: 'user',
-        content: query,
-      })
-
-      if (insertErr) {
-        console.warn('Warning inserting user chat_message:', insertErr.message)
-      }
-
-      // 2. Prepare message history payload for invoke-ai Edge Function
-      const historyPayload = messages.map((m) => ({
-        role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-        content: m.text,
-      }))
-      historyPayload.push({ role: 'user', content: query })
-
-      // 3. Invoke Edge Function with correct contract (feature_slug & messages)
-      const aiResponse = await invoke({
-        feature_slug: 'chatbot',
-        messages: historyPayload,
-      })
-
-      const botReply = aiResponse?.content || 'Maaf, saya tidak dapat memproses pertanyaan kamu saat ini.'
-
-      // 4. Save assistant msg to DB
       await supabase.from('chat_messages').insert({
-        session_id: currentSessionId,
-        user_id: user?.id,
-        role: 'assistant',
-        content: botReply,
+        session_id: activeSessionId,
+        sender: 'user',
+        text: query,
+      })
+    } catch (err) {
+      console.error('Error saving user message:', err)
+    }
+
+    // Call Supabase Edge Function AI Chat endpoint
+    try {
+      const payload = {
+        prompt: query,
+        session_id: activeSessionId,
+        history: messages.slice(-6).map((m) => ({
+          role: m.sender === 'user' ? 'user' : 'model',
+          content: m.text,
+        })),
+      }
+
+      const res = await invoke({
+        feature: 'ai_chat',
+        endpoint: 'ai-chat',
+        payload,
       })
 
-      const botMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'bot',
-        text: botReply,
-        created_at: new Date().toISOString(),
-      }
-      setMessages((prev) => [...prev, botMsg])
+      if (res && res.data) {
+        const botReply = res.data.reply || res.data.answer || res.data.text || 'Maaf, saya tidak dapat memproses tanggapan saat ini.'
 
-      // Auto title snippet
-      if (messages.length === 0) {
-        const titleSnippet = query.length > 25 ? query.substring(0, 25) + '...' : query
-        await supabase.from('chat_sessions').update({ title: titleSnippet }).eq('id', currentSessionId)
-        fetchSessions()
+        const tempBotMsg: Message = {
+          id: `bot-${Date.now()}`,
+          sender: 'bot',
+          text: botReply,
+          created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }
+
+        setMessages((prev) => [...prev, tempBotMsg])
+
+        // Save bot message to Supabase
+        await supabase.from('chat_messages').insert({
+          session_id: activeSessionId,
+          sender: 'bot',
+          text: botReply,
+        })
       }
-    } catch (err: any) {
-      console.error('Chatbot error:', err)
-      const errorBotMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'bot',
-        text: 'Mohon maaf, terjadi gangguan saat merespon: ' + (err.message || 'Error AI'),
-        created_at: new Date().toISOString(),
-      }
-      setMessages((prev) => [...prev, errorBotMsg])
+    } catch (err) {
+      console.error('AI invoke error:', err)
     } finally {
       setIsSending(false)
     }
   }
 
-  const deleteSession = async (sid: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    await supabase.from('chat_sessions').delete().eq('id', sid)
-    const updated = sessions.filter((s) => s.id !== sid)
-    setSessions(updated)
-    if (sessionId === sid) {
-      navigate('/chatbot')
-    }
-  }
-
-  // Full Article & Markdown Table Line-by-Line AST Parser
-  const renderFormattedMessage = (rawText: string) => {
-    let text = rawText.replace(/\{\{\s*user_name\s*\}\}/g, userName)
-    const lines = text.split('\n')
-
-    const elements: React.ReactNode[] = []
-    let i = 0
-
-    while (i < lines.length) {
-      const line = lines[i]
-      const trimmed = line.trim()
-
-      if (!trimmed) {
-        i++
-        continue
-      }
-
-      // Horizontal Rule
-      if (trimmed === '---' || trimmed === '***') {
-        elements.push(<hr key={`hr-${i}`} className="article-hr" />)
-        i++
-        continue
-      }
-
-      // Headers (Strict single line header match!)
-      if (trimmed.startsWith('# ')) {
-        elements.push(<h1 key={`h1-${i}`} className="article-h1">{parseInlineMarkdown(trimmed.replace(/^#\s+/, ''))}</h1>)
-        i++
-        continue
-      }
-      if (trimmed.startsWith('## ')) {
-        elements.push(<h2 key={`h2-${i}`} className="article-h2">{parseInlineMarkdown(trimmed.replace(/^##\s+/, ''))}</h2>)
-        i++
-        continue
-      }
-      if (trimmed.startsWith('### ')) {
-        elements.push(<h3 key={`h3-${i}`} className="article-h3">{parseInlineMarkdown(trimmed.replace(/^###\s+/, ''))}</h3>)
-        i++
-        continue
-      }
-      if (trimmed.startsWith('#### ')) {
-        elements.push(<h4 key={`h4-${i}`} className="article-h4">{parseInlineMarkdown(trimmed.replace(/^####\s+/, ''))}</h4>)
-        i++
-        continue
-      }
-
-      // Markdown Table Grouping
-      if (trimmed.startsWith('|') && trimmed.includes('|')) {
-        const tableLines: string[] = []
-        while (i < lines.length && lines[i].trim().startsWith('|')) {
-          tableLines.push(lines[i].trim())
-          i++
-        }
-        const dataLines = tableLines.filter((l) => !/^[|\s-:]+$/.test(l))
-        if (dataLines.length > 0) {
-          const headerCells = dataLines[0].split('|').map((c) => c.trim()).filter(Boolean)
-          const bodyRows = dataLines.slice(1).map((row) => row.split('|').map((c) => c.trim()).filter(Boolean))
-
-          elements.push(
-            <div key={`table-${i}`} className="markdown-table-wrapper">
-              <table className="markdown-table">
-                <thead>
-                  <tr>
-                    {headerCells.map((cell, hIdx) => (
-                      <th key={hIdx}>{parseInlineMarkdown(cell)}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {bodyRows.map((row, rIdx) => (
-                    <tr key={rIdx}>
-                      {row.map((cell, cIdx) => (
-                        <td key={cIdx}>{parseInlineMarkdown(cell)}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
-        continue
-      }
-
-      // Ordered List Grouping (`1. `, `2. `)
-      if (/^\d+\.\s+/.test(trimmed)) {
-        const listItems: string[] = []
-        while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
-          listItems.push(lines[i].trim().replace(/^\d+\.\s+/, ''))
-          i++
-        }
-        elements.push(
-          <ol key={`ol-${i}`} className="article-ol">
-            {listItems.map((item, idx) => (
-              <li key={idx}>{parseInlineMarkdown(item)}</li>
-            ))}
-          </ol>
-        )
-        continue
-      }
-
-      // Unordered List Grouping (`- `, `* `)
-      if (/^[-*]\s+/.test(trimmed)) {
-        const listItems: string[] = []
-        while (i < lines.length && /^[-*]\s+/.test(lines[i].trim())) {
-          listItems.push(lines[i].trim().replace(/^[-*]\s+/, ''))
-          i++
-        }
-        elements.push(
-          <ul key={`ul-${i}`} className="article-ul">
-            {listItems.map((item, idx) => (
-              <li key={idx}>{parseInlineMarkdown(item)}</li>
-            ))}
-          </ul>
-        )
-        continue
-      }
-
-      // Regular Paragraph Grouping (accumulate consecutive normal text lines)
-      const pLines: string[] = []
-      while (
-        i < lines.length &&
-        lines[i].trim() &&
-        !lines[i].trim().startsWith('#') &&
-        !lines[i].trim().startsWith('|') &&
-        !/^\d+\.\s+/.test(lines[i].trim()) &&
-        !/^[-*]\s+/.test(lines[i].trim()) &&
-        lines[i].trim() !== '---' &&
-        lines[i].trim() !== '***'
-      ) {
-        pLines.push(lines[i].trim())
-        i++
-      }
-
-      if (pLines.length > 0) {
-        elements.push(
-          <p key={`p-${i}`} className="article-p">
-            {pLines.map((pLine, idx) => (
-              <span key={idx}>
-                {parseInlineMarkdown(pLine)}
-                {idx < pLines.length - 1 && <br />}
-              </span>
-            ))}
-          </p>
-        )
-      }
-    }
-
-    return <div className="article-markdown-body">{elements}</div>
-  }
-
-  // Parse inline Markdown (**bold**, *italic*, `code`)
-  const parseInlineMarkdown = (inlineText: string) => {
-    const parts = inlineText.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g)
-
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="article-bold">{part.slice(2, -2)}</strong>
-      }
-      if (part.startsWith('*') && part.endsWith('*')) {
-        return <em key={i} className="article-italic">{part.slice(1, -1)}</em>
-      }
-      if (part.startsWith('`') && part.endsWith('`')) {
-        return <code key={i} className="article-code">{part.slice(1, -1)}</code>
-      }
-      return part
-    })
-  }
-
-  // Active Thinking Step Icon
-  const ActiveStepIcon = thinkingSteps[currentStepIdx]?.icon || Search
-
   return (
-    <div className="gemini-chat-page animate-fade-in">
-      {/* Session Controls Top Bar */}
-      <div className="chat-control-bar">
-        <button className="btn btn-ghost btn-sm" onClick={() => setShowHistory(!showHistory)}>
-          <History size={16} /> Riwayat Chat ({sessions.length})
-        </button>
-        <button className="btn btn-outline btn-sm" onClick={handleNewChatClick}>
-          <Plus size={16} /> Chat Baru
-        </button>
-      </div>
-
-      {/* History Drawer Overlay */}
-      {showHistory && (
-        <div className="history-drawer animate-fade-in">
-          <div className="drawer-header">
-            <h3>Riwayat Obrolan</h3>
-            <button className="btn-close" onClick={() => setShowHistory(false)}>✕</button>
-          </div>
-          <div className="session-list">
-            {sessions.length === 0 ? (
-              <p className="empty-text">Belum ada riwayat obrolan.</p>
-            ) : (
-              sessions.map((s) => (
-                <div
-                  key={s.id}
-                  className={`session-item ${s.id === sessionId ? 'active' : ''}`}
-                  onClick={() => handleSelectSession(s.id)}
-                >
-                  <MessageSquare size={16} className="session-icon" />
-                  <span className="session-title">{s.title}</span>
-                  <button className="btn-del" onClick={(e) => deleteSession(s.id, e)}>
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Main Stream Area (ChatGPT / Gemini Style - Full Canvas Width) */}
-      <div className="chat-stream">
-        {isLoadingMessages ? (
-          <div className="chat-loading-skeleton animate-fade-in">
-            <div className="skeleton-msg skeleton-user"></div>
-            <div className="skeleton-msg skeleton-bot"></div>
-            <div className="skeleton-msg skeleton-user"></div>
-          </div>
-        ) : !sessionId || messages.length === 0 ? (
-          <div className="gemini-hero-state">
-            <div className="hero-sparkle-icon">
-              <Sparkles size={36} />
-            </div>
-            <h2>Halo, {userName}!</h2>
-            <p>Apa yang ingin kamu konsultasikan tentang kesehatan & perawatan kulitmu hari ini?</p>
-          </div>
-        ) : (
-          <div className="messages-container">
-            {messages.map((m) => (
-              <div key={m.id} className={`message-row ${m.sender === 'user' ? 'row-user' : 'row-bot'}`}>
-                {m.sender === 'bot' && (
-                  <div className="avatar-icon bot-avatar">
-                    <Sparkles size={18} />
-                  </div>
-                )}
-
-                <div className={`message-content ${m.sender === 'user' ? 'content-user' : 'content-bot'}`}>
-                  {m.sender === 'bot' ? renderFormattedMessage(m.text) : m.text}
-                </div>
-
-                {m.sender === 'user' && (
-                  <div className="avatar-icon user-avatar">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Dynamic Contextual Thinking Indicator (STRICTLY LUCIDE ICONS) */}
-            {isSending && (
-              <div className="message-row row-bot animate-fade-in">
-                <div className="avatar-icon bot-avatar ambient-pulse-avatar">
-                  <Sparkles size={18} className="sparkle-pulse" />
-                </div>
-                <div className="message-content content-bot dynamic-thinking-content">
-                  <ActiveStepIcon size={16} className="step-lucide-icon" />
-                  <span className="thinking-step-text">
-                    {thinkingSteps[currentStepIdx]?.text || 'Menganalisis pertanyaan kamu...'}
-                  </span>
-                  <span className="jumping-dots">
-                    <span className="dot dot-1">.</span>
-                    <span className="dot dot-2">.</span>
-                    <span className="dot dot-3">.</span>
-                  </span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
-
-      {/* Locked Sticky Floating Bottom Input Bar */}
-      <div className="floating-input-wrapper">
-        <div className="floating-input-bar">
-          <input
-            type="text"
-            className="gemini-input"
-            placeholder="Tanyakan sesuatu pada AI Skincluv..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            disabled={isSending}
-          />
-          <button
-            className="gemini-send-btn"
-            onClick={() => handleSendMessage()}
-            disabled={!inputText.trim() || isSending}
-            title="Kirim Pesan"
-          >
-            <Send size={18} />
-          </button>
-        </div>
-      </div>
-
+    <div className="skinsistant-chat-root">
+      {/* COIN CONFIRMATION MODAL */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
-          isOpen={!!pendingCoinConfirm}
+          isOpen={true}
           coinCost={pendingCoinConfirm.coinCost}
           currentBalance={currentCoins}
-          featureName={pendingCoinConfirm.featureName}
+          featureName="Skinsistant AI Chat"
           onConfirm={confirmCoinUsage}
           onCancel={cancelCoinUsage}
         />
       )}
 
+      {/* CHAT UTILITY BAR (Riwayat Chat & Chat Baru) */}
+      <div className="chat-util-bar">
+        <button
+          onClick={() => setShowHistoryModal(!showHistoryModal)}
+          className="util-btn util-history-btn"
+        >
+          <History size={16} />
+          <span>Riwayat Chat ({sessions.length})</span>
+        </button>
+
+        <button onClick={createNewSession} className="util-btn util-new-btn">
+          <Plus size={16} />
+          <span>Chat Baru</span>
+        </button>
+      </div>
+
+      {/* HISTORY SESSIONS POPOVER / DRAWER */}
+      {showHistoryModal && (
+        <div className="history-drawer-overlay" onClick={() => setShowHistoryModal(false)}>
+          <div className="history-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-header">
+              <h3>Riwayat Percakapan</h3>
+              <button onClick={() => setShowHistoryModal(false)} className="drawer-close-btn">
+                ×
+              </button>
+            </div>
+            <div className="drawer-body">
+              {sessions.length === 0 ? (
+                <p className="empty-history-text">Belum ada riwayat percakapan.</p>
+              ) : (
+                sessions.map((s) => (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      navigate(`/chatbot/${s.id}`)
+                      setShowHistoryModal(false)
+                    }}
+                    className={`history-session-item ${sessionId === s.id ? 'active' : ''}`}
+                  >
+                    <MessageSquare size={16} className="shrink-0 text-slate-400" />
+                    <span className="session-title-text">{s.title || 'Percakapan'}</span>
+                    <button
+                      onClick={(e) => handleDeleteSession(s.id, e)}
+                      className="delete-session-btn"
+                      title="Hapus percakapan"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN CHAT SCROLL AREA */}
+      <div className="chat-scroll-area">
+        {messages.length === 0 && !isLoadingMessages && (
+          <div className="chat-welcome-box">
+            <div className="welcome-avatar-icon">
+              <Sparkles size={28} className="text-[#0f6784]" />
+            </div>
+            <h2>Halo, {userName}! 👋</h2>
+            <p>
+              Saya <b>Skinsistant AI</b>, asisten konsultasi kulit pribadi Anda. Tanyakan apa saja mengenai masalah kulit, rutinitas skincare, atau analisis komposisi produk.
+            </p>
+
+            <div className="welcome-chips-grid">
+              {suggestionChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(chip)}
+                  className="welcome-chip-item"
+                >
+                  <Sparkles size={13} className="text-[#0f6784]" />
+                  <span>{chip}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isLoadingMessages && (
+          <div className="loading-chat-state">
+            <Loader2 size={24} className="animate-spin text-[#0f6784]" />
+            <span>Memuat pesan percakapan...</span>
+          </div>
+        )}
+
+        {messages.map((msg) => (
+          <div key={msg.id} className={`chat-row ${msg.sender}`}>
+            {msg.sender === 'bot' && (
+              <div className="chat-avatar bot-avatar">
+                <Sparkles size={15} />
+              </div>
+            )}
+
+            <div className="bubble-wrapper">
+              <div className="chat-bubble">
+                <p>{msg.text}</p>
+              </div>
+              <span className="chat-timestamp">{msg.created_at}</span>
+            </div>
+
+            {msg.sender === 'user' && (
+              <div className="chat-avatar user-avatar">{userInitials}</div>
+            )}
+          </div>
+        ))}
+
+        {isSending && (
+          <div className="chat-row bot">
+            <div className="chat-avatar bot-avatar">
+              <Sparkles size={15} />
+            </div>
+            <div className="bubble-wrapper">
+              <div className="chat-bubble thinking-bubble">
+                <Loader2 size={16} className="animate-spin text-[#0f6784]" />
+                <span>Skinsistant AI sedang berpikir...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* QUICK SUGGESTION CHIPS STRIP (Above Input Bar) */}
+      {messages.length > 0 && (
+        <div className="quick-chips-strip">
+          {suggestionChips.map((chip, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSendMessage(chip)}
+              className="quick-chip-btn"
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* STICKY INPUT BAR */}
+      <div className="chat-input-bar">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleSendMessage()
+          }}
+          className="input-wrap"
+        >
+          <button type="button" className="attach-btn" title="Lampirkan foto (segera hadir)">
+            <Paperclip size={18} />
+          </button>
+
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Tanyakan sesuatu pada Skinsistant AI..."
+            disabled={isSending}
+          />
+
+          <button
+            type="submit"
+            disabled={!inputText.trim() || isSending}
+            className="send-btn"
+          >
+            {isSending ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Send size={16} />
+            )}
+          </button>
+        </form>
+      </div>
+
+      {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
       <style>{`
-        .gemini-chat-page {
-          display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0;
-          width: 100%; position: relative; overflow: hidden;
+        .skinsistant-chat-root {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          width: 100%;
+          background: #f8fafc;
+          position: relative;
+          box-sizing: border-box;
+          overflow: hidden;
         }
 
-        .chat-control-bar {
-          display: flex; justify-content: space-between; align-items: center;
-          padding-bottom: 8px; border-bottom: 1px solid var(--color-secondary-container); flex-shrink: 0;
+        /* UTILITY BAR */
+        .chat-util-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 20px;
+          background: #ffffff;
+          border-bottom: 1px solid #e2e8f0;
+          flex-shrink: 0;
+        }
+
+        .util-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          padding: 6px 12px;
+          border-radius: 8px;
+          transition: background 0.2s ease;
+        }
+
+        .util-history-btn {
+          color: #64748b;
+        }
+        .util-history-btn:hover {
+          background: #f1f5f9;
+          color: #0f6784;
+        }
+
+        .util-new-btn {
+          color: #0f6784;
+          background: #eaf4fa;
+        }
+        .util-new-btn:hover {
+          background: #d4e5f1;
+        }
+
+        /* HISTORY DRAWER */
+        .history-drawer-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.4);
+          backdrop-filter: blur(4px);
+          z-index: 50;
+          display: flex;
+          justify-content: flex-start;
         }
 
         .history-drawer {
-          position: absolute; top: 48px; left: 0; width: 320px;
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl); padding: var(--space-md); box-shadow: var(--shadow-lg); z-index: 50;
-        }
-        .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .drawer-header h3 { font-size: 1rem; margin: 0; }
-        .btn-close { background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--color-secondary); }
-        .session-list { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
-        .session-item {
-          display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md);
-          background: var(--color-surface-container-low); cursor: pointer; transition: all 0.2s;
-        }
-        .session-item:hover, .session-item.active { background: var(--color-secondary-container); color: var(--color-primary); font-weight: 700; }
-        .session-title { flex: 1; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .btn-del { background: transparent; border: none; color: var(--color-secondary); cursor: pointer; padding: 2px; }
-
-        .chat-stream {
-          flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-md) 0; display: flex; flex-direction: column;
+          width: 280px;
+          height: 100%;
+          background: #ffffff;
+          box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+          display: flex;
+          flex-direction: column;
+          animation: slideRight 0.25s ease;
         }
 
-        .chat-loading-skeleton {
-          display: flex; flex-direction: column; gap: 16px; max-width: 1000px; width: 100%; margin: auto; padding: var(--space-md);
-        }
-        .skeleton-msg {
-          height: 54px; border-radius: var(--radius-xl); background: rgba(212, 229, 241, 0.4);
-          animation: skeletonPulse 1.5s ease-in-out infinite;
-        }
-        .skeleton-user { width: 60%; margin-left: auto; background: rgba(14, 165, 233, 0.2); }
-        .skeleton-bot { width: 75%; margin-right: auto; }
-        @keyframes skeletonPulse {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 0.9; }
+        @keyframes slideRight {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
         }
 
-        .gemini-hero-state {
-          margin: auto; text-align: center; max-width: 600px; padding: var(--space-md);
-        }
-        .hero-sparkle-icon {
-          width: 64px; height: 64px; border-radius: 50%; background: var(--color-secondary-fixed);
-          color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-md) auto;
-          box-shadow: var(--shadow-sky);
-        }
-        .gemini-hero-state h2 { font-size: 2rem; font-weight: 700; color: var(--color-primary); margin: 0 0 6px 0; font-family: var(--font-heading); }
-        .gemini-hero-state p { font-size: 1rem; color: var(--color-text-muted); margin: 0; line-height: 1.5; }
-
-        /* Full Canvas Width Chat Stream Container */
-        .messages-container {
-          width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-md);
-          padding: 0 var(--space-md);
+        .drawer-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          border-bottom: 1px solid #e2e8f0;
         }
 
-        .message-row { display: flex; gap: 14px; width: 100%; }
-        .row-user { justify-content: flex-end; }
-        .row-bot { justify-content: flex-start; }
-
-        .avatar-icon {
-          width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0; font-size: 0.875rem; font-weight: 700;
-        }
-        .bot-avatar { background: var(--color-secondary-fixed); color: var(--color-primary); }
-        .user-avatar { background: var(--color-primary-container); color: white; }
-
-        /* Dynamic Ambient Pulsing Avatar */
-        .ambient-pulse-avatar {
-          animation: skyPulse 1.8s infinite ease-in-out;
-        }
-        @keyframes skyPulse {
-          0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
-          70% { box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
-        }
-        .sparkle-pulse {
-          animation: spinSparkle 3s linear infinite;
-        }
-        @keyframes spinSparkle {
-          0% { transform: scale(1) rotate(0deg); }
-          50% { transform: scale(1.15) rotate(180deg); }
-          100% { transform: scale(1) rotate(360deg); }
+        .drawer-header h3 {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0;
         }
 
-        .message-content {
-          width: 100%; max-width: 100%; padding: 14px 20px; border-radius: var(--radius-xl); font-size: 0.9375rem; line-height: 1.6;
-        }
-        .content-bot {
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          color: var(--color-text-main); box-shadow: var(--shadow-sm); border-top-left-radius: 4px;
-        }
-        .content-user {
-          background: var(--color-primary); color: white; border-top-right-radius: 4px; box-shadow: var(--shadow-sm);
-          max-width: 80%; margin-left: auto;
+        .drawer-close-btn {
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          color: #64748b;
+          cursor: pointer;
         }
 
-        /* Rich Article Markdown Typography Hierarchy */
-        .article-markdown-body {
-          display: flex; flex-direction: column; gap: 12px; color: var(--color-text-main); width: 100%;
-        }
-        .article-h1 {
-          font-size: 1.35rem; font-weight: 700; color: var(--color-primary); font-family: var(--font-heading);
-          margin: 12px 0 4px 0; border-bottom: 2px solid var(--color-secondary-container); padding-bottom: 4px;
-        }
-        .article-h2 {
-          font-size: 1.2rem; font-weight: 700; color: var(--color-primary); font-family: var(--font-heading);
-          margin: 10px 0 4px 0;
-        }
-        .article-h3 {
-          font-size: 1.05rem; font-weight: 700; color: var(--color-primary); font-family: var(--font-heading);
-          margin: 10px 0 2px 0;
-        }
-        .article-h4 {
-          font-size: 0.95rem; font-weight: 700; color: var(--color-text-main); margin: 6px 0 2px 0;
-        }
-        .article-p {
-          margin: 0; line-height: 1.65; color: var(--color-text-main); font-weight: 400;
-        }
-        .article-bold {
-          font-weight: 700; color: var(--color-primary);
-        }
-        .article-italic {
-          font-style: italic; color: var(--color-secondary);
-        }
-        .article-code {
-          background: var(--color-surface-container); padding: 2px 6px; border-radius: var(--radius-sm);
-          font-family: monospace; font-size: 0.85em; color: var(--color-primary); border: 1px solid var(--color-secondary-container);
-        }
-        .article-ol {
-          margin: 4px 0 4px 20px; padding: 0; display: flex; flex-direction: column; gap: 6px; list-style-type: decimal;
-        }
-        .article-ul {
-          margin: 4px 0 4px 20px; padding: 0; display: flex; flex-direction: column; gap: 6px; list-style-type: disc;
-        }
-        .article-hr {
-          border: none; border-top: 1px solid var(--color-secondary-container); margin: 12px 0;
+        .drawer-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
         }
 
-        /* Markdown Table Responsive Container */
-        .markdown-table-wrapper {
-          width: 100%; overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--color-secondary-container);
-          margin: 12px 0; background: var(--color-surface-container-lowest); box-shadow: var(--shadow-sm);
-        }
-        .markdown-table {
-          width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left;
-        }
-        .markdown-table th {
-          background: rgba(212, 229, 241, 0.5); color: var(--color-primary); font-weight: 700;
-          padding: 10px 14px; border-bottom: 2px solid var(--color-secondary-container); white-space: nowrap;
-        }
-        .markdown-table td {
-          padding: 10px 14px; border-top: 1px solid var(--color-secondary-container); color: var(--color-text-main);
-          line-height: 1.5;
-        }
-        .markdown-table tr:nth-child(even) {
-          background: rgba(248, 250, 252, 0.5);
+        .empty-history-text {
+          font-size: 0.8125rem;
+          color: #94a3b8;
+          text-align: center;
+          margin-top: 24px;
         }
 
-        /* Dynamic Contextual Thinking Indicator (STRICTLY LUCIDE ICONS) */
-        .dynamic-thinking-content {
-          display: flex; align-items: center; gap: 10px; color: var(--color-primary); font-size: 0.90625rem; font-weight: 600;
-          background: rgba(238, 246, 252, 0.85); border-color: rgba(186, 224, 247, 0.7); max-width: max-content;
-        }
-        .step-lucide-icon {
-          color: var(--color-primary); flex-shrink: 0; animation: iconPulse 1.5s ease-in-out infinite;
-        }
-        @keyframes iconPulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.15); opacity: 0.8; }
-        }
-        .thinking-step-text {
-          transition: opacity 0.3s ease-in-out;
-        }
-        .jumping-dots {
-          display: inline-flex; gap: 2px; font-weight: 800; font-size: 1.25rem; line-height: 0.8; color: var(--color-primary);
-        }
-        .dot {
-          animation: dotJump 1.4s infinite ease-in-out;
-        }
-        .dot-1 { animation-delay: 0s; }
-        .dot-2 { animation-delay: 0.2s; }
-        .dot-3 { animation-delay: 0.4s; }
-        @keyframes dotJump {
-          0%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-5px); }
+        .history-session-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 0.875rem;
+          color: #334155;
+          transition: background 0.2s ease;
         }
 
-        /* Locked Sticky Bottom Floating Input Bar */
-        .floating-input-wrapper {
-          flex-shrink: 0; position: sticky; bottom: 0; z-index: 30;
-          width: 100%; max-width: 1000px; margin: 0 auto;
-          background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.9) 35%, rgba(248, 250, 252, 1) 100%);
-          backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-          padding: 8px 16px 16px 16px;
+        .history-session-item:hover {
+          background: #f1f5f9;
         }
-        .floating-input-bar {
-          display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 18px;
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-2xl); box-shadow: var(--shadow-sky); transition: all 0.2s;
+
+        .history-session-item.active {
+          background: #eaf4fa;
+          color: #0f6784;
+          font-weight: 600;
         }
-        .floating-input-bar:focus-within {
-          border-color: var(--color-primary-container); box-shadow: 0 4px 20px rgba(14, 165, 233, 0.18);
+
+        .session-title-text {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
-        .gemini-input {
-          flex: 1; border: none; background: transparent; font-family: var(--font-body); font-size: 0.9375rem;
-          outline: none; color: var(--color-text-main);
+
+        .delete-session-btn {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          opacity: 0;
+          transition: opacity 0.2s;
         }
-        .gemini-send-btn {
-          width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary); color: white;
-          border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
-          transition: all 0.2s; flex-shrink: 0;
+
+        .history-session-item:hover .delete-session-btn {
+          opacity: 1;
         }
-        .gemini-send-btn:disabled { opacity: 0.4; cursor: not-allowed; background: var(--color-secondary); }
-        .gemini-send-btn:hover:not(:disabled) { background: var(--color-primary-container); transform: scale(1.04); }
+
+        .delete-session-btn:hover {
+          color: #ef4444;
+        }
+
+        /* MAIN CHAT SCROLL AREA */
+        .chat-scroll-area {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          box-sizing: border-box;
+        }
+
+        .chat-scroll-area::-webkit-scrollbar {
+          width: 5px;
+        }
+        .chat-scroll-area::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+
+        /* WELCOME BOX */
+        .chat-welcome-box {
+          max-width: 540px;
+          margin: 40px auto 0;
+          text-align: center;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 20px;
+          padding: 32px 24px;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+        }
+
+        .welcome-avatar-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: #eaf4fa;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+        }
+
+        .chat-welcome-box h2 {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 8px 0;
+        }
+
+        .chat-welcome-box p {
+          font-size: 0.875rem;
+          color: #64748b;
+          line-height: 1.6;
+          margin: 0 0 24px 0;
+        }
+
+        .welcome-chips-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .welcome-chip-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 14px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #0f6784;
+          cursor: pointer;
+          text-align: left;
+          transition: all 0.2s ease;
+        }
+
+        .welcome-chip-item:hover {
+          background: #eaf4fa;
+          border-color: #0f6784;
+          transform: translateY(-1px);
+        }
+
+        .loading-chat-state {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 32px;
+          color: #64748b;
+          font-size: 0.875rem;
+        }
+
+        /* CHAT ROWS & BUBBLES */
+        .chat-row {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+          width: 100%;
+        }
+
+        .chat-row.user {
+          justify-content: flex-end;
+        }
+
+        .chat-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .bot-avatar {
+          background: #eaf4fa;
+          color: #0f6784;
+        }
+
+        .user-avatar {
+          background: #0f6784;
+          color: #ffffff;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+
+        .bubble-wrapper {
+          display: flex;
+          flex-direction: column;
+          max-width: 75%;
+        }
+
+        .chat-bubble {
+          border-radius: 16px;
+          padding: 12px 16px;
+          font-size: 0.875rem;
+          line-height: 1.6;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .chat-row.user .chat-bubble {
+          background: #0b4f5c;
+          color: #ffffff;
+          border-bottom-right-radius: 4px;
+        }
+
+        .chat-row.bot .chat-bubble {
+          background: #ffffff;
+          color: #0f172a;
+          border: 1px solid #e2e8f0;
+          border-bottom-left-radius: 4px;
+        }
+
+        .thinking-bubble {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #64748b;
+        }
+
+        .chat-bubble p {
+          margin: 0;
+        }
+
+        .chat-bubble p + p {
+          margin-top: 8px;
+        }
+
+        .chat-timestamp {
+          font-size: 0.6875rem;
+          color: #94a3b8;
+          margin: 4px 6px 0;
+        }
+
+        .chat-row.user .chat-timestamp {
+          text-align: right;
+        }
+
+        /* QUICK CHIPS STRIP ABOVE INPUT */
+        .quick-chips-strip {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 8px 20px;
+          background: #ffffff;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .quick-chips-strip::-webkit-scrollbar {
+          display: none;
+        }
+
+        .quick-chip-btn {
+          flex: 0 0 auto;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #0f6784;
+          background: #eaf4fa;
+          border: none;
+          border-radius: 9999px;
+          padding: 6px 14px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .quick-chip-btn:hover {
+          background: #d4e5f1;
+        }
+
+        /* STICKY INPUT BAR */
+        .chat-input-bar {
+          padding: 12px 20px;
+          background: #ffffff;
+          border-top: 1px solid #e2e8f0;
+          flex-shrink: 0;
+        }
+
+        .input-wrap {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #f8fafc;
+          border: 1px solid #cbd5e1;
+          border-radius: 24px;
+          padding: 4px 6px 4px 14px;
+          transition: border-color 0.2s ease;
+        }
+
+        .input-wrap:focus-within {
+          border-color: #0f6784;
+        }
+
+        .input-wrap input {
+          flex: 1;
+          border: none;
+          background: transparent;
+          font-size: 0.875rem;
+          outline: none;
+          color: #0f172a;
+        }
+
+        .input-wrap input::placeholder {
+          color: #94a3b8;
+        }
+
+        .attach-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: transparent;
+          border: none;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+
+        .attach-btn:hover {
+          color: #0f6784;
+        }
+
+        .send-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #0f6784;
+          color: #ffffff;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .send-btn:hover {
+          background: #0b4f5c;
+        }
+
+        .send-btn:disabled {
+          background: #cbd5e1;
+          cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+          .chat-util-bar {
+            padding: 8px 12px;
+          }
+          .chat-scroll-area {
+            padding: 14px 12px;
+          }
+          .bubble-wrapper {
+            max-width: 85%;
+          }
+          .chat-input-bar {
+            padding: 10px 12px;
+          }
+        }
       `}</style>
     </div>
   )

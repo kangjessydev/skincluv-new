@@ -2,7 +2,7 @@
 // 100% Original skincluv App Shell Layout (Desktop Collapsible Sidebar, Top Header, Mobile Floating FAB BottomNav)
 
 import { useState } from 'react'
-import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   Sparkles,
   Scan,
@@ -19,6 +19,7 @@ import {
   BarChart3,
   Receipt,
   LogOut,
+  ArrowLeft,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -42,6 +43,7 @@ export default function AppLayout() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
 
   const isPro = isActivePremium(subscription)
+  const isChatbotPage = location.pathname.startsWith('/chatbot')
   const userName = profile?.full_name?.split(' ')[0] || 'Pengguna'
   const fullUserName = profile?.full_name || 'Pengguna Skincluv'
   const userInitials = profile?.full_name
@@ -133,13 +135,23 @@ export default function AppLayout() {
         <header className="stich-top-header">
           <div className="header-inner">
             <div className="page-title-group">
-              <button
-                className="topbar-toggle-btn"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-              >
-                {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
-              </button>
+              {isChatbotPage ? (
+                <button
+                  className="topbar-toggle-btn mobile-back-btn"
+                  onClick={() => navigate('/')}
+                  title="Kembali ke Beranda"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              ) : (
+                <button
+                  className="topbar-toggle-btn"
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+                >
+                  {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+                </button>
+              )}
               <h1 className="header-active-page-title">{getPageTitle()}</h1>
             </div>
 
@@ -201,41 +213,43 @@ export default function AppLayout() {
         </header>
 
         {/* Main Viewport Canvas */}
-        <main className={`stich-main-canvas ${location.pathname.startsWith('/chatbot') ? 'is-chatbot-canvas' : ''}`}>
+        <main className={`stich-main-canvas ${isChatbotPage ? 'is-chatbot-canvas' : ''}`}>
           <div className="main-container">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* 3. FLOATING BOTTOM NAVBAR (Mobile <= 768px) */}
-      <nav className="stich-floating-bottom-nav">
-        <div className="floating-nav-inner">
-          <NavLink to="/" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`} end>
-            <Sparkles size={20} />
-            <span>Beranda</span>
-          </NavLink>
-          <NavLink to="/ingredient-scan" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
-            <FlaskConical size={20} />
-            <span>Ingredient</span>
-          </NavLink>
+      {/* 3. FLOATING BOTTOM NAVBAR (Mobile <= 768px) - Hidden on Chatbot Page */}
+      {!isChatbotPage && (
+        <nav className="stich-floating-bottom-nav">
+          <div className="floating-nav-inner">
+            <NavLink to="/" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`} end>
+              <Sparkles size={20} />
+              <span>Beranda</span>
+            </NavLink>
+            <NavLink to="/ingredient-scan" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
+              <FlaskConical size={20} />
+              <span>Ingredient</span>
+            </NavLink>
 
-          <div className="floating-center-action">
-            <button className="center-camera-btn" onClick={() => navigate('/face-scan')} title="Scan Wajah">
-              <Scan size={26} />
-            </button>
+            <div className="floating-center-action">
+              <button className="center-camera-btn" onClick={() => navigate('/face-scan')} title="Scan Wajah">
+                <Scan size={26} />
+              </button>
+            </div>
+
+            <NavLink to="/chatbot" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
+              <MessageCircle size={20} />
+              <span>Chatbot</span>
+            </NavLink>
+            <NavLink to="/profile" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
+              <User size={20} />
+              <span>Profil</span>
+            </NavLink>
           </div>
-
-          <NavLink to="/chatbot" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
-            <MessageCircle size={20} />
-            <span>Chatbot</span>
-          </NavLink>
-          <NavLink to="/profile" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
-            <User size={20} />
-            <span>Profil</span>
-          </NavLink>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* ORIGINAL SKINCLUV APP LAYOUT PURE CSS */}
       <style>{`
@@ -677,9 +691,24 @@ export default function AppLayout() {
           box-sizing: border-box;
         }
 
+        .stich-main-canvas.is-chatbot-canvas {
+          padding: 0 !important;
+          overflow: hidden !important;
+          height: calc(100vh - var(--nav-height));
+        }
+
+        .is-chatbot-canvas .main-container {
+          height: 100%;
+          max-width: 100%;
+          padding: 0;
+        }
+
         @media (max-width: 768px) {
           .stich-main-canvas {
             padding: 16px 16px 90px;
+          }
+          .stich-main-canvas.is-chatbot-canvas {
+            padding: 0 !important;
           }
         }
 
