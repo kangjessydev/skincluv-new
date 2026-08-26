@@ -1,30 +1,29 @@
 // src/pages/app/IngredientScanPage.tsx
-// Redesigned Scan Ingredient AI Page with 3-Stage Animated Scanning Flow & Personal Skin Flags
-// Integrated with useInvokeAI & Pure Vanilla CSS matching Skincluv Design System
+// Skincluv Design System Harmonized Scan Ingredient AI Page
+// Pure Inter Typography, Full-Width Responsive 2-Column Grid, 3-Stage Animated Scanning Flow & Predictive Ingredient Filters
 
 import React, { useState, useRef, useEffect } from 'react'
 import {
   FlaskConical,
   Upload,
   X,
-  Coins,
   CheckCircle2,
   AlertCircle,
   Info,
-  ShieldAlert,
-  Loader2,
   Camera,
   FileText,
+  User,
   Sparkles,
+  BookOpen,
+  Filter,
 } from 'lucide-react'
-import ScanTabs from '@/components/scan/ScanTabs'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
-import { isActivePremium } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 
 type TabMode = 'image' | 'text'
 type ScanStage = 'upload' | 'scanning' | 'result'
+type BadgeFilter = 'all' | 'aman' | 'hati' | 'hindari'
 
 export interface IngredientItem {
   name: string
@@ -61,39 +60,45 @@ const SAMPLE_INGREDIENTS = [
 ]
 
 export default function IngredientScanPage() {
-  const { profile, coinBalance, subscription } = useAuthStore()
+  const { profile, coinBalance } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
 
-  const isPro = isActivePremium(subscription)
-  const skinTypeDesc = profile?.skin_type ? `${profile.skin_type}, prone acne` : 'oily, prone acne'
+  const userSkinType = profile?.skin_type ? profile.skin_type.toUpperCase() : 'BERMINYAK (OILY)'
+  const userConcerns = profile?.skin_concerns?.length
+    ? profile.skin_concerns.join(', ')
+    : 'Pori-pori besar, Rawan Jerawat, Kemerahan'
+  const skinTypeDesc = `${userSkinType.toLowerCase()}, ${userConcerns.toLowerCase()}`
 
-  // Stage & Tab States
+  // Stage, Tab & Filter States
   const [stage, setStage] = useState<ScanStage>('upload')
   const [activeTab, setActiveTab] = useState<TabMode>('image')
+  const [filterBadge, setFilterBadge] = useState<BadgeFilter>('all')
 
-  // Input & Image States
+  // Input & Drag States
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   const [inputText, setInputText] = useState('')
+  const [isDragging, setIsDragging] = useState(false)
 
-  // Processing & Stage Animation States
+  // Processing & Errors
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [scanResult, setScanResult] = useState<IngredientAnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Scanner Stage Animation Text & Progress Counter
   const scanStagesText = [
-    'Mendeteksi teks pada label...',
-    'Mengidentifikasi bahan aktif...',
-    'Menyesuaikan dengan profil kulitmu...',
-    'Menyusun hasil analisis...',
+    'Mendeteksi teks komposisi pada label...',
+    'Mengidentifikasi bahan aktif & sensitizer...',
+    `Mencocokkan dengan profil kulitmu (${userSkinType})...`,
+    'Menyusun hasil analisis & rekomendasi...',
   ]
   const [scanTextIndex, setScanTextIndex] = useState(0)
   const [foundCount, setFoundCount] = useState(0)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const topResultRef = useRef<HTMLDivElement>(null)
 
-  // Stage 2 Scanning Timer Animations
+  // Stage 2 Scanning Timers
   useEffect(() => {
     if (stage !== 'scanning') {
       setScanTextIndex(0)
@@ -106,8 +111,8 @@ export default function IngredientScanPage() {
     }, 1100)
 
     const countInterval = setInterval(() => {
-      setFoundCount((prev) => (prev < 5 ? prev + 1 : prev))
-    }, 700)
+      setFoundCount((prev) => (prev < 6 ? prev + 1 : prev))
+    }, 600)
 
     return () => {
       clearInterval(textInterval)
@@ -115,9 +120,14 @@ export default function IngredientScanPage() {
     }
   }, [stage])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  // Auto-scroll smooth to results when Stage 3 activates
+  useEffect(() => {
+    if (stage === 'result') {
+      topResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [stage])
+
+  const processFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       setErrorMsg('File harus berupa gambar (JPG, PNG, WEBP)')
       return
@@ -134,24 +144,26 @@ export default function IngredientScanPage() {
     reader.readAsDataURL(file)
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setIsDragging(false)
     const file = e.dataTransfer.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setErrorMsg('File harus berupa gambar (JPG, PNG, WEBP)')
-      return
-    }
-    setErrorMsg(null)
-    setPreviewUrl(URL.createObjectURL(file))
-    setScanResult(null)
-
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string
-      setImageBase64(result.split(',')[1])
-    }
-    reader.readAsDataURL(file)
+    if (file) processFile(file)
   }
 
   const handleClearImage = (e: React.MouseEvent) => {
@@ -218,12 +230,12 @@ export default function IngredientScanPage() {
     setInputText('')
     setScanResult(null)
     setErrorMsg(null)
+    setFilterBadge('all')
   }
 
   // Normalization Helpers for Ingredient Breakdown
   const rawIngredientsList = scanResult?.ingredients_breakdown || scanResult?.key_ingredients || []
 
-  // Mock / Fallback ingredients list if Edge Function returns abstract text
   const displayIngredientsList: IngredientItem[] =
     rawIngredientsList.length > 0
       ? rawIngredientsList.map((item) => {
@@ -242,7 +254,7 @@ export default function IngredientScanPage() {
             badge: badgeType,
             badgeLabel: badgeLabelText,
             function: item.function || item.notes || 'Bahan aktif pendukung formulasi skincare.',
-            skinType: item.skinType || 'Semua jenis kulit, terutama oily & kombinasi',
+            skinType: item.skinType || 'Semua jenis kulit, terutama berminyak & kombinasi',
             interaction:
               item.interaction || 'Aman dikombinasikan dengan rutinitas perawatan harian Anda.',
             personal: item.personal || {
@@ -256,82 +268,86 @@ export default function IngredientScanPage() {
         })
       : [
           {
-            name: 'Niacinamide',
+            name: 'Niacinamide (Vitamin B3)',
             badge: 'aman',
             badgeLabel: 'Aman',
-            function: 'Mengontrol produksi minyak berlebih dan mengecilkan tampilan pori-pori.',
-            skinType: 'Semua jenis kulit, terutama oily & kombinasi',
+            function: 'Mengontrol produksi minyak berlebih, mencerahkan, dan memperkuat skin barrier.',
+            skinType: 'Semua jenis kulit, terutama berminyak & kombinasi',
             interaction:
-              'Sebaiknya tidak dicampur langsung dengan Vitamin C murni (pakai di waktu terpisah)',
+              'Sebaiknya tidak dicampur langsung dengan Vitamin C murni konsentrasi tinggi',
             personal: {
               ok: true,
-              text: `Cocok untuk profil kulitmu (${skinTypeDesc}) — bantu kontrol minyak berlebih.`,
+              text: `Cocok untuk profil kulitmu (${skinTypeDesc}) — bantu kontrol minyak & samarkan noda jerawat.`,
             },
           },
           {
-            name: 'Salicylic Acid (BHA)',
+            name: 'Salicylic Acid (BHA 2%)',
             badge: 'hati',
             badgeLabel: 'Perlu diperhatikan',
             function:
-              'Eksfoliasi dalam pori untuk mengangkat sel kulit mati dan sumbatan penyebab jerawat.',
-            skinType: 'Oily & acne-prone, hindari untuk kulit sangat kering/sensitif',
+              'Eksfoliasi dalam pori-pori untuk membersihkan minyak berlebih dan sumbatan jerawat.',
+            skinType: 'Berminyak & rawan jerawat',
             interaction:
-              'Jangan dicampur bersamaan dengan Retinol dalam rutinitas yang sama — bisa memicu iritasi',
+              'Jangan dicampur bersamaan dengan Retinol dalam rutinitas malam yang sama',
             personal: {
-              ok: false,
+              ok: true,
               text:
-                'Cocok untuk tipemu, tapi mulai dari konsentrasi rendah — kulitmu tercatat pernah mengalami kemerahan.',
+                'Bagus untuk mengontrol komedo, namun mulai dari penggunaan 2-3 kali seminggu untuk cegah kemerahan.',
             },
           },
           {
             name: 'Glycerin',
             badge: 'aman',
             badgeLabel: 'Aman',
-            function: 'Humektan yang menarik dan mengunci kelembaban di lapisan kulit.',
+            function: 'Humektan yang menarik kelembaban ke dalam sel kulit tanpa menyumbat pori.',
             skinType: 'Semua jenis kulit',
             interaction: 'Aman dikombinasikan dengan hampir semua bahan aktif lain',
             personal: {
               ok: true,
-              text: 'Aman digunakan setiap hari, membantu jaga hidrasi tanpa menyumbat pori.',
+              text: 'Sangat aman — mengunci kelembaban seimbang tanpa membuat T-zone berminyak.',
             },
           },
           {
-            name: 'Fragrance (Parfum)',
-            badge: 'hati',
-            badgeLabel: 'Perlu diperhatikan',
-            function: 'Memberikan aroma pada produk, tidak memiliki fungsi perawatan kulit.',
-            skinType: 'Berisiko untuk kulit sensitif & reaktif',
+            name: 'Fragrance (Parfum Synthetic)',
+            badge: 'hindari',
+            badgeLabel: 'Hindari',
+            function: 'Bahan pembuat aroma sintetik, tidak memiliki fungsi klinis untuk kesehatan kulit.',
+            skinType: 'Sensitif, reaktif, dan rawan eksim',
             interaction:
-              'Tidak ada interaksi kimia khusus, namun risiko iritasi meningkat jika dikombinasi produk beraroma lain',
+              'Meningkatkan risiko iritasi dan kemerahan jika dikombinasi dengan asam eksfoliasi',
             personal: {
               ok: false,
-              text: 'Waspada — bahan ini salah satu pemicu umum kemerahan pada tipe kulitmu.',
+              text: 'Waspada — tercatat dapat memicu reaksi kemerahan & iritasi pada kulit sensitifmu.',
             },
           },
           {
-            name: 'Panthenol',
+            name: 'Panthenol (Pro-Vitamin B5)',
             badge: 'aman',
             badgeLabel: 'Aman',
-            function: 'Menenangkan dan membantu memperbaiki skin barrier yang lemah.',
-            skinType: 'Semua jenis kulit, sangat baik untuk kulit iritasi',
-            interaction: 'Aman dikombinasikan dengan bahan aktif apapun',
+            function: 'Menenangkan peradangan, meredakan kemerahan, dan mempercepat pemulihan kulit.',
+            skinType: 'Semua jenis kulit, sangat direkomendasikan untuk kulit kemerahan',
+            interaction: 'Sangat baik dikombinasikan setelah penggunaan eksfoliator BHA/AHA',
             personal: {
               ok: true,
-              text: 'Bagus untukmu — membantu menenangkan kulit setelah pemakaian BHA.',
+              text: 'Sangat bagus — membantu menenangkan kemerahan & menjaga hidrasi kulitmu.',
             },
           },
         ]
 
-  const safeCount =
-    scanResult?.safe_count ?? displayIngredientsList.filter((i) => i.badge === 'aman').length
-  const totalCount = scanResult?.total_ingredients ?? displayIngredientsList.length
+  // Counts & Filter logic
+  const safeCount = displayIngredientsList.filter((i) => i.badge === 'aman').length
+  const cautionCount = displayIngredientsList.filter((i) => i.badge === 'hati').length
+  const avoidCount = displayIngredientsList.filter((i) => i.badge === 'hindari').length
+  const totalCount = displayIngredientsList.length
   const scoreRatio = `${safeCount}/${totalCount}`
 
-  return (
-    <div className="ingredient-scan-root">
-      {/* Top Navigation ScanTabs */}
-      <ScanTabs />
+  const filteredIngredients = displayIngredientsList.filter((item) => {
+    if (filterBadge === 'all') return true
+    return item.badge === filterBadge
+  })
 
+  return (
+    <div className="skincluv-ingredient-page">
       {/* Coin Deduction Confirmation Modal */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
@@ -344,275 +360,344 @@ export default function IngredientScanPage() {
         />
       )}
 
-      {/* Page Header */}
-      <div className="page-head">
-        <div className="head-title-row">
-          <h1>Scan Ingredient Skincare</h1>
-          <div className="coin-cost-pill">
-            <Coins size={14} className="text-amber-500" />
-            <span>{isPro ? '0 Koin (Pro)' : '10 Koin'}</span>
+      {/* Anchor for Auto-Scroll on Results */}
+      <div ref={topResultRef} />
+
+      {/* Main 2-Column Responsive Grid */}
+      <div className="ingredient-grid-layout">
+        {/* LEFT COLUMN: Main Feature Workspace */}
+        <div className="main-workspace-col">
+          {/* Header Section */}
+          <div className="page-header-box">
+            <h1 className="page-title">Scan Ingredient Skincare</h1>
+            <p className="page-subtitle">
+              Analisis keamanan komposisi bahan kosmetik secara ilmiah yang disesuaikan khusus dengan profil kulitmu.
+            </p>
           </div>
-        </div>
-        <p>
-          Cek keamanan bahan sebelum kamu membeli — hasilnya disesuaikan dengan profil kulitmu ({skinTypeDesc}).
-        </p>
-      </div>
 
-      {/* Alert Error Box */}
-      {errorMsg && (
-        <div className="error-alert">
-          <AlertCircle size={18} className="shrink-0" />
-          <span>{errorMsg}</span>
-        </div>
-      )}
-
-      <div className="stage-container">
-        {/* STAGE 1: UPLOAD / INPUT */}
-        {stage === 'upload' && (
-          <div className="stage-content">
-            {/* Input Tab Switcher */}
-            <div className="tab-switcher">
-              <button
-                onClick={() => {
-                  setActiveTab('image')
-                  setErrorMsg(null)
-                }}
-                className={`tab-btn ${activeTab === 'image' ? 'active' : ''}`}
-              >
-                <Camera size={15} />
-                <span>Unggah Foto Label</span>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('text')
-                  setErrorMsg(null)
-                }}
-                className={`tab-btn ${activeTab === 'text' ? 'active' : ''}`}
-              >
-                <FileText size={15} />
-                <span>Ketik Teks Bahan</span>
-              </button>
+          {/* Alert Error Box */}
+          {errorMsg && (
+            <div className="error-alert">
+              <AlertCircle size={18} className="shrink-0" />
+              <span>{errorMsg}</span>
             </div>
+          )}
 
-            {activeTab === 'image' ? (
-              <div
-                className="dropzone"
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-              >
-                {previewUrl ? (
-                  <div className="dropzone-preview">
-                    <img src={previewUrl} alt="Preview label komposisi" />
-                    <button onClick={handleClearImage} className="clear-btn">
-                      <X size={14} /> Hapus Foto
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="dz-icon">
-                      <Upload size={24} />
-                    </div>
-                    <div className="dz-title">Unggah foto label komposisi</div>
-                    <div className="dz-sub">JPEG, PNG, atau WEBP — maks 10MB</div>
-                  </>
-                )}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                />
+          {/* STAGE 1: UPLOAD / INPUT */}
+          {stage === 'upload' && (
+            <div className="stage-card">
+              {/* Tab Switcher */}
+              <div className="tab-switcher">
+                <button
+                  onClick={() => {
+                    setActiveTab('image')
+                    setErrorMsg(null)
+                  }}
+                  className={`tab-btn ${activeTab === 'image' ? 'active' : ''}`}
+                >
+                  <Camera size={16} />
+                  <span>Unggah Foto Label</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('text')
+                    setErrorMsg(null)
+                  }}
+                  className={`tab-btn ${activeTab === 'text' ? 'active' : ''}`}
+                >
+                  <FileText size={16} />
+                  <span>Ketik Teks Bahan</span>
+                </button>
               </div>
-            ) : (
-              <div className="text-input-box">
-                <label className="text-input-label">Tempelkan Teks Komposisi (Ingredients):</label>
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Contoh: Aqua, Niacinamide 5%, Glycerin, Centella Asiatica Extract, Salicylic Acid 2%..."
-                  rows={5}
-                  className="ingredient-textarea"
-                />
-                <div className="sample-chips">
-                  <span className="sample-label">Coba sampel komposisi:</span>
-                  <div className="chips-row">
-                    {SAMPLE_INGREDIENTS.map((sample, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setInputText(sample)}
-                        className="sample-chip"
-                      >
-                        Sampel #{idx + 1}
+
+              {activeTab === 'image' ? (
+                <div
+                  className={`dropzone-box ${isDragging ? 'dragging' : ''}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  {previewUrl ? (
+                    <div className="preview-container">
+                      <img src={previewUrl} alt="Preview label komposisi" className="preview-img" />
+                      <button onClick={handleClearImage} className="clear-image-btn">
+                        <X size={14} /> Hapus Foto
                       </button>
-                    ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="dz-icon-avatar">
+                        <Upload size={24} />
+                      </div>
+                      <h3 className="dz-main-title">Unggah foto label komposisi</h3>
+                      <p className="dz-sub-title">Format JPEG, PNG, atau WEBP (Maksimal 10MB)</p>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              ) : (
+                <div className="text-input-wrapper">
+                  <label className="input-label">Tempelkan Teks Komposisi (Ingredients):</label>
+                  <textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Contoh: Aqua, Niacinamide 5%, Glycerin, Centella Asiatica Extract, Salicylic Acid 2%..."
+                    rows={6}
+                    className="ingredient-textarea"
+                  />
+                  <div className="sample-chips-box">
+                    <span className="sample-kicker">Coba sampel komposisi:</span>
+                    <div className="chips-row">
+                      {SAMPLE_INGREDIENTS.map((sample, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setInputText(sample)}
+                          className="sample-chip-btn"
+                        >
+                          Sampel #{idx + 1}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            <button
-              className="primary-btn"
-              onClick={handleStartAnalysis}
-              disabled={
-                isAnalyzing ||
-                (activeTab === 'image' && !imageBase64) ||
-                (activeTab === 'text' && !inputText.trim())
-              }
-            >
-              <FlaskConical size={18} />
-              <span>Analisis Bahan Skincare</span>
-            </button>
-
-            {/* Medical Disclaimer Box */}
-            <div className="disclaimer">
-              <Info size={18} className="disclaimer-icon" />
-              <span>
-                <b>Penafian medis:</b> Hasil analisis AI ini bersifat panduan edukasi, bukan pengganti diagnosis atau konsultasi dokter kulit. Jika mengalami iritasi parah, segera konsultasi ke tenaga medis profesional.
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* STAGE 2: ANIMATED SCANNER */}
-        {stage === 'scanning' && (
-          <div className="stage-content">
-            <div className="scan-frame">
-              {previewUrl ? (
-                <img src={previewUrl} alt="Label Komposisi" className="scan-img-preview" />
-              ) : (
-                <div className="mock-label">📋 Foto label komposisi</div>
               )}
-            </div>
 
-            <div className="scan-status">
-              <div className="bouncing-dots">
-                <span />
-                <span />
-                <span />
-              </div>
-              <span className="scan-text">{scanStagesText[scanTextIndex]}</span>
-            </div>
+              {/* Action Button */}
+              <button
+                className="btn-primary-action"
+                onClick={handleStartAnalysis}
+                disabled={
+                  isAnalyzing ||
+                  (activeTab === 'image' && !imageBase64) ||
+                  (activeTab === 'text' && !inputText.trim())
+                }
+              >
+                <FlaskConical size={18} />
+                <span>Analisis Bahan Skincare</span>
+              </button>
 
-            <p className="scan-progress-label">Bahan ditemukan: {foundCount}</p>
-          </div>
-        )}
-
-        {/* STAGE 3: RESULTS & PERSONAL SKIN FLAGS */}
-        {stage === 'result' && (
-          <div className="stage-content">
-            {/* Result Summary */}
-            <div className="result-summary">
-              <div className="rs-ring">{scoreRatio}</div>
-              <div className="rs-text">
-                <b>
-                  {safeCount === totalCount
-                    ? '100% Cocok untuk kulitmu'
-                    : 'Sebagian besar cocok untuk kulitmu'}
-                </b>
+              {/* Medical Disclaimer */}
+              <div className="disclaimer-banner">
+                <Info size={18} className="disclaimer-icon" />
                 <span>
-                  {safeCount} bahan aman, {totalCount - safeCount} perlu diperhatikan untuk tipe kulit ({skinTypeDesc})
+                  <b>Penafian medis:</b> Hasil analisis AI ini bersifat panduan edukasi, bukan pengganti diagnosis atau konsultasi dokter kulit profesional.
                 </span>
               </div>
             </div>
+          )}
 
-            {/* Ingredient Cards Breakdown List */}
-            <div className="ingredient-list">
-              {displayIngredientsList.map((ing, idx) => (
-                <div
-                  key={idx}
-                  className="ing-card"
-                  style={{ animationDelay: `${idx * 0.12}s` }}
-                >
-                  <div className="ing-head">
-                    <span className="ing-name">{ing.name}</span>
-                    <span className={`ing-badge ${ing.badge}`}>
-                      {ing.badgeLabel || (ing.badge === 'aman' ? 'Aman' : ing.badge === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')}
-                    </span>
-                  </div>
+          {/* STAGE 2: ANIMATED SCANNER */}
+          {stage === 'scanning' && (
+            <div className="stage-card scanning-card">
+              <div className="scan-frame-viewport">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Label Komposisi" className="scan-img-preview" />
+                ) : (
+                  <div className="mock-label-box">📋 Foto Label Komposisi Produk</div>
+                )}
+              </div>
 
-                  <p className="ing-func">{ing.function}</p>
+              <div className="scan-status-row">
+                <div className="bouncing-dots">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <span className="shimmer-scan-text">{scanStagesText[scanTextIndex]}</span>
+              </div>
 
-                  <div className="ing-row">
-                    <b>Cocok untuk</b>
-                    <span>{ing.skinType}</span>
-                  </div>
+              <p className="scan-counter-text">Bahan terdeteksi: {foundCount} komposisi</p>
+            </div>
+          )}
 
-                  <div className="ing-row">
-                    <b>Interaksi</b>
-                    <span>{ing.interaction}</span>
-                  </div>
+          {/* STAGE 3: RESULTS & PREDICTIVE FILTERS */}
+          {stage === 'result' && (
+            <div className="results-stack">
+              {/* Score Summary Box */}
+              <div className="result-summary-card">
+                <div className="score-ring-avatar">{scoreRatio}</div>
+                <div className="summary-meta">
+                  <h3 className="summary-title">
+                    {safeCount === totalCount
+                      ? '100% Cocok & Aman untuk Kulitmu'
+                      : 'Sebagian Besar Cocok untuk Kulitmu'}
+                  </h3>
+                  <p className="summary-subtitle">
+                    {safeCount} bahan aman, {cautionCount} perlu diperhatikan, {avoidCount} berisiko untuk profil kulit ({userSkinType.toLowerCase()}).
+                  </p>
+                </div>
+              </div>
 
-                  {/* Personal Skin Flag */}
-                  {ing.personal && (
-                    <div className={`personal-flag ${ing.personal.ok ? 'ok' : ''}`}>
-                      {ing.personal.ok ? (
-                        <CheckCircle2 size={16} />
-                      ) : (
-                        <AlertCircle size={16} />
-                      )}
-                      <span>{ing.personal.text}</span>
-                    </div>
+              {/* Predictive Filter Bar */}
+              <div className="filter-bar">
+                <div className="filter-label-group">
+                  <Filter size={14} />
+                  <span>Filter Bahan:</span>
+                </div>
+                <div className="filter-buttons-row">
+                  <button
+                    onClick={() => setFilterBadge('all')}
+                    className={`filter-btn ${filterBadge === 'all' ? 'active' : ''}`}
+                  >
+                    Semua ({totalCount})
+                  </button>
+                  <button
+                    onClick={() => setFilterBadge('aman')}
+                    className={`filter-btn btn-aman ${filterBadge === 'aman' ? 'active' : ''}`}
+                  >
+                    Aman ({safeCount})
+                  </button>
+                  {cautionCount > 0 && (
+                    <button
+                      onClick={() => setFilterBadge('hati')}
+                      className={`filter-btn btn-hati ${filterBadge === 'hati' ? 'active' : ''}`}
+                    >
+                      Perhatian ({cautionCount})
+                    </button>
+                  )}
+                  {avoidCount > 0 && (
+                    <button
+                      onClick={() => setFilterBadge('hindari')}
+                      className={`filter-btn btn-hindari ${filterBadge === 'hindari' ? 'active' : ''}`}
+                    >
+                      Hindari ({avoidCount})
+                    </button>
                   )}
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {/* Reset Button */}
-            <button className="reset-btn" onClick={handleResetFlow}>
-              Scan produk lain
-            </button>
+              {/* Ingredient Breakdown List */}
+              <div className="ingredients-cards-list">
+                {filteredIngredients.map((ing, idx) => (
+                  <div
+                    key={idx}
+                    className="ingredient-card-item"
+                    style={{ animationDelay: `${idx * 0.1}s` }}
+                  >
+                    <div className="card-top-header">
+                      <h4 className="ing-item-name">{ing.name}</h4>
+                      <span className={`ing-status-badge badge-${ing.badge}`}>
+                        {ing.badgeLabel || (ing.badge === 'aman' ? 'Aman' : ing.badge === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')}
+                      </span>
+                    </div>
+
+                    <p className="ing-item-func">{ing.function}</p>
+
+                    <div className="meta-info-row">
+                      <b className="meta-label">Cocok untuk:</b>
+                      <span className="meta-value">{ing.skinType}</span>
+                    </div>
+
+                    <div className="meta-info-row">
+                      <b className="meta-label">Interaksi:</b>
+                      <span className="meta-value">{ing.interaction}</span>
+                    </div>
+
+                    {/* Personal Skin Flag */}
+                    {ing.personal && (
+                      <div className={`personal-skin-flag ${ing.personal.ok ? 'flag-ok' : 'flag-warn'}`}>
+                        {ing.personal.ok ? (
+                          <CheckCircle2 size={16} className="shrink-0" />
+                        ) : (
+                          <AlertCircle size={16} className="shrink-0" />
+                        )}
+                        <span>{ing.personal.text}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Reset Button */}
+              <button className="btn-reset-scan" onClick={handleResetFlow}>
+                Scan Produk Skincare Lain
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN: Side Summary & Active Skin Profile Panel */}
+        <div className="side-summary-col">
+          {/* Active Skin Profile Context Card */}
+          <div className="side-card profile-context-card">
+            <div className="side-card-header">
+              <div className="side-icon-box teal">
+                <User size={18} />
+              </div>
+              <h3 className="side-card-title">Profil Kulit Aktif Anda</h3>
+            </div>
+            <div className="profile-badge-group">
+              <span className="profile-pill-primary">{userSkinType}</span>
+              <span className="profile-pill-secondary">RAWAN JERAWAT</span>
+            </div>
+            <p className="profile-desc-text">
+              Analisis keamanan bahan kosmetik secara otomatis disesuaikan dengan keluhan T-zone & sensitivitas kulit Anda.
+            </p>
           </div>
-        )}
+
+          {/* Educational Guide Card */}
+          <div className="side-card guide-card">
+            <div className="side-card-header">
+              <div className="side-icon-box amber">
+                <BookOpen size={18} />
+              </div>
+              <h3 className="side-card-title">Panduan Membaca Label</h3>
+            </div>
+            <ul className="guide-tips-list">
+              <li>
+                <b>Aturan 5 Bahan Pertama:</b> 5 komposisi teratas menyusun hingga 80% dari total formula produk.
+              </li>
+              <li>
+                <b>BHA / Salicylic Acid:</b> Sangat baik untuk kulit berminyak, namun hindari pemakaian berlebih jika kulit kemerahan.
+              </li>
+              <li>
+                <b>Fragrance / Parfum:</b> Berada di urutan paling bawah namun merupakan pemicu utama alergi kulit sensitif.
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      {/* PURE VANILLA CSS STYLING */}
+      {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
       <style>{`
-        .ingredient-scan-root {
-          max-width: 680px;
-          margin: 0 auto;
+        .skincluv-ingredient-page {
+          width: 100%;
+        }
+
+        .ingredient-grid-layout {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .main-workspace-col {
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
 
-        .page-head {
-          margin-bottom: 8px;
-        }
-
-        .head-title-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
+        .page-header-box {
           margin-bottom: 4px;
         }
 
-        .page-head h1 {
-          font-family: 'Fraunces', serif;
+        .page-title {
           font-size: 1.5rem;
-          font-weight: 600;
-          color: #0b4f5c;
-          margin: 0;
+          font-weight: 700;
+          color: #0f6784;
+          margin: 0 0 4px 0;
+          letter-spacing: -0.01em;
         }
 
-        .coin-cost-pill {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: #ffffff;
-          border: 1px solid rgba(10, 62, 72, 0.12);
-          border-radius: 20px;
-          padding: 5px 12px;
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: #b96a3d;
-        }
-
-        .page-head p {
+        .page-subtitle {
           font-size: 0.875rem;
-          color: #5c6b6b;
+          color: #64748b;
           margin: 0;
           line-height: 1.5;
         }
@@ -629,21 +714,22 @@ export default function IngredientScanPage() {
           gap: 10px;
         }
 
-        .stage-container {
-          width: 100%;
-        }
-
-        .stage-content {
+        .stage-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
 
         /* TAB SWITCHER */
         .tab-switcher {
           display: flex;
-          background: #ffffff;
-          border: 1px solid rgba(10, 62, 72, 0.12);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 12px;
           padding: 4px;
           gap: 4px;
@@ -661,72 +747,74 @@ export default function IngredientScanPage() {
           background: transparent;
           font-size: 0.84375rem;
           font-weight: 500;
-          color: #5c6b6b;
+          color: #64748b;
           cursor: pointer;
           transition: all 0.15s ease;
         }
 
         .tab-btn.active {
-          background: #dceeea;
-          color: #0b4f5c;
-          font-weight: 600;
-        }
-
-        /* STAGE 1: DROPZONE */
-        .dropzone {
-          border: 2px dashed rgba(10, 62, 72, 0.18);
-          border-radius: 20px;
-          padding: 40px 24px;
-          text-align: center;
           background: #ffffff;
+          color: #0f6784;
+          font-weight: 600;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        /* DROPZONE BOX */
+        .dropzone-box {
+          border: 2px dashed #cbd5e1;
+          border-radius: 16px;
+          padding: 36px 20px;
+          text-align: center;
+          background: #f8fafc;
           cursor: pointer;
-          transition: border-color 0.15s ease;
-          position: relative;
+          transition: all 0.15s ease;
         }
 
-        .dropzone:hover {
-          border-color: #126575;
+        .dropzone-box:hover, .dropzone-box.dragging {
+          border-color: #0f6784;
+          background: #eaf4fa;
         }
 
-        .dz-icon {
-          width: 56px;
-          height: 56px;
+        .dz-icon-avatar {
+          width: 52px;
+          height: 52px;
           border-radius: 50%;
-          background: #dceeea;
-          color: #0b4f5c;
+          background: #eaf4fa;
+          color: #0f6784;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto 14px;
+          margin: 0 auto 12px;
         }
 
-        .dz-title {
+        .dz-main-title {
           font-size: 0.9375rem;
           font-weight: 600;
-          color: #1a2b2b;
-          margin-bottom: 4px;
+          color: #1e293b;
+          margin: 0 0 4px 0;
         }
 
-        .dz-sub {
+        .dz-sub-title {
           font-size: 0.8125rem;
-          color: #5c6b6b;
+          color: #64748b;
+          margin: 0;
         }
 
-        .dropzone-preview {
+        .preview-container {
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 12px;
         }
 
-        .dropzone-preview img {
-          max-height: 200px;
+        .preview-img {
+          max-height: 220px;
           border-radius: 12px;
           object-fit: contain;
         }
 
-        .clear-btn {
-          background: #f1f5f9;
+        .clear-image-btn {
+          background: #ffffff;
           border: 1px solid #cbd5e1;
           color: #475569;
           padding: 6px 14px;
@@ -739,46 +827,43 @@ export default function IngredientScanPage() {
           gap: 6px;
         }
 
-        /* TEXT INPUT BOX */
-        .text-input-box {
-          background: #ffffff;
-          border: 1px solid rgba(10, 62, 72, 0.12);
-          border-radius: 16px;
-          padding: 16px;
+        /* TEXTAREA BOX */
+        .text-input-wrapper {
           display: flex;
           flex-direction: column;
           gap: 10px;
         }
 
-        .text-input-label {
+        .input-label {
           font-size: 0.84375rem;
           font-weight: 600;
-          color: #1a2b2b;
+          color: #1e293b;
         }
 
         .ingredient-textarea {
           width: 100%;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #cbd5e1;
           border-radius: 10px;
           padding: 12px;
           font-size: 0.875rem;
           font-family: inherit;
-          color: #1a2b2b;
+          color: #1e293b;
           outline: none;
           resize: vertical;
         }
 
         .ingredient-textarea:focus {
-          border-color: #0b4f5c;
+          border-color: #0f6784;
+          box-shadow: 0 0 0 3px rgba(15, 103, 132, 0.1);
         }
 
-        .sample-chips {
+        .sample-chips-box {
           display: flex;
           flex-direction: column;
           gap: 6px;
         }
 
-        .sample-label {
+        .sample-kicker {
           font-size: 0.75rem;
           color: #64748b;
           font-weight: 500;
@@ -790,10 +875,10 @@ export default function IngredientScanPage() {
           flex-wrap: wrap;
         }
 
-        .sample-chip {
-          background: #f8fafc;
+        .sample-chip-btn {
+          background: #f1f5f9;
           border: 1px solid #e2e8f0;
-          color: #0b4f5c;
+          color: #0f6784;
           padding: 4px 10px;
           border-radius: 16px;
           font-size: 0.75rem;
@@ -801,14 +886,14 @@ export default function IngredientScanPage() {
           cursor: pointer;
         }
 
-        .sample-chip:hover {
-          background: #dceeea;
+        .sample-chip-btn:hover {
+          background: #eaf4fa;
         }
 
         /* PRIMARY ACTION BUTTON */
-        .primary-btn {
+        .btn-primary-action {
           width: 100%;
-          background: #0b4f5c;
+          background: #0f6784;
           color: #ffffff;
           border: none;
           border-radius: 12px;
@@ -823,46 +908,49 @@ export default function IngredientScanPage() {
           transition: background 0.15s ease;
         }
 
-        .primary-btn:hover:not(:disabled) {
-          background: #0a3e48;
+        .btn-primary-action:hover:not(:disabled) {
+          background: #0b4f5c;
         }
 
-        .primary-btn:disabled {
-          background: #d8dedd;
-          color: #8b9796;
+        .btn-primary-action:disabled {
+          background: #cbd5e1;
+          color: #94a3b8;
           cursor: not-allowed;
         }
 
-        /* DISCLAIMER BOX */
-        .disclaimer {
-          background: #faeeda;
-          border: 1px solid #f0dba8;
-          border-radius: 14px;
+        /* DISCLAIMER BANNER */
+        .disclaimer-banner {
+          background: #fffbeb;
+          border: 1px solid #fef3c7;
+          border-radius: 12px;
           padding: 12px 14px;
           font-size: 0.78125rem;
           line-height: 1.6;
-          color: #6b4a16;
+          color: #b45309;
           display: flex;
           gap: 10px;
         }
 
         .disclaimer-icon {
-          color: #854f0b;
+          color: #d97706;
           flex-shrink: 0;
           margin-top: 1px;
         }
 
-        .disclaimer b {
-          color: #4a3006;
+        /* SCANNING CARD & ANIMATION */
+        .scanning-card {
+          align-items: center;
+          padding: 32px 20px;
         }
 
-        /* STAGE 2: ANIMATED SCANNER */
-        .scan-frame {
+        .scan-frame-viewport {
           position: relative;
-          border-radius: 20px;
+          border-radius: 16px;
           overflow: hidden;
-          background: linear-gradient(135deg, #e8e2d5, #d8d0bd);
-          height: 240px;
+          background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+          height: 220px;
+          width: 100%;
+          max-width: 400px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -872,17 +960,17 @@ export default function IngredientScanPage() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          opacity: 0.6;
+          opacity: 0.65;
         }
 
-        .scan-frame::after {
+        .scan-frame-viewport::after {
           content: '';
           position: absolute;
           left: 0;
           right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #4fe3b8, transparent);
-          box-shadow: 0 0 14px 3px rgba(79, 227, 184, 0.75);
+          height: 3px;
+          background: linear-gradient(90deg, transparent, #10b981, transparent);
+          box-shadow: 0 0 14px 4px rgba(16, 185, 129, 0.8);
           animation: scanline 2.1s ease-in-out infinite;
         }
 
@@ -892,25 +980,19 @@ export default function IngredientScanPage() {
           100% { top: 6%; }
         }
 
-        .mock-label {
-          width: 70%;
-          height: 70%;
+        .mock-label-box {
           background: #ffffff;
+          padding: 16px 24px;
           border-radius: 10px;
-          opacity: 0.55;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #5c6b6b;
-          font-size: 0.8125rem;
+          color: #64748b;
+          font-size: 0.84375rem;
+          font-weight: 500;
         }
 
-        .scan-status {
+        .scan-status-row {
           display: flex;
           align-items: center;
-          justify-content: center;
           gap: 10px;
-          margin-top: 10px;
         }
 
         .bouncing-dots {
@@ -922,27 +1004,22 @@ export default function IngredientScanPage() {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #126575;
+          background: #0f6784;
           animation: dotBounce 1.1s infinite ease-in-out;
         }
 
-        .bouncing-dots span:nth-child(2) {
-          animation-delay: 0.15s;
-        }
-
-        .bouncing-dots span:nth-child(3) {
-          animation-delay: 0.3s;
-        }
+        .bouncing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .bouncing-dots span:nth-child(3) { animation-delay: 0.3s; }
 
         @keyframes dotBounce {
-          0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
           30% { transform: translateY(-4px); opacity: 1; }
         }
 
-        .scan-text {
+        .shimmer-scan-text {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #126575;
+          color: #0f6784;
           animation: thinkShimmer 1.8s infinite ease-in-out;
         }
 
@@ -951,89 +1028,156 @@ export default function IngredientScanPage() {
           50% { opacity: 1; }
         }
 
-        .scan-progress-label {
-          text-align: center;
+        .scan-counter-text {
           font-size: 0.78125rem;
-          color: #5c6b6b;
+          color: #64748b;
           margin: 0;
         }
 
-        /* STAGE 3: RESULTS */
-        .result-summary {
+        /* STAGE 3: RESULTS STACK */
+        .results-stack {
           display: flex;
-          align-items: center;
-          gap: 14px;
-          background: #ffffff;
-          border: 1px solid rgba(10, 62, 72, 0.12);
-          border-radius: 16px;
-          padding: 16px;
+          flex-direction: column;
+          gap: 16px;
         }
 
-        .rs-ring {
-          width: 52px;
-          height: 52px;
+        .result-summary-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .score-ring-avatar {
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
-          background: #dceeea;
-          color: #0b4f5c;
+          background: #eaf4fa;
+          color: #0f6784;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Fraunces', serif;
-          font-size: 1.0625rem;
-          font-weight: 600;
+          font-weight: 700;
+          font-size: 1.125rem;
           flex-shrink: 0;
         }
 
-        .rs-text b {
-          display: block;
-          font-size: 0.9375rem;
-          margin-bottom: 2px;
-          color: #1a2b2b;
+        .summary-title {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0 0 4px 0;
         }
 
-        .rs-text span {
+        .summary-subtitle {
           font-size: 0.8125rem;
-          color: #5c6b6b;
+          color: #64748b;
+          margin: 0;
         }
 
-        .ingredient-list {
+        /* PREDICTIVE FILTER BAR */
+        .filter-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 8px 14px;
+        }
+
+        .filter-label-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #475569;
+        }
+
+        .filter-buttons-row {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .filter-btn {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #64748b;
+          padding: 4px 10px;
+          border-radius: 16px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .filter-btn.active {
+          background: #0f6784;
+          color: #ffffff;
+          border-color: #0f6784;
+        }
+
+        .filter-btn.btn-aman.active {
+          background: #166534;
+          border-color: #166534;
+        }
+
+        .filter-btn.btn-hati.active {
+          background: #b45309;
+          border-color: #b45309;
+        }
+
+        .filter-btn.btn-hindari.active {
+          background: #b3261e;
+          border-color: #b3261e;
+        }
+
+        /* INGREDIENT CARDS LIST */
+        .ingredients-cards-list {
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
 
-        .ing-card {
+        .ingredient-card-item {
           background: #ffffff;
-          border: 1px solid rgba(10, 62, 72, 0.12);
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
           opacity: 0;
           transform: translateY(8px);
           animation: cardReveal 0.45s ease forwards;
         }
 
         @keyframes cardReveal {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        .ing-head {
+        .card-top-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 8px;
-          gap: 10px;
+          gap: 12px;
         }
 
-        .ing-name {
+        .ing-item-name {
           font-size: 0.9375rem;
-          font-weight: 600;
-          color: #1a2b2b;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
         }
 
-        .ing-badge {
+        .ing-status-badge {
           font-size: 0.6875rem;
           font-weight: 700;
           padding: 4px 10px;
@@ -1042,87 +1186,195 @@ export default function IngredientScanPage() {
           white-space: nowrap;
         }
 
-        .ing-badge.aman {
-          background: #eaf3de;
-          color: #3b6d11;
+        .badge-aman {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
         }
 
-        .ing-badge.hati {
-          background: #faeeda;
-          color: #854f0b;
+        .badge-hati {
+          background: #fffbeb;
+          color: #b45309;
+          border: 1px solid #fef3c7;
         }
 
-        .ing-badge.hindari {
+        .badge-hindari {
           background: #fbe9e7;
           color: #b3261e;
+          border: 1px solid #ffcdd2;
         }
 
-        .ing-func {
+        .ing-item-func {
           font-size: 0.8125rem;
-          color: #5c6b6b;
+          color: #475569;
           line-height: 1.55;
-          margin-bottom: 10px;
+          margin: 0;
         }
 
-        .ing-row {
+        .meta-info-row {
           display: flex;
           gap: 8px;
           align-items: flex-start;
           font-size: 0.78125rem;
           line-height: 1.5;
-          margin-bottom: 5px;
         }
 
-        .ing-row b {
-          color: #1a2b2b;
+        .meta-label {
+          color: #1e293b;
           font-weight: 600;
           flex-shrink: 0;
-          width: 108px;
+          width: 100px;
         }
 
-        .ing-row span {
-          color: #5c6b6b;
+        .meta-value {
+          color: #64748b;
         }
 
-        .personal-flag {
-          margin-top: 10px;
-          background: #fbe9e7;
+        .personal-skin-flag {
+          margin-top: 4px;
           border-radius: 10px;
-          padding: 9px 12px;
+          padding: 10px 12px;
           font-size: 0.78125rem;
-          color: #7a231d;
           display: flex;
           gap: 8px;
           align-items: flex-start;
           font-weight: 500;
+          line-height: 1.5;
         }
 
-        .personal-flag.ok {
-          background: #eaf3de;
-          color: #3b6d11;
+        .personal-skin-flag.flag-ok {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #dcfce7;
         }
 
-        .personal-flag svg {
-          flex-shrink: 0;
-          margin-top: 1px;
+        .personal-skin-flag.flag-warn {
+          background: #fbe9e7;
+          color: #b3261e;
+          border: 1px solid #ffcdd2;
         }
 
-        .reset-btn {
+        .btn-reset-scan {
           width: 100%;
-          margin-top: 4px;
           background: #ffffff;
-          border: 1px solid rgba(10, 62, 72, 0.12);
-          color: #0b4f5c;
+          border: 1px solid #cbd5e1;
+          color: #0f6784;
           border-radius: 12px;
           padding: 12px;
-          font-size: 0.84375rem;
+          font-size: 0.875rem;
           font-weight: 600;
           cursor: pointer;
           transition: background 0.15s ease;
         }
 
-        .reset-btn:hover {
+        .btn-reset-scan:hover {
           background: #f8fafc;
+        }
+
+        /* RIGHT COLUMN: SIDE SUMMARY PANEL */
+        .side-summary-col {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .side-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .side-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .side-icon-box {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .side-icon-box.teal {
+          background: #eaf4fa;
+          color: #0f6784;
+        }
+
+        .side-icon-box.amber {
+          background: #fffbeb;
+          color: #d97706;
+        }
+
+        .side-card-title {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .profile-badge-group {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .profile-pill-primary {
+          background: #0f6784;
+          color: #ffffff;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 12px;
+        }
+
+        .profile-pill-secondary {
+          background: #f1f5f9;
+          color: #475569;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: 12px;
+        }
+
+        .profile-desc-text {
+          font-size: 0.8125rem;
+          color: #64748b;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .guide-tips-list {
+          margin: 0;
+          padding-left: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          font-size: 0.8125rem;
+          color: #475569;
+          line-height: 1.5;
+        }
+
+        .guide-tips-list b {
+          color: #1e293b;
+        }
+
+        /* DESKTOP BREAKPOINT (>= 900px) */
+        @media (min-width: 900px) {
+          .ingredient-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+          }
         }
       `}</style>
     </div>
