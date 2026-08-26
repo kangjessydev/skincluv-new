@@ -1,9 +1,9 @@
 // src/pages/auth/LoginPage.tsx
-// 100% Faithful Port of scan-2 Login UI for Skincluv — PURE VANILLA CSS (Zero Tailwind)
+// 100% Faithful Port of scan-2 Login UI for Skincluv — Pure Vanilla CSS (Zero Tailwind, Compact 100vh Fit)
 
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Sparkles, Loader2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Loader2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
@@ -71,12 +71,7 @@ export default function LoginPage() {
 
   return (
     <div className="scan2-login-card">
-      {/* BRAND LOGO AVATAR BOX */}
-      <div className="brand-logo-avatar">
-        <Sparkles size={28} className="text-white" />
-      </div>
-
-      {/* BRAND KICKER */}
+      {/* BRAND KICKER TEXT (No Icon Box) */}
       <span className="brand-kicker-text">SKINCLUV</span>
 
       {/* HEADER SECTION */}
@@ -90,7 +85,7 @@ export default function LoginPage() {
       {/* ERROR ALERT BANNER */}
       {error && (
         <div className="login-error-alert">
-          <AlertCircle size={18} className="shrink-0" />
+          <AlertCircle size={16} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -105,7 +100,7 @@ export default function LoginPage() {
         >
           <div className="google-icon-circle">
             {googleLoading ? (
-              <Loader2 size={18} className="animate-spin text-[#0f6784]" />
+              <Loader2 size={16} className="animate-spin text-[#0f6784]" />
             ) : (
               <svg className="google-svg-icon" viewBox="0 0 24 24">
                 <path fill="#EA4335" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -134,7 +129,7 @@ export default function LoginPage() {
             <div className="form-input-group">
               <label className="input-label">Email</label>
               <div className="input-field-box">
-                <Mail size={16} className="field-icon" />
+                <Mail size={14} className="field-icon" />
                 <input
                   type="email"
                   value={email}
@@ -149,7 +144,7 @@ export default function LoginPage() {
             <div className="form-input-group">
               <label className="input-label">Password</label>
               <div className="input-field-box">
-                <Lock size={16} className="field-icon" />
+                <Lock size={14} className="field-icon" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -163,7 +158,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="toggle-password-btn"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
             </div>
@@ -173,7 +168,7 @@ export default function LoginPage() {
               disabled={isLoading || googleLoading}
               className="btn-submit-email"
             >
-              {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Masuk Ke Akun'}
+              {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Masuk Ke Akun'}
             </button>
           </form>
         )}
@@ -200,27 +195,14 @@ export default function LoginPage() {
           width: 100%;
           background: #ffffff;
           border: 1px solid #f1f5f9;
-          border-radius: 36px;
-          padding: 40px 32px;
+          border-radius: 32px;
+          padding: 32px 28px;
           box-shadow: 0 20px 40px -15px rgba(15, 103, 132, 0.08);
           display: flex;
           flex-direction: column;
           align-items: center;
           text-align: center;
           box-sizing: border-box;
-        }
-
-        .brand-logo-avatar {
-          width: 60px;
-          height: 60px;
-          border-radius: 18px;
-          background: linear-gradient(135deg, #0f6784 0%, #38bdf8 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 10px 20px -5px rgba(15, 103, 132, 0.3);
-          border: 2px solid #ffffff;
-          margin-bottom: 20px;
         }
 
         .brand-kicker-text {
@@ -230,18 +212,19 @@ export default function LoginPage() {
           letter-spacing: 0.4em;
           text-transform: uppercase;
           margin-bottom: 12px;
+          display: block;
         }
 
         .login-header-group {
-          margin-bottom: 24px;
+          margin-bottom: 20px;
         }
 
         .login-main-title {
-          font-size: 2rem;
+          font-size: 1.875rem;
           font-weight: 900;
           color: #1e293b;
           letter-spacing: -0.03em;
-          margin: 0 0 8px 0;
+          margin: 0 0 6px 0;
           line-height: 1;
         }
 
@@ -249,18 +232,18 @@ export default function LoginPage() {
           font-size: 0.8125rem;
           font-weight: 600;
           color: #64748b;
-          line-height: 1.5;
+          line-height: 1.45;
           max-width: 300px;
           margin: 0 auto;
         }
 
         .login-error-alert {
-          margin-bottom: 20px;
-          padding: 12px 16px;
+          margin-bottom: 16px;
+          padding: 10px 14px;
           background: #fef2f2;
           border: 1px solid #fecaca;
           color: #dc2626;
-          border-radius: 14px;
+          border-radius: 12px;
           font-size: 0.75rem;
           font-weight: 700;
           width: 100%;
@@ -272,12 +255,12 @@ export default function LoginPage() {
 
         .google-action-row {
           width: 100%;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
         }
 
         .btn-google-pill {
           width: 100%;
-          height: 56px;
+          height: 52px;
           background: #0f6784;
           color: #ffffff;
           border-radius: 9999px;
@@ -286,10 +269,10 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           position: relative;
-          padding: 0 24px 0 64px;
+          padding: 0 20px 0 58px;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 10px 25px -5px rgba(15, 103, 132, 0.25);
+          box-shadow: 0 8px 20px -4px rgba(15, 103, 132, 0.25);
         }
 
         .btn-google-pill:hover {
@@ -305,10 +288,10 @@ export default function LoginPage() {
 
         .google-icon-circle {
           position: absolute;
-          left: 6px;
-          top: 6px;
-          bottom: 6px;
-          width: 44px;
+          left: 5px;
+          top: 5px;
+          bottom: 5px;
+          width: 42px;
           background: #ffffff;
           border-radius: 9999px;
           display: flex;
@@ -318,8 +301,8 @@ export default function LoginPage() {
         }
 
         .google-svg-icon {
-          width: 22px;
-          height: 22px;
+          width: 20px;
+          height: 20px;
         }
 
         .google-btn-label {
@@ -334,18 +317,18 @@ export default function LoginPage() {
 
         .email-option-wrapper {
           width: 100%;
-          margin-bottom: 20px;
+          margin-bottom: 14px;
         }
 
         .btn-toggle-email {
           background: none;
           border: none;
-          font-size: 0.75rem;
+          font-size: 0.725rem;
           font-weight: 600;
           color: #64748b;
           cursor: pointer;
           text-decoration: underline;
-          padding: 4px;
+          padding: 2px;
         }
 
         .btn-toggle-email:hover {
@@ -353,10 +336,10 @@ export default function LoginPage() {
         }
 
         .email-login-form {
-          margin-top: 16px;
+          margin-top: 12px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 10px;
           width: 100%;
           text-align: left;
           animation: fadeIn 0.3s ease;
@@ -369,7 +352,7 @@ export default function LoginPage() {
         }
 
         .input-label {
-          font-size: 0.7rem;
+          font-size: 0.675rem;
           font-weight: 800;
           color: #475569;
           text-transform: uppercase;
@@ -381,14 +364,14 @@ export default function LoginPage() {
           align-items: center;
           background: #f8fafc;
           border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 0 12px;
-          height: 44px;
+          border-radius: 10px;
+          padding: 0 10px;
+          height: 40px;
         }
 
         .field-icon {
           color: #94a3b8;
-          margin-right: 8px;
+          margin-right: 6px;
           shrink: 0;
         }
 
@@ -409,20 +392,20 @@ export default function LoginPage() {
           cursor: pointer;
           display: flex;
           align-items: center;
-          padding: 4px;
+          padding: 2px;
         }
 
         .btn-submit-email {
           width: 100%;
-          height: 44px;
+          height: 40px;
           background: #0f6784;
           color: #ffffff;
           font-weight: 700;
           font-size: 0.8125rem;
           border: none;
-          border-radius: 12px;
+          border-radius: 10px;
           cursor: pointer;
-          margin-top: 4px;
+          margin-top: 2px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -433,10 +416,10 @@ export default function LoginPage() {
         }
 
         .register-footer-link {
-          font-size: 0.75rem;
+          font-size: 0.725rem;
           color: #64748b;
           font-weight: 600;
-          margin-bottom: 20px;
+          margin-bottom: 14px;
         }
 
         .link-highlight {
@@ -452,16 +435,16 @@ export default function LoginPage() {
         .terms-disclaimer-box {
           width: 100%;
           border-top: 1px solid #f1f5f9;
-          padding-top: 16px;
+          padding-top: 12px;
         }
 
         .disclaimer-text {
-          font-size: 0.625rem;
+          font-size: 0.6rem;
           color: #94a3b8;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          line-height: 1.5;
+          line-height: 1.45;
           margin: 0;
         }
 
@@ -472,11 +455,11 @@ export default function LoginPage() {
 
         @media (max-width: 480px) {
           .scan2-login-card {
-            padding: 28px 20px;
-            border-radius: 28px;
+            padding: 24px 18px;
+            border-radius: 24px;
           }
           .login-main-title {
-            font-size: 1.75rem;
+            font-size: 1.625rem;
           }
         }
 

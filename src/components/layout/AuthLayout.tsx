@@ -1,5 +1,5 @@
 // src/components/layout/AuthLayout.tsx
-// 100% Faithful Port of scan-2 AuthLayout — Pure Vanilla CSS (Zero Tailwind)
+// 100% Faithful Port of scan-2 AuthLayout — Pure Vanilla CSS (Zero Tailwind, 100vh No Scroll)
 
 import { Outlet, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
@@ -7,25 +7,26 @@ import { ArrowLeft } from 'lucide-react'
 export default function AuthLayout() {
   return (
     <div className="scan2-auth-layout-root">
-      {/* BACKGROUND AMBIENT ORBS FROM SCAN-2 */}
+      {/* BACKGROUND AMBIENT ORBS */}
       <div className="auth-orb auth-orb-1" />
       <div className="auth-orb auth-orb-2" />
 
-      {/* TOP LEFT BACK LINK — Pure scan-2 style */}
-      <Link to="/" className="scan2-auth-back-link">
-        <ArrowLeft size={16} />
-        <span>KEMBALI</span>
-      </Link>
-
-      {/* MAIN CONTAINER */}
+      {/* MAIN CENTERED CONTAINER */}
       <div className="scan2-auth-container">
+        {/* TOP BACK LINK — Positioned small directly above the Card */}
+        <Link to="/" className="scan2-auth-back-link">
+          <ArrowLeft size={14} />
+          <span>KEMBALI</span>
+        </Link>
+
+        {/* CARD OUTLET */}
         <Outlet />
       </div>
 
       {/* PURE VANILLA CSS STYLING */}
       <style>{`
         .scan2-auth-layout-root {
-          min-height: 100dvh;
+          height: 100vh;
           width: 100%;
           background-color: #f8fafc;
           display: flex;
@@ -33,9 +34,8 @@ export default function AuthLayout() {
           align-items: center;
           justify-content: center;
           position: relative;
-          padding: 48px 16px;
-          overflow-y: auto;
-          overflow-x: hidden;
+          padding: 16px;
+          overflow: hidden;
           font-family: var(--font-body, system-ui, sans-serif);
           box-sizing: border-box;
         }
@@ -66,20 +66,28 @@ export default function AuthLayout() {
           animation-delay: 2s;
         }
 
+        .scan2-auth-container {
+          width: 100%;
+          max-width: 400px;
+          position: relative;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
         .scan2-auth-back-link {
-          position: absolute;
-          top: 24px;
-          left: 24px;
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          font-size: 0.75rem;
+          gap: 4px;
+          font-size: 0.7rem;
           font-weight: 800;
           color: #0f6784;
           text-transform: uppercase;
           letter-spacing: 0.08em;
           text-decoration: none;
-          z-index: 20;
+          margin-bottom: 8px;
+          margin-left: 4px;
           transition: opacity 0.2s ease;
         }
 
@@ -87,24 +95,12 @@ export default function AuthLayout() {
           opacity: 0.75;
         }
 
-        .scan2-auth-container {
-          width: 100%;
-          max-width: 440px;
-          position: relative;
-          z-index: 10;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin: auto 0;
-        }
-
-        @media (max-width: 480px) {
-          .scan2-auth-back-link {
-            top: 16px;
-            left: 16px;
-          }
+        @media (max-height: 600px) {
           .scan2-auth-layout-root {
-            padding: 56px 12px 32px 12px;
+            height: auto;
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 24px 16px;
           }
         }
 
