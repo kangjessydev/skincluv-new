@@ -196,23 +196,18 @@ export default function ChatbotPage() {
 
     // Call Supabase Edge Function AI Chat endpoint
     try {
-      const payload = {
-        prompt: query,
-        session_id: activeSessionId,
-        history: messages.slice(-6).map((m) => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          content: m.text,
-        })),
-      }
+      const historyFormatted = messages.slice(-6).map((m) => ({
+        role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
+        content: m.text,
+      }))
 
       const res = await invoke({
-        feature: 'ai_chat',
-        endpoint: 'ai-chat',
-        payload,
+        feature_slug: 'chatbot',
+        messages: [...historyFormatted, { role: 'user', content: query }],
       })
 
-      if (res && res.data) {
-        const botReply = res.data.reply || res.data.answer || res.data.text || 'Maaf, saya tidak dapat memproses tanggapan saat ini.'
+      if (res) {
+        const botReply = res.content || res.reply || res.data?.reply || res.data?.answer || res.data?.text || 'Maaf, saya tidak dapat memproses tanggapan saat ini.'
 
         const tempBotMsg: Message = {
           id: `bot-${Date.now()}`,
