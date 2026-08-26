@@ -1,5 +1,5 @@
 // src/components/layout/AppLayout.tsx
-// 100% Faithful Port of Claude's Dashboard App Shell — Pure Vanilla CSS
+// 100% Faithful Port of Claude's Dashboard App Shell — Pure Vanilla CSS & Strict Mobile Overflow Prevention
 
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom'
 import {
@@ -134,6 +134,8 @@ export default function AppLayout() {
           display: flex;
           min-height: 100vh;
           width: 100%;
+          max-width: 100vw;
+          overflow-x: hidden;
           box-sizing: border-box;
         }
 
@@ -147,6 +149,7 @@ export default function AppLayout() {
           padding: 24px 16px;
           flex-direction: column;
           gap: 2px;
+          box-sizing: border-box;
         }
 
         .sb-brand {
@@ -190,8 +193,19 @@ export default function AppLayout() {
         .main {
           flex: 1;
           min-width: 0;
+          width: 100%;
+          max-width: 100%;
           padding: 24px 20px 100px;
           box-sizing: border-box;
+        }
+
+        @media (max-width: 899px) {
+          .main {
+            padding: 16px 16px 96px;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+          }
         }
 
         /* TOPBAR */
@@ -200,6 +214,8 @@ export default function AppLayout() {
           align-items: center;
           justify-content: space-between;
           margin-bottom: 18px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .greet-label {
@@ -257,14 +273,15 @@ export default function AppLayout() {
           right: 0;
           bottom: 0;
           height: 78px;
-          background: rgba(255, 255, 255, 0.97);
+          background: rgba(255, 255, 255, 0.96);
           backdrop-filter: blur(12px);
           border-top: 1px solid var(--line);
           display: flex;
           align-items: center;
           justify-content: space-around;
           padding-bottom: 14px;
-          z-index: 50;
+          z-index: 999;
+          box-sizing: border-box;
         }
 
         .nav-item {

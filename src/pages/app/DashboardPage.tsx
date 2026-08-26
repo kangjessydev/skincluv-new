@@ -1,5 +1,5 @@
 // src/pages/app/DashboardPage.tsx
-// 100% Faithful Port of Claude's Dashboard Page — Pure Vanilla CSS & Mobile Optimized Cards
+// 100% Faithful Port of Claude's Dashboard Page — Pure Vanilla CSS & Strict Mobile Responsiveness
 
 import { useNavigate } from 'react-router-dom'
 import {
@@ -162,6 +162,10 @@ export default function DashboardPage() {
             "promo"
             "history";
           gap: 14px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .card {
@@ -170,6 +174,9 @@ export default function DashboardPage() {
           border-radius: 16px;
           padding: 16px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+          box-sizing: border-box;
+          min-width: 0;
+          max-width: 100%;
         }
 
         .section-label {
@@ -189,6 +196,10 @@ export default function DashboardPage() {
           color: #ffffff;
           position: relative;
           overflow: hidden;
+          box-sizing: border-box;
+          min-width: 0;
+          width: 100%;
+          max-width: 100%;
         }
 
         .status-hero .dots {
@@ -204,6 +215,8 @@ export default function DashboardPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .status-label {
@@ -222,6 +235,7 @@ export default function DashboardPage() {
           font-size: 12px;
           font-weight: 600;
           color: #8CF0C7;
+          flex-shrink: 0;
         }
 
         .status-score {
@@ -231,6 +245,7 @@ export default function DashboardPage() {
           align-items: baseline;
           gap: 6px;
           margin: 10px 0 6px;
+          flex-wrap: wrap;
         }
 
         .status-score b {
@@ -240,8 +255,9 @@ export default function DashboardPage() {
         }
 
         .status-score span {
-          font-size: 15px;
+          font-size: 14px;
           color: var(--teal-100, #DCEEEA);
+          word-break: break-word;
         }
 
         .status-note {
@@ -252,6 +268,8 @@ export default function DashboardPage() {
           color: var(--teal-100, #DCEEEA);
           max-width: 420px;
           margin: 0;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
 
         /* ACTIONS */
@@ -259,15 +277,23 @@ export default function DashboardPage() {
           grid-area: actions;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 12px;
+          gap: 10px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .action-card {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 8px;
           cursor: pointer;
           transition: transform 0.2s ease, border-color 0.2s ease;
+          padding: 14px 12px;
+          box-sizing: border-box;
+          min-width: 0;
+          width: 100%;
         }
 
         .action-card:hover {
@@ -276,12 +302,13 @@ export default function DashboardPage() {
         }
 
         .action-icon {
-          width: 38px;
-          height: 38px;
+          width: 36px;
+          height: 36px;
           border-radius: 11px;
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
         .action-icon.purple {
@@ -295,20 +322,27 @@ export default function DashboardPage() {
         }
 
         .action-title {
-          font-size: 14.5px;
+          font-size: 14px;
           font-weight: 600;
           color: var(--ink, #1A2B2B);
+          word-break: break-word;
         }
 
         .action-sub {
-          font-size: 12px;
+          font-size: 11.5px;
           color: var(--ink-soft, #5C6B6B);
-          line-height: 1.4;
+          line-height: 1.35;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
 
         /* RETENTION STRIP */
         .retention {
           grid-area: retention;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .retention-strip {
@@ -316,11 +350,19 @@ export default function DashboardPage() {
           gap: 10px;
           overflow-x: auto;
           padding-bottom: 4px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+
+        .retention-strip::-webkit-scrollbar {
+          display: none;
         }
 
         .r-card {
           flex: 0 0 auto;
-          min-width: 118px;
+          min-width: 114px;
+          box-sizing: border-box;
         }
 
         .r-num {
@@ -347,6 +389,10 @@ export default function DashboardPage() {
           display: grid;
           grid-template-columns: 1fr;
           gap: 12px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         /* HIDE SIDE RAIL ON MOBILE (< 900px) MATCHING CLAUDE MOBILE MOCKUP */
@@ -412,17 +458,23 @@ export default function DashboardPage() {
           justify-content: space-between;
           gap: 12px;
           border: none;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .promo-text b {
           display: block;
           font-size: 14.5px;
           margin-bottom: 2px;
+          word-break: break-word;
         }
 
         .promo-text span {
           font-size: 12px;
           opacity: 0.85;
+          word-break: break-word;
         }
 
         .promo-btn {
@@ -445,12 +497,19 @@ export default function DashboardPage() {
         /* HISTORY WRAPPER & MOBILE CARDS */
         .history-wrapper {
           grid-area: history;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .history-list {
           display: flex;
           flex-direction: column;
           gap: 8px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
 
         .history-row-card {
@@ -461,24 +520,33 @@ export default function DashboardPage() {
           border: 1px solid var(--line, rgba(10,62,72,0.10));
           border-radius: 14px;
           padding: 12px 14px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
 
         .h-left {
           display: flex;
           align-items: center;
           gap: 10px;
+          min-width: 0;
         }
 
         .h-date {
           font-size: 11.5px;
           color: var(--ink-soft, #5C6B6B);
-          width: 52px;
+          width: 48px;
+          flex-shrink: 0;
         }
 
         .h-type {
           font-size: 13.5px;
           font-weight: 600;
           color: var(--ink, #1A2B2B);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .h-result {
@@ -492,6 +560,7 @@ export default function DashboardPage() {
           font-weight: 600;
           padding: 4px 9px;
           border-radius: 20px;
+          flex-shrink: 0;
         }
 
         .h-badge.ok {
@@ -523,9 +592,21 @@ export default function DashboardPage() {
           }
           .actions-row {
             grid-template-columns: 1fr 1fr;
+            gap: 12px;
           }
           .action-card {
             padding: 20px;
+            gap: 10px;
+          }
+          .action-icon {
+            width: 38px;
+            height: 38px;
+          }
+          .action-title {
+            font-size: 14.5px;
+          }
+          .action-sub {
+            font-size: 12px;
           }
           .side {
             align-content: start;
