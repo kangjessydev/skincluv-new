@@ -1,5 +1,5 @@
 // src/pages/app/DashboardPage.tsx
-// 100% Faithful Port of Claude's Dashboard Page — Pure Vanilla CSS
+// 100% Faithful Port of Claude's Dashboard Page — Pure Vanilla CSS & Mobile Optimized Cards
 
 import { useNavigate } from 'react-router-dom'
 import {
@@ -84,7 +84,7 @@ export default function DashboardPage() {
         <div className="card">
           <div className="side-row">
             <span className="side-title">SALDO SKIN COIN</span>
-            <span className={`badge ${isPro ? 'free' : 'free'}`}>
+            <span className="badge free">
               {isPro ? 'Pro Member' : 'Free Account'}
             </span>
           </div>
@@ -119,31 +119,33 @@ export default function DashboardPage() {
       </div>
 
       {/* 6. RECENT HISTORY CARD */}
-      <div className="card history">
+      <div className="history-wrapper">
         <div className="section-label">RIWAYAT TERBARU</div>
-        <div className="history-row">
-          <div className="h-left">
-            <span className="h-date">8 Agu</span>
-            <span className="h-type">Scan Wajah AI</span>
+        <div className="history-list">
+          <div className="history-row-card">
+            <div className="h-left">
+              <span className="h-date">8 Agu</span>
+              <span className="h-type">Scan Wajah AI</span>
+            </div>
+            <span className="h-result">Kombinasi (T-Zone berminyak)</span>
+            <span className="h-badge ok">Optimal</span>
           </div>
-          <span className="h-result">Kombinasi (T-Zone berminyak)</span>
-          <span className="h-badge ok">Optimal</span>
-        </div>
-        <div className="history-row">
-          <div className="h-left">
-            <span className="h-date">5 Agu</span>
-            <span className="h-type">Scan Ingredient</span>
+          <div className="history-row-card">
+            <div className="h-left">
+              <span className="h-date">5 Agu</span>
+              <span className="h-type">Scan Ingredient</span>
+            </div>
+            <span className="h-result">Brightening Serum (aman)</span>
+            <span className="h-badge ok">Sehat</span>
           </div>
-          <span className="h-result">Brightening Serum (aman)</span>
-          <span className="h-badge ok">Sehat</span>
-        </div>
-        <div className="history-row">
-          <div className="h-left">
-            <span className="h-date">1 Agu</span>
-            <span className="h-type">Scan Wajah AI</span>
+          <div className="history-row-card">
+            <div className="h-left">
+              <span className="h-date">1 Agu</span>
+              <span className="h-type">Scan Wajah AI</span>
+            </div>
+            <span className="h-result">Kemerahan pipi ringan</span>
+            <span className="h-badge warn">Perlu perhatian</span>
           </div>
-          <span className="h-result">Kemerahan pipi ringan</span>
-          <span className="h-badge warn">Perlu perhatian</span>
         </div>
       </div>
 
@@ -433,27 +435,31 @@ export default function DashboardPage() {
           transform: scale(1.05);
         }
 
-        /* HISTORY */
-        .history {
+        /* HISTORY WRAPPER & MOBILE CARDS */
+        .history-wrapper {
           grid-area: history;
         }
 
-        .history-row {
+        .history-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .history-row-card {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 11px 0;
-          border-bottom: 1px solid var(--line, rgba(10,62,72,0.10));
-        }
-
-        .history-row:last-child {
-          border-bottom: none;
+          background: #ffffff;
+          border: 1px solid var(--line, rgba(10,62,72,0.10));
+          border-radius: 14px;
+          padding: 12px 14px;
         }
 
         .h-left {
           display: flex;
           align-items: center;
-          gap: 14px;
+          gap: 10px;
         }
 
         .h-date {
@@ -517,9 +523,26 @@ export default function DashboardPage() {
           .side {
             align-content: start;
           }
+          .history-list {
+            background: #ffffff;
+            border: 1px solid var(--line, rgba(10,62,72,0.10));
+            border-radius: 16px;
+            padding: 8px 16px;
+            gap: 0;
+          }
+          .history-row-card {
+            border: none;
+            border-bottom: 1px solid var(--line, rgba(10,62,72,0.10));
+            border-radius: 0;
+            padding: 14px 0;
+          }
+          .history-row-card:last-child {
+            border-bottom: none;
+          }
           .h-result {
             display: block;
             flex: 1;
+            margin: 0 16px;
           }
           .promo {
             flex-direction: column;
