@@ -100,18 +100,20 @@ export default function ChatbotPage() {
   const fetchMessages = async (sid: string) => {
     setIsLoadingMessages(true)
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('chat_messages')
-        .select('id, sender, text, created_at')
+        .select('id, role, content, created_at')
         .eq('session_id', sid)
         .order('created_at', { ascending: true })
+
+      if (error) throw error
 
       if (data) {
         setMessages(
           data.map((m) => ({
             id: m.id,
-            sender: m.sender === 'user' ? 'user' : 'bot',
-            text: m.text,
+            sender: m.role === 'user' ? 'user' : 'bot',
+            text: m.content,
             created_at: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           }))
         )
@@ -135,7 +137,6 @@ export default function ChatbotPage() {
       if (error) throw error
       if (data) {
         setSessions((prev) => [data, ...prev])
-        navigate(`/chatbot/${data.id}`)
         return data.id
       }
     } catch (err) {
@@ -167,6 +168,7 @@ export default function ChatbotPage() {
       const newSid = await createNewSession()
       if (!newSid) return
       activeSessionId = newSid
+      navigate(`/chatbot/${newSid}`, { replace: true })
     }
 
     const tempUserMsg: Message = {
@@ -184,8 +186,8 @@ export default function ChatbotPage() {
     try {
       await supabase.from('chat_messages').insert({
         session_id: activeSessionId,
-        sender: 'user',
-        text: query,
+        role: 'user',
+        content: query,
       })
     } catch (err) {
       console.error('Error saving user message:', err)
@@ -223,8 +225,8 @@ export default function ChatbotPage() {
         // Save bot message to Supabase
         await supabase.from('chat_messages').insert({
           session_id: activeSessionId,
-          sender: 'bot',
-          text: botReply,
+          role: 'assistant',
+          content: botReply,
         })
       }
     } catch (err) {
