@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
+import FormattedMarkdown from '@/components/ui/FormattedMarkdown'
 
 interface Message {
   id: string
@@ -337,7 +338,11 @@ export default function ChatbotPage() {
 
             <div className="bubble-wrapper">
               <div className="chat-bubble">
-                <p>{msg.text}</p>
+                {msg.sender === 'bot' ? (
+                  <FormattedMarkdown content={msg.text} userName={userName} />
+                ) : (
+                  <p>{msg.text}</p>
+                )}
               </div>
               <span className="chat-timestamp">{msg.created_at}</span>
             </div>
