@@ -718,9 +718,14 @@ export default function ChatbotPage() {
         }
 
         .chat-row.user .chat-bubble {
-          background: #0b4f5c;
-          color: #ffffff;
+          background: #0f6784;
+          color: #ffffff !important;
           border-bottom-right-radius: 4px;
+        }
+
+        .chat-row.user .chat-bubble p {
+          color: #ffffff !important;
+          margin: 0;
         }
 
         .chat-row.bot .chat-bubble {
