@@ -1,5 +1,5 @@
 // src/components/layout/AuthLayout.tsx
-// 100% Full-Screen Edge-to-Edge & Auto-Responsive Auth Layout — Pure Vanilla CSS
+// 100% Full-Screen Edge-to-Edge & Mobile Stacked Responsive Auth Layout — Pure Vanilla CSS
 
 import { Outlet } from 'react-router-dom'
 
@@ -7,7 +7,7 @@ export default function AuthLayout() {
   return (
     <div className="claude-auth-root">
       <div className="frame">
-        {/* LEFT — Brand Visual Panel */}
+        {/* TOP / LEFT — Brand Visual Panel */}
         <div className="visual">
           <div className="scan-field" />
           <svg className="rings" viewBox="0 0 340 340">
@@ -27,7 +27,7 @@ export default function AuthLayout() {
           </div>
         </div>
 
-        {/* RIGHT — Form Side Outlet */}
+        {/* BOTTOM / RIGHT — Form Side Outlet */}
         <div className="form-side">
           <Outlet />
         </div>
@@ -73,7 +73,7 @@ export default function AuthLayout() {
           box-shadow: none;
         }
 
-        /* LEFT — BRAND VISUAL PANEL */
+        /* LEFT / TOP — BRAND VISUAL PANEL */
         .visual {
           position: relative;
           background: var(--teal-800);
@@ -155,7 +155,7 @@ export default function AuthLayout() {
           margin: 0;
         }
 
-        /* RIGHT — FORM SIDE */
+        /* RIGHT / BOTTOM — FORM SIDE */
         .form-side {
           padding: 64px 48px;
           display: flex;
@@ -186,20 +186,49 @@ export default function AuthLayout() {
           }
         }
 
-        /* MOBILE BREAKPOINT (< 768px) */
+        /* MOBILE STACKED BREAKPOINT (< 768px) — Stack Visual Header on top, Form below */
         @media (max-width: 767px) {
+          .claude-auth-root {
+            min-height: 100vh;
+            height: auto;
+          }
+
           .frame {
             grid-template-columns: 1fr;
-            min-height: 100vh;
+            min-height: auto;
           }
+
           .visual {
-            display: none !important;
+            display: flex !important;
+            min-height: auto;
+            padding: 40px 24px 36px 24px;
+            justify-content: flex-start;
+            gap: 28px;
           }
-          .form-side {
-            padding: 32px 20px;
+
+          .visual-quote {
+            font-size: 24px;
+            line-height: 1.3;
             max-width: 100%;
-            min-height: 100vh;
-            justify-content: center;
+          }
+
+          .visual-caption {
+            font-size: 13.5px;
+            max-width: 100%;
+          }
+
+          .rings {
+            width: 260px;
+            height: 260px;
+            right: -40px;
+            bottom: -40px;
+          }
+
+          .form-side {
+            padding: 32px 24px 48px 24px;
+            max-width: 100%;
+            min-height: auto;
+            justify-content: flex-start;
           }
         }
       `}</style>
