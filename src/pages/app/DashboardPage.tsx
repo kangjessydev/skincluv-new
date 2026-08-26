@@ -349,6 +349,13 @@ export default function DashboardPage() {
           gap: 12px;
         }
 
+        /* HIDE SIDE RAIL ON MOBILE (< 900px) MATCHING CLAUDE MOBILE MOCKUP */
+        @media (max-width: 899px) {
+          .side {
+            display: none !important;
+          }
+        }
+
         .side-row {
           display: flex;
           align-items: center;
