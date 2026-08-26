@@ -2,7 +2,7 @@
 // 100% Original skincluv App Shell Layout (Desktop Collapsible Sidebar, Top Header, Mobile Floating FAB BottomNav)
 
 import { useState } from 'react'
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Sparkles,
   Scan,
@@ -16,7 +16,6 @@ import {
   Crown,
   Coins,
   Store,
-  BarChart3,
   Receipt,
   LogOut,
   ArrowLeft,
@@ -136,13 +135,22 @@ export default function AppLayout() {
           <div className="header-inner">
             <div className="page-title-group">
               {isChatbotPage ? (
-                <button
-                  className="topbar-toggle-btn mobile-back-btn"
-                  onClick={() => navigate('/')}
-                  title="Kembali ke Beranda"
-                >
-                  <ArrowLeft size={20} />
-                </button>
+                <>
+                  <button
+                    className="topbar-toggle-btn mobile-only-back-btn"
+                    onClick={() => navigate('/')}
+                    title="Kembali ke Beranda"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <button
+                    className="topbar-toggle-btn desktop-only-toggle-btn"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+                  >
+                    {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+                  </button>
+                </>
               ) : (
                 <button
                   className="topbar-toggle-btn"
@@ -540,6 +548,18 @@ export default function AppLayout() {
           background: var(--color-primary-container);
         }
 
+        @media (min-width: 769px) {
+          .mobile-only-back-btn {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .desktop-only-toggle-btn {
+            display: none !important;
+          }
+        }
+
         .header-active-page-title {
           font-size: 1.25rem;
           font-weight: 700;
@@ -682,7 +702,7 @@ export default function AppLayout() {
           background: #f1f5f9;
         }
 
-        /* MAIN CANVAS */
+        /* MAIN CANVAS & CHATBOT NO-OUTER-SCROLL STYLING */
         .stich-main-canvas {
           flex: 1;
           overflow-y: auto;
@@ -694,13 +714,18 @@ export default function AppLayout() {
         .stich-main-canvas.is-chatbot-canvas {
           padding: 0 !important;
           overflow: hidden !important;
-          height: calc(100vh - var(--nav-height));
+          height: calc(100vh - var(--nav-height)) !important;
+          display: flex;
+          flex-direction: column;
         }
 
         .is-chatbot-canvas .main-container {
-          height: 100%;
-          max-width: 100%;
-          padding: 0;
+          height: 100% !important;
+          max-width: 100% !important;
+          padding: 0 !important;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden !important;
         }
 
         @media (max-width: 768px) {

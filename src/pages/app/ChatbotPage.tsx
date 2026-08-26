@@ -1,5 +1,5 @@
 // src/pages/app/ChatbotPage.tsx
-// 100% Faithful Port of Claude's Skinsistant AI Chatbot UI — Pure Vanilla CSS & Real Supabase Integration
+// 100% Faithful Port of Claude's Skinsistant AI Chatbot UI — Pure Vanilla CSS, Sticky Input & Zero Page Scroll
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -53,7 +53,7 @@ export default function ChatbotPage() {
     ? profile.full_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
     : 'PE'
 
-  // Suggestion Quick Chips
+  // Suggestion Quick Chips for Welcome State
   const suggestionChips = [
     'Rekomendasi ingredient',
     'Tips atasi kemerahan',
@@ -304,7 +304,7 @@ export default function ChatbotPage() {
         </div>
       )}
 
-      {/* MAIN CHAT SCROLL AREA */}
+      {/* MAIN CHAT SCROLL AREA (Only message list scrolls internally) */}
       <div className="chat-scroll-area">
         {messages.length === 0 && !isLoadingMessages && (
           <div className="chat-welcome-box">
@@ -376,22 +376,7 @@ export default function ChatbotPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* QUICK SUGGESTION CHIPS STRIP (Above Input Bar) */}
-      {messages.length > 0 && (
-        <div className="quick-chips-strip">
-          {suggestionChips.map((chip, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSendMessage(chip)}
-              className="quick-chip-btn"
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* STICKY INPUT BAR */}
+      {/* STICKY INPUT BAR AT BOTTOM */}
       <div className="chat-input-bar">
         <form
           onSubmit={(e) => {
@@ -773,43 +758,15 @@ export default function ChatbotPage() {
           text-align: right;
         }
 
-        /* QUICK CHIPS STRIP ABOVE INPUT */
-        .quick-chips-strip {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding: 8px 20px;
-          background: #ffffff;
-          border-top: 1px solid #f1f5f9;
-        }
-
-        .quick-chips-strip::-webkit-scrollbar {
-          display: none;
-        }
-
-        .quick-chip-btn {
-          flex: 0 0 auto;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #0f6784;
-          background: #eaf4fa;
-          border: none;
-          border-radius: 9999px;
-          padding: 6px 14px;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-
-        .quick-chip-btn:hover {
-          background: #d4e5f1;
-        }
-
-        /* STICKY INPUT BAR */
+        /* STICKY INPUT BAR AT BOTTOM */
         .chat-input-bar {
+          position: sticky;
+          bottom: 0;
           padding: 12px 20px;
           background: #ffffff;
           border-top: 1px solid #e2e8f0;
           flex-shrink: 0;
+          z-index: 10;
         }
 
         .input-wrap {
