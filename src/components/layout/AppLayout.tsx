@@ -2,7 +2,7 @@
 // 100% Original skincluv App Shell Layout (Desktop Collapsible Sidebar, Top Header, Mobile Floating FAB BottomNav)
 
 import { useState } from 'react'
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Sparkles,
   Scan,
