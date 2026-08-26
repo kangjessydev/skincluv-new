@@ -146,6 +146,14 @@ export default function ChatbotPage() {
     return null
   }
 
+  const handleCreateNewChat = async () => {
+    const newSid = await createNewSession()
+    if (newSid) {
+      setMessages([])
+      navigate(`/chatbot/${newSid}`)
+    }
+  }
+
   const handleDeleteSession = async (sid: string, e: React.MouseEvent) => {
     e.stopPropagation()
     try {
@@ -256,7 +264,7 @@ export default function ChatbotPage() {
           <span>Riwayat Chat ({sessions.length})</span>
         </button>
 
-        <button onClick={createNewSession} className="util-btn util-new-btn">
+        <button onClick={handleCreateNewChat} className="util-btn util-new-btn">
           <Plus size={16} />
           <span>Chat Baru</span>
         </button>

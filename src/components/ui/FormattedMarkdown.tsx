@@ -1,5 +1,5 @@
 // src/components/ui/FormattedMarkdown.tsx
-// Rich Text / MS Word style Formatted Markdown Renderer for AI Chatbot responses
+// Comprehensive Rich Text & Markdown Engine for AI Chatbot Responses
 
 import React from 'react'
 
@@ -22,18 +22,25 @@ export default function FormattedMarkdown({
     .replace(/\{\{\s*name\s*\}\}/gi, userName)
     .replace(/\{\{\s*user\s*\}\}/gi, userName)
 
-  // 2. Pre-process numbered items if bunched together on a single line (e.g. "1. **Item** text 2. **Item** text")
+  // 2. Normalize bunched numbered headings or items (e.g., "1. **Item** 2. **Item**")
   rawText = rawText.replace(/(\S)\s+(\d+\.\s+\*\*)/g, '$1\n\n$2')
 
-  // 3. Split content into block paragraphs by double linebreaks or list markers
-  const blocks = rawText
+  // 3. Split by double line breaks or major block delimiters
+  const rawBlocks = rawText
     .split(/\n\s*\n/)
     .map((b) => b.trim())
     .filter(Boolean)
 
   const renderInlineStyles = (text: string): React.ReactNode[] => {
-    // Helper to replace **bold** and *italic*
-    const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*]+\*|_[^_]+_)/g)
+    if (!text) return []
+
+    // Helper regex for tokenizing bold, inline code, and precise italic
+    // Bold: **text** or __text__
+    // Code: `text`
+    // Precise Italic: *text* (bounded by non-space)
+    const tokenRegex = /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\b\*[^\s*][^*]*\*\b|(?<=\s|^|\()\*[^\s*][^*]*\*(?=\s|$|\.|\,|>|\!|\?|\)))/g
+
+    const parts = text.split(tokenRegex)
 
     return parts.map((part, idx) => {
       if (!part) return null
@@ -43,7 +50,7 @@ export default function FormattedMarkdown({
         const inner = part.slice(2, -2)
         return (
           <strong key={idx} className="fmt-bold">
-            {inner}
+            {renderInlineStyles(inner)}
           </strong>
         )
       }
@@ -58,8 +65,8 @@ export default function FormattedMarkdown({
         )
       }
 
-      // Italic *text* or _text_
-      if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
+      // Precise Italic *text*
+      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
         const inner = part.slice(1, -1)
         return (
           <em key={idx} className="fmt-italic">
@@ -72,17 +79,93 @@ export default function FormattedMarkdown({
     })
   }
 
+  const renderTableBlock = (lines: string[], key: number) => {
+    // Separate header, separator, and data rows
+    const dataLines = lines.filter((l) => !/^\|?\s*[-:]+[-|\s:]*$/.test(l))
+    if (dataLines.length === 0) return null
+
+    const parseRow = (rowStr: string) =>
+      rowStr
+        .split('|')
+        .map((cell) => cell.trim())
+        .filter((cell, idx, arr) => {
+          // Ignore leading/trailing empty cells from "| col1 | col2 |"
+          if ((idx === 0 || idx === arr.length - 1) && cell === '') return false
+          return true
+        })
+
+    const headerCells = parseRow(dataLines[0])
+    const bodyRows = dataLines.slice(1).map(parseRow)
+
+    return (
+      <div key={key} className="fmt-table-wrapper">
+        <table className="fmt-table">
+          {headerCells.length > 0 && (
+            <thead>
+              <tr>
+                {headerCells.map((cell, cIdx) => (
+                  <th key={cIdx}>{renderInlineStyles(cell)}</th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {bodyRows.map((rCells, rIdx) => (
+              <tr key={rIdx}>
+                {rCells.map((cell, cIdx) => (
+                  <td key={cIdx}>{renderInlineStyles(cell)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
   return (
     <div className={`formatted-markdown-root ${className}`}>
-      {blocks.map((block, bIdx) => {
-        // Check if block is a list item or contains linebreaks
+      {rawBlocks.map((block, bIdx) => {
+        // Horizontal Rule
+        if (/^(---|[*]{3}|_{3})$/.test(block)) {
+          return <hr key={bIdx} className="fmt-hr" />
+        }
+
         const lines = block.split('\n').map((l) => l.trim()).filter(Boolean)
 
-        // Check if all lines start with numbers like "1. ", "2. "
-        const isNumberedBlock = lines.length > 0 && lines.every((l) => /^\d+\.\s/.test(l))
-        // Check if lines start with bullets "- " or "* "
-        const isBulletBlock = lines.length > 0 && lines.every((l) => /^[-*]\s/.test(l))
+        // Headings (#, ##, ###)
+        if (lines.length === 1) {
+          const line = lines[0]
+          if (line.startsWith('### ')) {
+            return (
+              <h3 key={bIdx} className="fmt-h3">
+                {renderInlineStyles(line.slice(4))}
+              </h3>
+            )
+          }
+          if (line.startsWith('## ')) {
+            return (
+              <h2 key={bIdx} className="fmt-h2">
+                {renderInlineStyles(line.slice(3))}
+              </h2>
+            )
+          }
+          if (line.startsWith('# ')) {
+            return (
+              <h1 key={bIdx} className="fmt-h1">
+                {renderInlineStyles(line.slice(2))}
+              </h1>
+            )
+          }
+        }
 
+        // Table detection (lines starting with |)
+        if (lines.length > 0 && lines.every((l) => l.startsWith('|') || l.endsWith('|'))) {
+          return renderTableBlock(lines, bIdx)
+        }
+
+        // Numbered list detection
+        const isNumberedBlock = lines.length > 0 && lines.every((l) => /^\d+\.\s/.test(l))
         if (isNumberedBlock) {
           return (
             <ol key={bIdx} className="fmt-ol">
@@ -98,6 +181,8 @@ export default function FormattedMarkdown({
           )
         }
 
+        // Bullet list detection
+        const isBulletBlock = lines.length > 0 && lines.every((l) => /^[-*]\s/.test(l))
         if (isBulletBlock) {
           return (
             <ul key={bIdx} className="fmt-ul">
@@ -113,16 +198,42 @@ export default function FormattedMarkdown({
           )
         }
 
-        // Single or multi-line paragraph
+        // Mixed headings inside multi-line blocks
         return (
-          <p key={bIdx} className="fmt-paragraph">
-            {lines.map((line, lIdx) => (
-              <React.Fragment key={lIdx}>
-                {renderInlineStyles(line)}
-                {lIdx < lines.length - 1 && <br />}
-              </React.Fragment>
-            ))}
-          </p>
+          <div key={bIdx} className="fmt-block-group">
+            {lines.map((line, lIdx) => {
+              if (line.startsWith('### ')) {
+                return (
+                  <h3 key={lIdx} className="fmt-h3">
+                    {renderInlineStyles(line.slice(4))}
+                  </h3>
+                )
+              }
+              if (line.startsWith('## ')) {
+                return (
+                  <h2 key={lIdx} className="fmt-h2">
+                    {renderInlineStyles(line.slice(3))}
+                  </h2>
+                )
+              }
+              if (line.startsWith('# ')) {
+                return (
+                  <h1 key={lIdx} className="fmt-h1">
+                    {renderInlineStyles(line.slice(2))}
+                  </h1>
+                )
+              }
+              if (/^(---|[*]{3}|_{3})$/.test(line)) {
+                return <hr key={lIdx} className="fmt-hr" />
+              }
+
+              return (
+                <p key={lIdx} className="fmt-paragraph">
+                  {renderInlineStyles(line)}
+                </p>
+              )
+            })}
+          </div>
         )
       })}
 
@@ -138,9 +249,40 @@ export default function FormattedMarkdown({
           word-break: break-word;
         }
 
+        .fmt-block-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .fmt-h1 {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f6784;
+          margin: 12px 0 4px 0;
+          line-height: 1.3;
+        }
+
+        .fmt-h2 {
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: #0f6784;
+          margin: 10px 0 4px 0;
+          line-height: 1.3;
+        }
+
+        .fmt-h3 {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #0f6784;
+          margin: 8px 0 2px 0;
+          line-height: 1.4;
+        }
+
         .fmt-paragraph {
           margin: 0;
           color: #1e293b;
+          line-height: 1.65;
         }
 
         .fmt-bold {
@@ -150,7 +292,7 @@ export default function FormattedMarkdown({
 
         .fmt-italic {
           font-style: italic;
-          color: #0b4f5c;
+          color: #334155;
         }
 
         .fmt-code {
@@ -162,12 +304,19 @@ export default function FormattedMarkdown({
           font-size: 0.875rem;
         }
 
+        .fmt-hr {
+          border: none;
+          height: 1px;
+          background: #e2e8f0;
+          margin: 12px 0;
+        }
+
         .fmt-ol, .fmt-ul {
-          margin: 4px 0;
+          margin: 6px 0;
           padding-left: 22px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
         }
 
         .fmt-ol {
@@ -183,8 +332,36 @@ export default function FormattedMarkdown({
           line-height: 1.6;
         }
 
-        .fmt-li .fmt-bold {
-          display: inline;
+        .fmt-table-wrapper {
+          overflow-x: auto;
+          margin: 8px 0;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+        }
+
+        .fmt-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.875rem;
+        }
+
+        .fmt-table th {
+          background: #eaf4fa;
+          color: #0f6784;
+          font-weight: 700;
+          padding: 8px 12px;
+          text-align: left;
+          border-bottom: 1px solid #cbd5e1;
+        }
+
+        .fmt-table td {
+          padding: 8px 12px;
+          border-bottom: 1px solid #f1f5f9;
+          color: #334155;
+        }
+
+        .fmt-table tr:last-child td {
+          border-bottom: none;
         }
       `}</style>
     </div>
