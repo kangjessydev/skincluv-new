@@ -315,19 +315,6 @@ export default function ChatbotPage() {
             <p>
               Saya <b>Skinsistant AI</b>, asisten konsultasi kulit pribadi Anda. Tanyakan apa saja mengenai masalah kulit, rutinitas skincare, atau analisis komposisi produk.
             </p>
-
-            <div className="welcome-chips-grid">
-              {suggestionChips.map((chip, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(chip)}
-                  className="welcome-chip-item"
-                >
-                  <Sparkles size={13} className="text-[#0f6784]" />
-                  <span>{chip}</span>
-                </button>
-              ))}
-            </div>
           </div>
         )}
 
@@ -417,6 +404,8 @@ export default function ChatbotPage() {
           display: flex;
           flex-direction: column;
           height: 100%;
+          min-height: 0;
+          flex: 1;
           width: 100%;
           background: #f8fafc;
           position: relative;
@@ -580,6 +569,7 @@ export default function ChatbotPage() {
         /* MAIN CHAT SCROLL AREA */
         .chat-scroll-area {
           flex: 1;
+          min-height: 0;
           overflow-y: auto;
           padding: 20px;
           display: flex;

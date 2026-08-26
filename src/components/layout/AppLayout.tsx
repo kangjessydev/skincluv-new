@@ -75,7 +75,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className={`skincluv-app-shell ${isCollapsed ? 'sidebar-is-collapsed' : 'sidebar-is-expanded'}`}>
+    <div className={`skincluv-app-shell ${isCollapsed ? 'sidebar-is-collapsed' : 'sidebar-is-expanded'} ${isChatbotPage ? 'is-chatbot-shell' : ''}`}>
       {/* Ambient Background Orbs */}
       <div className="ambient-orb-1" />
       <div className="ambient-orb-2" />
@@ -291,6 +291,20 @@ export default function AppLayout() {
           background: var(--color-surface-bg);
           font-family: 'Inter', sans-serif;
           position: relative;
+        }
+
+        .skincluv-app-shell.is-chatbot-shell {
+          height: 100vh !important;
+          max-height: 100vh !important;
+          overflow: hidden !important;
+        }
+
+        .is-chatbot-shell .stich-content-area {
+          height: 100vh !important;
+          max-height: 100vh !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
         }
 
         /* Ambient Glow Orbs */
@@ -715,12 +729,18 @@ export default function AppLayout() {
           padding: 0 !important;
           overflow: hidden !important;
           height: calc(100vh - var(--nav-height)) !important;
+          max-height: calc(100vh - var(--nav-height)) !important;
+          min-height: 0 !important;
+          flex: 1 !important;
           display: flex;
           flex-direction: column;
         }
 
         .is-chatbot-canvas .main-container {
           height: 100% !important;
+          max-height: 100% !important;
+          min-height: 0 !important;
+          flex: 1 !important;
           max-width: 100% !important;
           padding: 0 !important;
           display: flex;
