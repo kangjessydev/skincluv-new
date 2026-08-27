@@ -1,22 +1,12 @@
-// src/pages/app/FaceScanPage.tsx
-// Skincluv Design System Harmonized Scan Wajah AI Page
-// Pure Inter Typography, Full-Width Responsive 2-Column Grid, 4-Stage Animated Flow (Upload, Validation Checklist, Laser Scanner, Score Hero)
-
 import React, { useState, useRef, useEffect } from 'react'
 import {
   Camera,
-  Upload,
   X,
-  CheckCircle2,
   AlertCircle,
   Sparkles,
-  User,
-  ShieldCheck,
   RotateCcw,
   Check,
   ShoppingBag,
-  Activity,
-  Zap,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -315,7 +305,6 @@ export default function FaceScanPage() {
   // Analysis Results & Errors
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
@@ -425,42 +414,22 @@ export default function FaceScanPage() {
     setStage('scanning')
 
     try {
-      // STEP 1: AUTOMATIC FACE VALIDATION CHECK (is_valid_face)
-      const validationResult = await invoke<{ is_valid_face?: boolean; reason?: string }>({
-        feature_slug: 'face_analysis',
-        messages: [
-          {
-            role: 'user',
-            content: `PERIKSA GAMBAR INI SANGAT TELITI SEBELUM METRIK KULIT: Apakah gambar ini adalah FOTO WAJAH MANUSIA ASLI?
-JIKA gambar ini adalah foto botol skincare, kemasan produk, teks komposisi, objek mati, hewan, atau foto non-wajah manusia, Anda WAJIB mengembalikan JSON:
-{ "is_valid_face": false, "reason": "Foto yang Anda unggah terdeteksi sebagai produk/kemasan skincare, bukan foto wajah manusia. Silakan unggah foto wajah yang terang dan jelas." }
-
-JIKA DAN HANYA JIKA foto ini adalah foto wajah manusia asli yang tampak jelas, kembalikan JSON:
-{ "is_valid_face": true, "reason": "Foto wajah manusia valid." }`,
-          },
-        ],
-        input_context: {
-          image_base64: imageBase64 || '',
-        },
-      })
-
-      if (!validationResult || validationResult.is_valid_face !== true) {
-        setErrorMsg(
-          validationResult?.reason ||
-            'Foto yang Anda unggah terdeteksi sebagai botol/kemasan produk, bukan foto wajah manusia. Silakan unggah foto wajah manusia yang jelas.'
-        )
-        setStage('upload')
-        return
-      }
-
-      // STEP 2: AUTOMATIC COMPREHENSIVE FACE ANALYSIS (Clinical & Empathetic Skin Expert)
+      // SINGLE ATOMIC CALL WITH STRICT PRE-VALIDATION DIRECTIVE
       const result = await invoke<AnalysisResult & { is_valid_face?: boolean; reason?: string }>({
         feature_slug: 'face_analysis',
         messages: [
           {
             role: 'user',
-            content: `Analisis kondisi kulit wajah ini secara klinis, empati, dan mendalam.
-Kembalikan JSON presisi dengan struktur berikut:
+            content: `LANGKAH MANDATORI 1 - VALIDASI FOTO WAJAH:
+Periksa gambar ini secara teliti. Apakah gambar ini adalah FOTO WAJAH MANUSIA ASLI?
+JIKA gambar ini adalah foto botol skincare, kemasan produk, teks komposisi, hewan, objek mati, atau foto non-wajah manusia:
+Anda WAJIB LANGSUNG mengembalikan JSON penolakan:
+{
+  "is_valid_face": false,
+  "reason": "Foto yang Anda unggah terdeteksi sebagai produk/kemasan skincare, bukan foto wajah manusia. Silakan unggah foto wajah manusia yang terang dan jelas."
+}
+
+JIKA DAN HANYA JIKA foto ini adalah foto wajah manusia asli yang tampak jelas, lakukan analisis kondisi kulit wajah lengkap dan kembalikan JSON presisi:
 {
   "is_valid_face": true,
   "overall_score": number (1-100),
@@ -474,7 +443,7 @@ Kembalikan JSON presisi dengan struktur berikut:
       "label": string,
       "location": string,
       "severity": "low" | "medium" | "high",
-      "analogy": string (penjelasan analogi sederhana yang edukatif),
+      "analogy": string (penjelasan analogi sederhana),
       "causes": string[],
       "solutions": string[],
       "box_2d": [ymin, xmin, ymax, xmax]
@@ -542,7 +511,6 @@ Kembalikan JSON presisi dengan struktur berikut:
     setImageBase64(null)
     setAnalysisResult(null)
     setErrorMsg(null)
-    setSelectedRegionId(null)
   }
 
   return (
