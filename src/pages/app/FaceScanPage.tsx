@@ -93,8 +93,13 @@ const CONCERN_LABELS: Record<string, string> = {
 }
 
 // Smart Enrichment Adapter to ensure full Claude 4-Stage UI data completeness
-const enrichAnalysisResult = (res: AnalysisResult): AnalysisResult => {
+const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean }): AnalysisResult => {
   const enriched = { ...res }
+
+  // If is_valid_face is explicitly false, do not synthesize dummy regions
+  if (res.is_valid_face === false) {
+    return enriched
+  }
 
   // Fallback Overall Score & Title
   if (!enriched.overall_score) {
@@ -426,9 +431,12 @@ export default function FaceScanPage() {
         messages: [
           {
             role: 'user',
-            content: `PERIKSA GAMBAR INI SANGAT TELITI: Apakah gambar ini adalah FOTO WAJAH MANUSIA ASLI?
-Jika gambar ini adalah foto botol skincare, kemasan produk, objek mati, hewan, atau foto non-wajah manusia, Anda WAJIB mengembalikan JSON: { "is_valid_face": false, "reason": "Foto yang Anda unggah terdeteksi sebagai produk/kemasan, bukan foto wajah manusia. Silakan unggah foto wajah yang terang dan jelas." }.
-Jika foto ini adalah foto wajah manusia asli, kembalikan JSON: { "is_valid_face": true, "reason": "Foto wajah manusia valid." }`,
+            content: `PERIKSA GAMBAR INI SANGAT TELITI SEBELUM METRIK KULIT: Apakah gambar ini adalah FOTO WAJAH MANUSIA ASLI?
+JIKA gambar ini adalah foto botol skincare, kemasan produk, teks komposisi, objek mati, hewan, atau foto non-wajah manusia, Anda WAJIB mengembalikan JSON:
+{ "is_valid_face": false, "reason": "Foto yang Anda unggah terdeteksi sebagai produk/kemasan skincare, bukan foto wajah manusia. Silakan unggah foto wajah yang terang dan jelas." }
+
+JIKA DAN HANYA JIKA foto ini adalah foto wajah manusia asli yang tampak jelas, kembalikan JSON:
+{ "is_valid_face": true, "reason": "Foto wajah manusia valid." }`,
           },
         ],
         input_context: {
@@ -436,17 +444,17 @@ Jika foto ini adalah foto wajah manusia asli, kembalikan JSON: { "is_valid_face"
         },
       })
 
-      if (validationResult && validationResult.is_valid_face === false) {
+      if (!validationResult || validationResult.is_valid_face !== true) {
         setErrorMsg(
-          validationResult.reason ||
-            'Foto yang Anda unggah terdeteksi sebagai produk/kemasan, bukan foto wajah manusia. Silakan unggah foto wajah yang terang dan jelas.'
+          validationResult?.reason ||
+            'Foto yang Anda unggah terdeteksi sebagai botol/kemasan produk, bukan foto wajah manusia. Silakan unggah foto wajah manusia yang jelas.'
         )
         setStage('upload')
         return
       }
 
       // STEP 2: AUTOMATIC COMPREHENSIVE FACE ANALYSIS (Clinical & Empathetic Skin Expert)
-      const result = await invoke<AnalysisResult>({
+      const result = await invoke<AnalysisResult & { is_valid_face?: boolean; reason?: string }>({
         feature_slug: 'face_analysis',
         messages: [
           {
@@ -492,8 +500,11 @@ Kembalikan JSON presisi dengan struktur berikut:
         },
       })
 
-      if (!result || (result as any).is_valid_face === false) {
-        setErrorMsg('Foto yang Anda unggah terdeteksi sebagai produk/kemasan, bukan foto wajah manusia. Silakan unggah foto wajah yang terang dan jelas.')
+      if (!result || result.is_valid_face === false) {
+        setErrorMsg(
+          result?.reason ||
+            'Foto yang Anda unggah terdeteksi sebagai produk/kemasan, bukan foto wajah manusia. Silakan unggah foto wajah yang terang dan jelas.'
+        )
         setStage('upload')
         return
       }
