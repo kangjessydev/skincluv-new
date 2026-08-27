@@ -312,7 +312,7 @@ export default function FaceScanPage() {
   const [failedCheckIndex, setFailedCheckIndex] = useState<number | null>(null)
   const [validationFailReason, setValidationFailReason] = useState<string | null>(null)
 
-  // Stage 1b Real AI Validation Checklist Execution
+  // Stage 1b Real AI Validation Checklist Execution (Strict Sequential Cut)
   useEffect(() => {
     if (stage !== 'validate') {
       setPassedCheckIndices([])
@@ -325,16 +325,12 @@ export default function FaceScanPage() {
 
     const runRealAiValidation = async () => {
       try {
-        // Step 1: Simulate progressive checking animation
-        setPassedCheckIndices([1]) // Pencahayaan cukup
-        await new Promise((r) => setTimeout(r, 600))
-        if (!isSubscribed) return
+        // Step 1: Initialize all items as "Memeriksa..."
+        setPassedCheckIndices([])
+        setFailedCheckIndex(null)
+        setValidationFailReason(null)
 
-        setPassedCheckIndices([1, 2]) // Foto tidak buram
-        await new Promise((r) => setTimeout(r, 600))
-        if (!isSubscribed) return
-
-        // Step 2: Call real Supabase Edge Function feature 'face_validation'
+        // Step 2: Call real Supabase Edge Function feature 'face_validation' IMMEDIATELY
         const valRes = await invoke<{ is_valid_face?: boolean; reason?: string }>({
           feature_slug: 'face_validation',
           messages: [
@@ -351,25 +347,35 @@ export default function FaceScanPage() {
 
         if (!isSubscribed) return
 
-        // Step 3: Handle AI Validation Result
+        // Step 3: STRICT CHECK - IF NOT A HUMAN FACE -> CUT IMMEDIATELY AT ITEM 1
         if (!valRes || valRes.is_valid_face === false) {
-          setFailedCheckIndex(0) // Wajah terdeteksi jelas -> GAGAL
+          setFailedCheckIndex(0) // Item 1 (Wajah terdeteksi jelas) -> GAGAL (RED BADGE)
+          setPassedCheckIndices([]) // NO OTHER ITEMS ARE PASSED (Items 2, 3, 4 remain stopped!)
+          
           const failMsg =
             valRes?.reason ||
             'Foto yang Anda unggah terdeteksi sebagai produk/kemasan skincare, bukan foto wajah manusia.'
           setValidationFailReason(failMsg)
           setErrorMsg(failMsg)
 
-          // Pause so user sees the red failure badge on checklist, then return to upload
+          // STRICT CUT: Pause so user sees Item 1 RED Gagal status & reason banner, then return to upload
           setTimeout(() => {
             if (isSubscribed) setStage('upload')
           }, 2500)
           return
         }
 
-        // All checks passed green!
-        setPassedCheckIndices([0, 1, 2, 3])
-        await new Promise((r) => setTimeout(r, 800))
+        // Step 4: IF FACE IS VALID -> Sequentially mark items GREEN (Lolos)
+        setPassedCheckIndices([0]) // Item 1: Wajah terdeteksi jelas -> Lolos
+        await new Promise((r) => setTimeout(r, 250))
+        if (!isSubscribed) return
+
+        setPassedCheckIndices([0, 1]) // Item 2: Pencahayaan cukup -> Lolos
+        await new Promise((r) => setTimeout(r, 250))
+        if (!isSubscribed) return
+
+        setPassedCheckIndices([0, 1, 2, 3]) // All items Lolos!
+        await new Promise((r) => setTimeout(r, 400))
         if (!isSubscribed) return
 
         // Proceed to Stage 2 scanning & Stage 3 results
