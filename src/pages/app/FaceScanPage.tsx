@@ -309,28 +309,82 @@ export default function FaceScanPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
 
-  // Stage 1b Validation Checklist Timer Execution
+  const [failedCheckIndex, setFailedCheckIndex] = useState<number | null>(null)
+  const [validationFailReason, setValidationFailReason] = useState<string | null>(null)
+
+  // Stage 1b Real AI Validation Checklist Execution
   useEffect(() => {
     if (stage !== 'validate') {
       setPassedCheckIndices([])
+      setFailedCheckIndex(null)
+      setValidationFailReason(null)
       return
     }
 
-    const timers: NodeJS.Timeout[] = []
-    validationChecksList.forEach((item, idx) => {
-      const t = setTimeout(() => {
-        setPassedCheckIndices((prev) => [...prev, idx])
-      }, item.delay)
-      timers.push(t)
-    })
+    let isSubscribed = true
 
-    const finalTransitionTimer = setTimeout(() => {
-      startScanningAndAI()
-    }, 3400)
-    timers.push(finalTransitionTimer)
+    const runRealAiValidation = async () => {
+      try {
+        // Step 1: Simulate progressive checking animation
+        setPassedCheckIndices([1]) // Pencahayaan cukup
+        await new Promise((r) => setTimeout(r, 600))
+        if (!isSubscribed) return
+
+        setPassedCheckIndices([1, 2]) // Foto tidak buram
+        await new Promise((r) => setTimeout(r, 600))
+        if (!isSubscribed) return
+
+        // Step 2: Call real Supabase Edge Function feature 'face_validation'
+        const valRes = await invoke<{ is_valid_face?: boolean; reason?: string }>({
+          feature_slug: 'face_validation',
+          messages: [
+            {
+              role: 'user',
+              content:
+                'VALIDASI GAMBAR: Periksa apakah gambar ini adalah foto wajah manusia asli yang jelas. Jawab JSON: { "is_valid_face": boolean, "reason": "alasan singkat dalam Bahasa Indonesia" }',
+            },
+          ],
+          input_context: {
+            image_base64: imageBase64 || '',
+          },
+        })
+
+        if (!isSubscribed) return
+
+        // Step 3: Handle AI Validation Result
+        if (!valRes || valRes.is_valid_face === false) {
+          setFailedCheckIndex(0) // Wajah terdeteksi jelas -> GAGAL
+          const failMsg =
+            valRes?.reason ||
+            'Foto yang Anda unggah terdeteksi sebagai produk/kemasan skincare, bukan foto wajah manusia.'
+          setValidationFailReason(failMsg)
+          setErrorMsg(failMsg)
+
+          // Pause so user sees the red failure badge on checklist, then return to upload
+          setTimeout(() => {
+            if (isSubscribed) setStage('upload')
+          }, 2500)
+          return
+        }
+
+        // All checks passed green!
+        setPassedCheckIndices([0, 1, 2, 3])
+        await new Promise((r) => setTimeout(r, 800))
+        if (!isSubscribed) return
+
+        // Proceed to Stage 2 scanning & Stage 3 results
+        startScanningAndAI()
+      } catch (err: any) {
+        if (!isSubscribed) return
+        setErrorMsg('Gagal memvalidasi foto. Silakan coba lagi.')
+        setStage('upload')
+      }
+    }
+
+    runRealAiValidation()
 
     return () => {
-      timers.forEach((t) => clearTimeout(t))
+      isSubscribed = false
     }
   }, [stage])
 
@@ -641,19 +695,41 @@ JIKA DAN HANYA JIKA foto ini adalah foto wajah manusia asli yang tampak jelas, l
           <div className="check-list-stack">
             {validationChecksList.map((check, idx) => {
               const isPassed = passedCheckIndices.includes(idx)
+              const isFailed = failedCheckIndex === idx
               return (
                 <div key={idx} className="check-item-row">
-                  <div className={`check-icon-circle ${isPassed ? 'ok' : 'pending'}`}>
-                    {isPassed ? <Check size={13} /> : <div className="pulse-dot" />}
+                  <div
+                    className={`check-icon-circle ${
+                      isPassed ? 'ok' : isFailed ? 'failed' : 'pending'
+                    }`}
+                  >
+                    {isPassed ? (
+                      <Check size={13} />
+                    ) : isFailed ? (
+                      <X size={13} />
+                    ) : (
+                      <div className="pulse-dot" />
+                    )}
                   </div>
                   <span className="check-label-text">{check.label}</span>
-                  <span className={`check-status-badge ${isPassed ? 'ok' : ''}`}>
-                    {isPassed ? 'Lolos' : 'Memeriksa...'}
+                  <span
+                    className={`check-status-badge ${
+                      isPassed ? 'ok' : isFailed ? 'failed' : ''
+                    }`}
+                  >
+                    {isPassed ? 'Lolos' : isFailed ? 'Gagal' : 'Memeriksa...'}
                   </span>
                 </div>
               )
             })}
           </div>
+
+          {validationFailReason && (
+            <div className="validation-fail-banner">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{validationFailReason}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -1124,6 +1200,11 @@ JIKA DAN HANYA JIKA foto ini adalah foto wajah manusia asli yang tampak jelas, l
           color: #166534;
         }
 
+        .check-icon-circle.failed {
+          background: #fbe9e7;
+          color: #b3261e;
+        }
+
         .check-label-text {
           flex: 1;
           color: #1e293b;
@@ -1138,6 +1219,24 @@ JIKA DAN HANYA JIKA foto ini adalah foto wajah manusia asli yang tampak jelas, l
 
         .check-status-badge.ok {
           color: #166534;
+        }
+
+        .check-status-badge.failed {
+          color: #b3261e;
+        }
+
+        .validation-fail-banner {
+          margin-top: 16px;
+          background: #fbe9e7;
+          border: 1px solid #ffcdd2;
+          color: #b3261e;
+          padding: 10px 14px;
+          border-radius: 12px;
+          font-size: 0.8125rem;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          line-height: 1.4;
         }
 
         /* STAGE 2: ANIMATED SCANNER CARD */
