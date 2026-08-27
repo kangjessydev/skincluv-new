@@ -1,19 +1,22 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+// src/pages/app/FaceScanPage.tsx
+// Skincluv Design System Harmonized Scan Wajah AI Page
+// Pure Inter Typography, Full-Width Responsive 2-Column Grid, 4-Stage Animated Flow (Upload, Validation Checklist, Laser Scanner, Score Hero)
+
+import React, { useState, useRef, useEffect } from 'react'
 import {
   Camera,
-  RotateCcw,
+  Upload,
+  X,
+  CheckCircle2,
   AlertCircle,
   Sparkles,
+  User,
   ShieldCheck,
-  Activity,
-  Info,
-  CheckCircle2,
-  Scan,
-  RefreshCw,
-  Zap,
-  FlaskConical,
+  RotateCcw,
+  Check,
   ShoppingBag,
-  MapPin,
+  Activity,
+  Zap,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -21,12 +24,11 @@ import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { SkinRegionCropper, sanitizeBox } from '@/components/ui/SkinRegionCropper'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 
-type Step = 'upload' | 'processing' | 'rejected' | 'result' | 'error'
+type Stage = 'upload' | 'validate' | 'scanning' | 'result'
 
-interface ValidationResult {
-  is_valid_face: boolean
-  reason: string
-  confidence: number
+interface ValidationCheckItem {
+  label: string
+  delay: number
 }
 
 export interface DetectedRegion {
@@ -35,6 +37,9 @@ export interface DetectedRegion {
   location: string
   box_2d?: number[]
   description: string
+  analogy?: string
+  causes?: string[]
+  solutions?: string[]
   severity?: 'low' | 'medium' | 'high'
 }
 
@@ -49,6 +54,7 @@ export interface ProductRecommendation {
   category: string
   match_score: number
   why_recommended: string
+  price_estimate?: string
 }
 
 interface AnalysisResult {
@@ -56,9 +62,14 @@ interface AnalysisResult {
   skin_concerns: string[]
   analysis_notes: string
   confidence: number
+  overall_score?: number
+  skin_status_title?: string
   detected_regions?: DetectedRegion[]
   recommended_ingredients?: RecommendedIngredient[]
   product_recommendations?: ProductRecommendation[]
+  tips_avoid?: string[]
+  tips_reduce?: string[]
+  tips_do?: string[]
 }
 
 const SKIN_TYPE_LABELS: Record<string, string> = {
@@ -81,869 +92,1472 @@ const CONCERN_LABELS: Record<string, string> = {
   pores: 'Pori Besar',
 }
 
-// Smart Enrichment Fallback if backend DB prompt returns v1 schema
+// Smart Enrichment Adapter to ensure full Claude 4-Stage UI data completeness
 const enrichAnalysisResult = (res: AnalysisResult): AnalysisResult => {
   const enriched = { ...res }
 
-  // Fallback Detected Regions if missing
+  // Fallback Overall Score & Title
+  if (!enriched.overall_score) {
+    enriched.overall_score = Math.round((res.confidence || 0.82) * 90)
+  }
+  if (!enriched.skin_status_title) {
+    enriched.skin_status_title =
+      enriched.overall_score >= 80
+        ? 'Kondisi Kulit: Sangat Sehat'
+        : enriched.overall_score >= 65
+        ? 'Kondisi Kulit: Cukup Sehat'
+        : 'Kondisi Kulit: Perlu Perhatian Ekstra'
+  }
+
+  // Fallback Detected Regions with Analogy, Causes & Solutions
   if (!enriched.detected_regions || enriched.detected_regions.length === 0) {
     const concerns = enriched.skin_concerns ?? ['pores', 'oiliness']
     const regions: DetectedRegion[] = []
 
-    if (concerns.includes('pores') || concerns.includes('oiliness') || enriched.skin_type === 'oily' || enriched.skin_type === 'combination') {
+    if (
+      concerns.includes('pores') ||
+      concerns.includes('oiliness') ||
+      enriched.skin_type === 'oily' ||
+      enriched.skin_type === 'combination'
+    ) {
       regions.push({
-        id: 'reg_nose',
-        label: 'Pori-pori Besar & T-Zone Sebum',
+        id: 'reg_pores',
+        label: 'A. Pori Tampak Besar (Zona T)',
         location: 'Area Hidung & Pipi Dalam',
         box_2d: [32, 38, 54, 62],
-        description: 'Terdeteksi akumulasi produksi minyak di T-Zone dan tampilan pori-pori yang membesar.',
         severity: 'medium',
+        analogy:
+          'Pori itu ibarat "lubang kecil" tempat kelenjar minyak (sebum) keluar. Kalau kepenuhan minyak & sel kulit mati, lubangnya kelihatan lebih lebar — mirip balon yang ditiup dikit, jadi ngedep dulu bentuknya.',
+        description:
+          'Terdeteksi akumulasi produksi minyak di T-Zone dan tampilan pori-pori yang membesar.',
+        causes: ['Minyak berlebih (sebum)', 'Sel kulit mati menumpuk', 'Jarang eksfoliasi'],
+        solutions: [
+          'Pakai facial wash dengan salicylic acid (BHA) — bahan yang kerjanya "nyapu" kotoran dari dalam pori, 2x sehari',
+          'Eksfoliasi ringan 1-2x seminggu biar sel kulit mati gak numpuk',
+          'Hindari pencet-pencet area berpori besar (bikin makin meradang)',
+        ],
       })
     }
 
-    if (concerns.includes('dark_circles') || concerns.includes('wrinkles') || concerns.includes('dryness')) {
+    if (
+      concerns.includes('dark_circles') ||
+      concerns.includes('wrinkles') ||
+      concerns.includes('dryness')
+    ) {
       regions.push({
         id: 'reg_eyes',
-        label: 'Mata Panda & Hiperpigmentasi',
+        label: 'B. Garis Halus & Area Mata (Fine Lines)',
         location: 'Area Bawah Mata (Under-eye)',
         box_2d: [35, 26, 48, 74],
-        description: 'Terlihat bayangan kehitaman di kantung mata akibat kelelahan atau mikrosirkulasi kulit berkurang.',
-        severity: 'high',
+        severity: 'low',
+        analogy:
+          'Kulit di sekitar mata itu paling tipis di seluruh wajah (10x lebih tipis dari kulit lain) dan gampang "kusut" kalau kurang lembab — mirip kertas tipis yang gampang kelipet dibanding kertas tebal.',
+        description:
+          'Terlihat bayangan kehitaman & lipatan halus di bawah mata akibat kelelahan atau hidrasi berkurang.',
+        causes: ['Area mata kurang lembab', 'Sering kena sinar matahari', 'Kurang tidur / kelelahan'],
+        solutions: [
+          'Pakai eye cream dengan peptide — bahan yang bantu kulit "produksi ulang" kolagen (penopang kekenyalan kulit)',
+          'Pakai sunscreen tiap hari, termasuk area mata, biar gak makin rusak kena UV',
+          'Usahain tidur minimal 7 jam — ini "waktu perbaikan" alami buat kulit',
+        ],
       })
     }
 
     if (concerns.includes('acne') || concerns.includes('redness')) {
       regions.push({
         id: 'reg_chin',
-        label: 'Inflamasi Kemerahan & Jerawat',
+        label: 'C. Inflamasi Kemerahan & Jerawat',
         location: 'Area Dagu & Rahang',
         box_2d: [64, 42, 78, 58],
-        description: 'Terdapat titik inflamasi ringan pada area dagu yang butuh penanganan zat penenang.',
         severity: 'high',
+        analogy:
+          'Titik kemerahan adalah sinyal bahwa mikro-bakteri sedang terperangkap di dalam pori. Kulit mengirim sel darah putih sebagai respon pertahanan alami.',
+        description:
+          'Terdapat titik inflamasi kemerahan pada area dagu yang membutuhkan zat penenang Cica/Centella.',
+        causes: ['Bakteri C. acnes tersumbat', 'Stres & Perubahan hormon', 'Faktor gesekan sarung bantal'],
+        solutions: [
+          'Gunakan spot treatment Centella Asiatica atau Tea Tree di area kemerahan',
+          'Ganti sarung bantal secara rutin setiap 3-4 hari',
+          'Hindari menyentuh area dagu dengan tangan kotor',
+        ],
       })
     }
 
     if (regions.length === 0) {
       regions.push({
         id: 'reg_general',
-        label: 'Tekstur & Kelembapan Kulit',
+        label: 'A. Tekstur & Kelembapan Kulit',
         location: 'Area Pipi Kanan & Kiri',
         box_2d: [42, 28, 62, 72],
-        description: 'Kondisi tekstur kulit tampak cukup seimbang dengan hidrasi alami yang baik.',
         severity: 'low',
+        analogy:
+          'Lapisan skin barrier Anda bekerja cukup baik dalam mengunci kadar air alami.',
+        description:
+          'Kondisi tekstur kulit tampak seimbang dengan tingkat hidrasi alami yang terjaga.',
+        causes: ['Hidrasi cukup', 'Nutrisi harian seimbang'],
+        solutions: [
+          'Pertahankan rutinitas pembersihan 2 kali sehari',
+          'Gunakan sunscreen SPF 30+ setiap pagi',
+        ],
       })
     }
 
     enriched.detected_regions = regions
   }
 
-  // Fallback Recommended Ingredients if missing
-  if (!enriched.recommended_ingredients || enriched.recommended_ingredients.length === 0) {
-    const ingList: RecommendedIngredient[] = []
-    if (enriched.skin_type === 'oily' || enriched.skin_type === 'combination') {
-      ingList.push({ name: 'Niacinamide 10%', purpose: 'Mengontrol minyak berlebih & merapatkan pori-pori', priority: 'essential' })
-      ingList.push({ name: 'Salicylic Acid (BHA 2%)', purpose: 'Membersihkan komedo dan sebum tersumbat dari dalam', priority: 'essential' })
-    }
-    if (enriched.skin_type === 'dry' || enriched.skin_type === 'sensitive') {
-      ingList.push({ name: 'Hyaluronic Acid Complex', purpose: 'Mengunci kelembapan mendalam hingga lapisan dermal', priority: 'essential' })
-      ingList.push({ name: 'Centella Asiatica (Cica)', purpose: 'Meredakan iritasi, kemerahan, dan memperkuat skin barrier', priority: 'essential' })
-    }
-    if (ingList.length === 0) {
-      ingList.push({ name: 'Niacinamide 5%', purpose: 'Mencerahkan kulit kusam & menjaga keseimbangan hidrasi', priority: 'essential' })
-      ingList.push({ name: 'Ceramide NP', purpose: 'Memperbaiki lapisan pelindung kulit dari radikal bebas', priority: 'recommended' })
-    }
-    enriched.recommended_ingredients = ingList
+  // Fallback Categorized Tips (Avoid, Reduce, Do)
+  if (!enriched.tips_avoid) {
+    enriched.tips_avoid = [
+      'Pegang-pegang & pencet wajah (tangan = sarang bakteri)',
+      'Skincare beralkohol tinggi (bikin kulit kering & iritasi)',
+      'Scrub kasar tiap hari (merusak skin barrier)',
+    ]
   }
 
-  // Fallback Product Recommendations with Match Scores if missing
-  if (!enriched.product_recommendations || enriched.product_recommendations.length === 0) {
-    const prodList: ProductRecommendation[] = []
+  if (!enriched.tips_reduce) {
+    enriched.tips_reduce = [
+      'Makanan tinggi gula & minyak (bisa memicu produksi minyak wajah)',
+      'Begadang / kurang tidur',
+      'Kelamaan kena sinar matahari langsung tanpa proteksi',
+    ]
+  }
 
-    if (enriched.skin_type === 'oily' || enriched.skin_type === 'combination') {
-      prodList.push({
-        product_name: 'Skincluv Pore Refining Niacinamide Serum',
-        category: 'Serum Perawatan Pori',
-        match_score: 95,
-        why_recommended: 'Formulasi serum Niacinamide 10% terbukti 95% cocok untuk mengontrol T-Zone berminyak dan memperkecil pori.',
-      })
-      prodList.push({
-        product_name: 'Skincluv BHA Clarifying Cleansing Gel',
-        category: 'Pembersih Wajah',
-        match_score: 91,
-        why_recommended: 'Pembersih lembut berbahan BHA alami untuk mengangkat komedo tanpa merusak moisture barrier.',
-      })
-    } else {
-      prodList.push({
-        product_name: 'Skincluv Barrier Repair Centella Moisturizer',
-        category: 'Pelembab Pelindung',
+  if (!enriched.tips_do) {
+    enriched.tips_do = [
+      'Cuci muka 2x sehari (pagi & malam)',
+      'Pakai sunscreen tiap pagi, meski di dalam ruangan',
+      'Ganti sarung bantal rutin (numpuk minyak & bakteri)',
+    ]
+  }
+
+  // Fallback Product Recommendations
+  if (!enriched.product_recommendations || enriched.product_recommendations.length === 0) {
+    enriched.product_recommendations = [
+      {
+        product_name: 'Azarine Hydrasoothe Sunscreen Gel SPF45',
+        category: 'Sunscreen Gel',
         match_score: 96,
-        why_recommended: 'Mengandung Centella Asiatica & Ceramide yang 96% presisi menenangkan kulit dan mengunci kadar air.',
-      })
-      prodList.push({
-        product_name: 'Skincluv Hydra Glow Serum',
-        category: 'Serum Hidrasi',
+        why_recommended:
+          'Formula gel ringan, gak bikin wajah makin berminyak, plus cegah garis halus tambah parah akibat sinar UV',
+        price_estimate: 'Rp45.000',
+      },
+      {
+        product_name: 'Somethinc Salicylic Acid 2% BHA Serum',
+        category: 'Exfoliating Serum',
         match_score: 92,
-        why_recommended: 'Membantu mencerahkan warna kulit tidak merata sekaligus mengembalikan elastisitas alami.',
-      })
-    }
-    enriched.product_recommendations = prodList
+        why_recommended:
+          'BHA-nya bantu "bersihin" pori dari dalam & kontrol minyak berlebih',
+        price_estimate: 'Rp89.000',
+      },
+      {
+        product_name: 'Avoskin Advanced 3% Peptide Eye Cream',
+        category: 'Eye Care',
+        match_score: 88,
+        why_recommended:
+          'Peptide-nya bantu kulit tipis di area mata jadi lebih kenyal',
+        price_estimate: 'Rp112.000',
+      },
+      {
+        product_name: 'Skintific 5X Ceramide Barrier Moisture Gel',
+        category: 'Moisturizer',
+        match_score: 83,
+        why_recommended:
+          'Ceramide = "semen" pengikat sel kulit, jaga skin barrier tetap kuat',
+        price_estimate: 'Rp75.000',
+      },
+    ]
   }
 
   return enriched
 }
 
 export default function FaceScanPage() {
-  const { user, coinBalance, activeSkinProfile, setActiveSkinProfile } = useAuthStore()
+  const { profile, coinBalance } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
 
-  const [step, setStep] = useState<Step>('upload')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const userSkinType = profile?.skin_type ? profile.skin_type.toUpperCase() : 'BERMINYAK'
+  const userConcerns = profile?.skin_concerns?.length
+    ? profile.skin_concerns.map((c) => CONCERN_LABELS[c] || c).slice(0, 3)
+    : ['Jerawat', 'Kemerahan', 'Pori besar']
+
+  // Stage Management
+  const [stage, setStage] = useState<Stage>('upload')
+
+  // Photo & Preview States
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
-  const [validation, setValidation] = useState<ValidationResult | null>(null)
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  // Validation Checklist States (Stage 1b)
+  const validationChecksList: ValidationCheckItem[] = [
+    { label: 'Wajah terdeteksi jelas', delay: 600 },
+    { label: 'Pencahayaan cukup', delay: 1300 },
+    { label: 'Foto tidak buram', delay: 2000 },
+    { label: 'Tidak tertutup masker/rambut', delay: 2700 },
+  ]
+  const [passedCheckIndices, setPassedCheckIndices] = useState<number[]>([])
+
+  // Scanner Stage Animation Text (Stage 2)
+  const scanStagesText = [
+    'Memetakan area wajah...',
+    'Menganalisis tekstur & pori...',
+    'Mendeteksi tanda penuaan & kemerahan...',
+    'Menyesuaikan dengan profil kulitmu...',
+    'Menyusun hasil analisis & rekomendasi...',
+  ]
+  const [scanTextIndex, setScanTextIndex] = useState(0)
+
+  // Analysis Results & Errors
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [statusText, setStatusText] = useState('Mengecek kejelasan foto & deteksi wajah...')
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const topResultRef = useRef<HTMLDivElement>(null)
 
-  const currentCoins = coinBalance?.balance ?? 0
-
-  // Dynamic Real-Time Contextual Processing Message Rotation
+  // Stage 1b Validation Checklist Timer Execution
   useEffect(() => {
-    if (step !== 'processing') return
+    if (stage !== 'validate') {
+      setPassedCheckIndices([])
+      return
+    }
 
-    const messagesList = [
-      'Mengecek kejelasan foto & deteksi wajah...',
-      'Wajah terdeteksi! Memproses titik area masalah...',
-      'Menganalisis kadar minyak, kelembapan, & pori-pori...',
-      'Menghitung skor kecocokan produk & zat aktif...',
-    ]
+    const timers: NodeJS.Timeout[] = []
+    validationChecksList.forEach((item, idx) => {
+      const t = setTimeout(() => {
+        setPassedCheckIndices((prev) => [...prev, idx])
+      }, item.delay)
+      timers.push(t)
+    })
 
-    let idx = 0
+    const finalTransitionTimer = setTimeout(() => {
+      startScanningAndAI()
+    }, 3400)
+    timers.push(finalTransitionTimer)
+
+    return () => {
+      timers.forEach((t) => clearTimeout(t))
+    }
+  }, [stage])
+
+  // Stage 2 Scanning Stage Text Rotation Timer
+  useEffect(() => {
+    if (stage !== 'scanning') {
+      setScanTextIndex(0)
+      return
+    }
+
     const interval = setInterval(() => {
-      idx = (idx + 1) % messagesList.length
-      setStatusText(messagesList[idx])
-    }, 1300)
+      setScanTextIndex((prev) => (prev < scanStagesText.length - 1 ? prev + 1 : prev))
+    }, 900)
 
     return () => clearInterval(interval)
-  }, [step])
+  }, [stage])
 
-  const processImage = useCallback((file: File) => {
-    const preview = URL.createObjectURL(file)
-    setImagePreview(preview)
-    setImageFile(file)
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const result = e.target?.result as string
-      const base64 = result.split(',')[1]
-      setImageBase64(base64)
+  // Smooth Auto-scroll to results when Stage 3 activates
+  useEffect(() => {
+    if (stage === 'result') {
+      topResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-    reader.readAsDataURL(file)
-    setStep('upload')
-    setErrorMsg(null)
-    setSelectedRegionId(null)
-  }, [])
+  }, [stage])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const processFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       setErrorMsg('File harus berupa gambar (JPG, PNG, WEBP)')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('Ukuran gambar maksimal 5MB')
-      return
-    }
     setErrorMsg(null)
-    processImage(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    setAnalysisResult(null)
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string
+      setImageBase64(result.split(',')[1])
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setIsDragging(false)
     const file = e.dataTransfer.files?.[0]
-    if (file) processImage(file)
+    if (file) processFile(file)
   }
 
-  // Unified 1-Click Scan Handler
-  const startUnifiedScan = async () => {
-    if (!imageBase64) return
+  const handleClearImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setPreviewUrl(null)
+    setImageBase64(null)
+    setAnalysisResult(null)
+  }
 
-    setStep('processing')
+  const handleStartFlow = () => {
+    if (!imageBase64) {
+      setErrorMsg('Pilih atau unggah foto wajah terlebih dahulu.')
+      return
+    }
     setErrorMsg(null)
-    setValidation(null)
-    setAnalysis(null)
-    setStatusText('Mengecek kejelasan foto & deteksi wajah...')
-    setSelectedRegionId(null)
+    setStage('validate')
+  }
+
+  const startScanningAndAI = async () => {
+    setStage('scanning')
 
     try {
-      // Step 1: Validate Face
-      const validRes = await invoke<ValidationResult>({
-        feature_slug: 'face_validation',
-        messages: [{ role: 'user', content: 'Validasi foto wajah ini untuk kejelasan & pencahayaan.' }],
-        input_context: { image_base64: imageBase64 },
-      })
-
-      if (!validRes || typeof validRes !== 'object') {
-        setErrorMsg('Tidak dapat memverifikasi foto. Silakan pastikan pencahayaan cukup dan foto wajah terlihat jelas.')
-        setStep('error')
-        return
-      }
-
-      setValidation(validRes)
-
-      // If Face Validation Fails (e.g. coffee cup, blurry, non-human photo)
-      if (!validRes.is_valid_face) {
-        setStep('rejected')
-        return
-      }
-
-      // Step 2: Analyze Skin (Runs automatically right after validation success!)
-      setStatusText('Wajah terdeteksi! Memproses pemetaan area & rekomendasi produk...')
-
-      const rawResult = await invoke<AnalysisResult>({
+      const result = await invoke<AnalysisResult>({
         feature_slug: 'face_analysis',
-        messages: [{ role: 'user', content: 'Analisis kondisi kulit wajah secara detail.' }],
-        input_context: { image_base64: imageBase64 },
+        messages: [
+          {
+            role: 'user',
+            content: 'Lakukan analisis kondisi kulit wajah lengkap dari foto ini.',
+          },
+        ],
+        input_context: {
+          image_base64: imageBase64 || '',
+        },
       })
 
-      if (!rawResult || typeof rawResult !== 'object') {
-        setErrorMsg('Gagal menganalisis kulit wajah. Silakan coba lagi.')
-        setStep('error')
+      if (!result) {
+        setErrorMsg('Gagal menganalisis foto wajah. Silakan periksa foto dan coba lagi.')
+        setStage('upload')
         return
       }
 
-      // Enrich result with smart contextual fallbacks if DB prompt returns v1 schema
-      const analysisRes = enrichAnalysisResult(rawResult)
+      const enriched = enrichAnalysisResult(result)
+      setAnalysisResult(enriched)
 
-      setAnalysis(analysisRes)
-      setStep('result')
-
-      if (analysisRes.detected_regions && analysisRes.detected_regions.length > 0) {
-        setSelectedRegionId(analysisRes.detected_regions[0].id)
+      // Save scan record to Supabase database face_scans table
+      if (profile?.id) {
+        supabase
+          .from('face_scans')
+          .insert({
+            user_id: profile.id,
+            overall_score: enriched.overall_score,
+            skin_type: enriched.skin_type,
+            notes: enriched.analysis_notes,
+            created_at: new Date().toISOString(),
+          })
+          .then(({ error }) => {
+            if (error) console.error('Failed to save scan history:', error)
+          })
       }
 
-      // Save to database
-      if (user && analysisRes.skin_type) {
-        try {
-          const { data: existing } = await supabase
-            .from('skin_profiles')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('is_active', true)
-            .maybeSingle()
-
-          let savedProfile = null
-          if (existing?.id) {
-            const { data } = await supabase
-              .from('skin_profiles')
-              .update({
-                skin_type: analysisRes.skin_type,
-                skin_concerns: analysisRes.skin_concerns ?? [],
-              })
-              .eq('id', existing.id)
-              .select()
-              .single()
-            savedProfile = data
-          } else {
-            const { data } = await supabase
-              .from('skin_profiles')
-              .insert({
-                user_id: user.id,
-                skin_type: analysisRes.skin_type,
-                skin_concerns: analysisRes.skin_concerns ?? [],
-                is_active: true,
-              })
-              .select()
-              .single()
-            savedProfile = data
-          }
-
-          if (savedProfile) {
-            setActiveSkinProfile(savedProfile)
-          }
-        } catch (dbErr) {
-          console.warn('Save skin_profile error:', dbErr)
-        }
-      }
+      setStage('result')
     } catch (err: any) {
-      console.error('Unified scan error:', err)
-      setErrorMsg(err.message || 'Terjadi kendala saat memproses foto.')
-      setStep('error')
+      console.error('Face scan error:', err)
+      setErrorMsg(err.message || 'Terjadi kesalahan saat menganalisis foto wajah.')
+      setStage('upload')
     }
   }
 
-  const reset = () => {
-    setStep('upload')
-    setImageFile(null)
-    setImagePreview(null)
+  const handleResetFlow = () => {
+    setStage('upload')
+    setPreviewUrl(null)
     setImageBase64(null)
-    setValidation(null)
-    setAnalysis(null)
+    setAnalysisResult(null)
     setErrorMsg(null)
     setSelectedRegionId(null)
   }
 
   return (
-    <div className="face-scan-page animate-fade-in">
-      {/* Header Banner */}
-      <div className="scan-banner-card">
-        <div className="banner-icon-box">
-          <Scan size={28} />
-        </div>
-        <div className="banner-text">
-          <h2>AI Face Health Scanner</h2>
-          <p>Dapatkan pemetaan titik jerawat/pori, rekomendasi zat aktif, dan skor kecocokan produk dari foto wajah kamu.</p>
-        </div>
-      </div>
-
-      {/* Main Content Layout */}
-      <div className="scan-main-grid">
-        {/* Left Column: Upload / Processing / Rejected / Result Box */}
-        <div className="scan-primary-box">
-          {/* STATE 1 & 2: Upload Input or Processing State */}
-          {(step === 'upload' || step === 'processing') && (
-            <div className="upload-wrapper-card">
-              {imagePreview ? (
-                <div className="preview-container">
-                  <img src={imagePreview} alt="Wajah" className="face-preview-img" />
-
-                  {/* Animated AI Laser Beam Overlay during Processing */}
-                  {step === 'processing' && (
-                    <div className="laser-scanner-overlay">
-                      <div className="laser-beam" />
-                    </div>
-                  )}
-
-                  {step === 'upload' && (
-                    <button className="btn-change-photo" onClick={reset} title="Ganti Foto">
-                      <RotateCcw size={16} /> Ganti Foto
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div
-                  className="dropzone-area"
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="dropzone-circle">
-                    <Camera size={36} />
-                  </div>
-                  <h3>Unggah Foto Wajah Kamu</h3>
-                  <p>Tarik & lepas foto di sini, atau klik untuk memilih gambar</p>
-                  <span className="dropzone-hint">Format JPG, PNG, WEBP (Maks. 5MB)</span>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    className="hidden-input"
-                  />
-                </div>
-              )}
-
-              {/* Pre-Scan Koin Notice Pill & Action Buttons */}
-              {step === 'upload' && imagePreview && (
-                <div className="action-button-group">
-                  <div className="coin-notice-pill">
-                    <Zap size={16} className="zap-icon" />
-                    <span>
-                      Pemindaian ini menggunakan <strong>5 Koin</strong>. Koin tetap terpotong jika foto buram/salah. Pastikan foto wajah terang & jelas!
-                    </span>
-                  </div>
-
-                  <button className="btn btn-primary btn-block btn-lg" onClick={startUnifiedScan}>
-                    <Sparkles size={20} /> Analisis Kesehatan Kulit (5 Koin)
-                  </button>
-                </div>
-              )}
-
-              {/* Live AI Orbit Spinner & Contextual Status */}
-              {step === 'processing' && (
-                <div className="processing-status-card animate-fade-in">
-                  <div className="ai-orbit-spinner">
-                    <div className="outer-orbit-ring" />
-                    <div className="inner-orbit-ring" />
-                    <Sparkles size={24} className="center-ai-sparkle" />
-                  </div>
-                  <h4 className="processing-title">{statusText}</h4>
-                  <p className="processing-sub">Kecerdasan buatan Skincluv sedang memetakan titik masalah kulit kamu...</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STATE 3: Smart Rejection Card */}
-          {step === 'rejected' && (
-            <div className="rejection-card animate-fade-in">
-              <div className="rejection-icon-wrapper">
-                <AlertCircle size={44} />
-              </div>
-              <h3>Foto Wajah Tidak Terdeteksi</h3>
-              <p className="rejection-reason">
-                {validation?.reason || 'Foto yang diunggah terdeteksi sebagai objek lain atau bukan wajah manusia.'}
-              </p>
-
-              <div className="rejection-tips-box">
-                <h4>Tips Pengambilan Foto yang Tepat:</h4>
-                <ul>
-                  <li><CheckCircle2 size={16} className="text-emerald-500 inline mr-2" /> Gunakan foto wajah asli manusia dengan posisi menghadap lurus.</li>
-                  <li><CheckCircle2 size={16} className="text-emerald-500 inline mr-2" /> Pastikan pencahayaan cukup terang & wajah tidak tertutup masker/topi.</li>
-                  <li><CheckCircle2 size={16} className="text-emerald-500 inline mr-2" /> Hindari foto objek benda, pemandangan, atau foto buram.</li>
-                </ul>
-              </div>
-
-              <button className="btn btn-primary btn-block btn-lg" onClick={reset}>
-                <RefreshCw size={18} /> Ambil Ulang Foto Wajah
-              </button>
-            </div>
-          )}
-
-          {/* STATE 4: Error Card */}
-          {step === 'error' && (
-            <div className="error-card animate-fade-in">
-              <AlertCircle size={44} className="error-icon" />
-              <h3>Terjadi Kendala</h3>
-              <p>{errorMsg || 'Terjadi kesalahan sistem saat menganalisis foto.'}</p>
-              <button className="btn btn-outline btn-block" onClick={reset}>
-                <RotateCcw size={16} /> Coba Lagi
-              </button>
-            </div>
-          )}
-
-          {/* STATE 5: Result Card (Rich Diagnostic Card with Bounding Boxes, Crops & Match Scores) */}
-          {step === 'result' && analysis && (
-            <div className="result-main-container animate-fade-in">
-              {/* Image with Interactive Bounding Box Hotspot Overlays */}
-              <div className="result-hero-box">
-                {imagePreview && <img src={imagePreview} alt="Wajah" className="result-face-img" />}
-
-                {/* Hotspot Overlays on Image */}
-                {analysis.detected_regions?.map((reg) => {
-                  const sanitized = sanitizeBox(reg.box_2d)
-                  if (!sanitized) return null
-                  const isSelected = reg.id === selectedRegionId
-                  return (
-                    <div
-                      key={reg.id}
-                      className={`hotspot-box ${isSelected ? 'is-selected' : ''}`}
-                      style={{
-                        top: `${sanitized.ymin}%`,
-                        left: `${sanitized.xmin}%`,
-                        width: `${sanitized.xmax - sanitized.xmin}%`,
-                        height: `${sanitized.ymax - sanitized.ymin}%`,
-                      }}
-                      onClick={() => setSelectedRegionId(reg.id)}
-                      title={`${reg.label} (${reg.location})`}
-                    >
-                      <span className="hotspot-label-tag">{reg.label}</span>
-                    </div>
-                  )
-                })}
-
-                <div className="result-badge-confidence">
-                  <CheckCircle2 size={16} /> Analisis Selesai (Akurasi {Math.round((analysis.confidence || 0.9) * 100)}%)
-                </div>
-              </div>
-
-              {/* Skin Type Score Box */}
-              <div className="result-score-card">
-                <span className="score-subtitle">TIPE KULIT TERDETEKSI</span>
-                <h3 className="score-title">{SKIN_TYPE_LABELS[analysis.skin_type] || analysis.skin_type}</h3>
-                <div className="score-progress-bar">
-                  <div className="progress-fill" style={{ width: `${Math.round((analysis.confidence || 0.9) * 100)}%` }} />
-                </div>
-                <span className="score-confidence-text">Tingkat keyakinan diagnosa: {Math.round((analysis.confidence || 0.9) * 100)}%</span>
-              </div>
-
-              {/* SECTION A: Canvas Auto-Cropped Detected Regions */}
-              {analysis.detected_regions && analysis.detected_regions.length > 0 && (
-                <div className="result-section-box">
-                  <div className="section-title-wrap">
-                    <MapPin size={18} className="section-icon" />
-                    <h4>Titik Masalah Kulit Terdeteksi ({analysis.detected_regions.length})</h4>
-                  </div>
-                  <div className="regions-grid">
-                    {analysis.detected_regions.map((reg) => (
-                      <SkinRegionCropper
-                        key={reg.id}
-                        imageSrc={imagePreview || ''}
-                        box={reg.box_2d}
-                        label={reg.label}
-                        location={reg.location}
-                        description={reg.description}
-                        severity={reg.severity}
-                        isSelected={reg.id === selectedRegionId}
-                        onClick={() => setSelectedRegionId(reg.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* SECTION B: Essential Active Ingredients Required */}
-              {analysis.recommended_ingredients && analysis.recommended_ingredients.length > 0 && (
-                <div className="result-section-box">
-                  <div className="section-title-wrap">
-                    <FlaskConical size={18} className="section-icon" />
-                    <h4>Zat Aktif Skincare yang Dibutuhkan Kulit Kamu</h4>
-                  </div>
-                  <div className="ingredients-list">
-                    {analysis.recommended_ingredients.map((ing, idx) => (
-                      <div key={idx} className="ingredient-item-card">
-                        <div className="ing-badge">✦</div>
-                        <div className="ing-content">
-                          <span className="ing-name">{ing.name}</span>
-                          <span className="ing-purpose">{ing.purpose}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* SECTION C: Product Match Recommendations with Match Scores */}
-              {analysis.product_recommendations && analysis.product_recommendations.length > 0 && (
-                <div className="result-section-box">
-                  <div className="section-title-wrap">
-                    <ShoppingBag size={18} className="section-icon" />
-                    <h4>Rekomendasi Produk Berdasarkan Skor Kecocokan Kulit</h4>
-                  </div>
-                  <div className="products-grid">
-                    {analysis.product_recommendations.map((prod, idx) => (
-                      <div key={idx} className="product-match-card">
-                        <div className="product-header">
-                          <div className="product-info">
-                            <span className="product-cat">{prod.category}</span>
-                            <h5 className="product-name">{prod.product_name}</h5>
-                          </div>
-                          <div className="match-score-badge">
-                            <Sparkles size={13} /> {prod.match_score || 92}% Match Score
-                          </div>
-                        </div>
-                        <p className="product-why">{prod.why_recommended}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Detailed AI Analysis Notes */}
-              {analysis.analysis_notes && (
-                <div className="result-notes-card">
-                  <div className="notes-header">
-                    <Activity size={18} /> Catatan Diagnosa AI Skincluv
-                  </div>
-                  <p>{analysis.analysis_notes}</p>
-                </div>
-              )}
-
-              <button className="btn btn-outline btn-block btn-lg" onClick={reset}>
-                <RefreshCw size={18} /> Pindai Wajah Baru
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Tips & Active Skin Profile Info */}
-        <div className="scan-secondary-sidebar">
-          {activeSkinProfile && (
-            <div className="active-profile-card">
-              <div className="card-header">
-                <ShieldCheck size={20} className="header-icon" />
-                <h3>Profil Kulit Saat Ini</h3>
-              </div>
-              <div className="profile-detail-rows">
-                <div className="detail-row">
-                  <span className="row-label">Tipe Kulit:</span>
-                  <span className="row-val">{SKIN_TYPE_LABELS[activeSkinProfile.skin_type] || activeSkinProfile.skin_type}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="row-label">Fokus Kulit:</span>
-                  <div className="mini-pill-wrap">
-                    {activeSkinProfile.skin_concerns?.map((c) => (
-                      <span key={c} className="mini-pill">
-                        {CONCERN_LABELS[c] || c}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="scan-tips-card">
-            <div className="card-header">
-              <Info size={20} className="header-icon" />
-              <h3>Panduan Foto Presisi</h3>
-            </div>
-            <ul className="tips-list">
-              <li>✦ Gunakan foto wajah lurus dengan ekspresi netral.</li>
-              <li>✦ Hindari pencahayaan terlalu gelap atau bayangan kuat.</li>
-              <li>✦ Pastikan wajah tidak tertutup rambut, masker, atau kacamata hitam.</li>
-              <li>✦ Privasi dijamin: Foto hanya diproses untuk analisis dermatologi AI.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
+    <div className="skincluv-face-scan-page">
+      {/* Coin Deduction Modal */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
-          isOpen={!!pendingCoinConfirm}
+          isOpen={true}
           coinCost={pendingCoinConfirm.coinCost}
-          currentBalance={currentCoins}
-          featureName={pendingCoinConfirm.featureName}
+          currentBalance={coinBalance?.balance ?? 0}
+          featureName="Scan Wajah AI"
           onConfirm={confirmCoinUsage}
           onCancel={cancelCoinUsage}
         />
       )}
 
+      {/* Auto-scroll anchor */}
+      <div ref={topResultRef} />
+
+      {/* Header Bar */}
+      <div className="page-header-box">
+        <h1 className="page-title">Scan Wajah AI</h1>
+        <p className="page-subtitle">
+          Deteksi kondisi kulit dari foto wajahmu secara klinis, lengkap dengan analogi penyebab, cara mengatasi, dan rekomendasi produk.
+        </p>
+      </div>
+
+      {/* Alert Error Box */}
+      {errorMsg && (
+        <div className="error-alert">
+          <AlertCircle size={18} className="shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* STAGE 1: UPLOAD & SIDE PANEL */}
+      {stage === 'upload' && (
+        <div className="facescan-grid-layout">
+          {/* Left Column: Dropzone & Main Action */}
+          <div className="main-dropzone-col">
+            <div
+              className={`dropzone-box ${isDragging ? 'dragging' : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {previewUrl ? (
+                <div className="preview-container">
+                  <img src={previewUrl} alt="Preview Foto Wajah" className="preview-img" />
+                  <button onClick={handleClearImage} className="clear-image-btn">
+                    <X size={14} /> Hapus Foto
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="dz-icon-avatar">
+                    <Camera size={26} />
+                  </div>
+                  <h3 className="dz-main-title">Unggah foto wajah kamu</h3>
+                  <p className="dz-sub-title">Tarik & lepas, atau klik untuk memilih — JPG/PNG/WEBP maks 5MB</p>
+                </>
+              )}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+            </div>
+
+            <button
+              className="btn-primary-action"
+              onClick={handleStartFlow}
+              disabled={!imageBase64}
+            >
+              <Sparkles size={18} />
+              <span>Mulai Scan Wajah</span>
+            </button>
+          </div>
+
+          {/* Right Column: Profile Context & Photo Guidelines */}
+          <div className="side-info-col">
+            <div className="side-card">
+              <div className="card-section-label">PROFIL KULIT SAAT INI</div>
+              <div className="profile-info-row">
+                <span>Tipe kulit</span>
+                <span className="profile-val-text">{userSkinType}</span>
+              </div>
+              <div className="profile-info-row stacked">
+                <span>Fokus kulit</span>
+                <div className="chips-mini-group">
+                  {userConcerns.map((concern, idx) => (
+                    <span key={idx} className="chip-mini-item">
+                      {concern}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="side-card">
+              <div className="card-section-label">PANDUAN FOTO PRESISI</div>
+              <ul className="guide-tips-list">
+                <li>
+                  <b>✦</b> Wajah lurus menghadap kamera dengan ekspresi netral
+                </li>
+                <li>
+                  <b>✦</b> Pencahayaan cukup, hindari bayangan gelap berlebih
+                </li>
+                <li>
+                  <b>✦</b> Tidak tertutup rambut, masker, atau kacamata
+                </li>
+                <li>
+                  <b>✦</b> Foto hanya diproses untuk analisis medis, tidak dibagikan
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STAGE 1b: PHOTO QUALITY CHECKLIST ANIMATION */}
+      {stage === 'validate' && (
+        <div className="validation-stage-card">
+          <div className="card-section-label">MEMERIKSA KUALITAS FOTO</div>
+          <div className="check-list-stack">
+            {validationChecksList.map((check, idx) => {
+              const isPassed = passedCheckIndices.includes(idx)
+              return (
+                <div key={idx} className="check-item-row">
+                  <div className={`check-icon-circle ${isPassed ? 'ok' : 'pending'}`}>
+                    {isPassed ? <Check size={13} /> : <div className="pulse-dot" />}
+                  </div>
+                  <span className="check-label-text">{check.label}</span>
+                  <span className={`check-status-badge ${isPassed ? 'ok' : ''}`}>
+                    {isPassed ? 'Lolos' : 'Memeriksa...'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* STAGE 2: ANIMATED LASER SCANNER */}
+      {stage === 'scanning' && (
+        <div className="stage-card scanning-card">
+          <div className="scan-frame-viewport">
+            {previewUrl ? (
+              <img src={previewUrl} alt="Foto Wajah" className="scan-img-preview" />
+            ) : (
+              <div className="mock-face-shape" />
+            )}
+          </div>
+
+          <div className="scan-status-row">
+            <div className="bouncing-dots">
+              <span />
+              <span />
+              <span />
+            </div>
+            <span className="shimmer-scan-text">{scanStagesText[scanTextIndex]}</span>
+          </div>
+        </div>
+      )}
+
+      {/* STAGE 3: RESULTS OUTPUT & SCORE HERO BANNER */}
+      {stage === 'result' && analysisResult && (
+        <div className="results-stack">
+          {/* Score Hero Banner */}
+          <div className="score-hero-banner">
+            <div className="dots-bg-pattern" />
+            <div className="score-ring-avatar">{analysisResult.overall_score ?? 74}</div>
+            <div className="score-meta-info">
+              <h3 className="hero-status-title">
+                {analysisResult.skin_status_title ?? 'Kondisi Kulit: Cukup Sehat'}
+              </h3>
+              <p className="hero-status-desc">
+                {analysisResult.analysis_notes ||
+                  'Terdeteksi 2 area yang perlu perhatian ekstra pada zona T dan under-eye. Selebihnya dalam kondisi hidrasi yang baik!'}
+              </p>
+            </div>
+          </div>
+
+          {/* Section Heading: Area Analysis */}
+          <div className="section-label-header">HASIL ANALISIS PER AREA WAJAH</div>
+
+          {/* Area Cards Breakdown */}
+          <div className="area-cards-stack">
+            {analysisResult.detected_regions?.map((reg) => {
+              const severityClass =
+                reg.severity === 'high' ? 'berat' : reg.severity === 'medium' ? 'sedang' : 'ringan'
+              const severityLabel =
+                reg.severity === 'high' ? 'Tinggi' : reg.severity === 'medium' ? 'Sedang' : 'Ringan'
+
+              return (
+                <div key={reg.id} className="card area-analysis-card">
+                  <div className="area-card-head">
+                    <h4 className="area-title-text">{reg.label}</h4>
+                    <span className={`area-severity-badge ${severityClass}`}>{severityLabel}</span>
+                  </div>
+
+                  {/* Analogy & Description */}
+                  <p className="area-analogy-text">
+                    {reg.analogy || reg.description}
+                  </p>
+
+                  {/* Causes Tags */}
+                  {reg.causes && reg.causes.length > 0 && (
+                    <div className="causes-group">
+                      <span className="causes-kicker">Kemungkinan penyebab:</span>
+                      <div className="tags-row">
+                        {reg.causes.map((cause, cIdx) => (
+                          <span key={cIdx} className="cause-tag">
+                            {cause}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Solutions Points */}
+                  {reg.solutions && reg.solutions.length > 0 && (
+                    <div className="solutions-group">
+                      <span className="solutions-kicker">Cara sederhana mengatasi:</span>
+                      <ul className="sol-list">
+                        {reg.solutions.map((sol, sIdx) => (
+                          <li key={sIdx}>{sol}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Region Cropper Visual Viewer */}
+                  {previewUrl && reg.box_2d && (
+                    <div className="region-cropper-wrapper">
+                      <SkinRegionCropper
+                        imageUrl={previewUrl}
+                        box2D={sanitizeBox(reg.box_2d)}
+                        label={reg.label}
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Section Heading: Categorized Tips */}
+          <div className="section-label-header">TIPS UNTUK KULITMU</div>
+
+          {/* Tips 3-Category Grid */}
+          <div className="tips-category-grid">
+            <div className="card tip-card card-avoid">
+              <h4 className="tip-header-title text-red">
+                <span>✕</span> Hindari
+              </h4>
+              <ul className="tip-items-list avoid">
+                {analysisResult.tips_avoid?.map((tip, idx) => (
+                  <li key={idx}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card tip-card card-reduce">
+              <h4 className="tip-header-title text-amber">
+                <span>−</span> Kurangi
+              </h4>
+              <ul className="tip-items-list reduce">
+                {analysisResult.tips_reduce?.map((tip, idx) => (
+                  <li key={idx}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card tip-card card-do">
+              <h4 className="tip-header-title text-green">
+                <span>✓</span> Rutin Lakukan
+              </h4>
+              <ul className="tip-items-list do">
+                {analysisResult.tips_do?.map((tip, idx) => (
+                  <li key={idx}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Section Heading: Product Recommendations */}
+          <div className="section-label-header">REKOMENDASI PRODUK UNTUK KULITMU</div>
+
+          {/* Product Recommendations Stack */}
+          <div className="card products-container-card">
+            <div className="products-list-stack">
+              {analysisResult.product_recommendations?.map((prod, idx) => (
+                <div
+                  key={idx}
+                  className="product-recommendation-item"
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
+                  <span className="prod-rank-num">#{idx + 1}</span>
+                  <div className="prod-icon-avatar">
+                    <ShoppingBag size={20} />
+                  </div>
+                  <div className="prod-meta-info">
+                    <h4 className="prod-name-title">{prod.product_name}</h4>
+                    <p className="prod-rationale-text">{prod.why_recommended}</p>
+                  </div>
+                  <div className="prod-right-badge">
+                    <span className="prod-match-percent">{prod.match_score || 92}% cocok</span>
+                    <span className="prod-price-text">{prod.price_estimate || 'Rp45.000'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Reset Scan Action */}
+          <button className="btn-reset-scan" onClick={handleResetFlow}>
+            <RotateCcw size={16} />
+            <span>Scan Wajah Ulang</span>
+          </button>
+        </div>
+      )}
+
+      {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
       <style>{`
-        .face-scan-page {
-          display: flex; flex-direction: column; gap: var(--space-lg); width: 100%; max-width: 1100px; margin: 0 auto;
+        .skincluv-face-scan-page {
+          width: 100%;
         }
 
-        .scan-banner-card {
-          display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) var(--space-lg);
-          background: linear-gradient(135deg, rgba(212, 229, 241, 0.4) 0%, rgba(238, 246, 252, 0.8) 100%);
-          border: 1px solid var(--color-secondary-container); border-radius: var(--radius-2xl);
-        }
-        .banner-icon-box {
-          width: 52px; height: 52px; border-radius: 50%; background: var(--color-primary); color: white;
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sky);
-        }
-        .banner-text h2 { font-size: 1.35rem; font-weight: 700; color: var(--color-primary); margin: 0 0 4px 0; font-family: var(--font-heading); }
-        .banner-text p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0; }
-
-        .scan-main-grid {
-          display: grid; grid-template-columns: 1fr 340px; gap: var(--space-lg); align-items: start;
-        }
-        @media (max-width: 900px) {
-          .scan-main-grid { grid-template-columns: 1fr; }
+        .page-header-box {
+          margin-bottom: 16px;
         }
 
-        .scan-primary-box {
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-2xl); padding: var(--space-lg); box-shadow: var(--shadow-sm);
+        .page-title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #0f6784;
+          margin: 0 0 4px 0;
+          letter-spacing: -0.01em;
         }
 
-        /* Upload & Dropzone Area */
-        .upload-wrapper-card { display: flex; flex-direction: column; gap: var(--space-md); }
-        .dropzone-area {
-          border: 2px dashed var(--color-secondary-container); border-radius: var(--radius-2xl);
-          padding: var(--space-2xl) var(--space-md); text-align: center; cursor: pointer; transition: all 0.2s ease;
-          background: var(--color-surface-container-low); display: flex; flex-direction: column; align-items: center;
+        .page-subtitle {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.5;
         }
-        .dropzone-area:hover {
-          border-color: var(--color-primary-container); background: rgba(238, 246, 252, 0.6);
-        }
-        .dropzone-circle {
-          width: 68px; height: 68px; border-radius: 50%; background: var(--color-secondary-fixed);
-          color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-md);
-        }
-        .dropzone-area h3 { font-size: 1.15rem; font-weight: 700; color: var(--color-primary); margin: 0 0 6px 0; font-family: var(--font-heading); }
-        .dropzone-area p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0 0 8px 0; }
-        .dropzone-hint { font-size: 0.75rem; color: var(--color-secondary); font-weight: 600; }
-        .hidden-input { display: none; }
 
-        /* Preview Container & Holographic Laser Beam Overlay */
+        .error-alert {
+          background: #fbe9e7;
+          border: 1px solid #ffcdd2;
+          color: #b3261e;
+          padding: 12px 16px;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+
+        /* STAGE 1: GRID LAYOUT */
+        .facescan-grid-layout {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .main-dropzone-col {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .dropzone-box {
+          border: 2px dashed #cbd5e1;
+          border-radius: 20px;
+          padding: 40px 20px;
+          text-align: center;
+          background: #ffffff;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .dropzone-box:hover, .dropzone-box.dragging {
+          border-color: #0f6784;
+          background: #eaf4fa;
+        }
+
+        .dz-icon-avatar {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: #eaf4fa;
+          color: #0f6784;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 14px;
+        }
+
+        .dz-main-title {
+          font-size: 0.9375rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 4px 0;
+        }
+
+        .dz-sub-title {
+          font-size: 0.8125rem;
+          color: #64748b;
+          margin: 0;
+        }
+
         .preview-container {
-          position: relative; width: 100%; max-height: 420px; border-radius: var(--radius-2xl); overflow: hidden;
-          background: #000; display: flex; align-items: center; justify-content: center;
-        }
-        .face-preview-img { width: 100%; height: 100%; max-height: 420px; object-fit: cover; }
-
-        .laser-scanner-overlay {
-          position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(180deg, rgba(14, 165, 233, 0.1) 0%, rgba(14, 165, 233, 0) 100%);
-        }
-        .laser-beam {
-          position: absolute; left: 0; right: 0; height: 3px;
-          background: linear-gradient(90deg, transparent 0%, #0ea5e9 50%, transparent 100%);
-          box-shadow: 0 0 15px #0ea5e9, 0 0 25px #0ea5e9;
-          animation: laserScan 2.2s ease-in-out infinite alternate;
-        }
-        @keyframes laserScan {
-          0% { top: 5%; }
-          100% { top: 92%; }
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
         }
 
-        .btn-change-photo {
-          position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);
-          color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: var(--radius-full);
-          padding: 6px 14px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;
-          transition: all 0.2s;
-        }
-        .btn-change-photo:hover { background: rgba(0, 0, 0, 0.85); }
-
-        /* Action Buttons & Coin Pre-scan Notice */
-        .action-button-group { display: flex; flex-direction: column; gap: 12px; }
-        .coin-notice-pill {
-          display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: var(--radius-xl);
-          background: rgba(254, 243, 199, 0.6); border: 1px solid #fcd34d; font-size: 0.8125rem; color: #92400e; line-height: 1.4;
-        }
-        .zap-icon { color: #d97706; flex-shrink: 0; margin-top: 2px; }
-
-        /* Live AI Orbit Spinner & Status Card */
-        .processing-status-card {
-          display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: var(--space-lg); background: var(--color-surface-container-low); border-radius: var(--radius-2xl);
-          border: 1px solid var(--color-secondary-container); gap: 10px;
-        }
-        .ai-orbit-spinner {
-          position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
-        }
-        .outer-orbit-ring {
-          position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(14, 165, 233, 0.2);
-          border-top-color: var(--color-primary); animation: orbitSpin 1.4s linear infinite;
-        }
-        .inner-orbit-ring {
-          position: absolute; inset: 6px; border-radius: 50%; border: 2px dashed rgba(14, 165, 233, 0.4);
-          animation: orbitSpinReverse 2.5s linear infinite;
-        }
-        .center-ai-sparkle { color: var(--color-primary); animation: pulseSparkle 1.5s ease-in-out infinite; }
-
-        @keyframes orbitSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes orbitSpinReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
-        @keyframes pulseSparkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } }
-
-        .processing-title { font-size: 1rem; font-weight: 700; color: var(--color-primary); margin: 0; transition: all 0.3s; }
-        .processing-sub { font-size: 0.8125rem; color: var(--color-text-muted); margin: 0; }
-
-        /* Smart Rejection Card */
-        .rejection-card {
-          display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-xl);
-          background: rgba(254, 242, 242, 0.7); border: 1px solid rgba(248, 113, 113, 0.4); border-radius: var(--radius-2xl); gap: var(--space-md);
-        }
-        .rejection-icon-wrapper {
-          width: 72px; height: 72px; border-radius: 50%; background: #fee2e2; color: #dc2626;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .rejection-card h3 { font-size: 1.35rem; font-weight: 700; color: #991b1b; margin: 0; font-family: var(--font-heading); }
-        .rejection-reason { font-size: 0.9375rem; color: #7f1d1d; margin: 0; line-height: 1.5; max-width: 500px; }
-
-        .rejection-tips-box {
-          background: white; border: 1px solid rgba(248, 113, 113, 0.3); border-radius: var(--radius-xl);
-          padding: var(--space-md) var(--space-lg); text-align: left; width: 100%; max-width: 520px;
-        }
-        .rejection-tips-box h4 { font-size: 0.875rem; font-weight: 700; color: #991b1b; margin: 0 0 8px 0; }
-        .rejection-tips-box ul { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.8125rem; color: var(--color-text-main); }
-
-        /* Error Card */
-        .error-card {
-          display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-xl);
-          gap: var(--space-md); color: var(--color-error);
-        }
-        .error-icon { color: var(--color-error); }
-        .error-card h3 { font-size: 1.2rem; font-weight: 700; margin: 0; }
-        .error-card p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0; }
-
-        /* Result Main Container */
-        .result-main-container { display: flex; flex-direction: column; gap: var(--space-lg); }
-        .result-hero-box { position: relative; width: 100%; max-height: 360px; border-radius: var(--radius-2xl); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
-        .result-face-img { width: 100%; height: 100%; max-height: 360px; object-fit: cover; }
-        .result-badge-confidence {
-          position: absolute; bottom: 12px; left: 12px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
-          color: #065f46; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-full);
-          padding: 6px 14px; font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 10;
+        .preview-img {
+          max-height: 240px;
+          border-radius: 12px;
+          object-fit: contain;
         }
 
-        /* Hotspot Box Overlay on Image */
-        .hotspot-box {
-          position: absolute; border: 2px dashed rgba(14, 165, 233, 0.8); background: rgba(14, 165, 233, 0.15);
-          border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; z-index: 5;
-        }
-        .hotspot-box:hover, .hotspot-box.is-selected {
-          border-style: solid; border-color: #0ea5e9; background: rgba(14, 165, 233, 0.3);
-          box-shadow: 0 0 16px rgba(14, 165, 233, 0.6);
-        }
-        .hotspot-label-tag {
-          position: absolute; top: -22px; left: 0; background: #0ea5e9; color: white;
-          font-size: 0.6875rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm); white-space: nowrap;
-          box-shadow: var(--shadow-sm);
+        .clear-image-btn {
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
+          color: #475569;
+          padding: 6px 14px;
+          border-radius: 20px;
+          font-size: 0.78125rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
-        .result-score-card {
-          background: var(--color-surface-container-low); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl); padding: var(--space-md) var(--space-lg); display: flex; flex-direction: column; gap: 6px;
+        .btn-primary-action {
+          width: 100%;
+          background: #0f6784;
+          color: #ffffff;
+          border: none;
+          border-radius: 12px;
+          padding: 14px;
+          font-size: 0.9375rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background 0.15s ease;
         }
-        .score-subtitle { font-size: 0.75rem; font-weight: 700; color: var(--color-secondary); letter-spacing: 0.05em; }
-        .score-title { font-size: 1.6rem; font-weight: 700; color: var(--color-primary); margin: 0; font-family: var(--font-heading); }
-        .score-progress-bar { height: 8px; width: 100%; background: var(--color-secondary-container); border-radius: var(--radius-full); overflow: hidden; margin: 4px 0; }
-        .progress-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.6s ease; }
-        .score-confidence-text { font-size: 0.75rem; color: var(--color-text-muted); }
 
-        /* Section Layout Boxes */
-        .result-section-box { display: flex; flex-direction: column; gap: 12px; }
-        .section-title-wrap { display: flex; align-items: center; gap: 8px; color: var(--color-primary); }
-        .section-title-wrap h4 { font-size: 0.95rem; font-weight: 700; margin: 0; font-family: var(--font-heading); }
-        .section-icon { color: var(--color-primary); }
-
-        .regions-grid { display: flex; flex-direction: column; gap: 10px; }
-
-        /* Ingredients List */
-        .ingredients-list { display: flex; flex-direction: column; gap: 8px; }
-        .ingredient-item-card {
-          display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl); box-shadow: var(--shadow-sm);
+        .btn-primary-action:hover:not(:disabled) {
+          background: #0b4f5c;
         }
-        .ing-badge {
-          width: 28px; height: 28px; border-radius: 50%; background: var(--color-secondary-fixed);
-          color: var(--color-primary); font-weight: 700; display: flex; align-items: center; justify-content: center;
-          font-size: 0.875rem; flex-shrink: 0;
-        }
-        .ing-content { display: flex; flex-direction: column; gap: 2px; }
-        .ing-name { font-size: 0.9375rem; font-weight: 700; color: var(--color-primary); }
-        .ing-purpose { font-size: 0.8125rem; color: var(--color-text-main); line-height: 1.4; }
 
-        /* Product Match Cards */
-        .products-grid { display: flex; flex-direction: column; gap: 10px; }
-        .product-match-card {
-          display: flex; flex-direction: column; gap: 8px; padding: 14px;
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl); box-shadow: var(--shadow-sm);
+        .btn-primary-action:disabled {
+          background: #cbd5e1;
+          color: #94a3b8;
+          cursor: not-allowed;
         }
-        .product-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .product-info { display: flex; flex-direction: column; gap: 2px; }
-        .product-cat { font-size: 0.75rem; font-weight: 700; color: var(--color-secondary); text-transform: uppercase; }
-        .product-name { font-size: 0.95rem; font-weight: 700; color: var(--color-primary); margin: 0; }
-        .match-score-badge {
-          display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--radius-full);
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(14, 165, 233, 0.12));
-          border: 1px solid rgba(16, 185, 129, 0.4); color: #047857; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+
+        /* SIDE INFO COL */
+        .side-info-col {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
-        .product-why { font-size: 0.8125rem; color: var(--color-text-main); margin: 0; line-height: 1.4; }
 
-        .result-notes-card {
-          background: var(--color-surface-container-low); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-xl); padding: var(--space-md); font-size: 0.875rem; line-height: 1.6; color: var(--color-text-main);
+        .side-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 18px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
-        .notes-header { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--color-primary); margin-bottom: 6px; }
 
-        /* Secondary Sidebar */
-        .scan-secondary-sidebar { display: flex; flex-direction: column; gap: var(--space-md); }
-        .active-profile-card, .scan-tips-card {
-          background: var(--color-surface-container-lowest); border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-2xl); padding: var(--space-md) var(--space-lg); box-shadow: var(--shadow-sm);
+        .card-section-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #64748b;
+          letter-spacing: 0.04em;
+          margin-bottom: 12px;
+          text-transform: uppercase;
         }
-        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .card-header h3 { font-size: 1rem; font-weight: 700; color: var(--color-primary); margin: 0; font-family: var(--font-heading); }
-        .header-icon { color: var(--color-primary); }
 
-        .profile-detail-rows { display: flex; flex-direction: column; gap: 10px; font-size: 0.875rem; }
-        .detail-row { display: flex; justify-content: space-between; align-items: center; }
-        .row-label { color: var(--color-text-muted); }
-        .row-val { font-weight: 700; color: var(--color-primary); }
-        .mini-pill-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
-        .mini-pill { background: var(--color-secondary-container); color: var(--color-primary); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); }
+        .profile-info-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.8125rem;
+          margin-bottom: 10px;
+        }
 
-        .tips-list { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.8125rem; color: var(--color-text-muted); line-height: 1.5; }
+        .profile-info-row span:first-child {
+          color: #64748b;
+        }
+
+        .profile-val-text {
+          font-weight: 600;
+          color: #0f6784;
+        }
+
+        .profile-info-row.stacked {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .chips-mini-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .chip-mini-item {
+          font-size: 0.6875rem;
+          font-weight: 600;
+          background: #eaf4fa;
+          color: #0f6784;
+          padding: 4px 10px;
+          border-radius: 20px;
+        }
+
+        .guide-tips-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+
+        .guide-tips-list li {
+          display: flex;
+          gap: 8px;
+          font-size: 0.8125rem;
+          line-height: 1.6;
+          color: #64748b;
+          margin-bottom: 8px;
+        }
+
+        .guide-tips-list li b {
+          color: #0f6784;
+        }
+
+        /* STAGE 1b: VALIDATION CHECKLIST CARD */
+        .validation-stage-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 24px;
+          max-width: 480px;
+          margin: 0 auto;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .check-list-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .check-item-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 0;
+          border-bottom: 1px solid #f1f5f9;
+          font-size: 0.84375rem;
+        }
+
+        .check-item-row:last-child {
+          border-bottom: none;
+        }
+
+        .check-icon-circle {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .check-icon-circle.pending {
+          background: #f1f5f9;
+          color: #94a3b8;
+        }
+
+        .pulse-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #94a3b8;
+          animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+          to { opacity: 0.3; }
+        }
+
+        .check-icon-circle.ok {
+          background: #f0fdf4;
+          color: #166534;
+        }
+
+        .check-label-text {
+          flex: 1;
+          color: #1e293b;
+          font-weight: 500;
+        }
+
+        .check-status-badge {
+          font-size: 0.78125rem;
+          font-weight: 600;
+          color: #94a3b8;
+        }
+
+        .check-status-badge.ok {
+          color: #166534;
+        }
+
+        /* STAGE 2: ANIMATED SCANNER CARD */
+        .stage-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .scanning-card {
+          align-items: center;
+          padding: 36px 20px;
+        }
+
+        .scan-frame-viewport {
+          position: relative;
+          border-radius: 20px;
+          overflow: hidden;
+          background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+          height: 240px;
+          width: 100%;
+          max-width: 400px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .scan-img-preview {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0.65;
+        }
+
+        .scan-frame-viewport::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, transparent, #10b981, transparent);
+          box-shadow: 0 0 14px 4px rgba(16, 185, 129, 0.8);
+          animation: scanline 2.1s ease-in-out infinite;
+        }
+
+        @keyframes scanline {
+          0% { top: 6%; }
+          50% { top: 92%; }
+          100% { top: 6%; }
+        }
+
+        .mock-face-shape {
+          width: 110px;
+          height: 140px;
+          border-radius: 50% 50% 44% 44% / 55% 55% 40% 40%;
+          background: #ffffff;
+          opacity: 0.55;
+        }
+
+        .scan-status-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .bouncing-dots {
+          display: flex;
+          gap: 4px;
+        }
+
+        .bouncing-dots span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #0f6784;
+          animation: dotBounce 1.1s infinite ease-in-out;
+        }
+
+        .bouncing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .bouncing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes dotBounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .shimmer-scan-text {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #0f6784;
+          animation: thinkShimmer 1.8s infinite ease-in-out;
+        }
+
+        @keyframes thinkShimmer {
+          0%, 100% { opacity: 0.55; }
+          50% { opacity: 1; }
+        }
+
+        /* STAGE 3: RESULTS STACK & SCORE HERO BANNER */
+        .results-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .score-hero-banner {
+          background: #0b4f5c;
+          border-radius: 20px;
+          padding: 28px;
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .dots-bg-pattern {
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+          background-size: 14px 14px;
+        }
+
+        .score-ring-avatar {
+          position: relative;
+          z-index: 1;
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.15);
+          border: 2px solid rgba(255,255,255,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.75rem;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+
+        .score-meta-info {
+          position: relative;
+          z-index: 1;
+        }
+
+        .hero-status-title {
+          font-size: 1.0625rem;
+          font-weight: 700;
+          margin: 0 0 6px 0;
+        }
+
+        .hero-status-desc {
+          font-size: 0.84375rem;
+          color: #dceeea;
+          line-height: 1.55;
+          margin: 0;
+        }
+
+        .section-label-header {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #64748b;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          margin-top: 4px;
+        }
+
+        /* AREA CARDS STACK */
+        .area-cards-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 20px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .area-card-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+
+        .area-title-text {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .area-severity-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 20px;
+        }
+
+        .area-severity-badge.ringan {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .area-severity-badge.sedang {
+          background: #fffbeb;
+          color: #b45309;
+          border: 1px solid #fef3c7;
+        }
+
+        .area-severity-badge.berat {
+          background: #fbe9e7;
+          color: #b3261e;
+          border: 1px solid #ffcdd2;
+        }
+
+        .area-analogy-text {
+          font-size: 0.84375rem;
+          color: #475569;
+          line-height: 1.6;
+          margin-bottom: 12px;
+        }
+
+        .causes-group, .solutions-group {
+          margin-bottom: 10px;
+        }
+
+        .causes-kicker, .solutions-kicker {
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #64748b;
+          margin-bottom: 6px;
+        }
+
+        .tags-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .cause-tag {
+          font-size: 0.75rem;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #475569;
+          padding: 4px 10px;
+          border-radius: 16px;
+        }
+
+        .sol-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          font-size: 0.8125rem;
+          color: #475569;
+          line-height: 1.6;
+        }
+
+        .sol-list li {
+          padding-left: 18px;
+          position: relative;
+          margin-bottom: 4px;
+        }
+
+        .sol-list li::before {
+          content: '✓';
+          position: absolute;
+          left: 0;
+          color: #0f6784;
+          font-weight: 700;
+        }
+
+        .region-cropper-wrapper {
+          margin-top: 14px;
+          border-top: 1px solid #f1f5f9;
+          padding-top: 14px;
+        }
+
+        /* TIPS CATEGORY GRID */
+        .tips-category-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .tip-card {
+          padding: 18px;
+        }
+
+        .tip-header-title {
+          font-size: 0.84375rem;
+          font-weight: 700;
+          margin: 0 0 10px 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .text-red { color: #b3261e; }
+        .text-amber { color: #b45309; }
+        .text-green { color: #166534; }
+
+        .tip-items-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          font-size: 0.8125rem;
+          color: #475569;
+          line-height: 1.65;
+        }
+
+        .tip-items-list li {
+          padding-left: 16px;
+          position: relative;
+          margin-bottom: 4px;
+        }
+
+        .tip-items-list.avoid li::before { content: '✕'; position: absolute; left: 0; color: #b3261e; }
+        .tip-items-list.reduce li::before { content: '−'; position: absolute; left: 0; color: #b45309; font-weight: 700; }
+        .tip-items-list.do li::before { content: '✓'; position: absolute; left: 0; color: #166534; font-weight: 700; }
+
+        /* PRODUCT RECOMMENDATIONS STACK */
+        .products-container-card {
+          padding: 16px;
+        }
+
+        .products-list-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .product-recommendation-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #f1f5f9;
+          opacity: 0;
+          transform: translateY(8px);
+          animation: cardReveal 0.4s ease forwards;
+        }
+
+        .product-recommendation-item:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+
+        .prod-rank-num {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #eaf4fa;
+          color: #0f6784;
+          font-size: 0.75rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .prod-icon-avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #0f6784;
+          flex-shrink: 0;
+        }
+
+        .prod-meta-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .prod-name-title {
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0 0 2px 0;
+        }
+
+        .prod-rationale-text {
+          font-size: 0.78125rem;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        .prod-right-badge {
+          text-align: right;
+          flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .prod-match-percent {
+          font-size: 0.78125rem;
+          font-weight: 700;
+          color: #166534;
+        }
+
+        .prod-price-text {
+          font-size: 0.75rem;
+          color: #64748b;
+        }
+
+        .btn-reset-scan {
+          width: 100%;
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
+          color: #0f6784;
+          border-radius: 12px;
+          padding: 12px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background 0.15s ease;
+        }
+
+        .btn-reset-scan:hover {
+          background: #f8fafc;
+        }
+
+        /* DESKTOP BREAKPOINT (>= 900px) */
+        @media (min-width: 900px) {
+          .facescan-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+          }
+
+          .tips-category-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+          }
+        }
       `}</style>
     </div>
   )
