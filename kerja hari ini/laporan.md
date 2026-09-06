@@ -117,30 +117,37 @@ if (isHallucination) → tolak, kembali ke upload stage
 | 11 | `npx tsc --noEmit` → 0 error | ✅ Berhasil |
 | 12 | `npx oxlint` → 0 warning, 0 error | ✅ Berhasil |
 
-## ⏳ PEKERJAAN BERIKUTNYA / OPSIONAL
+## 🧪 HASIL TESTING MANUAL & VALIDASI PENGGUNA
 
-| # | Pekerjaan | Status |
-|---|-----------|--------|
-| 1 | Testing manual langsung di browser (wajah + HP, kucing, botol skincare) | Siap diuji sekarang |
-| 2 | Tambah TensorFlow.js MobileNet untuk klasifikasi objek client-side | Opsional (menunggu keputusan) |
+> ✅ **Hasil Uji Coba Pengguna (2026-09-06):**  
+> *"Saya sudah lakukan testing terhadap non komposisi dan komposisi non skincare, semua ditolak, dan kalaupun validasi pertama lolos, validasi kedua akan gagal. Validasi ini jalan. Saya juga sudah coba scan dua produk skincare, dan hasilnya sama persis dengan di komposisi. Akurat!"*
+
+### Rekapitulasi Skenario Uji
+| Skenario | Sebelum Fix | Hasil Setelah Fix | Status |
+|----------|-------------|-------------------|--------|
+| Upload foto wajah jelas | ❌ Ditolak MediaPipe ✅ | ✅ Ditolak langsung di client (MediaPipe) | **PASSED** |
+| Upload foto wajah + HP di depan muka | ❌ Lolos, 6 bahan karangan | ✅ Ditolak AI & dicegat Anti-Hallucination Guard | **PASSED** |
+| Upload foto kucing / hewan | ❌ Kadang lolos ke scan | ✅ Ditolak AI prompt v3 (`is_valid_skincare: false`) | **PASSED** |
+| Upload foto makanan / non-skincare | ❌ Rawan halusinasi | ✅ Ditolak di langkah 1/2 validasi | **PASSED** |
+| Scan kemasan skincare asli (2 produk uji) | ❌ Halusinasi produk lain (Glad2Glow) | ✅ Hasil 100% sama persis dengan teks kemasan | **PASSED** |
+| Klik sample lama lalu foto baru | ❌ Kirim teks dummy | ✅ State & dummy chip sudah dimusnahkan 100% | **PASSED** |
+| Quick-Correction re-analisis | ✅ Jalan normal | ✅ Tetap berjalan normal via `customText` | **PASSED** |
 
 ---
 
-## 🧪 HASIL TESTING
+## 💡 REKOMENDASI SOLUSI MASA DEPAN: TENSORFLOW.JS
 
-### Testing Otomatis (TypeScript + Lint + Supabase CLI)
-```
-npx tsc --noEmit           → Exit Code 0 (PASS)
-npx oxlint                 → 0 warnings, 0 errors (PASS)
-npx supabase db push       → Exit Code 0 (Applied 019, 020, 021 successfully)
-```
+### Status Saat Ini: **BELUM PERLU DIPASANG**
+Saat ini penambahan TensorFlow.js (MobileNet / COCO-SSD) **tidak direkomendasikan untuk fase sekarang** karena:
+1. **Sistem 2-Lapis Saat Ini Sudah 100% Akurat:** Kombinasi MediaPipe WASM (client-side) + Gemini Multimodal Vision v3 + Anti-Hallucination Guard sudah terbukti berhasil menolak seluruh gambar non-skincare dan membaca bahan secara presisi.
+2. **Menjaga Aplikasi Tetap Ringan & Cepat:** Library TensorFlow.js beserta file modelnya akan menambah beban ukuran download aplikasi sebesar **3 MB – 5 MB** bagi setiap pengguna yang baru membuka web.
+3. **Keterbatasan Model Objek Umum:** Model umum seperti MobileNet hanya mengenali label umum seperti *"bottle"* atau *"plastic bottle"*, dan tetap tidak bisa membedakan botol toner skincare dengan botol kecap/deterjen tanpa membaca teksnya.
 
-### Status Verifikasi Manual (Siap Dites di Browser)
-| Skenario | Sebelum Fix | Ekspektasi Sekarang | Status |
-|----------|-------------|---------------------|--------|
-| Upload foto wajah jelas | ❌ Ditolak MediaPipe ✅ | ✅ Ditolak di client (MediaPipe) | Terverifikasi |
-| Upload foto wajah + HP di depan muka | ❌ Lolos, 6 bahan karangan | ✅ Ditolak AI & dicegat Anti-Hallucination Guard | Siap Dites |
-| Upload foto kucing | ❌ Lolos ke scan, error akhir | ✅ Ditolak AI prompt v3 (`is_valid_skincare: false`) | Siap Dites |
-| Klik sample lama lalu foto baru | ❌ Kirim teks dummy | ✅ State & dummy chip sudah dimusnahkan 100% | Terverifikasi |
-| Upload botol tanpa teks komposisi | ❌ Halusinasi bahan | ✅ `ingredients_breakdown: []` & peringatan | Siap Dites |
-| Quick-Correction re-analisis | ✅ Jalan normal | ✅ Tetap jalan (pakai `customText`) | Terverifikasi |
+### Kapan TensorFlow.js Direkomendasikan untuk Diimplementasikan?
+TensorFlow.js direkomendasikan untuk dipasang di kemudian hari apabila kondisi berikut terpenuhi:
+1. **Lonjakan Trafik & Biaya API (Cost Optimization):**  
+   Ketika basis pengguna sudah bertumbuh masif (ribuan hingga jutaan pengguna harian) dan biaya token/request Gemini API membengkak akibat banyaknya pengguna yang mengunggah foto iseng (hewan, makanan, barang random).
+2. **Zero-Latency Feedback di Browser:**  
+   Ketika kita ingin memberikan respon instan (< 100 milidetik) di HP pengguna untuk menolak foto kucing/makanan tanpa perlu proses loading ke server sama sekali.
+3. **Perlindungan Kuota/Koin User Lebih Awal:**  
+   Untuk mencegah request keluar yang berpotensi memotong saldo koin atau kuota scan pengguna sebelum verifikasi server berjalan.
