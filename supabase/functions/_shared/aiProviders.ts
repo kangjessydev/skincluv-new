@@ -30,20 +30,31 @@ export interface AiResponse {
 async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
   const { modelName, apiKey, systemPrompt, messages, parameters } = opts
 
-  // Build contents array: system instruction + conversation
-  const contents = messages.map((m) => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: Array.isArray(m.content)
-      ? m.content
-      : [{ text: m.content as string }],
-  }))
+  // Build contents array: system instruction + conversation with multimodal support
+  const contents = messages.map((m) => {
+    let parts: any[] = []
+    if (Array.isArray(m.content)) {
+      parts = m.content.map((part) => {
+        if (typeof part === 'string') return { text: part }
+        return part
+      })
+    } else if (typeof m.content === 'object' && m.content !== null) {
+      parts = [m.content]
+    } else {
+      parts = [{ text: String(m.content ?? '') }]
+    }
+    return {
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts,
+    }
+  })
 
   const body = {
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents,
     generationConfig: {
-      temperature: parameters?.temperature ?? 0.7,
-      maxOutputTokens: parameters?.max_tokens ?? 1024,
+      temperature: parameters?.temperature ?? 0.2,
+      maxOutputTokens: parameters?.max_tokens ?? 1500,
     },
   }
 

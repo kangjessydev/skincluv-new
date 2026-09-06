@@ -224,7 +224,7 @@ Deno.serve(async (req: Request) => {
       return jsonError('AI provider API key not configured. Check Vault secret name.', 503)
     }
 
-    // ---- 7. Build prompt context ----
+    // ---- 7. Build prompt context & Attach Multimodal Image if present ----
     // Fetch active skin profile & user profile for context injection
     const [skinProfileRes, userProfileRes] = await Promise.all([
       supabaseService
@@ -254,6 +254,26 @@ Deno.serve(async (req: Request) => {
 
     const systemPrompt = interpolatePrompt(prompt.system_prompt, promptContext)
 
+    // Attach image_base64 to the user message for multimodal vision models
+    const finalMessages = trimmedMessages.map((m, idx) => {
+      if (idx === trimmedMessages.length - 1 && input_context?.image_base64) {
+        const textContent = typeof m.content === 'string' ? m.content : ''
+        return {
+          role: m.role,
+          content: [
+            { text: textContent },
+            {
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: input_context.image_base64,
+              },
+            },
+          ],
+        }
+      }
+      return m
+    })
+
     // ---- 8. Call AI Provider ----
     const startTime = Date.now()
     let aiResult
@@ -265,7 +285,7 @@ Deno.serve(async (req: Request) => {
         modelName: model.model_name,
         apiKey,
         systemPrompt,
-        messages: trimmedMessages,
+        messages: finalMessages as any[],
         parameters: model.parameters as Record<string, number>,
       })
     } catch (err) {

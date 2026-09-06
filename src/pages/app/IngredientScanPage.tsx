@@ -1,7 +1,3 @@
-// src/pages/app/IngredientScanPage.tsx
-// Skincluv Design System Harmonized Scan Ingredient AI Page
-// Pure Inter Typography, Full-Width Responsive 2-Column Grid, 3-Stage Animated Scanning Flow & Predictive Ingredient Filters
-
 import React, { useState, useRef, useEffect } from 'react'
 import {
   FlaskConical,
@@ -16,20 +12,33 @@ import {
   Sparkles,
   BookOpen,
   Filter,
+  ShieldCheck,
+  AlertTriangle,
+  Zap,
+  Edit3,
+  RefreshCw,
 } from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
+import { compressImageForAI } from '@/utils/imageQualityValidator'
+import { detectHumanFace } from '@/utils/faceLandmarkDetector'
 
-type TabMode = 'image' | 'text'
 type ScanStage = 'upload' | 'scanning' | 'result'
 type BadgeFilter = 'all' | 'aman' | 'hati' | 'hindari'
+
+export interface LayeringCombo {
+  pair: string
+  benefit?: string
+  warning?: string
+}
 
 export interface IngredientItem {
   name: string
   badge?: 'aman' | 'hati' | 'hindari' | string
   badgeLabel?: string
   function?: string
+  comedogenic_score?: number
   notes?: string
   skinType?: string
   interaction?: string
@@ -41,23 +50,30 @@ export interface IngredientItem {
 
 export interface IngredientAnalysisResult {
   is_valid_skincare?: boolean
+  is_readable?: boolean
+  rejection_reason?: string
+  rejection_suggestion?: string
+  partial_read_warning?: string
   product_name?: string
+  extracted_raw_text?: string
   clinical_summary?: string
   safety_score?: number
+  comedogenic_rating?: string
   total_ingredients?: number
   safe_count?: number
   caution_count?: number
+  avoid_count?: number
   overall_recommendation?: string
   suitable_for_skin_types?: string[]
+  layering_guide?: {
+    best_combos?: LayeringCombo[]
+    danger_combos?: LayeringCombo[]
+  }
   key_ingredients?: IngredientItem[]
   ingredients_breakdown?: IngredientItem[]
 }
 
-const SAMPLE_INGREDIENTS = [
-  'Aqua, Niacinamide 5%, Hyaluronic Acid, Centella Asiatica Extract, Phenoxyethanol, Ethylhexylglycerin',
-  'Water, Salicylic Acid 2%, Glycolic Acid 7%, Alcohol Denat, Fragrance, Parabens',
-  'Aqua, Glycerin, Ceramide NP, Squalane, Tocopherol, Panthenol, Xanthan Gum',
-]
+
 
 export default function IngredientScanPage() {
   const { profile, coinBalance } = useAuthStore()
@@ -69,16 +85,18 @@ export default function IngredientScanPage() {
     : 'Pori-pori besar, Rawan Jerawat, Kemerahan'
   const skinTypeDesc = `${userSkinType.toLowerCase()}, ${userConcerns.toLowerCase()}`
 
-  // Stage, Tab & Filter States
+  // Stage & Filter States (Photo-First Scan Experience)
   const [stage, setStage] = useState<ScanStage>('upload')
-  const [activeTab, setActiveTab] = useState<TabMode>('image')
   const [filterBadge, setFilterBadge] = useState<BadgeFilter>('all')
 
-  // Input & Drag States
+  // Photo & Preview States
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
-  const [inputText, setInputText] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+
+  // Quick-Correction Editable State (Anti-Salah Baca OCR)
+  const [isEditingText, setIsEditingText] = useState(false)
+  const [editableText, setEditableText] = useState('')
 
   // Processing & Errors
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -87,10 +105,10 @@ export default function IngredientScanPage() {
 
   // Scanner Stage Animation Text & Progress Counter
   const scanStagesText = [
-    'Mendeteksi teks komposisi pada label...',
+    'Mengekstrak teks komposisi dari foto kemasan...',
     'Mengidentifikasi bahan aktif & sensitizer...',
     `Mencocokkan dengan profil kulitmu (${userSkinType})...`,
-    'Menyusun hasil analisis & rekomendasi...',
+    'Menghitung Safety Score & Panduan Layering...',
   ]
   const [scanTextIndex, setScanTextIndex] = useState(0)
   const [foundCount, setFoundCount] = useState(0)
@@ -118,6 +136,7 @@ export default function IngredientScanPage() {
       clearInterval(textInterval)
       clearInterval(countInterval)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage])
 
   // Auto-scroll smooth to results when Stage 3 activates
@@ -127,7 +146,7 @@ export default function IngredientScanPage() {
     }
   }, [stage])
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setErrorMsg('File harus berupa gambar (JPG, PNG, WEBP)')
       return
@@ -136,12 +155,31 @@ export default function IngredientScanPage() {
     setPreviewUrl(URL.createObjectURL(file))
     setScanResult(null)
 
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string
-      setImageBase64(result.split(',')[1])
+    try {
+      const base64Data = await compressImageForAI(file)
+      
+      // Client-side Face Detection Gate: Cegah foto wajah manusia masuk ke Scan Ingredient
+      try {
+        const faceCheck = await detectHumanFace(base64Data)
+        if (faceCheck.isHuman && faceCheck.faceCoverage > 8) {
+          setErrorMsg('Foto yang Anda unggah terdeteksi sebagai wajah manusia. Halaman Scan Ingredient ini khusus untuk membaca label/botol kemasan produk skincare. Untuk memeriksa kondisi kulit wajah, silakan gunakan menu Scan Wajah.')
+          setPreviewUrl(null)
+          setImageBase64(null)
+          return
+        }
+      } catch (faceErr) {
+        console.warn('Face pre-check skipped:', faceErr)
+      }
+
+      setImageBase64(base64Data)
+    } catch {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        const result = ev.target?.result as string
+        setImageBase64(result.split(',')[1])
+      }
+      reader.readAsDataURL(file)
     }
-    reader.readAsDataURL(file)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,46 +211,86 @@ export default function IngredientScanPage() {
     setScanResult(null)
   }
 
-  const handleStartAnalysis = async () => {
-    if (activeTab === 'image' && !imageBase64) {
-      setErrorMsg('Pilih atau unggah foto label komposisi produk terlebih dahulu.')
-      return
-    }
-    if (activeTab === 'text' && !inputText.trim()) {
-      setErrorMsg('Masukkan atau tempelkan teks komposisi produk terlebih dahulu.')
+  const handleStartAnalysis = async (customText?: string) => {
+    // customText hanya digunakan untuk re-analisis dari Quick-Correction box
+    if (!imageBase64 && !customText) {
+      setErrorMsg('Pilih atau ambil foto label kemasan produk skincare terlebih dahulu.')
       return
     }
 
     setErrorMsg(null)
     setStage('scanning')
     setIsAnalyzing(true)
+    setIsEditingText(false)
 
     try {
       const input_context: Record<string, string> = {}
-      if (activeTab === 'text') input_context.ingredient_text = inputText
-      if (activeTab === 'image' && imageBase64) input_context.image_base64 = imageBase64
+      if (customText) {
+        input_context.ingredient_text = customText
+      } else if (imageBase64) {
+        input_context.image_base64 = imageBase64
+      }
 
       const result = await invoke<IngredientAnalysisResult>({
         feature_slug: 'ingredient_scan',
         messages: [
           {
             role: 'user',
-            content:
-              activeTab === 'text'
-                ? inputText
-                : 'Analisis komposisi bahan dari foto kemasan produk skincare ini.',
+            content: customText
+              ? `Teks komposisi skincare untuk dianalisis:\n"${customText}"\n\nAnalisis kecocokan untuk profil kulit Pengguna: Tipe ${userSkinType}, Masalah: ${userConcerns}. Lakukan evaluasi ilmiah per bahan.`
+              : `Foto kemasan produk skincare telah dilampirkan bersama permintaan ini.
+
+PETUNJUK OCR & ANALISIS WAJIB:
+1. BACA dan EKSTRAK teks komposisi (Ingredients / Komposisi) yang TERCETAK NYATA pada foto ini secara presisi huruf demi huruf.
+2. DILARANG KERAS MENEBAK, MENAMBAH, ATAU MENGGANTI bahan dengan produk pasaran lain (seperti Glad2Glow, Skintific, Somethinc, dll)! Ekstrak HANYA bahan yang benar-benar tercetak di kemasan foto ini. Jika di foto hanya tertulis 10 bahan, keluarkan tepat 10 bahan tersebut di extracted_raw_text dan ingredients_breakdown.
+3. Nama produk: Ambil nama yang tercetak pada foto produk (misal jika ada kata "Salmon", gunakan nama tersebut) atau jika tidak ada tulis "Formula Skincare Terdeteksi".
+4. Evaluasi kecocokan setiap bahan untuk profil kulit Pengguna: Tipe ${userSkinType}, Masalah: ${userConcerns}.
+5. Jika foto BUKAN produk kosmetik/skincare atau teks tidak terbaca sama sekali, kembalikan is_valid_skincare: false atau is_readable: false sesuai aturan sistem.`,
           },
         ],
         input_context,
       })
 
       if (!result || typeof result !== 'object') {
-        setErrorMsg('Gagal menganalisis komposisi produk. Silakan periksa foto/teks dan coba lagi.')
+        setErrorMsg('Gagal menganalisis komposisi produk. Silakan periksa foto dan coba lagi.')
+        setStage('upload')
+        return
+      }
+
+      // Check validation safeguards
+      if (result.is_valid_skincare === false || result.is_readable === false) {
+        const errorReason =
+          result.rejection_reason ||
+          'Foto tidak dapat dianalisis sebagai produk skincare yang sah. Pastikan foto memuat kemasan atau teks komposisi yang jelas.'
+        const suggestion = result.rejection_suggestion ? ` (${result.rejection_suggestion})` : ''
+        setErrorMsg(`${errorReason}${suggestion}`)
+        setStage('upload')
+        return
+      }
+
+      // Anti-Hallucination Guard: jika safety_score === 0 dan tidak ada teks terbaca → AI berhalusinasi
+      const extractedList = result.ingredients_breakdown || result.key_ingredients || []
+      const hasExtractedText = !!result.extracted_raw_text?.trim()
+      const isHallucination = (result.safety_score === 0 || result.safety_score === null) && !hasExtractedText && !customText
+      if (isHallucination) {
+        setErrorMsg('AI tidak dapat mengidentifikasi teks komposisi skincare pada foto ini. Pastikan foto memuat label "Ingredients" yang jelas dan terbaca.')
+        setStage('upload')
+        return
+      }
+
+      if (extractedList.length === 0 && !hasExtractedText && !customText) {
+        setErrorMsg('Tidak ditemukan teks komposisi bahan pada foto kemasan ini. Pastikan foto memuat tabel ingredients yang jelas.')
         setStage('upload')
         return
       }
 
       setScanResult(result)
+      const rawText =
+        result.extracted_raw_text ||
+        result.ingredients_breakdown?.map((i) => i.name).join(', ') ||
+        customText ||
+        ''
+      setEditableText(rawText)
       setStage('result')
     } catch (err: any) {
       console.error('Ingredient scan error:', err)
@@ -223,14 +301,20 @@ export default function IngredientScanPage() {
     }
   }
 
+  const handleReanalyzeWithText = () => {
+    if (!editableText.trim()) return
+    handleStartAnalysis(editableText)
+  }
+
   const handleResetFlow = () => {
     setStage('upload')
     setPreviewUrl(null)
     setImageBase64(null)
-    setInputText('')
     setScanResult(null)
     setErrorMsg(null)
     setFilterBadge('all')
+    setIsEditingText(false)
+    setEditableText('')
   }
 
   // Normalization Helpers for Ingredient Breakdown
@@ -254,6 +338,7 @@ export default function IngredientScanPage() {
             badge: badgeType,
             badgeLabel: badgeLabelText,
             function: item.function || item.notes || 'Bahan aktif pendukung formulasi skincare.',
+            comedogenic_score: item.comedogenic_score,
             skinType: item.skinType || 'Semua jenis kulit, terutama berminyak & kombinasi',
             interaction:
               item.interaction || 'Aman dikombinasikan dengan rutinitas perawatan harian Anda.',
@@ -266,80 +351,13 @@ export default function IngredientScanPage() {
             },
           }
         })
-      : [
-          {
-            name: 'Niacinamide (Vitamin B3)',
-            badge: 'aman',
-            badgeLabel: 'Aman',
-            function: 'Mengontrol produksi minyak berlebih, mencerahkan, dan memperkuat skin barrier.',
-            skinType: 'Semua jenis kulit, terutama berminyak & kombinasi',
-            interaction:
-              'Sebaiknya tidak dicampur langsung dengan Vitamin C murni konsentrasi tinggi',
-            personal: {
-              ok: true,
-              text: `Cocok untuk profil kulitmu (${skinTypeDesc}) — bantu kontrol minyak & samarkan noda jerawat.`,
-            },
-          },
-          {
-            name: 'Salicylic Acid (BHA 2%)',
-            badge: 'hati',
-            badgeLabel: 'Perlu diperhatikan',
-            function:
-              'Eksfoliasi dalam pori-pori untuk membersihkan minyak berlebih dan sumbatan jerawat.',
-            skinType: 'Berminyak & rawan jerawat',
-            interaction:
-              'Jangan dicampur bersamaan dengan Retinol dalam rutinitas malam yang sama',
-            personal: {
-              ok: true,
-              text:
-                'Bagus untuk mengontrol komedo, namun mulai dari penggunaan 2-3 kali seminggu untuk cegah kemerahan.',
-            },
-          },
-          {
-            name: 'Glycerin',
-            badge: 'aman',
-            badgeLabel: 'Aman',
-            function: 'Humektan yang menarik kelembaban ke dalam sel kulit tanpa menyumbat pori.',
-            skinType: 'Semua jenis kulit',
-            interaction: 'Aman dikombinasikan dengan hampir semua bahan aktif lain',
-            personal: {
-              ok: true,
-              text: 'Sangat aman — mengunci kelembaban seimbang tanpa membuat T-zone berminyak.',
-            },
-          },
-          {
-            name: 'Fragrance (Parfum Synthetic)',
-            badge: 'hindari',
-            badgeLabel: 'Hindari',
-            function: 'Bahan pembuat aroma sintetik, tidak memiliki fungsi klinis untuk kesehatan kulit.',
-            skinType: 'Sensitif, reaktif, dan rawan eksim',
-            interaction:
-              'Meningkatkan risiko iritasi dan kemerahan jika dikombinasi dengan asam eksfoliasi',
-            personal: {
-              ok: false,
-              text: 'Waspada — tercatat dapat memicu reaksi kemerahan & iritasi pada kulit sensitifmu.',
-            },
-          },
-          {
-            name: 'Panthenol (Pro-Vitamin B5)',
-            badge: 'aman',
-            badgeLabel: 'Aman',
-            function: 'Menenangkan peradangan, meredakan kemerahan, dan mempercepat pemulihan kulit.',
-            skinType: 'Semua jenis kulit, sangat direkomendasikan untuk kulit kemerahan',
-            interaction: 'Sangat baik dikombinasikan setelah penggunaan eksfoliator BHA/AHA',
-            personal: {
-              ok: true,
-              text: 'Sangat bagus — membantu menenangkan kemerahan & menjaga hidrasi kulitmu.',
-            },
-          },
-        ]
+      : []
 
   // Counts & Filter logic
   const safeCount = displayIngredientsList.filter((i) => i.badge === 'aman').length
   const cautionCount = displayIngredientsList.filter((i) => i.badge === 'hati').length
   const avoidCount = displayIngredientsList.filter((i) => i.badge === 'hindari').length
   const totalCount = displayIngredientsList.length
-  const scoreRatio = `${safeCount}/${totalCount}`
 
   const filteredIngredients = displayIngredientsList.filter((item) => {
     if (filterBadge === 'all') return true
@@ -383,111 +401,78 @@ export default function IngredientScanPage() {
             </div>
           )}
 
-          {/* STAGE 1: UPLOAD / INPUT */}
+          {/* STAGE 1: PHOTO-FIRST UPLOAD */}
           {stage === 'upload' && (
             <div className="stage-card">
-              {/* Tab Switcher */}
-              <div className="tab-switcher">
-                <button
-                  onClick={() => {
-                    setActiveTab('image')
-                    setErrorMsg(null)
-                  }}
-                  className={`tab-btn ${activeTab === 'image' ? 'active' : ''}`}
-                >
-                  <Camera size={16} />
-                  <span>Unggah Foto Label</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('text')
-                    setErrorMsg(null)
-                  }}
-                  className={`tab-btn ${activeTab === 'text' ? 'active' : ''}`}
-                >
-                  <FileText size={16} />
-                  <span>Ketik Teks Bahan</span>
-                </button>
+              <div
+                className={`dropzone-box ${isDragging ? 'dragging' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {previewUrl ? (
+                  <div className="preview-container">
+                    <img src={previewUrl} alt="Preview label komposisi" className="preview-img" />
+                    <button onClick={handleClearImage} className="clear-image-btn">
+                      <X size={14} /> Ganti / Hapus Foto
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="dz-icon-avatar">
+                      <Camera size={26} />
+                    </div>
+                    <h3 className="dz-main-title">Ambil / Unggah Foto Label Komposisi</h3>
+                    <p className="dz-sub-title">Pastikan teks komposisi pada kemasan terlihat jelas dan terang</p>
+                    <div className="dz-upload-btn-fake">
+                      <Upload size={15} /> Pilih File atau Jepret Kamera
+                    </div>
+                  </>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
               </div>
 
-              {activeTab === 'image' ? (
-                <div
-                  className={`dropzone-box ${isDragging ? 'dragging' : ''}`}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  {previewUrl ? (
-                    <div className="preview-container">
-                      <img src={previewUrl} alt="Preview label komposisi" className="preview-img" />
-                      <button onClick={handleClearImage} className="clear-image-btn">
-                        <X size={14} /> Hapus Foto
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="dz-icon-avatar">
-                        <Upload size={24} />
-                      </div>
-                      <h3 className="dz-main-title">Unggah foto label komposisi</h3>
-                      <p className="dz-sub-title">Format JPEG, PNG, atau WEBP (Maksimal 10MB)</p>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: 'none' }}
-                  />
-                </div>
-              ) : (
-                <div className="text-input-wrapper">
-                  <label className="input-label">Tempelkan Teks Komposisi (Ingredients):</label>
-                  <textarea
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Contoh: Aqua, Niacinamide 5%, Glycerin, Centella Asiatica Extract, Salicylic Acid 2%..."
-                    rows={6}
-                    className="ingredient-textarea"
-                  />
-                  <div className="sample-chips-box">
-                    <span className="sample-kicker">Coba sampel komposisi:</span>
-                    <div className="chips-row">
-                      {SAMPLE_INGREDIENTS.map((sample, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setInputText(sample)}
-                          className="sample-chip-btn"
-                        >
-                          Sampel #{idx + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+
+              {/* Smart Photography Tips Accordion/Card */}
+              <div className="photo-tips-card">
+                <h4 className="photo-tips-title">
+                  <Sparkles size={14} className="text-amber-500" /> Tips Foto Kemasan Supaya 100% Akurat:
+                </h4>
+                <ul className="photo-tips-list">
+                  <li>
+                    <strong>Dekatkan Kamera:</strong> Fokuskan lensa langsung ke bagian teks <em>"Ingredients / Komposisi"</em> (tidak perlu seluruh botol).
+                  </li>
+                  <li>
+                    <strong>Hindari Silau Lampu:</strong> Miringkan botol sedikit agar pantulan cahaya lampu tidak menutupi tulisan.
+                  </li>
+                  <li>
+                    <strong>Pencahayaan Terang:</strong> Pastikan tulisan tidak gelap atau buram/goyang.
+                  </li>
+                </ul>
+              </div>
 
               {/* Action Button */}
               <button
                 className="btn-primary-action"
-                onClick={handleStartAnalysis}
-                disabled={
-                  isAnalyzing ||
-                  (activeTab === 'image' && !imageBase64) ||
-                  (activeTab === 'text' && !inputText.trim())
-                }
+                onClick={() => handleStartAnalysis()}
+                disabled={isAnalyzing || !imageBase64}
               >
                 <FlaskConical size={18} />
-                <span>Analisis Bahan Skincare</span>
+                <span>Mulai Pindai Komposisi Skincare</span>
               </button>
 
               {/* Medical Disclaimer */}
               <div className="disclaimer-banner">
                 <Info size={18} className="disclaimer-icon" />
                 <span>
-                  <b>Penafian medis:</b> Hasil analisis AI ini bersifat panduan edukasi, bukan pengganti diagnosis atau konsultasi dokter kulit profesional.
+                  <b>Penafian medis:</b> Hasil analisis AI ini bersifat panduan edukasi klinis, bukan pengganti diagnosis dokter spesialis kulit profesional.
                 </span>
               </div>
             </div>
@@ -517,13 +502,19 @@ export default function IngredientScanPage() {
             </div>
           )}
 
-          {/* STAGE 3: RESULTS & PREDICTIVE FILTERS */}
+          {/* STAGE 3: RESULTS & QUICK-CORRECTION */}
           {stage === 'result' && (
             <div className="results-stack">
               {/* Score Summary Box */}
               <div className="result-summary-card">
-                <div className="score-ring-avatar">{scoreRatio}</div>
+                <div className="score-ring-avatar">
+                  <span className="sr-val">{scanResult?.safety_score || Math.round((safeCount / (totalCount || 1)) * 100)}</span>
+                  <span className="sr-unit">Skor Keamanan</span>
+                </div>
                 <div className="summary-meta">
+                  <div className="product-detected-pill">
+                    <Sparkles size={13} /> {scanResult?.product_name || 'Formula Skincare Terdeteksi'}
+                  </div>
                   <h3 className="summary-title">
                     {safeCount === totalCount
                       ? '100% Cocok & Aman untuk Kulitmu'
@@ -532,8 +523,107 @@ export default function IngredientScanPage() {
                   <p className="summary-subtitle">
                     {safeCount} bahan aman, {cautionCount} perlu diperhatikan, {avoidCount} berisiko untuk profil kulit ({userSkinType.toLowerCase()}).
                   </p>
+                  {scanResult?.comedogenic_rating && (
+                    <div className="comedogenic-pill">
+                      Indeks Komedogenik (Pori Tersumbat): <strong>{scanResult.comedogenic_rating}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Partial Read Warning Banner (Jika ada teks pudar) */}
+              {scanResult?.partial_read_warning && (
+                <div className="partial-warning-box">
+                  <AlertCircle size={16} className="shrink-0 text-amber-600" />
+                  <span>
+                    <strong>Catatan Label:</strong> {scanResult.partial_read_warning}
+                  </span>
+                </div>
+              )}
+
+              {/* QUICK-CORRECTION OCR REVIEW BOX */}
+              <div className="detected-text-box">
+                <div className="dt-header">
+                  <div className="dt-title">
+                    <FileText size={15} className="text-sky-600" />
+                    <strong>Teks Komposisi Terbaca dari Kemasan:</strong>
+                  </div>
+                  <button
+                    className="btn-toggle-edit"
+                    onClick={() => setIsEditingText(!isEditingText)}
+                  >
+                    <Edit3 size={13} /> {isEditingText ? 'Tutup Edit' : 'Koreksi / Tambah Kata'}
+                  </button>
+                </div>
+
+                {!isEditingText ? (
+                  <p className="dt-content">
+                    {editableText || scanResult?.extracted_raw_text || rawIngredientsList.map((i) => i.name).join(', ')}
+                  </p>
+                ) : (
+                  <div className="edit-box-wrapper">
+                    <p className="edit-hint">
+                      💡 Perbaiki jika ada kata/huruf yang typo atau tambahkan bahan yang terpotong pada kemasan botol melengkung:
+                    </p>
+                    <textarea
+                      value={editableText}
+                      onChange={(e) => setEditableText(e.target.value)}
+                      className="edit-textarea"
+                      rows={3}
+                    />
+                    <button
+                      className="btn-reanalyze"
+                      onClick={handleReanalyzeWithText}
+                      disabled={isAnalyzing || !editableText.trim()}
+                    >
+                      <RefreshCw size={14} /> Hitung Ulang Analisis dengan Teks Terkoreksi
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Layering Guide Box (Do & Don't Combos) */}
+              {scanResult?.layering_guide && (
+                ((scanResult.layering_guide.best_combos && scanResult.layering_guide.best_combos.length > 0) ||
+                 (scanResult.layering_guide.danger_combos && scanResult.layering_guide.danger_combos.length > 0)) && (
+                  <div className="layering-guide-card">
+                    <h4 className="layering-title">
+                      <Zap size={16} className="text-amber-500" /> Panduan Layering & Kombinasi Skincare
+                    </h4>
+                    <div className="layering-grid">
+                      {scanResult.layering_guide.best_combos && scanResult.layering_guide.best_combos.length > 0 && (
+                        <div className="layering-box best-box">
+                          <div className="box-header text-emerald-700">
+                            <ShieldCheck size={16} /> <strong>Best Combos (Aman & Efektif):</strong>
+                          </div>
+                          <ul className="combos-list">
+                            {scanResult.layering_guide.best_combos.map((item, bIdx) => (
+                              <li key={bIdx}>
+                                <b>{item.pair}:</b> {item.benefit}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {scanResult.layering_guide.danger_combos && scanResult.layering_guide.danger_combos.length > 0 && (
+                        <div className="layering-box danger-box">
+                          <div className="box-header text-rose-700">
+                            <AlertTriangle size={16} /> <strong>Danger Combos (Hindari Bersamaan):</strong>
+                          </div>
+                          <ul className="combos-list">
+                            {scanResult.layering_guide.danger_combos.map((item, dIdx) => (
+                              <li key={dIdx}>
+                                <b>{item.pair}:</b> {item.warning}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              )}
 
               {/* Predictive Filter Bar */}
               <div className="filter-bar">
@@ -890,6 +980,62 @@ export default function IngredientScanPage() {
           background: #eaf4fa;
         }
 
+        /* SMART PHOTOGRAPHY TIPS */
+        .photo-tips-card {
+          background: #fffdf5;
+          border: 1px solid #fef08a;
+          border-radius: 12px;
+          padding: 12px 14px;
+          font-size: 0.78125rem;
+        }
+
+        .photo-tips-title {
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: #854d0e;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin: 0 0 6px 0;
+        }
+
+        .photo-tips-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          color: #713f12;
+          line-height: 1.45;
+        }
+
+        .photo-tips-list li {
+          position: relative;
+          padding-left: 12px;
+        }
+
+        .photo-tips-list li::before {
+          content: '•';
+          position: absolute;
+          left: 2px;
+          color: #ca8a04;
+        }
+
+        /* PARTIAL READ WARNING BOX */
+        .partial-warning-box {
+          background: #fffbeb;
+          border: 1px solid #fcd34d;
+          color: #92400e;
+          border-radius: 12px;
+          padding: 10px 14px;
+          font-size: 0.8125rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          line-height: 1.45;
+        }
+
         /* PRIMARY ACTION BUTTON */
         .btn-primary-action {
           width: 100%;
@@ -1053,17 +1199,267 @@ export default function IngredientScanPage() {
         }
 
         .score-ring-avatar {
-          width: 56px;
-          height: 56px;
+          width: 72px;
+          height: 72px;
           border-radius: 50%;
-          background: #eaf4fa;
-          color: #0f6784;
+          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          color: #ffffff;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          font-weight: 700;
-          font-size: 1.125rem;
           flex-shrink: 0;
+          box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
+        }
+
+        .sr-val {
+          font-size: 1.45rem;
+          font-weight: 800;
+          line-height: 1;
+        }
+
+        .sr-unit {
+          font-size: 0.6rem;
+          font-weight: 600;
+          opacity: 0.9;
+          margin-top: 2px;
+        }
+
+        .product-detected-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: #e0f2fe;
+          color: #0369a1;
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 6px;
+          margin-bottom: 6px;
+        }
+
+        .comedogenic-pill {
+          display: inline-block;
+          font-size: 0.78125rem;
+          color: #475569;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 4px 10px;
+          border-radius: 8px;
+          margin-top: 8px;
+        }
+
+        .dz-upload-btn-fake {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #ffffff;
+          border: 1px solid #bae6fd;
+          color: #0284c7;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          padding: 8px 16px;
+          border-radius: 20px;
+          margin-top: 12px;
+          box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+        }
+
+        /* QUICK-CORRECTION OCR REVIEW BOX */
+        .detected-text-box {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .dt-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .dt-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          color: #1e293b;
+        }
+
+        .btn-toggle-edit {
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
+          color: #0284c7;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 4px 10px;
+          border-radius: 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.15s ease;
+        }
+
+        .btn-toggle-edit:hover {
+          background: #f0f9ff;
+          border-color: #0284c7;
+        }
+
+        .dt-content {
+          font-size: 0.8125rem;
+          color: #475569;
+          line-height: 1.5;
+          margin: 0;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          padding: 10px 12px;
+          border-radius: 10px;
+          word-break: break-word;
+        }
+
+        .edit-box-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .edit-hint {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .edit-textarea {
+          width: 100%;
+          border: 1px solid #0284c7;
+          border-radius: 10px;
+          padding: 10px;
+          font-size: 0.8125rem;
+          font-family: inherit;
+          color: #0f172a;
+          outline: none;
+          resize: vertical;
+          background: #ffffff;
+        }
+
+        .btn-reanalyze {
+          align-self: flex-start;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #0284c7;
+          color: #ffffff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 10px;
+          font-size: 0.78125rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+
+        .btn-reanalyze:hover:not(:disabled) {
+          background: #0369a1;
+        }
+
+        .btn-reanalyze:disabled {
+          background: #cbd5e1;
+          cursor: not-allowed;
+        }
+
+        /* LAYERING GUIDE */
+        .layering-guide-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .layering-title {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #0f172a;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin: 0 0 12px 0;
+        }
+
+        .layering-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 12px;
+        }
+
+        .layering-box {
+          border-radius: 12px;
+          padding: 12px 14px;
+          font-size: 0.8125rem;
+        }
+
+        .best-box {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+        }
+
+        .danger-box {
+          background: #fff1f2;
+          border: 1px solid #fecdd3;
+        }
+
+        .box-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 8px;
+          font-size: 0.8125rem;
+        }
+
+        .combos-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          color: #334155;
+          line-height: 1.45;
+        }
+
+        .combos-list li {
+          position: relative;
+          padding-left: 14px;
+        }
+
+        .combos-list li::before {
+          content: '•';
+          position: absolute;
+          left: 2px;
+          color: #64748b;
+        }
+
+        .ing-title-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .comedogenic-chip {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          color: #ea580c;
+          background: #fff7ed;
+          border: 1px solid #ffedd5;
+          padding: 2px 6px;
+          border-radius: 4px;
         }
 
         .summary-title {

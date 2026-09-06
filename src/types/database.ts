@@ -55,6 +55,20 @@ export interface SkinProfile {
   created_at: string
 }
 
+export interface FaceScan {
+  id: string
+  user_id: string
+  overall_score: number
+  skin_status_title: string | null
+  skin_type: string
+  skin_concerns: string[]
+  analysis_notes: string | null
+  area_evaluations: Json
+  product_recommendations: Json
+  raw_ai_response: Json
+  created_at: string
+}
+
 export interface AiFeature {
   id: string
   slug: FeatureSlug
@@ -223,6 +237,22 @@ export interface RateLimitLog {
   requested_at: string
 }
 
+export interface TripayInvoice {
+  id: string
+  merchant_ref: string
+  reference: string | null
+  user_id: string
+  amount_idr: number
+  plan: string
+  status: 'UNPAID' | 'PAID' | 'FAILED' | 'REFUND'
+  checkout_url: string | null
+  pay_url: string | null
+  qr_url: string | null
+  expired_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 // ----------------------------------------------------------------
 // Supabase Database interface (for typed client)
 // ----------------------------------------------------------------
@@ -238,6 +268,16 @@ export interface Database {
         Row: SkinProfile
         Insert: Omit<SkinProfile, 'id' | 'created_at'>
         Update: Partial<Omit<SkinProfile, 'id' | 'created_at'>>
+      }
+      face_scans: {
+        Row: FaceScan
+        Insert: Omit<FaceScan, 'id' | 'created_at'>
+        Update: Partial<Omit<FaceScan, 'id' | 'created_at'>>
+      }
+      tripay_invoices: {
+        Row: TripayInvoice
+        Insert: Omit<TripayInvoice, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<TripayInvoice, 'id' | 'created_at'>>
       }
       ai_features: {
         Row: AiFeature
@@ -340,6 +380,10 @@ export interface Database {
           p_coin_ref?: string
         }
         Returns: void
+      }
+      claim_mission: {
+        Args: { p_user_id: string; p_mission_slug: string; p_reward_coins: number }
+        Returns: boolean
       }
     }
     Enums: Record<string, never>

@@ -16,6 +16,7 @@ import CheckoutPage from '@/pages/app/CheckoutPage'
 import TransactionHistoryPage from '@/pages/app/TransactionHistoryPage'
 import PricingPage from '@/pages/app/PricingPage'
 import CoinHistoryPage from '@/pages/app/CoinHistoryPage'
+import ScanHistoryPage from '@/pages/app/ScanHistoryPage'
 import LandingPage from '@/pages/LandingPage'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 
@@ -43,6 +44,7 @@ export default function App() {
       <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/face-scan" element={<FaceScanPage />} />
+        <Route path="/scan-history" element={<ScanHistoryPage />} />
         <Route path="/ingredient-scan" element={<IngredientScanPage />} />
         <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/chatbot/:sessionId" element={<ChatbotPage />} />

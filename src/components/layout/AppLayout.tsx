@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Target,
   User,
-  Bell,
   PanelLeftClose,
   PanelLeftOpen,
   Crown,
@@ -19,6 +18,7 @@ import {
   Receipt,
   LogOut,
   ArrowLeft,
+  History,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -27,6 +27,7 @@ import { isActivePremium } from '@/utils/subscriptionHelpers'
 const navItems = [
   { to: '/', icon: Sparkles, label: 'Beranda' },
   { to: '/face-scan', icon: Scan, label: 'Scan Wajah' },
+  { to: '/scan-history', icon: History, label: 'Riwayat Scan' },
   { to: '/ingredient-scan', icon: FlaskConical, label: 'Scan Ingredient' },
   { to: '/chatbot', icon: MessageCircle, label: 'Skinsistant AI' },
   { to: '/missions', icon: Target, label: 'Misi Glow' },
@@ -53,6 +54,7 @@ export default function AppLayout() {
     const path = location.pathname
     if (path === '/') return 'Beranda'
     if (path.startsWith('/face-scan')) return 'Scan Wajah AI'
+    if (path.startsWith('/scan-history')) return 'Riwayat Scan Kulit'
     if (path.startsWith('/ingredient-scan')) return 'Scan Ingredient'
     if (path.startsWith('/chatbot')) return 'Skinsistant AI'
     if (path.startsWith('/missions')) return 'Misi Glow'
