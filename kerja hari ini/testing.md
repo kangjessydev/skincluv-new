@@ -42,21 +42,21 @@ npx oxlint src/pages/app/IngredientScanPage.tsx
 | **Input** | Foto seseorang yang wajahnya tidak terlihat (tertutup HP) |
 | **Mekanisme Blok (Pre-Fix)** | Hanya prompt AI — tidak efektif |
 | **Hasil Pre-Fix** | ❌ LOLOS → AI mengarang 6 bahan (Niacinamide, Salicylic Acid, Caffeine, Zinc PCA, dll) |
-| **Mekanisme Blok (Post-Fix)** | Anti-Hallucination Guard (`safety_score === 0` + `extracted_raw_text` kosong) + System Prompt v3 |
-| **Ekspektasi Post-Fix** | ✅ Ditolak → pesan "AI tidak dapat mengidentifikasi teks komposisi skincare..." |
-| **Status** | 🟢 READY TO TEST (Prompt v3 aktif di Supabase Cloud) |
+| **Mekanisme Blok (Post-Fix)** | Anti-Hallucination Guard (`safety_score === 0` + `extracted_raw_text` kosong) + System Prompt v3 + Edge Vision |
+| **Hasil Post-Fix** | ✅ **PASS** — Ditolak sempurna oleh sistem validasi bertingkat (dikonfirmasi via user test). |
+| **Status** | ✅ **PASSED** |
 
 ---
 
-### Skenario 3 — Upload Foto Kucing / Hewan
+### Skenario 3 — Upload Foto Kucing / Hewan & Non-Skincare
 | | Detail |
 |---|---|
-| **Input** | Foto kucing atau hewan peliharaan |
+| **Input** | Foto hewan / makanan / non-skincare |
 | **Mekanisme Blok (Pre-Fix)** | Hanya prompt AI — tidak konsisten |
 | **Hasil Pre-Fix** | ❌ Kadang lolos ke tahap scan, lalu gagal di akhir tanpa pesan jelas |
-| **Mekanisme Blok (Post-Fix)** | System Prompt v3 wajib `is_valid_skincare: false` untuk hewan |
-| **Ekspektasi Post-Fix** | ✅ Ditolak lebih awal dengan pesan rejection yang jelas |
-| **Status** | 🟢 READY TO TEST (Prompt v3 aktif di Supabase Cloud) |
+| **Mekanisme Blok (Post-Fix)** | System Prompt v3 wajib `is_valid_skincare: false` untuk hewan & non-skincare |
+| **Hasil Post-Fix** | ✅ **PASS** — Ditolak di langkah 1/2 validasi. Teks non-skincare tidak diproses. |
+| **Status** | ✅ **PASSED** |
 
 ---
 
