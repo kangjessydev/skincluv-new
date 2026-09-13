@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Crown, CheckCircle, Sparkles, ScanFace, MessageSquare, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
+import type { Subscription } from '@/types/database'
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams()
@@ -22,7 +23,7 @@ export default function PaymentSuccessPage() {
           .maybeSingle()
 
         if (subData) {
-          setSubscription(subData)
+          setSubscription(subData as unknown as Subscription)
         }
       }
     }

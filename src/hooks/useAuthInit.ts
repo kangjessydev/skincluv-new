@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import type { SkinProfile, Subscription } from '@/types/database'
 
 /**
  * Initializes Supabase Auth listener and hydrates the global auth store.
@@ -70,12 +71,12 @@ export function useAuthInit() {
         const coinData = coinRes.data
 
         setProfile(profileData ?? null)
-        setActiveSkinProfile(skinProfileRes.data ?? null)
+        setActiveSkinProfile((skinProfileRes.data as unknown as SkinProfile) ?? null)
         setCoinBalance(coinData ?? { id: userId, user_id: userId, balance: 0, updated_at: new Date().toISOString() })
-        setSubscription(subRes.data ?? null)
+        setSubscription((subRes.data as unknown as Subscription) ?? null)
 
         // Track daily login & streak safely on the server
-        supabase.rpc('track_daily_login').catch((err) => {
+        void supabase.rpc('track_daily_login').then(null, (err: unknown) => {
           console.warn('[useAuthInit] Failed to track daily login:', err)
         })
       } catch (err) {

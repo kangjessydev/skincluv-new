@@ -45,7 +45,7 @@ export default function CoinHistoryPage() {
       if (error) {
         console.error('[CoinHistoryPage] Gagal fetch coin_transactions:', error)
       }
-      if (data) setTransactions(data)
+      if (data) setTransactions(data as unknown as CoinTransaction[])
       setLoading(false)
     }
     fetchTransactions()

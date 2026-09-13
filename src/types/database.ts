@@ -4,12 +4,14 @@
 // `supabase gen types typescript` once project is connected.
 // ============================================================
 
+import type { Database as GeneratedDatabase } from './database.types'
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 // ----------------------------------------------------------------
 // Enums & Literals
 // ----------------------------------------------------------------
-export type SkinType = 'normal' | 'oily' | 'dry' | 'combination' | 'sensitive'
+export type SkinType = 'normal' | 'oily' | 'dry' | 'combination' | 'sensitive' | (string & {})
 export type SkinConcern =
   | 'acne'
   | 'hyperpigmentation'
@@ -20,12 +22,13 @@ export type SkinConcern =
   | 'redness'
   | 'dark_circles'
   | 'pores'
+  | (string & {})
 
 export type AiProvider = 'google' | 'anthropic' | 'openai'
 export type FeatureSlug = 'face_validation' | 'face_analysis' | 'ingredient_scan' | 'chatbot'
 
-export type SubscriptionStatus = 'active' | 'expired' | 'cancelled'
-export type CoinTransactionType = 'mission_reward' | 'ai_usage' | 'admin_adjustment'
+export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | (string & {})
+export type CoinTransactionType = 'mission_reward' | 'ai_usage' | 'admin_adjustment' | (string & {})
 export type MissionType = 'daily' | 'weekly' | 'one_time' | 'streak' | 'social'
 export type AiRequestStatus = 'success' | 'error' | 'rejected_no_face' | 'rejected_no_quota'
 export type ListingType = 'organic' | 'affiliate' | 'endorse'
@@ -256,144 +259,4 @@ export interface TripayInvoice {
 // ----------------------------------------------------------------
 // Supabase Database interface (for typed client)
 // ----------------------------------------------------------------
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: Profile
-        Insert: Partial<Profile> & { id: string }
-        Update: Partial<Profile>
-      }
-      skin_profiles: {
-        Row: SkinProfile
-        Insert: Omit<SkinProfile, 'id' | 'created_at'>
-        Update: Partial<Omit<SkinProfile, 'id' | 'created_at'>>
-      }
-      face_scans: {
-        Row: FaceScan
-        Insert: Omit<FaceScan, 'id' | 'created_at'>
-        Update: Partial<Omit<FaceScan, 'id' | 'created_at'>>
-      }
-      tripay_invoices: {
-        Row: TripayInvoice
-        Insert: Omit<TripayInvoice, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<TripayInvoice, 'id' | 'created_at'>>
-      }
-      ai_features: {
-        Row: AiFeature
-        Insert: Omit<AiFeature, 'id' | 'created_at'>
-        Update: Partial<Omit<AiFeature, 'id' | 'created_at'>>
-      }
-      prompt_versions: {
-        Row: PromptVersion
-        Insert: Omit<PromptVersion, 'id' | 'created_at' | 'version'>
-        Update: Partial<Omit<PromptVersion, 'id' | 'created_at'>>
-      }
-      model_configs: {
-        Row: ModelConfig
-        Insert: Omit<ModelConfig, 'id' | 'created_at'>
-        Update: Partial<Omit<ModelConfig, 'id' | 'created_at'>>
-      }
-      subscription_tiers: {
-        Row: SubscriptionTier
-        Insert: Omit<SubscriptionTier, 'id' | 'created_at'>
-        Update: Partial<Omit<SubscriptionTier, 'id' | 'created_at'>>
-      }
-      subscriptions: {
-        Row: Subscription
-        Insert: Omit<Subscription, 'id' | 'created_at'>
-        Update: Partial<Omit<Subscription, 'id' | 'created_at'>>
-      }
-      quota_configs: {
-        Row: QuotaConfig
-        Insert: Omit<QuotaConfig, 'id'>
-        Update: Partial<Omit<QuotaConfig, 'id'>>
-      }
-      quota_usage: {
-        Row: QuotaUsage
-        Insert: Omit<QuotaUsage, 'id'>
-        Update: Partial<Omit<QuotaUsage, 'id'>>
-      }
-      coin_balances: {
-        Row: CoinBalance
-        Insert: Omit<CoinBalance, 'id' | 'updated_at'>
-        Update: Partial<Omit<CoinBalance, 'id'>>
-      }
-      coin_transactions: {
-        Row: CoinTransaction
-        Insert: Omit<CoinTransaction, 'id' | 'created_at'>
-        Update: never
-      }
-      missions: {
-        Row: Mission
-        Insert: Omit<Mission, 'id' | 'created_at'>
-        Update: Partial<Omit<Mission, 'id' | 'created_at'>>
-      }
-      user_missions: {
-        Row: UserMission
-        Insert: Omit<UserMission, 'id' | 'created_at'>
-        Update: Partial<Omit<UserMission, 'id' | 'created_at'>>
-      }
-      ai_request_logs: {
-        Row: AiRequestLog
-        Insert: Omit<AiRequestLog, 'id' | 'created_at'>
-        Update: Pick<AiRequestLog, 'user_feedback'>
-      }
-      chat_sessions: {
-        Row: ChatSession
-        Insert: Omit<ChatSession, 'id' | 'created_at'>
-        Update: Partial<Omit<ChatSession, 'id' | 'created_at'>>
-      }
-      chat_messages: {
-        Row: ChatMessage
-        Insert: Omit<ChatMessage, 'id' | 'created_at'>
-        Update: never
-      }
-      xendit_webhooks: {
-        Row: XenditWebhook
-        Insert: Omit<XenditWebhook, 'id' | 'created_at'>
-        Update: Partial<Omit<XenditWebhook, 'id' | 'created_at'>>
-      }
-      rate_limit_log: {
-        Row: RateLimitLog
-        Insert: Omit<RateLimitLog, 'id'>
-        Update: never
-      }
-    }
-    Views: Record<string, never>
-    Functions: {
-      deduct_quota: {
-        Args: { p_user_id: string; p_feature_id: string; p_subscription_id: string }
-        Returns: boolean
-      }
-      deduct_coins: {
-        Args: { p_user_id: string; p_amount: number; p_reference_id: string }
-        Returns: boolean
-      }
-      rollback_deduction: {
-        Args: {
-          p_user_id: string
-          p_feature_id: string
-          p_subscription_id: string
-          p_mode: 'quota' | 'coin'
-          p_coin_amount?: number
-          p_coin_ref?: string
-        }
-        Returns: void
-      }
-      claim_mission: {
-        Args: { p_mission_slug: string }
-        Returns: { success: boolean; coins_awarded?: number; new_balance?: number; message?: string; error?: string }
-      }
-      track_daily_login: {
-        Args: Record<string, never>
-        Returns: { success: boolean; error?: string }
-      }
-      track_profile_completion: {
-        Args: Record<string, never>
-        Returns: { success: boolean; profile_completed?: boolean; message?: string; error?: string }
-      }
-    }
-    Enums: Record<string, never>
-  }
-}
+export type Database = GeneratedDatabase

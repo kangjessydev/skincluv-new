@@ -343,12 +343,12 @@ const FACE_SCAN_STAGES_TEXT = [
 ]
 
 export default function FaceScanPage() {
-  const { profile, coinBalance } = useAuthStore()
+  const { profile, activeSkinProfile, coinBalance } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
 
-  const userSkinType = profile?.skin_type ? profile.skin_type.toUpperCase() : 'BERMINYAK'
-  const userConcerns = profile?.skin_concerns?.length
-    ? profile.skin_concerns.map((c) => CONCERN_LABELS[c] || c).slice(0, 3)
+  const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'BERMINYAK'
+  const userConcerns: string[] = activeSkinProfile?.skin_concerns?.length
+    ? activeSkinProfile.skin_concerns.map((c: string) => CONCERN_LABELS[c] || c).slice(0, 3)
     : ['Jerawat', 'Kemerahan', 'Pori besar']
 
   // Stage Management
@@ -699,16 +699,15 @@ Format respon WAJIB JSON murni tanpa markdown:
             skin_type: enriched.skin_type || 'normal',
             skin_concerns: enriched.skin_concerns || [],
             analysis_notes: enriched.analysis_notes || '',
-            area_evaluations: (enriched.area_evaluations || []) as unknown as Record<string, unknown>,
-            product_recommendations: (enriched.product_recommendations || []) as unknown as Record<string, unknown>,
-            raw_ai_response: enriched as unknown as Record<string, unknown>,
+            area_evaluations: (enriched.area_evaluations || []) as any,
+            product_recommendations: (enriched.product_recommendations || []) as any,
+            raw_ai_response: enriched as any,
           })
           .then((res) => {
             if (res && 'error' in res && res.error) {
               console.warn('[Supabase face_scans history insert]:', res.error.message)
             }
-          })
-          .catch((err) => console.warn('[Supabase face_scans insert error]:', err))
+          }, (err: unknown) => console.warn('[Supabase face_scans insert error]:', err))
 
         // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
         supabase
@@ -722,7 +721,7 @@ Format respon WAJIB JSON murni tanpa markdown:
               skin_type: enriched.skin_type,
               skin_concerns: enriched.skin_concerns || [],
               analysis_notes: enriched.analysis_notes || '',
-              raw_ai_response: enriched as unknown as Record<string, unknown>,
+              raw_ai_response: enriched as any,
             }
             if (existing?.id) {
               return supabase
@@ -740,11 +739,10 @@ Format respon WAJIB JSON murni tanpa markdown:
             }
           })
           .then((res) => {
-            if (res && 'error' in res && res.error) {
-              console.warn('[Supabase skin_profiles sync]:', res.error.message)
+            if (res && 'error' in res && (res as any).error) {
+              console.warn('[Supabase skin_profiles sync]:', (res as any).error.message)
             }
-          })
-          .catch((err) => console.warn('[Supabase skin_profiles sync error]:', err))
+          }, (err: unknown) => console.warn('[Supabase skin_profiles sync error]:', err))
       }
 
       setStage('result')
@@ -877,7 +875,7 @@ Format respon WAJIB JSON murni tanpa markdown:
               <div className="profile-info-row stacked">
                 <span>Fokus kulit</span>
                 <div className="chips-mini-group">
-                  {userConcerns.map((concern, idx) => (
+                  {userConcerns.map((concern: string, idx: number) => (
                     <span key={idx} className="chip-mini-item">
                       {concern}
                     </span>

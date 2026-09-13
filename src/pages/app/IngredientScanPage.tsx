@@ -76,12 +76,12 @@ export interface IngredientAnalysisResult {
 
 
 export default function IngredientScanPage() {
-  const { profile, coinBalance } = useAuthStore()
+  const { profile, activeSkinProfile, coinBalance } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
 
-  const userSkinType = profile?.skin_type ? profile.skin_type.toUpperCase() : 'BERMINYAK (OILY)'
-  const userConcerns = profile?.skin_concerns?.length
-    ? profile.skin_concerns.join(', ')
+  const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'BERMINYAK (OILY)'
+  const userConcerns = activeSkinProfile?.skin_concerns?.length
+    ? activeSkinProfile.skin_concerns.join(', ')
     : 'Pori-pori besar, Rawan Jerawat, Kemerahan'
   const skinTypeDesc = `${userSkinType.toLowerCase()}, ${userConcerns.toLowerCase()}`
 

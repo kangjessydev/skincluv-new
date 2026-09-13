@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { Activity, AlertCircle, Save, Crown, Coins, Receipt, History, ArrowRight, ShieldCheck, Zap, LogOut } from 'lucide-react'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
+import type { SkinProfile, SkinType } from '@/types/database'
 
 const SKIN_TYPES = [
   { id: 'normal', label: 'Normal' },
@@ -121,12 +122,12 @@ export default function ProfilePage() {
 
       if (result.error) throw result.error
       if (result.data) {
-        setActiveSkinProfile(result.data)
+        setActiveSkinProfile(result.data as unknown as SkinProfile)
         setMessage('Profil kulit berhasil disimpan! Rekomendasi medis sekarang lebih terpersonalisasi.')
         setIsSuccess(true)
 
         // Track complete_profile mission safely on the server
-        supabase.rpc('track_profile_completion').catch((err) => {
+        void supabase.rpc('track_profile_completion').then(null, (err: unknown) => {
           console.warn('[ProfilePage] Failed to track profile completion:', err)
         })
       }
@@ -266,7 +267,7 @@ export default function ProfilePage() {
                     name="skin_type" 
                     value={t.id} 
                     checked={skinType === t.id}
-                    onChange={() => setSkinType(t.id)} 
+                    onChange={() => setSkinType(t.id as SkinType)} 
                   />
                   {t.label}
                 </label>

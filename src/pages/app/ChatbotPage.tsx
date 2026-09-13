@@ -28,7 +28,7 @@ interface Message {
 
 interface Session {
   id: string
-  title: string
+  title: string | null
   created_at: string
   last_activity?: string
 }
@@ -180,7 +180,15 @@ export default function ChatbotPage() {
 
       if (error) throw error
       if (data) {
-        setSessions((prev) => [data, ...prev])
+        setSessions((prev) => [
+          {
+            id: data.id,
+            title: data.title,
+            created_at: data.created_at,
+            last_activity: data.last_activity,
+          },
+          ...prev,
+        ])
         return data.id
       }
     } catch (err) {

@@ -179,8 +179,15 @@ export default function MissionsPage() {
         p_mission_slug: mission.slug,
       })
 
-      if (error || !data?.success) {
-        const errMsg = data?.message || error?.message || 'Gagal mengklaim misi'
+      const claimResult = data as {
+        success?: boolean
+        message?: string
+        new_balance?: number
+        coins_awarded?: number
+      } | null
+
+      if (error || !claimResult?.success) {
+        const errMsg = claimResult?.message || error?.message || 'Gagal mengklaim misi'
         console.warn('[MissionsPage] claim_mission failed:', errMsg)
         setClaimFeedback({ type: 'error', message: errMsg })
         // Rollback optimistic update
@@ -191,17 +198,17 @@ export default function MissionsPage() {
       }
 
       // Success: update balance from server returned new_balance
-      if (data.new_balance !== undefined) {
+      if (claimResult.new_balance !== undefined) {
         setCoinBalance({
           id: user.id,
           user_id: user.id,
-          balance: data.new_balance,
+          balance: claimResult.new_balance,
           updated_at: new Date().toISOString(),
         })
       }
       setClaimFeedback({
         type: 'success',
-        message: data.message || `Selamat! Kamu mendapatkan +${mission.reward_coins} Credits.`,
+        message: claimResult.message || `Selamat! Kamu mendapatkan +${mission.reward_coins} Credits.`,
       })
     } catch (err: any) {
       console.error('[MissionsPage] Unexpected claim error:', err)
