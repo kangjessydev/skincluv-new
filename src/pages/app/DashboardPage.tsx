@@ -9,14 +9,15 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
-import { isActivePremium } from '@/utils/subscriptionHelpers'
+import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { coinBalance, subscription } = useAuthStore()
 
   const isPro = isActivePremium(subscription)
-  const userCoins = coinBalance?.balance ?? 100
+  const isGlow = isActiveGlow(subscription)
+  const userCredits = coinBalance?.balance ?? 0
 
   return (
     <div className="skincluv-dashboard-grid">
@@ -89,12 +90,12 @@ export default function DashboardPage() {
       <div className="side-rail-section">
         <div className="side-card">
           <div className="side-card-header">
-            <span className="side-title">SALDO SKIN COIN</span>
-            <span className={`side-badge ${isPro ? 'badge-pro' : 'badge-free'}`}>
-              {isPro ? 'Pro Member' : 'Free Account'}
+            <span className="side-title">SALDO AI CREDITS</span>
+            <span className={`side-badge ${isPro ? 'badge-pro' : isGlow ? 'badge-amber' : 'badge-free'}`}>
+              {isPro ? 'Pro Member' : isGlow ? 'Glow Member' : 'Free Account'}
             </span>
           </div>
-          <div className="side-stat-value">{isPro ? '⭐️ PRO' : userCoins}</div>
+          <div className="side-stat-value">{userCredits} Credits</div>
         </div>
 
         <div className="side-card">

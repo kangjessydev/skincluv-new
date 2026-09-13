@@ -13,7 +13,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Crown,
-  Coins,
+  Zap,
   Store,
   Receipt,
   LogOut,
@@ -60,7 +60,7 @@ export default function AppLayout() {
     if (path.startsWith('/missions')) return 'Misi Glow'
     if (path.startsWith('/profile')) return 'Profil Saya'
     if (path.startsWith('/pricing')) return 'Toko Koin & Langganan'
-    if (path.startsWith('/coin-history')) return 'Riwayat Koin'
+    if (path.startsWith('/coin-history')) return 'Riwayat Credits'
     if (path.startsWith('/transactions')) return 'Riwayat Tagihan'
     if (path.startsWith('/checkout')) return 'Pembayaran'
     return 'Skincluv'
@@ -179,10 +179,10 @@ export default function AppLayout() {
                 </button>
               )}
 
-              {/* Coin Balance Badge */}
-              <NavLink to="/coin-history" className="header-coin-badge" title="Riwayat Koin">
-                <Coins size={15} className="text-amber-500" />
-                <span className="coin-val">{coinBalance?.balance ?? 100}</span>
+              {/* Credit Balance Badge */}
+              <NavLink to="/coin-history" className="header-coin-badge" title="Saldo Credits">
+                <Zap size={14} className="text-amber-500 fill-amber-500" />
+                <span className="coin-val">{coinBalance?.balance ?? 0} Credits</span>
               </NavLink>
 
               {/* User Dropdown */}

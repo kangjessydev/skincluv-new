@@ -201,7 +201,7 @@ export default function MissionsPage() {
       }
       setClaimFeedback({
         type: 'success',
-        message: data.message || `Selamat! Kamu mendapatkan +${mission.reward_coins} koin.`,
+        message: data.message || `Selamat! Kamu mendapatkan +${mission.reward_coins} Credits.`,
       })
     } catch (err: any) {
       console.error('[MissionsPage] Unexpected claim error:', err)
@@ -219,43 +219,43 @@ export default function MissionsPage() {
   return (
     <div className="missions-page animate-fade-in">
       <div className="page-header">
-        <h1>Misi & Hadiah Koin</h1>
+        <h1>Misi & Hadiah Credits</h1>
         <p className="page-subtitle">
-          Selesaikan tugas harian untuk mengumpulkan Koin Darurat Skincluv!
+          Selesaikan tugas harian untuk mengumpulkan AI Credits gratis di Skincluv!
         </p>
       </div>
 
       {/* Full-Width 2-Column Grid Layout */}
       <div className="missions-grid">
-        {/* Left Column: Coin Summary & Info Card */}
+        {/* Left Column: Credit Summary & Info Card */}
         <div className="missions-left-col">
-          {/* Coin Balance Banner Card */}
+          {/* Credit Balance Banner Card */}
           <div className="coin-banner-card stich-bento-card">
             <div className="banner-top">
               <Coins size={36} className="text-amber-500" />
               <div>
-                <span className="banner-meta">Saldo Koin Saat Ini</span>
+                <span className="banner-meta">Saldo Credits Saat Ini</span>
                 <div className="banner-amount">
-                  {currentBalanceDisplay} <span className="denom">Koin</span>
+                  {currentBalanceDisplay} <span className="denom">Credits</span>
                 </div>
               </div>
             </div>
             <div className="banner-bottom mt-md">
               <span className="badge-amber">
-                <Sparkles size={14} /> Dapatkan Akses Fitur PRO
+                <Sparkles size={14} /> Dapatkan Akses Fitur AI
               </span>
             </div>
           </div>
 
           <div className="stich-bento-card reward-info-card">
             <h3>
-              <Gift size={18} className="text-amber" /> Manfaat Koin Darurat
+              <Gift size={18} className="text-amber" /> Manfaat AI Credits
             </h3>
-            <p>Koin yang kamu kumpulkan dari misi harian dapat digunakan untuk:</p>
+            <p>Credits yang kamu kumpulkan dari misi harian dapat digunakan untuk:</p>
             <ul className="reward-info-list">
-              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Membuka analisis wajah tambahan saat kuota gratis habis</li>
-              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Konsultasi mendalam dengan Skinsistant AI</li>
-              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Menukarkan voucher diskon langganan PRO</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Menjalankan Scan Wajah AI (5 Credits)</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Analisis Komposisi Skincare (3 Credits)</li>
+              <li><Sparkles size={14} className="text-amber-500 inline mr-2" /> Konsultasi dengan Chatbot AI (1 Credit)</li>
             </ul>
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function MissionsPage() {
                       </div>
 
                       <div className="mission-action">
-                        <span className="reward-tag">+{m.reward_coins} Koin</span>
+                        <span className="reward-tag">+{m.reward_coins} Credits</span>
                         {m.is_claimed ? (
                           <span className="btn-claimed">
                             <CheckCircle2 size={16} /> Diklaim

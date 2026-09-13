@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { Activity, AlertCircle, Save, Crown, Coins, Receipt, History, ArrowRight, ShieldCheck, Zap, LogOut } from 'lucide-react'
-import { isActivePremium } from '@/utils/subscriptionHelpers'
+import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
 
 const SKIN_TYPES = [
   { id: 'normal', label: 'Normal' },
@@ -28,6 +28,8 @@ export default function ProfilePage() {
   const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number; name: string } | null>(null)
 
   const isPro = isActivePremium(subscription)
+  const isGlow = isActiveGlow(subscription)
+  const isFree = !isPro && !isGlow
 
   useEffect(() => {
     if (!profile?.id) return
@@ -167,18 +169,20 @@ export default function ProfilePage() {
           </div>
 
           {/* Membership & Usage Dashboard Card */}
-          <div className={`card member-card glass-card ${isPro ? 'pro' : 'free'}`}>
+          <div className={`card member-card glass-card ${isPro ? 'pro' : isGlow ? 'glow' : 'free'}`}>
             <div className="member-header">
               <div className="badge-wrapper">
                 {isPro ? (
                   <span className="badge-pro"><Crown size={16} /> VIP PRO MEMBER</span>
+                ) : isGlow ? (
+                  <span className="badge-amber font-bold text-xs flex items-center gap-1.5 px-3 py-1 rounded-full"><Zap size={14} /> GLOW MEMBER</span>
                 ) : (
-                  <span className="badge-free"><Zap size={14} /> FREE MEMBER</span>
+                  <span className="badge-free"><Zap size={14} /> FREE ACCOUNT</span>
                 )}
               </div>
               {!isPro && (
                 <Link to="/pricing" className="btn btn-primary btn-sm btn-upgrade-link">
-                  <Crown size={14} /> Upgrade ke PRO (Rp 49.000)
+                  <Crown size={14} /> Upgrade Paket
                 </Link>
               )}
             </div>
@@ -187,31 +191,37 @@ export default function ProfilePage() {
             <div className="usage-block">
               <div className="usage-meta">
                 <span className="usage-label"><Activity size={16} /> Kuota Analisis Bulan Ini</span>
-                <span className="usage-text"><strong>{usedCount}</strong> / {limitCount} Penggunaan</span>
+                <span className="usage-text">
+                  {isFree ? (
+                    <span>0 Kuota (Gunakan Credits Misi)</span>
+                  ) : (
+                    <><strong>{usedCount}</strong> / {limitCount} Penggunaan</>
+                  )}
+                </span>
               </div>
               <div className="progress-bg">
-                <div className="progress-fill" style={{ width: `${percent}%` }} />
+                <div className="progress-fill" style={{ width: isFree ? '0%' : `${percent}%` }} />
               </div>
             </div>
 
-            {isPro && subscription?.expires_at && (
+            {!isFree && subscription?.expires_at && (
               <div className="pro-expiry-bar">
                 <ShieldCheck size={14} className="color-success" /> Status: <strong>Aktif</strong> (Perpanjang: {new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })})
               </div>
             )}
           </div>
 
-          {/* Emergency Coins Card */}
+          {/* Credits Balance Card */}
           <div className="card coins-card glass-card">
             <div className="coins-left">
               <Coins size={28} className="text-amber-500" />
               <div>
-                <span className="coins-label">Saldo Koin</span>
-                <span className="coins-amount">{coinBalance?.balance ?? 50} Koin</span>
+                <span className="coins-label">Saldo AI Credits</span>
+                <span className="coins-amount">{coinBalance?.balance ?? 0} Credits</span>
               </div>
             </div>
             <Link to="/coin-history" className="btn btn-secondary btn-sm">
-              <History size={16} /> Mutasi Koin
+              <History size={16} /> Mutasi Credits
             </Link>
           </div>
 
@@ -236,7 +246,7 @@ export default function ProfilePage() {
               <Link to="/coin-history" className="nav-item-link">
                 <div className="nav-item-left">
                   <History size={18} className="icon-slate" />
-                  <span>Riwayat Mutasi Koin</span>
+                  <span>Riwayat Mutasi Credits</span>
                 </div>
                 <ArrowRight size={16} />
               </Link>

@@ -120,13 +120,13 @@ export function useInvokeAI() {
       }
 
       if (is402) {
-        const DEFAULT_COIN_COST: Record<string, number> = {
-          face_analysis: 10,
-          face_validation: 2,
-          ingredient_scan: 5,
+        const DEFAULT_CREDIT_COST: Record<string, number> = {
+          face_analysis: 5,
+          face_validation: 1,
+          ingredient_scan: 3,
           chatbot: 1,
         }
-        const coinCost = dynamicCoinCost ?? DEFAULT_COIN_COST[dynamicFeatureSlug] ?? 5
+        const coinCost = dynamicCoinCost ?? DEFAULT_CREDIT_COST[dynamicFeatureSlug] ?? 3
 
         const FEATURE_LABELS: Record<string, string> = {
           face_analysis: 'Scan Wajah Spesialis',
@@ -139,7 +139,7 @@ export function useInvokeAI() {
         const confirmed = await askCoinConfirmation(coinCost, featureLabel)
 
         if (!confirmed) {
-          setError('Dibatalkan. Kumpulkan koin dari misi harian atau upgrade ke Paket PRO.')
+          setError('Dibatalkan. Kumpulkan Credits dari misi harian atau upgrade ke Paket Glow / PRO.')
           return null
         }
 

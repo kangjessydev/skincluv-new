@@ -64,8 +64,8 @@ export default function CoinHistoryPage() {
       </button>
 
       <div className="page-header">
-        <h1>Riwayat Mutasi Koin</h1>
-        <p className="page-subtitle">Rincian perolehan dan penggunaan Koin Darurat Skincluv kamu.</p>
+        <h1>Riwayat Mutasi Credits</h1>
+        <p className="page-subtitle">Rincian perolehan dan penggunaan AI Credits Skincluv kamu.</p>
       </div>
 
       {/* Coin Balance Card */}
@@ -73,12 +73,12 @@ export default function CoinHistoryPage() {
         <div className="balance-left">
           <Coins size={28} className="text-amber-500" />
           <div>
-            <span className="balance-label">Total Saldo Koin</span>
-            <span className="balance-val">{coinBalance?.balance ?? 50} Koin</span>
+            <span className="balance-label">Total Saldo Credits</span>
+            <span className="balance-val">{coinBalance?.balance ?? 0} Credits</span>
           </div>
         </div>
         <Link to="/missions" className="btn btn-primary btn-sm">
-          + Dapatkan Koin
+          + Dapatkan Credits
         </Link>
       </div>
 
@@ -103,7 +103,7 @@ export default function CoinHistoryPage() {
           {loading ? (
             <p className="status-text">Memuat riwayat mutasi...</p>
           ) : filtered.length === 0 ? (
-            <p className="status-text">Belum ada riwayat mutasi koin.</p>
+            <p className="status-text">Belum ada riwayat mutasi credits.</p>
           ) : (
             filtered.map((item) => (
               <div key={item.id} className="ledger-item">
@@ -117,7 +117,7 @@ export default function CoinHistoryPage() {
                   </span>
                 </div>
                 <div className={`ledger-amount ${isCredit(item.type) ? 'amount-credit' : 'amount-debit'}`}>
-                  {isCredit(item.type) ? '+' : '-'}{item.amount} Koin
+                  {isCredit(item.type) ? '+' : '-'}{item.amount} Credits
                 </div>
               </div>
             ))

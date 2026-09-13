@@ -1,13 +1,15 @@
 import { useNavigate } from 'react-router-dom'
-import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap, ArrowLeft } from 'lucide-react'
+import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap, ArrowLeft, HeartHandshake } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
-import { isActivePremium } from '@/utils/subscriptionHelpers'
+import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
 
 export default function PricingPage() {
   const navigate = useNavigate()
   const { subscription } = useAuthStore()
 
   const isPro = isActivePremium(subscription)
+  const isGlow = isActiveGlow(subscription)
+  const isFree = !isPro && !isGlow
 
   return (
     <div className="pricing-page animate-fade-in">
@@ -17,44 +19,74 @@ export default function PricingPage() {
         </button>
         <span className="section-badge"><Sparkles size={14} /> TOKO LANGGANAN</span>
         <h1>Pilih Paket Skincluv</h1>
-        <p className="page-subtitle">Tingkatkan kuota analisis untuk perawatan kulit harian tanpa batas.</p>
+        <p className="page-subtitle">Pilih paket terbaik untuk perawatan kulit harian tanpa rasa cemas kehabisan kuota.</p>
       </div>
 
       <div className="pricing-grid">
         {/* Free Plan */}
-        <div className="pricing-card free-card glass-card">
+        <div className={`pricing-card free-card glass-card ${isFree ? 'current-active' : ''}`}>
           <div className="plan-header">
-            <h3>Paket Gratis</h3>
-            <p>Untuk mencoba fitur analisis dasar</p>
+            <h3>Free / Starter</h3>
+            <p>Mulai gratis menggunakan Credits dari misi harian</p>
             <div className="plan-price">Rp 0 <span>/ bulan</span></div>
           </div>
           <ul className="plan-features">
-            <li><CheckCircle2 size={16} className="icon-check" /> 10 Analisis Kulit / Bulan</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Scan Wajah Dasar</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Scan Komposisi Produk</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Tanya Jawab Spesialis</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> <strong>0 Kuota Bawaan</strong> (Akses via Credits)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Dapatkan Credits Gratis dari Misi Harian</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Scan Wajah & Cek Komposisi Produk</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Chatbot Konsultasi Standar</li>
           </ul>
           <div className="plan-footer">
-            <button className="btn btn-outline btn-block" disabled={!isPro}>
-              {!isPro ? 'Paket Aktif Saat Ini' : 'Paket Dasar'}
+            <button className="btn btn-outline btn-block" disabled>
+              {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar'}
             </button>
           </div>
         </div>
 
-        {/* PRO Plan */}
+        {/* GLOW Plan (Rp 19.000) */}
+        <div className={`pricing-card glow-card glass-card ${isGlow ? 'current-active' : ''}`}>
+          <div className="saving-badge"><HeartHandshake size={14} /> RAMAH KANTONG</div>
+          <div className="plan-header">
+            <h3>Skincluv GLOW</h3>
+            <p>Paling pas untuk pelajar & pemula perawatan rutin</p>
+            <div className="plan-price">Rp 19.000 <span>/ bulan</span></div>
+          </div>
+          <ul className="plan-features">
+            <li><Zap size={16} className="icon-amber" /> <strong>100 Kuota Pemakaian</strong> / Bulan</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Bebas Scan Wajah & Cek Bahan Skincare</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Chatbot Konsultasi Standar</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Riwayat Scan Tersimpan Lengkap</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Cadangan Credits Tetap Utuh</li>
+          </ul>
+          <div className="plan-footer">
+            {isGlow ? (
+              <button className="btn btn-secondary btn-block" disabled>
+                <ShieldCheck size={18} /> Paket GLOW Aktif
+              </button>
+            ) : (
+              <button className="btn btn-secondary btn-block" onClick={() => navigate('/checkout?plan=glow')}>
+                Pilih Paket GLOW
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* PRO Plan (Rp 49.000) */}
         <div className={`pricing-card pro-card glass-card ${isPro ? 'current-active' : ''}`}>
-          <div className="popular-badge"><Crown size={14} /> REKOMENDASI</div>
+          <div className="popular-badge"><Crown size={14} /> REKOMENDASI UTAMA</div>
           <div className="plan-header">
             <h3>Skincluv PRO</h3>
-            <p>Analisis Sepuasnya & Konsultasi Tanpa Batas</p>
+            <p>Pengalaman AI Terlengkap, Lebih Pintar & Terasa Unlimited</p>
             <div className="plan-price">Rp 49.000 <span>/ bulan</span></div>
           </div>
           <ul className="plan-features">
-            <li><Zap size={16} className="icon-sky" /> <strong>3.000 Analisis Kulit</strong> / Bulan</li>
-            <li><Zap size={16} className="icon-sky" /> Analisis Wajah & Rekomendasi Spesialis Mendalam</li>
-            <li><Zap size={16} className="icon-sky" /> Peringatan Bahan Berbahaya & Alergi Otomatis</li>
-            <li><Zap size={16} className="icon-sky" /> Konsultasi Obrolan 24/7 Dengan Memory</li>
-            <li><Zap size={16} className="icon-sky" /> Prioritas Respon Server Cepat</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>500 Kuota FUP</strong> / Bulan (Terasa Unlimited)</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>Chatbot Dermatologist Expert</strong> (Lebih Pintar)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Analisis Layering Bahan Aktif Pagi & Malam</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Peringatan Disrupsi Skin Barrier & pH Level</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Deep Memory (Ingat 10 Pesan Sebelumnya)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Prioritas Respon AI Paling Cepat</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Badge Eksklusif PRO di Profil & Komunitas</li>
           </ul>
           <div className="plan-footer">
             {isPro ? (
@@ -62,7 +94,7 @@ export default function PricingPage() {
                 <ShieldCheck size={18} /> Paket PRO Aktif
               </button>
             ) : (
-              <button className="btn btn-primary btn-block btn-glow" onClick={() => navigate('/checkout')}>
+              <button className="btn btn-primary btn-block btn-glow" onClick={() => navigate('/checkout?plan=pro')}>
                 <Crown size={18} /> Upgrade ke PRO Sekarang
               </button>
             )}
@@ -71,7 +103,7 @@ export default function PricingPage() {
       </div>
 
       <style>{`
-        .pricing-page { padding-bottom: 60px; max-width: 840px; margin: 0 auto; width: 100%; }
+        .pricing-page { padding-bottom: 60px; max-width: 1080px; margin: 0 auto; width: 100%; }
         .pricing-header { text-align: center; margin-bottom: var(--space-xl); position: relative; }
         .btn-back-link {
           position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px;
@@ -88,16 +120,29 @@ export default function PricingPage() {
         .pricing-header h1 { font-size: 2rem; margin: 4px 0; color: var(--color-primary); }
         .page-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; }
 
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-xl); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-lg); align-items: stretch; }
         .pricing-card {
           padding: var(--space-xl); border-radius: var(--radius-xl);
           display: flex; flex-direction: column; justify-content: space-between; position: relative;
           border: 1px solid var(--color-secondary-container); background: var(--color-surface-container-lowest);
           box-shadow: var(--shadow-sky); transition: all 0.2s ease;
         }
+        .pricing-card.current-active {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 2px var(--color-primary-container);
+        }
+        .glow-card {
+          border-color: #fef08a;
+          background: linear-gradient(180deg, #ffffff 0%, #fefce8 100%);
+        }
         .pro-card {
           border-color: var(--color-primary-container);
           background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+        }
+        .saving-badge {
+          position: absolute; top: -12px; right: 24px; background: #eab308;
+          color: white; font-size: 0.6875rem; font-weight: 800; padding: 4px 12px; border-radius: var(--radius-full);
+          display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.25);
         }
         .popular-badge {
           position: absolute; top: -12px; right: 24px; background: var(--color-tertiary-container);
@@ -106,14 +151,15 @@ export default function PricingPage() {
         }
 
         .plan-header h3 { font-size: 1.35rem; margin: 0 0 4px 0; color: var(--color-text-main); }
-        .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 16px; }
+        .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 16px; min-height: 38px; }
         .plan-price { font-size: 2rem; font-weight: 800; color: var(--color-primary); margin-bottom: var(--space-lg); font-family: var(--font-heading); }
         .plan-price span { font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); }
 
         .plan-features { list-style: none; padding: 0; margin: 0 0 var(--space-xl) 0; display: flex; flex-direction: column; gap: 12px; }
-        .plan-features li { display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: var(--color-text-main); }
-        .icon-check { color: var(--color-primary); flex-shrink: 0; }
-        .icon-sky { color: var(--color-primary-container); flex-shrink: 0; }
+        .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: var(--color-text-main); line-height: 1.4; }
+        .icon-check { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
+        .icon-amber { color: #d97706; flex-shrink: 0; margin-top: 2px; }
+        .icon-sky { color: var(--color-primary-container); flex-shrink: 0; margin-top: 2px; }
         .btn-glow { gap: 8px; }
         .btn-block { width: 100%; justify-content: center; }
       `}</style>

@@ -18,11 +18,11 @@ import { callAiProvider, interpolatePrompt, estimateCostUsd } from '../_shared/a
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000   // 1 minute
 const RATE_LIMIT_MAX       = 10          // max requests per window
-// Cost in coins per feature (when quota is exhausted)
-const COIN_COST_PER_FEATURE: Record<string, number> = {
-  face_validation: 2,
-  face_analysis:   10,
-  ingredient_scan: 5,
+// Cost in Credits per feature (when quota is exhausted or free tier)
+const CREDIT_COST_PER_FEATURE: Record<string, number> = {
+  face_validation: 1,
+  face_analysis:   5,
+  ingredient_scan: 3,
   chatbot:         1,
 }
 
@@ -68,9 +68,6 @@ Deno.serve(async (req: Request) => {
       return jsonError('Missing required fields: feature_slug, messages', 400)
     }
 
-    // Truncate message history to last 6 messages to keep latency low & prevent gateway timeouts
-    const trimmedMessages = messages.slice(-6)
-
     // ---- 3. Load feature + prompt + model config (in parallel) ----
     const [featureRes, subscriptionRes] = await Promise.all([
       supabaseService
@@ -80,7 +77,7 @@ Deno.serve(async (req: Request) => {
         .single(),
       supabaseService
         .from('subscriptions')
-        .select('id, tier_id, quota_reset_at')
+        .select('id, tier_id, quota_reset_at, subscription_tiers(slug, name)')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle(),
@@ -92,6 +89,11 @@ Deno.serve(async (req: Request) => {
 
     const feature = featureRes.data
     const subscription = subscriptionRes.data
+    const isPro = (subscription as any)?.subscription_tiers?.slug === 'premium'
+
+    // Deep context memory (10 messages) for PRO chatbot, 6 messages for standard
+    const historyLimit = isPro && feature_slug === 'chatbot' ? 10 : 6
+    const trimmedMessages = messages.slice(-historyLimit)
 
     // Load active prompt + model for this feature
     const [promptRes, modelRes] = await Promise.all([
@@ -175,35 +177,34 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // If quota failed or no subscription, try coins
+    // If quota failed or no subscription, try credits
     if (!deductMode) {
-      const coinCost = COIN_COST_PER_FEATURE[feature_slug] ?? 5
+      const creditCost = CREDIT_COST_PER_FEATURE[feature_slug] ?? 3
 
       if (!use_coins) {
         return new Response(
           JSON.stringify({
             success: false,
-            error: 'Quota exceeded. Enable coin payment or upgrade subscription.',
+            error: 'Quota habis. Silakan gunakan Credits atau upgrade paket.',
             code: 'QUOTA_EXCEEDED',
-            coin_cost: coinCost,
+            credit_cost: creditCost,
+            coin_cost: creditCost, // backward compatibility
             feature_slug,
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
         )
       }
 
-      // We'll deduct after we confirm the user wants to use coins
-      // At this point use_coins=true, so proceed with coin deduction
-      // (reference_id will be filled after we generate a log entry placeholder)
+      // Proceed with credit deduction (using atomic deduct_coins function)
       const tempRef = crypto.randomUUID()
-      const { data: coinOk } = await supabaseService.rpc('deduct_coins', {
+      const { data: creditOk } = await supabaseService.rpc('deduct_coins', {
         p_user_id: user.id,
-        p_amount: coinCost,
+        p_amount: creditCost,
         p_reference_id: tempRef,
       })
 
-      if (!coinOk) {
-        return jsonError('Insufficient coins. Complete missions to earn more coins.', 402)
+      if (!creditOk) {
+        return jsonError('Credits tidak mencukupi. Selesaikan misi untuk mendapatkan Credits atau upgrade ke paket Glow/Pro.', 402)
       }
       deductMode = 'coin'
     }
@@ -229,7 +230,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!apiKey) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, COIN_COST_PER_FEATURE[feature_slug])
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, CREDIT_COST_PER_FEATURE[feature_slug])
       return jsonError('AI provider API key not configured. Check Vault secret name.', 503)
     }
 
@@ -261,7 +262,17 @@ Deno.serve(async (req: Request) => {
       ...(input_context ?? {}),
     }
 
-    const systemPrompt = interpolatePrompt(prompt.system_prompt, promptContext)
+    let systemPrompt = interpolatePrompt(prompt.system_prompt, promptContext)
+
+    // Dermatologist Clinical Expert enhancement for PRO tier chatbot
+    if (isPro && feature_slug === 'chatbot') {
+      systemPrompt += `\n\n[MODE: DERMATOLOGIST CLINICAL EXPERT (PRO MEMBER)]:
+Sebagai asisten dermatologi klinis tingkat lanjut untuk pelanggan PRO, berikan analisis yang lebih komprehensif, presisi, dan mendalam:
+1. Evaluasi kompatibilitas bahan aktif (active ingredients layering) untuk rutinitas pagi (AM) vs malam (PM).
+2. Peringatkan potensi iritasi, over-eksfoliasi, atau disrupsi skin barrier saat menggabungkan bahan aktif (seperti Retinol, AHA/BHA, Vitamin C, Niacinamide).
+3. Berikan rekomendasi urutan pemakaian produk berdasarkan konsistensi dan penyesuaian pH kulit.
+4. Hubungkan rekomendasi secara personal dengan tipe kulit (${promptContext.skin_type}) dan keluhan (${promptContext.skin_concerns}) pengguna.`
+    }
 
     // Attach image_base64 to the user message for multimodal vision models
     const finalMessages = trimmedMessages.map((m, idx) => {
@@ -305,7 +316,7 @@ Deno.serve(async (req: Request) => {
 
     // ---- Opsi A: Rollback on provider error ----
     if (aiError) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, COIN_COST_PER_FEATURE[feature_slug])
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, CREDIT_COST_PER_FEATURE[feature_slug])
 
       // Log failed attempt (no quota/coin consumed)
       await supabaseService.from('ai_request_logs').insert({

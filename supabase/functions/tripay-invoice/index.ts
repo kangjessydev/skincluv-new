@@ -21,8 +21,9 @@ Deno.serve(async (req: Request) => {
     const body = await req.json()
     const { plan, method } = body
 
-    if (plan !== 'PREMIUM') {
-      return jsonError('Invalid subscription plan', 400)
+    const normalizedPlan = (plan || 'PREMIUM').toUpperCase()
+    if (normalizedPlan !== 'PREMIUM' && normalizedPlan !== 'GLOW') {
+      return jsonError('Invalid subscription plan. Must be GLOW or PREMIUM.', 400)
     }
 
     // ---- Tripay Config ----
@@ -38,7 +39,10 @@ Deno.serve(async (req: Request) => {
       return jsonError('Payment gateway not configured', 503)
     }
 
-    const amountIdr   = 49000
+    const isGlow = normalizedPlan === 'GLOW'
+    const amountIdr   = isGlow ? 19000 : 49000
+    const planSku     = isGlow ? 'SKINCLUV-GLOW' : 'SKINCLUV-PRO'
+    const planName    = isGlow ? 'Skincluv GLOW — 1 Bulan' : 'Skincluv PRO — 1 Bulan'
     const merchantRef = `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
     const channel     = method || 'BRIVA' // Default BRIVA if not specified
 
@@ -69,8 +73,8 @@ Deno.serve(async (req: Request) => {
       customer_phone: '081234567890',
       order_items: [
         {
-          sku: 'SKINCLUV-PRO',
-          name: 'Skincluv PRO — 1 Bulan',
+          sku: planSku,
+          name: planName,
           price: amountIdr,
           quantity: 1,
           product_url: `${origin}`,
@@ -116,7 +120,7 @@ Deno.serve(async (req: Request) => {
       reference: transaction.reference,
       user_id: user.id,
       amount_idr: amountIdr,
-      plan: 'PREMIUM',
+      plan: normalizedPlan,
       status: 'UNPAID',
       checkout_url: transaction.checkout_url ?? null,
       pay_url: transaction.pay_url ?? null,

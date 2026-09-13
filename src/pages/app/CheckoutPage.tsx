@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Copy, Check, RefreshCw, QrCode, CreditCard, Store, Clock, ExternalLink, ArrowLeft, ShieldAlert, CheckCircle2, ChevronRight, Crown, ShoppingBag } from 'lucide-react'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { Copy, Check, RefreshCw, QrCode, CreditCard, Store, Clock, ExternalLink, ArrowLeft, ShieldAlert, CheckCircle2, ChevronRight, Crown, ShoppingBag, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -24,8 +24,16 @@ const PAYMENT_CHANNELS: PaymentChannel[] = [
 
 export default function CheckoutPage() {
   const { reference } = useParams<{ reference?: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { session, profile } = useAuthStore()
+
+  const planQuery = searchParams.get('plan')?.toLowerCase()
+  const isGlow = planQuery === 'glow'
+  const planSlug = isGlow ? 'GLOW' : 'PREMIUM'
+  const planTitle = isGlow ? 'Skincluv GLOW (1 Bulan)' : 'Skincluv PRO (1 Bulan)'
+  const planDesc = isGlow ? '100 Universal AI Usage / Bulan' : '500 Universal AI Usage & Chatbot Expert'
+  const planPriceFormatted = isGlow ? 'Rp 19.000' : 'Rp 49.000'
 
   // State for Review & Method Selector Mode (when reference is undefined)
   const [selectedMethod, setSelectedMethod] = useState<string>('BRIVA')
@@ -110,7 +118,7 @@ export default function CheckoutPage() {
     setErrorMessage(null)
     try {
       const { data, error } = await supabase.functions.invoke('tripay-invoice', {
-        body: { plan: 'PREMIUM', method: selectedMethod }
+        body: { plan: planSlug, method: selectedMethod }
       })
 
       if (error) {
@@ -173,13 +181,13 @@ export default function CheckoutPage() {
             <h3 className="section-heading"><ShoppingBag size={18} /> Rincian Pesanan</h3>
             <div className="order-item-box">
               <div className="item-left">
-                <Crown size={24} className="icon-gold" />
+                {isGlow ? <Sparkles size={24} className="icon-amber" /> : <Crown size={24} className="icon-gold" />}
                 <div>
-                  <h4>Skincluv PRO (1 Bulan)</h4>
-                  <p>3.000 Universal AI Usage & Analisis Wajah Medis</p>
+                  <h4>{planTitle}</h4>
+                  <p>{planDesc}</p>
                 </div>
               </div>
-              <div className="item-price">Rp 49.000</div>
+              <div className="item-price">{planPriceFormatted}</div>
             </div>
 
             <div className="customer-info-box">
@@ -245,7 +253,7 @@ export default function CheckoutPage() {
           <div className="review-card glass-card total-summary-card">
             <div className="total-row">
               <span>Subtotal Paket:</span>
-              <strong>Rp 49.000</strong>
+              <strong>{planPriceFormatted}</strong>
             </div>
             <div className="total-row note-row">
               <span className="note-text">

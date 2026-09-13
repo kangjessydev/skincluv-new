@@ -43,9 +43,9 @@ export default function CoinConfirmModal({
 
         {/* Body */}
         <div className="coin-modal-body">
-          <h3>Kuota Analisis Habis</h3>
+          <h3>Akses Fitur AI</h3>
           <p>
-            Kuota bulananmu telah terpakai. Kamu bisa melanjutkan menggunakan koin untuk mengakses{' '}
+            Kamu bisa melanjutkan menggunakan Credits untuk mengakses{' '}
             <strong>{featureName}</strong>.
           </p>
 
@@ -53,17 +53,17 @@ export default function CoinConfirmModal({
           <div className="coin-breakdown">
             <div className="breakdown-row">
               <span>Biaya penggunaan</span>
-              <span className="breakdown-cost">-{coinCost} Koin</span>
+              <span className="breakdown-cost">-{coinCost} Credits</span>
             </div>
             <div className="breakdown-row">
               <span>Saldo kamu</span>
-              <span>{currentBalance} Koin</span>
+              <span>{currentBalance} Credits</span>
             </div>
             <div className="breakdown-divider" />
             <div className="breakdown-row breakdown-result">
               <span>Sisa setelah pemotongan</span>
               <span className={balanceAfter < 0 ? 'text-error' : 'text-success'}>
-                {balanceAfter < 0 ? '0' : balanceAfter} Koin
+                {balanceAfter < 0 ? '0' : balanceAfter} Credits
                 {balanceAfter < 0 && ' (kurang)'}
               </span>
             </div>
@@ -72,7 +72,7 @@ export default function CoinConfirmModal({
           {isInsufficient && (
             <div className="insufficient-callout">
               <p className="coin-modal-warning">
-                Saldo koin kamu tidak cukup untuk analisis ini. Kumpulkan koin dari misi harian atau upgrade ke Paket PRO untuk kuota 3.000 analisis/bulan.
+                Saldo Credits kamu tidak cukup. Selesaikan misi harian untuk mendapatkan Credits gratis atau upgrade ke Paket Glow / PRO untuk kuota bulanan.
               </p>
               <div className="insufficient-actions">
                 <button
@@ -93,7 +93,7 @@ export default function CoinConfirmModal({
                     navigate('/pricing')
                   }}
                 >
-                  <Crown size={15} /> Upgrade PRO
+                  <Crown size={15} /> Beli Paket
                 </button>
               </div>
             </div>
@@ -111,7 +111,7 @@ export default function CoinConfirmModal({
               onClick={onConfirm}
             >
               <Sparkles size={16} />
-              Gunakan {coinCost} Koin
+              Gunakan {coinCost} Credits
             </button>
           )}
         </div>
