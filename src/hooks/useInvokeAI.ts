@@ -38,7 +38,7 @@ export function useInvokeAI() {
   // Resolver untuk menunggu keputusan user dari modal
   const resolverRef = useRef<((confirmed: boolean) => void) | null>(null)
 
-  // Dipanggil dari CoinConfirmModal saat user klik "Gunakan Koin"
+  // Dipanggil dari CoinConfirmModal saat user klik "Gunakan Credits"
   const confirmCoinUsage = useCallback(() => {
     setPendingCoinConfirm(null)
     resolverRef.current?.(true)
@@ -169,7 +169,7 @@ export function useInvokeAI() {
         return null
       }
 
-      // Real-time UI refresh: Jika coins/quota terpotong, fetch saldo koin terbaru
+      // Real-time UI refresh: Jika coins/quota terpotong, fetch saldo Credits terbaru
       if (user?.id) {
         supabase
           .from('coin_balances')

@@ -1,5 +1,5 @@
 // src/components/ui/CoinConfirmModal.tsx
-// Pengganti window.confirm() untuk konfirmasi penggunaan koin
+// Pengganti window.confirm() untuk konfirmasi penggunaan Credits
 // Menggunakan CSS custom properties dari index.css — tidak perlu library tambahan
 
 import { useNavigate } from 'react-router-dom'

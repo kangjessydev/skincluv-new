@@ -31,7 +31,7 @@ const navItems = [
   { to: '/ingredient-scan', icon: FlaskConical, label: 'Scan Ingredient' },
   { to: '/chatbot', icon: MessageCircle, label: 'Skinsistant AI' },
   { to: '/missions', icon: Target, label: 'Misi Glow' },
-  { to: '/pricing', icon: Store, label: 'Toko Koin' },
+  { to: '/pricing', icon: Store, label: 'Paket & Langganan' },
   { to: '/profile', icon: User, label: 'Profil Saya' },
 ]
 
@@ -59,7 +59,7 @@ export default function AppLayout() {
     if (path.startsWith('/chatbot')) return 'Skinsistant AI'
     if (path.startsWith('/missions')) return 'Misi Glow'
     if (path.startsWith('/profile')) return 'Profil Saya'
-    if (path.startsWith('/pricing')) return 'Toko Koin & Langganan'
+    if (path.startsWith('/pricing')) return 'Paket & Langganan'
     if (path.startsWith('/coin-history')) return 'Riwayat Credits'
     if (path.startsWith('/transactions')) return 'Riwayat Tagihan'
     if (path.startsWith('/checkout')) return 'Pembayaran'

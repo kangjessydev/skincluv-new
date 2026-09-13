@@ -30,7 +30,7 @@ const DEFAULT_MISSIONS: MissionView[] = [
     id: 'm1',
     slug: 'first_face_scan',
     title: 'Lakukan Scan Wajah Pertama Hari Ini',
-    description: 'Analisis kondisi kulit dengan kamera untuk membuka klaim koin.',
+    description: 'Analisis kondisi kulit dengan kamera untuk membuka klaim Credit.',
     reward_coins: 50,
     progress: 1,
     target: 1,

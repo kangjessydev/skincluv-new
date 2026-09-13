@@ -35,8 +35,8 @@ const features = [
   },
   {
     icon: Layers,
-    title: 'Misi & Hadiah Koin',
-    desc: 'Kumpulkan koin gratis dari rutinitas harian untuk unlock analisis tambahan.',
+    title: 'Misi & Hadiah Credit',
+    desc: 'Kumpulkan Credit gratis dari rutinitas harian untuk unlock analisis tambahan.',
     badge: 'Gamifikasi',
   },
   {
@@ -77,7 +77,7 @@ const steps = [
 const faqs = [
   {
     q: 'Apakah Skincluv benar-benar gratis?',
-    a: 'Ya! Kamu bisa mendaftar secara gratis dan mendapatkan Koin awal untuk mencoba fitur analisis wajah dan kandungan skincare. Kamu bisa mengumpulkan koin tambahan dari misi harian.',
+    a: 'Ya! Kamu bisa mendaftar secara gratis dan mendapatkan Credit awal dari misi pendaftaran untuk mencoba fitur analisis wajah dan kandungan skincare. Kamu juga bisa mengumpulkan Credit tambahan dari misi harian.',
   },
   {
     q: 'Bagaimana cara kerja AI Scan Wajah?',
@@ -88,8 +88,8 @@ const faqs = [
     a: 'Foto wajah diunggah secara aman, dianalisis secara otomatis oleh AI, dan privasi data kamu dijaga sesuai standar perlindungan data.',
   },
   {
-    q: 'Apa fungsi Koin Darurat Skincluv?',
-    a: 'Koin digunakan untuk mengakses fitur AI saat kuota gratis bulanan kamu sudah terpakai. Koin bisa didapatkan gratis lewat Misi Harian atau top-up.',
+    q: 'Apa fungsi Credit Skincluv?',
+    a: 'Credit digunakan untuk mengakses fitur AI bagi pengguna gratis. Credit bisa kamu dapatkan gratis lewat Misi Harian, check-in rutin, dan melengkapi profil.',
   },
 ]
 
@@ -150,7 +150,7 @@ export default function LandingPage() {
             </div>
             <div className="hero-trust">
               <span>✓ Tanpa Kartu Kredit</span>
-              <span>✓ Koin Gratis Harian</span>
+              <span>✓ Credit Gratis Harian</span>
               <span>✓ Hasil Instan</span>
             </div>
           </div>

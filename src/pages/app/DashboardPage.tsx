@@ -121,7 +121,7 @@ export default function DashboardPage() {
             <Sparkles size={16} className="text-amber-300" />
             <b className="promo-title">Langganan Skincluv PRO</b>
           </div>
-          <p className="promo-sub">Dapatkan +10.000 koin instan & konsultasi AI tanpa batas</p>
+          <p className="promo-sub">Buka akses AI melimpah & konsultasi Dermatologist tanpa batas</p>
         </div>
         <button onClick={() => navigate('/pricing')} className="promo-action-btn">
           Upgrade Sekarang

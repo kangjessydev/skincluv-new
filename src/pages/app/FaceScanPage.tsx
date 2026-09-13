@@ -670,7 +670,7 @@ Format respon WAJIB JSON murni tanpa markdown:
       })
 
       if (!result) {
-        setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo koin Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
+        setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
         setStage('upload')
         return
       }
@@ -748,7 +748,7 @@ Format respon WAJIB JSON murni tanpa markdown:
       setStage('result')
     } catch (err: any) {
       console.error('Face analysis execution error:', err)
-      setErrorMsg('Terjadi kendala saat menganalisis foto. Koin Anda tidak berkurang. Silakan coba lagi.')
+      setErrorMsg('Terjadi kendala saat menganalisis foto. Credit Anda tidak berkurang. Silakan coba lagi.')
       setStage('upload')
     }
   }
