@@ -363,8 +363,10 @@ Sebagai asisten dermatologi klinis tingkat lanjut untuk pelanggan PRO, berikan a
           p_action: missionAction,
           p_count: 1,
         })
-        .then(() => {})
-        .catch((mErr) => console.error('[invoke-ai] Error recording mission progress:', mErr))
+        .then(
+          () => {},
+          (mErr: unknown) => console.error('[invoke-ai] Error recording mission progress:', mErr)
+        )
     }
 
     // ---- 10. Return response ----

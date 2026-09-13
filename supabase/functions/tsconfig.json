@@ -2,8 +2,11 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "noEmit": true
-  }
+  },
+  "include": ["**/*.ts", "deno.d.ts"]
 }
