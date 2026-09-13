@@ -104,17 +104,48 @@ export default function MissionsPage() {
         }
 
         if (dbMissions && dbMissions.length > 0) {
+          const isSameDay = (dateStr?: string | null) => {
+            if (!dateStr) return false
+            const d = new Date(dateStr)
+            const now = new Date()
+            return d.toDateString() === now.toDateString()
+          }
+
+          const getIsoWeek = (date: Date) => {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+            const dayNum = d.getUTCDay() || 7
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+            return `${d.getUTCFullYear()}-W${Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)}`
+          }
+
+          const isSameWeek = (dateStr?: string | null) => {
+            if (!dateStr) return false
+            return getIsoWeek(new Date(dateStr)) === getIsoWeek(new Date())
+          }
+
           const mapped: MissionView[] = dbMissions.map((m) => {
             const userProg = userMissions?.find((um) => um.mission_id === m.id)
+            let progress = userProg?.current_count ?? 0
+            let isClaimed = userProg?.is_completed ?? false
+
+            if (m.type === 'daily') {
+              if (!isSameDay(userProg?.completed_at)) isClaimed = false
+              if (!isSameDay(userProg?.last_activity)) progress = 0
+            } else if (m.type === 'weekly') {
+              if (!isSameWeek(userProg?.completed_at)) isClaimed = false
+              if (!isSameWeek(userProg?.last_activity)) progress = 0
+            }
+
             return {
               id: m.id,
               slug: m.slug,
               title: m.name,
               description: m.description,
               reward_coins: m.coin_reward,
-              progress: userProg?.current_count ?? 0,
+              progress,
               target: m.target_count ?? 1,
-              is_claimed: userProg?.is_completed ?? false,
+              is_claimed: isClaimed,
             }
           })
           setMissions(mapped)
