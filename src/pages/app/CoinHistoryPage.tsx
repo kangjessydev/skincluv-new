@@ -34,23 +34,22 @@ export default function CoinHistoryPage() {
 
   useEffect(() => {
     if (!user) return
+    const fetchTransactions = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('coin_transactions')
+        .select('id, amount, type, notes, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('[CoinHistoryPage] Gagal fetch coin_transactions:', error)
+      }
+      if (data) setTransactions(data)
+      setLoading(false)
+    }
     fetchTransactions()
   }, [user])
-
-  const fetchTransactions = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('coin_transactions')
-      .select('id, amount, type, notes, created_at')
-      .eq('user_id', user?.id)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('[CoinHistoryPage] Gagal fetch coin_transactions:', error)
-    }
-    if (data) setTransactions(data)
-    setLoading(false)
-  }
 
   const filtered = transactions.filter(t => {
     if (filter === 'ALL') return true

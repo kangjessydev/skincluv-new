@@ -10,27 +10,26 @@ export default function TransactionHistoryPage() {
   const [invoices, setInvoices] = useState<any[]>([])
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid' | 'expired'>('all')
 
-  const fetchTransactions = async () => {
-    if (!session?.user) return
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('tripay_invoices')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-
-      if (!error && data) {
-        setInvoices(data)
-      }
-    } catch (err) {
-      console.error('Fetch transactions error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
+    if (!session?.user) return
+    const fetchTransactions = async () => {
+      setLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('tripay_invoices')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+
+        if (!error && data) {
+          setInvoices(data)
+        }
+      } catch (err) {
+        console.error('Fetch transactions error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchTransactions()
   }, [session])
 

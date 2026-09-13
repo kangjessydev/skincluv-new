@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   FlaskConical,
   Upload,
@@ -104,12 +104,14 @@ export default function IngredientScanPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Scanner Stage Animation Text & Progress Counter
-  const scanStagesText = [
+  // useMemo because the array contains userSkinType interpolation — wrapping ensures
+  // a stable reference so it can be safely included in useEffect dependency arrays.
+  const scanStagesText = useMemo(() => [
     'Mengekstrak teks komposisi dari foto kemasan...',
     'Mengidentifikasi bahan aktif & sensitizer...',
     `Mencocokkan dengan profil kulitmu (${userSkinType})...`,
     'Menghitung Safety Score & Panduan Layering...',
-  ]
+  ], [userSkinType])
   const [scanTextIndex, setScanTextIndex] = useState(0)
   const [foundCount, setFoundCount] = useState(0)
 
@@ -136,8 +138,7 @@ export default function IngredientScanPage() {
       clearInterval(textInterval)
       clearInterval(countInterval)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage])
+  }, [stage, scanStagesText])
 
   // Auto-scroll smooth to results when Stage 3 activates
   useEffect(() => {

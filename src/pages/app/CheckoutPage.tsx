@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Copy, Check, RefreshCw, QrCode, CreditCard, Store, Clock, ExternalLink, ArrowLeft, ShieldAlert, CheckCircle2, ChevronRight, Crown, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -42,7 +42,7 @@ export default function CheckoutPage() {
   // -------------------------------------------------------------
   // Mode A: Fetch Invoice Status for Existing Reference
   // -------------------------------------------------------------
-  const fetchInvoiceStatus = async (showLoadingState = false) => {
+  const fetchInvoiceStatus = useCallback(async (showLoadingState = false) => {
     if (!reference) return
     if (showLoadingState) setIsCheckingStatus(true)
     try {
@@ -68,7 +68,7 @@ export default function CheckoutPage() {
       setLoading(false)
       if (showLoadingState) setIsCheckingStatus(false)
     }
-  }
+  }, [reference, navigate])
 
   useEffect(() => {
     if (reference) {
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
     } else {
       setLoading(false)
     }
-  }, [reference])
+  }, [reference, fetchInvoiceStatus])
 
   // Countdown Timer for Existing Invoice Mode
   useEffect(() => {

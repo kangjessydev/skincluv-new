@@ -93,6 +93,19 @@ export default function ChatbotPage() {
   // Fetch sessions list on user load, ordered by last_activity DESC
   useEffect(() => {
     if (!user?.id) return
+    const fetchSessions = async () => {
+      try {
+        const { data } = await supabase
+          .from('chat_sessions')
+          .select('id, title, created_at, last_activity')
+          .eq('user_id', user.id)
+          .order('last_activity', { ascending: false, nullsFirst: false })
+
+        if (data) setSessions(data)
+      } catch (err) {
+        console.error('Failed to fetch sessions:', err)
+      }
+    }
     fetchSessions()
   }, [user?.id])
 
@@ -111,20 +124,7 @@ export default function ChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isSending])
 
-  const fetchSessions = async () => {
-    if (!user?.id) return
-    try {
-      const { data } = await supabase
-        .from('chat_sessions')
-        .select('id, title, created_at, last_activity')
-        .eq('user_id', user.id)
-        .order('last_activity', { ascending: false, nullsFirst: false })
 
-      if (data) setSessions(data)
-    } catch (err) {
-      console.error('Failed to fetch sessions:', err)
-    }
-  }
 
   const fetchMessages = async (sid: string) => {
     setIsLoadingMessages(true)

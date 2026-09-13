@@ -332,6 +332,16 @@ const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean })
   return enriched
 }
 
+// Scanner Stage Animation Text — module-level constant so it's a stable reference
+// and does not need to appear in useEffect dependency arrays.
+const FACE_SCAN_STAGES_TEXT = [
+  'Memetakan area wajah...',
+  'Menganalisis tekstur & pori...',
+  'Mendeteksi tanda penuaan & kemerahan...',
+  'Menyesuaikan dengan profil kulitmu...',
+  'Menyusun hasil analisis & rekomendasi...',
+]
+
 export default function FaceScanPage() {
   const { profile, coinBalance } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
@@ -357,14 +367,6 @@ export default function FaceScanPage() {
   ]
   const [passedCheckIndices, setPassedCheckIndices] = useState<number[]>([])
 
-  // Scanner Stage Animation Text (Stage 2)
-  const scanStagesText = [
-    'Memetakan area wajah...',
-    'Menganalisis tekstur & pori...',
-    'Mendeteksi tanda penuaan & kemerahan...',
-    'Menyesuaikan dengan profil kulitmu...',
-    'Menyusun hasil analisis & rekomendasi...',
-  ]
   const [scanTextIndex, setScanTextIndex] = useState(0)
 
   // Analysis Results & Errors
@@ -486,6 +488,12 @@ export default function FaceScanPage() {
     return () => {
       isSubscribed = false
     }
+    // Intentional: deps are limited to [stage] only.
+    // • imageBase64 is always set before stage transitions to 'validate' in handleAnalyze(),
+    //   so the closure always captures the correct, up-to-date value when the effect fires.
+    // • startScanningAndAI relies on stable references (useState setters, invoke hook).
+    //   Wrapping it in useCallback would add complexity without any behavioral benefit.
+    // • The isSubscribed flag guards against stale closures and async race conditions.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage])
 
@@ -497,11 +505,10 @@ export default function FaceScanPage() {
     }
 
     const interval = setInterval(() => {
-      setScanTextIndex((prev) => (prev < scanStagesText.length - 1 ? prev + 1 : prev))
+      setScanTextIndex((prev) => (prev < FACE_SCAN_STAGES_TEXT.length - 1 ? prev + 1 : prev))
     }, 900)
 
     return () => clearInterval(interval)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage])
 
   // Smooth Auto-scroll to results when Stage 3 activates
@@ -962,7 +969,7 @@ Format respon WAJIB JSON murni tanpa markdown:
               <span />
               <span />
             </div>
-            <span className="shimmer-scan-text">{scanStagesText[scanTextIndex]}</span>
+            <span className="shimmer-scan-text">{FACE_SCAN_STAGES_TEXT[scanTextIndex]}</span>
           </div>
         </div>
       )}
