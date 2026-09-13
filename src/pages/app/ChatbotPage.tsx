@@ -312,7 +312,7 @@ export default function ChatbotPage() {
           isOpen={true}
           coinCost={pendingCoinConfirm.coinCost}
           currentBalance={currentCoins}
-          featureName="Skinsistant AI Chat"
+          featureName={pendingCoinConfirm.featureName || 'Skinsistant AI Chat'}
           onConfirm={confirmCoinUsage}
           onCancel={cancelCoinUsage}
         />

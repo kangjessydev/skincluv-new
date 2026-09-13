@@ -382,8 +382,16 @@ export interface Database {
         Returns: void
       }
       claim_mission: {
-        Args: { p_user_id: string; p_mission_slug: string; p_reward_coins: number }
-        Returns: boolean
+        Args: { p_mission_slug: string }
+        Returns: { success: boolean; coins_awarded?: number; new_balance?: number; message?: string; error?: string }
+      }
+      track_daily_login: {
+        Args: Record<string, never>
+        Returns: { success: boolean; error?: string }
+      }
+      track_profile_completion: {
+        Args: Record<string, never>
+        Returns: { success: boolean; profile_completed?: boolean; message?: string; error?: string }
       }
     }
     Enums: Record<string, never>

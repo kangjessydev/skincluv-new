@@ -180,7 +180,16 @@ Deno.serve(async (req: Request) => {
       const coinCost = COIN_COST_PER_FEATURE[feature_slug] ?? 5
 
       if (!use_coins) {
-        return jsonError('Quota exceeded. Enable coin payment or upgrade subscription.', 402)
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Quota exceeded. Enable coin payment or upgrade subscription.',
+            code: 'QUOTA_EXCEEDED',
+            coin_cost: coinCost,
+            feature_slug,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
+        )
       }
 
       // We'll deduct after we confirm the user wants to use coins
@@ -329,6 +338,23 @@ Deno.serve(async (req: Request) => {
       cost_usd: costUsd,
       status: 'success',
     })
+
+    // ---- 9b. Track mission progress server-side (Anti-Spoofing) ----
+    const MISSION_ACTION_MAP: Record<string, string> = {
+      face_analysis: 'face_scan',
+      ingredient_scan: 'ingredient_scan',
+    }
+    const missionAction = MISSION_ACTION_MAP[feature_slug]
+    if (missionAction) {
+      supabaseService
+        .rpc('record_mission_progress', {
+          p_user_id: user.id,
+          p_action: missionAction,
+          p_count: 1,
+        })
+        .then(() => {})
+        .catch((mErr) => console.error('[invoke-ai] Error recording mission progress:', mErr))
+    }
 
     // ---- 10. Return response ----
     return new Response(

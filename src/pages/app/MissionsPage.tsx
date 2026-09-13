@@ -112,7 +112,7 @@ export default function MissionsPage() {
               title: m.name,
               description: m.description,
               reward_coins: m.coin_reward,
-              progress: userProg?.current_count ?? 1, // default progress if active
+              progress: userProg?.current_count ?? 0,
               target: m.target_count ?? 1,
               is_claimed: userProg?.is_completed ?? false,
             }
@@ -129,78 +129,57 @@ export default function MissionsPage() {
     fetchMissionsData()
   }, [user?.id])
 
-  // Handle Mission Claim Functionality
-  const handleClaim = async (missionId: string, coins: number) => {
-    if (!user?.id) return
+  const [claimingSlug, setClaimingSlug] = useState<string | null>(null)
+  const [claimFeedback, setClaimFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // Handle Mission Claim Functionality via Secure Server-Validated RPC
+  const handleClaim = async (mission: MissionView) => {
+    if (!user?.id || claimingSlug) return
+    setClaimingSlug(mission.slug)
+    setClaimFeedback(null)
 
     // Optimistic UI update
     setMissions((prev) =>
-      prev.map((m) => (m.id === missionId ? { ...m, is_claimed: true } : m))
+      prev.map((m) => (m.id === mission.id ? { ...m, is_claimed: true } : m))
     )
 
     try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionId)
-
-      // 1. Call credit_coins RPC (Exact signature matching live Supabase)
-      const { data: updatedBal, error: rpcErr } = await supabase.rpc('credit_coins', {
-        p_amount: coins,
-        p_mission_id: isUuid ? missionId : null,
-        p_notes: `Klaim Misi Harian +${coins} Koin`,
-        p_user_id: user.id,
+      const { data, error } = await supabase.rpc('claim_mission', {
+        p_mission_slug: mission.slug,
       })
 
-      if (rpcErr) {
-        console.warn('[MissionsPage] RPC credit_coins fallback to direct query:', rpcErr)
-        // Fallback: direct insert to coin_transactions
-        const { error: txErr } = await supabase.from('coin_transactions').insert({
-          user_id: user.id,
-          amount: coins,
-          type: 'mission_reward',
-          notes: `Klaim Misi Harian +${coins} Koin`,
-        })
-
-        if (txErr) {
-          console.error('[MissionsPage] Gagal insert coin_transactions:', txErr)
-          // Rollback optimistic update jika gagal total
-          setMissions((prev) =>
-            prev.map((m) => (m.id === missionId ? { ...m, is_claimed: false } : m))
-          )
-          return
-        }
-
-        // Direct upsert to coin_balances
-        const currentBal = coinBalance?.balance ?? 0
-        const newBal = currentBal + coins
-        const { data: directBal } = await supabase
-          .from('coin_balances')
-          .upsert({
-            user_id: user.id,
-            balance: newBal,
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .maybeSingle()
-
-        setCoinBalance(directBal ?? { id: user.id, user_id: user.id, balance: newBal, updated_at: new Date().toISOString() })
-      } else if (updatedBal) {
-        setCoinBalance(updatedBal)
-      } else {
-        const currentBal = coinBalance?.balance ?? 0
-        setCoinBalance({ id: user.id, user_id: user.id, balance: currentBal + coins, updated_at: new Date().toISOString() })
+      if (error || !data?.success) {
+        const errMsg = data?.message || error?.message || 'Gagal mengklaim misi'
+        console.warn('[MissionsPage] claim_mission failed:', errMsg)
+        setClaimFeedback({ type: 'error', message: errMsg })
+        // Rollback optimistic update
+        setMissions((prev) =>
+          prev.map((m) => (m.id === mission.id ? { ...m, is_claimed: false } : m))
+        )
+        return
       }
 
-      // 2. Mark user_missions completed if DB mission
-      if (isUuid) {
-        await supabase.from('user_missions').upsert({
+      // Success: update balance from server returned new_balance
+      if (data.new_balance !== undefined) {
+        setCoinBalance({
+          id: user.id,
           user_id: user.id,
-          mission_id: missionId,
-          current_count: 1,
-          is_completed: true,
-          completed_at: new Date().toISOString(),
+          balance: data.new_balance,
+          updated_at: new Date().toISOString(),
         })
       }
-    } catch (err) {
+      setClaimFeedback({
+        type: 'success',
+        message: data.message || `Selamat! Kamu mendapatkan +${mission.reward_coins} koin.`,
+      })
+    } catch (err: any) {
       console.error('[MissionsPage] Unexpected claim error:', err)
+      setClaimFeedback({ type: 'error', message: err.message || 'Terjadi kesalahan sistem' })
+      setMissions((prev) =>
+        prev.map((m) => (m.id === mission.id ? { ...m, is_claimed: false } : m))
+      )
+    } finally {
+      setClaimingSlug(null)
     }
   }
 
@@ -262,6 +241,16 @@ export default function MissionsPage() {
               </span>
             </div>
 
+            {claimFeedback && (
+              <div className={`p-3 mb-4 rounded-xl text-xs font-semibold ${
+                claimFeedback.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}>
+                {claimFeedback.message}
+              </div>
+            )}
+
             {loading ? (
               <div className="loading-state">
                 <Loader2 size={24} className="animate-spin text-primary" />
@@ -303,9 +292,16 @@ export default function MissionsPage() {
                         ) : isCompleted ? (
                           <button
                             className="btn btn-primary btn-sm"
-                            onClick={() => handleClaim(m.id, m.reward_coins)}
+                            disabled={claimingSlug === m.slug}
+                            onClick={() => handleClaim(m)}
                           >
-                            Klaim
+                            {claimingSlug === m.slug ? (
+                              <>
+                                <Loader2 size={14} className="animate-spin inline mr-1" /> Mengklaim...
+                              </>
+                            ) : (
+                              'Klaim'
+                            )}
                           </button>
                         ) : (
                           <button className="btn btn-outline btn-sm" disabled>

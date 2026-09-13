@@ -94,17 +94,52 @@ export function useInvokeAI() {
 
       // Handle 402 Payment Required (Quota exceeded)
       // Tampilkan modal konfirmasi — bukan window.confirm() blocking
-      if (res.error && res.error.message?.includes('402')) {
-        const COIN_COST = 5
-        const featureLabel =
-          feature_slug === 'face_analysis' ? 'Scan Wajah' :
-          feature_slug === 'ingredient_scan' ? 'Scan Ingredient' :
-          feature_slug === 'chatbot' ? 'Chatbot AI' : 'fitur ini'
+      let is402 = false
+      let dynamicCoinCost: number | null = null
+      let dynamicFeatureSlug = feature_slug
 
-        const confirmed = await askCoinConfirmation(COIN_COST, featureLabel)
+      if (res.error) {
+        if ((res.error as any).context) {
+          try {
+            const errBody = await (res.error as any).context.clone().json()
+            if (errBody?.code === 'QUOTA_EXCEEDED' || errBody?.error?.toLowerCase().includes('quota exceeded')) {
+              is402 = true
+              if (typeof errBody.coin_cost === 'number') {
+                dynamicCoinCost = errBody.coin_cost
+              }
+              if (errBody.feature_slug) {
+                dynamicFeatureSlug = errBody.feature_slug
+              }
+            }
+          } catch {}
+        }
+
+        if (!is402 && (res.error.message?.includes('402') || res.error.message?.toLowerCase().includes('quota exceeded'))) {
+          is402 = true
+        }
+      }
+
+      if (is402) {
+        const DEFAULT_COIN_COST: Record<string, number> = {
+          face_analysis: 10,
+          face_validation: 2,
+          ingredient_scan: 5,
+          chatbot: 1,
+        }
+        const coinCost = dynamicCoinCost ?? DEFAULT_COIN_COST[dynamicFeatureSlug] ?? 5
+
+        const FEATURE_LABELS: Record<string, string> = {
+          face_analysis: 'Scan Wajah Spesialis',
+          face_validation: 'Validasi Foto Wajah',
+          ingredient_scan: 'Analisis Komposisi Produk',
+          chatbot: 'Konsultasi Skinsistant AI',
+        }
+        const featureLabel = FEATURE_LABELS[dynamicFeatureSlug] ?? 'fitur ini'
+
+        const confirmed = await askCoinConfirmation(coinCost, featureLabel)
 
         if (!confirmed) {
-          setError('Dibatalkan. Tambah koin dengan menyelesaikan misi harian.')
+          setError('Dibatalkan. Kumpulkan koin dari misi harian atau upgrade ke Paket PRO.')
           return null
         }
 
@@ -116,7 +151,14 @@ export function useInvokeAI() {
       if (fnError) {
         console.error('[useInvokeAI] Edge Function Network/Internal Error:', fnError)
         let msg = 'Terjadi kesalahan pada layanan AI. Coba lagi.'
-        if (typeof fnError.message === 'string') msg = fnError.message
+        if ((fnError as any).context) {
+          try {
+            const errBody = await (fnError as any).context.clone().json()
+            if (errBody?.error) msg = errBody.error
+          } catch {}
+        } else if (typeof fnError.message === 'string') {
+          msg = fnError.message
+        }
         setError(msg)
         return null
       }

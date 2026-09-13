@@ -373,7 +373,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
           isOpen={true}
           coinCost={pendingCoinConfirm.coinCost}
           currentBalance={coinBalance?.balance ?? 0}
-          featureName="Scan Ingredient AI"
+          featureName={pendingCoinConfirm.featureName || 'Scan Ingredient AI'}
           onConfirm={confirmCoinUsage}
           onCancel={cancelCoinUsage}
         />

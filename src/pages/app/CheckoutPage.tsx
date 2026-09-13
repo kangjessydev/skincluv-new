@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   // State for Review & Method Selector Mode (when reference is undefined)
   const [selectedMethod, setSelectedMethod] = useState<string>('BRIVA')
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // State for Existing Invoice Mode (when reference is provided)
   const [loading, setLoading] = useState(!!reference)
@@ -106,6 +107,7 @@ export default function CheckoutPage() {
   const handleProceedToPayment = async () => {
     if (isSubmitting) return
     setIsSubmitting(true)
+    setErrorMessage(null)
     try {
       const { data, error } = await supabase.functions.invoke('tripay-invoice', {
         body: { plan: 'PREMIUM', method: selectedMethod }
@@ -119,7 +121,7 @@ export default function CheckoutPage() {
             if (ctxJson?.error) msg = ctxJson.error
           } catch {}
         }
-        alert('Gagal membuat tagihan: ' + msg)
+        setErrorMessage(msg || 'Gagal membuat tagihan pembayaran.')
         return
       }
 
@@ -127,10 +129,10 @@ export default function CheckoutPage() {
         // Direct redirect to official Tripay payment page (with Admin Fee, VA Code, QRIS & Sandbox simulation!)
         window.location.href = data.checkout_url
       } else {
-        alert('Gagal mendapatkan URL pembayaran: ' + (data?.error || 'Unknown error'))
+        setErrorMessage(data?.error || 'Gagal mendapatkan URL pembayaran dari gateway.')
       }
     } catch (err: any) {
-      alert('Gagal memproses pembayaran: ' + (err.message || err))
+      setErrorMessage(err.message || 'Gagal memproses pembayaran. Cek koneksi Anda.')
     } finally {
       setIsSubmitting(false)
     }
@@ -250,6 +252,20 @@ export default function CheckoutPage() {
                 *Biaya administrasi bank/e-Wallet akan dihitung resmi oleh Tripay di halaman berikutnya.
               </span>
             </div>
+            {errorMessage && (
+              <div className="checkout-error-banner">
+                <ShieldAlert size={18} className="error-icon" />
+                <div className="error-content">
+                  <p className="error-msg">{errorMessage}</p>
+                  {errorMessage.includes('Payment gateway not configured') && (
+                    <span className="error-hint">
+                      Tips: Kredensial Tripay (TRIPAY_API_KEY, TRIPAY_PRIVATE_KEY, TRIPAY_MERCHANT_CODE) belum dikonfigurasi di Supabase Secrets.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <button 
               className="btn btn-primary btn-block btn-pay-now mt-md" 
               onClick={handleProceedToPayment}
@@ -269,6 +285,22 @@ export default function CheckoutPage() {
         </div>
 
         <style>{`
+          .checkout-error-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 12px 14px;
+            margin-top: 12px;
+            color: #ef4444;
+          }
+          .error-icon { flex-shrink: 0; margin-top: 2px; }
+          .error-content { display: flex; flex-direction: column; gap: 2px; }
+          .error-msg { margin: 0; font-size: 0.8125rem; font-weight: 600; line-height: 1.4; color: #f87171; }
+          .error-hint { font-size: 0.75rem; color: var(--color-text-muted); line-height: 1.3; }
+
           .checkout-page { padding-bottom: 120px; max-width: 600px; margin: 0 auto; }
           .checkout-header { margin-bottom: var(--space-lg); }
           .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--color-brand-300); font-size: 0.875rem; text-decoration: none; margin-bottom: 4px; }

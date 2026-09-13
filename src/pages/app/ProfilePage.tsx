@@ -122,6 +122,11 @@ export default function ProfilePage() {
         setActiveSkinProfile(result.data)
         setMessage('Profil kulit berhasil disimpan! Rekomendasi medis sekarang lebih terpersonalisasi.')
         setIsSuccess(true)
+
+        // Track complete_profile mission safely on the server
+        supabase.rpc('track_profile_completion').catch((err) => {
+          console.warn('[ProfilePage] Failed to track profile completion:', err)
+        })
       }
     } catch (err: any) {
       console.error(err)

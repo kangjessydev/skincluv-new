@@ -771,7 +771,7 @@ Format respon WAJIB JSON murni tanpa markdown:
           isOpen={true}
           coinCost={pendingCoinConfirm.coinCost}
           currentBalance={coinBalance?.balance ?? 0}
-          featureName="Scan Wajah AI"
+          featureName={pendingCoinConfirm.featureName || 'Scan Wajah AI'}
           onConfirm={confirmCoinUsage}
           onCancel={cancelCoinUsage}
         />

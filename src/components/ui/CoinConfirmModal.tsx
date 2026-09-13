@@ -2,7 +2,8 @@
 // Pengganti window.confirm() untuk konfirmasi penggunaan koin
 // Menggunakan CSS custom properties dari index.css — tidak perlu library tambahan
 
-import { Coins, X, Sparkles } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Coins, X, Sparkles, Crown, Trophy } from 'lucide-react'
 
 interface CoinConfirmModalProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ export default function CoinConfirmModal({
   onConfirm,
   onCancel,
 }: CoinConfirmModalProps) {
+  const navigate = useNavigate()
   if (!isOpen) return null
 
   const balanceAfter = currentBalance - coinCost
@@ -41,9 +43,9 @@ export default function CoinConfirmModal({
 
         {/* Body */}
         <div className="coin-modal-body">
-          <h3>Kuota Gratis Habis</h3>
+          <h3>Kuota Analisis Habis</h3>
           <p>
-            Kamu bisa melanjutkan menggunakan koin untuk mengakses{' '}
+            Kuota bulananmu telah terpakai. Kamu bisa melanjutkan menggunakan koin untuk mengakses{' '}
             <strong>{featureName}</strong>.
           </p>
 
@@ -62,15 +64,39 @@ export default function CoinConfirmModal({
               <span>Sisa setelah pemotongan</span>
               <span className={balanceAfter < 0 ? 'text-error' : 'text-success'}>
                 {balanceAfter < 0 ? '0' : balanceAfter} Koin
-                {balanceAfter < 0 && ' (tidak cukup)'}
+                {balanceAfter < 0 && ' (kurang)'}
               </span>
             </div>
           </div>
 
           {isInsufficient && (
-            <p className="coin-modal-warning">
-              Saldo koin kamu tidak cukup. Selesaikan misi harian untuk mendapatkan koin gratis.
-            </p>
+            <div className="insufficient-callout">
+              <p className="coin-modal-warning">
+                Saldo koin kamu tidak cukup untuk analisis ini. Kumpulkan koin dari misi harian atau upgrade ke Paket PRO untuk kuota 3.000 analisis/bulan.
+              </p>
+              <div className="insufficient-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    onCancel()
+                    navigate('/missions')
+                  }}
+                >
+                  <Trophy size={15} /> Kerjakan Misi
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    onCancel()
+                    navigate('/pricing')
+                  }}
+                >
+                  <Crown size={15} /> Upgrade PRO
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
@@ -79,14 +105,15 @@ export default function CoinConfirmModal({
           <button className="btn btn-outline" onClick={onCancel}>
             Batal
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={onConfirm}
-            disabled={isInsufficient}
-          >
-            <Sparkles size={16} />
-            Gunakan {coinCost} Koin
-          </button>
+          {!isInsufficient && (
+            <button
+              className="btn btn-primary"
+              onClick={onConfirm}
+            >
+              <Sparkles size={16} />
+              Gunakan {coinCost} Koin
+            </button>
+          )}
         </div>
       </div>
 
@@ -209,13 +236,35 @@ export default function CoinConfirmModal({
         .text-success { color: var(--color-success); }
 
         .coin-modal-warning {
-          margin-top: var(--space-md) !important;
           background: #fef2f2;
           border: 1px solid #fecaca;
           border-radius: var(--radius-md);
           padding: var(--space-sm) var(--space-md);
           color: var(--color-error) !important;
           font-size: 0.8125rem !important;
+          margin: 0 !important;
+        }
+
+        .insufficient-callout {
+          margin-top: var(--space-md);
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .insufficient-actions {
+          display: flex;
+          gap: 8px;
+        }
+
+        .insufficient-actions .btn {
+          flex: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          padding: 8px 10px;
         }
 
         .coin-modal-actions {
