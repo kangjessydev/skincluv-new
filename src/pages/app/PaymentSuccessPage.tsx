@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Crown, CheckCircle, Sparkles, ScanFace, MessageSquare, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
@@ -8,7 +8,6 @@ export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams()
   const reference = searchParams.get('reference') || searchParams.get('tripay_merchant_ref') || 'INV-PRO'
   const { setSubscription } = useAuthStore()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Re-hydrate subscription data in background
@@ -26,7 +25,6 @@ export default function PaymentSuccessPage() {
           setSubscription(subData)
         }
       }
-      setLoading(false)
     }
     refreshSub()
   }, [setSubscription])

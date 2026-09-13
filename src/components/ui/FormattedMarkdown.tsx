@@ -38,7 +38,7 @@ export default function FormattedMarkdown({
     // Bold: **text** or __text__
     // Code: `text`
     // Precise Italic: *text* (bounded by non-space)
-    const tokenRegex = /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\b\*[^\s*][^*]*\*\b|(?<=\s|^|\()\*[^\s*][^*]*\*(?=\s|$|\.|\,|>|\!|\?|\)))/g
+    const tokenRegex = /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\b\*[^\s*][^*]*\*\b|(?<=\s|^|\()\*[^\s*][^*]*\*(?=\s|$|\.|,|>|!|\?|\)))/g
 
     const parts = text.split(tokenRegex)
 

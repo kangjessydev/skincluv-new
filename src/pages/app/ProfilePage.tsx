@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
-import { User, Activity, AlertCircle, Save, Crown, Coins, Receipt, History, ArrowRight, ShieldCheck, Zap, LogOut } from 'lucide-react'
+import { Activity, AlertCircle, Save, Crown, Coins, Receipt, History, ArrowRight, ShieldCheck, Zap, LogOut } from 'lucide-react'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
 
 const SKIN_TYPES = [

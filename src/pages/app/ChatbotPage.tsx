@@ -385,6 +385,19 @@ export default function ChatbotPage() {
             <p>
               Saya <b>Skinsistant AI</b>, asisten konsultasi kulit pribadi Anda. Tanyakan apa saja mengenai masalah kulit, rutinitas skincare, atau analisis komposisi produk.
             </p>
+            <div className="welcome-chips-grid">
+              {suggestionChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="welcome-chip-item"
+                  onClick={() => handleSendMessage(chip)}
+                >
+                  <Sparkles size={14} />
+                  <span>{chip}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

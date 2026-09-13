@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { MapPin, AlertCircle } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { MapPin } from 'lucide-react'
 
 export interface SanitizeResult {
   ymin: number
@@ -8,7 +8,7 @@ export interface SanitizeResult {
   xmax: number
 }
 
-export function sanitizeBox(box?: number[]): SanitizeResult | null {
+function sanitizeBox(box?: number[]): SanitizeResult | null {
   if (!Array.isArray(box) || box.length !== 4) return null
 
   const numbers = box.map((val) => Number(val))
@@ -51,7 +51,7 @@ export function SkinRegionCropper({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [cropSuccess, setCropSuccess] = useState(false)
 
-  const sanitized = sanitizeBox(box)
+  const sanitized = useMemo(() => sanitizeBox(box), [box])
 
   useEffect(() => {
     if (!sanitized || !imageSrc) {
@@ -96,7 +96,7 @@ export function SkinRegionCropper({
     return () => {
       isMounted = false
     }
-  }, [imageSrc, box])
+  }, [imageSrc, sanitized])
 
   const severityBadgeClass =
     severity === 'high'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Clock, CheckCircle2, ShieldAlert, CreditCard, ExternalLink, RefreshCw, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle2, CreditCard, ExternalLink, RefreshCw, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 

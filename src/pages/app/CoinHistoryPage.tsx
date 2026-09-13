@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Coins, History, ArrowDownLeft, ArrowUpRight, Filter } from 'lucide-react'
+import { ArrowLeft, Coins, ArrowDownLeft, ArrowUpRight, Filter } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
