@@ -369,11 +369,35 @@ Sebagai asisten dermatologi klinis tingkat lanjut untuk pelanggan PRO, berikan a
         )
     }
 
-    // ---- 10. Return response ----
+    // ---- 10. Product Matching Engine (khusus face_analysis) ----
+    let finalContent = aiResult!.content
+
+    if (feature_slug === 'face_analysis') {
+      const parsed = tryParseAiJson(aiResult!.content)
+      if (parsed && parsed.is_valid_face !== false && Array.isArray(parsed.recommended_ingredients)) {
+        try {
+          const matchedProducts = await matchProductsFromIngredients(
+            supabaseService,
+            parsed.recommended_ingredients as RecommendedIngredientInput[],
+            parsed.skin_type as string | undefined
+          )
+          parsed.product_recommendations = matchedProducts
+          finalContent = JSON.stringify(parsed)
+        } catch (matchErr) {
+          console.error('[invoke-ai] Product matching failed:', matchErr)
+          // Gagal matching bukan alasan gagalkan seluruh request — biarkan
+          // parsed.product_recommendations kosong daripada crash.
+          parsed.product_recommendations = []
+          finalContent = JSON.stringify(parsed)
+        }
+      }
+    }
+
+    // ---- Return response ----
     return new Response(
       JSON.stringify({
         success: true,
-        content: aiResult!.content,
+        content: finalContent,
         deduct_mode: deductMode,
         tokens_used: aiResult!.tokensUsed,
       }),
@@ -413,5 +437,121 @@ async function rollback(
     })
   } catch (err) {
     console.error('[invoke-ai] rollback failed:', err)
+  }
+}
+
+// ---- Product Matching Engine (untuk face_analysis) ----
+
+interface RecommendedIngredientInput {
+  name: string
+  purpose?: string
+  priority?: 'essential' | 'recommended' | 'optional'
+}
+
+interface ProductRow {
+  id: string
+  name: string
+  brand: string | null
+  category: string
+  key_ingredients: string[]
+  skin_type_fit: string[]
+  price_estimate: string | null
+  listing_type: 'organic' | 'affiliate' | 'endorse'
+  sponsor_weight: number
+}
+
+const PRIORITY_WEIGHT: Record<string, number> = {
+  essential: 3,
+  recommended: 2,
+  optional: 1,
+}
+
+// Ambang batas relevansi minimal sebelum listing_type boost boleh berlaku.
+// Prinsip: produk affiliate/endorse HANYA boleh naik urutan kalau dia
+// sudah cukup relevan lebih dulu — bukan karena dibayar semata.
+const MIN_MATCH_SCORE_FOR_BOOST = 60
+const MAX_PRODUCTS_RETURNED = 3
+
+function normalizeIngredientName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+async function matchProductsFromIngredients(
+  supabaseService: ReturnType<typeof createClient>,
+  recommendedIngredients: RecommendedIngredientInput[],
+  skinType: string | undefined
+): Promise<Array<{
+  product_name: string
+  brand?: string
+  category: string
+  match_score: number
+  key_ingredients?: string[]
+  why_recommended: string
+  price_estimate?: string
+}>> {
+  if (!recommendedIngredients || recommendedIngredients.length === 0) return []
+
+  const { data: products, error } = await supabaseService
+    .from('products')
+    .select('id, name, brand, category, key_ingredients, skin_type_fit, price_estimate, listing_type, sponsor_weight')
+    .eq('is_active', true)
+
+  if (error || !products || products.length === 0) return []
+
+  const normalizedTargets = recommendedIngredients.map((ri) => ({
+    normalized: normalizeIngredientName(ri.name),
+    weight: PRIORITY_WEIGHT[ri.priority ?? 'recommended'] ?? 2,
+  }))
+
+  const scored = (products as unknown as ProductRow[]).map((p) => {
+    const productIngredientsNormalized = (p.key_ingredients ?? []).map(normalizeIngredientName)
+
+    let rawScore = 0
+    let maxPossible = 0
+    for (const target of normalizedTargets) {
+      maxPossible += target.weight
+      const isMatch = productIngredientsNormalized.some(
+        (pi) => pi.includes(target.normalized) || target.normalized.includes(pi)
+      )
+      if (isMatch) rawScore += target.weight
+    }
+
+    let matchScore = maxPossible > 0 ? Math.round((rawScore / maxPossible) * 100) : 0
+
+    // Bonus kecil kalau skin_type_fit produk cocok dengan skin_type user
+    if (skinType && p.skin_type_fit?.includes(skinType)) {
+      matchScore = Math.min(100, matchScore + 10)
+    }
+
+    // Listing type boost — HANYA berlaku jika sudah lolos ambang batas relevansi
+    let displayScore = matchScore
+    if (matchScore >= MIN_MATCH_SCORE_FOR_BOOST && p.listing_type !== 'organic') {
+      displayScore = Math.min(100, matchScore + (p.sponsor_weight ?? 0))
+    }
+
+    return { product: p, matchScore, displayScore }
+  })
+
+  return scored
+    .filter((s) => s.matchScore > 0)
+    .sort((a, b) => b.displayScore - a.displayScore)
+    .slice(0, MAX_PRODUCTS_RETURNED)
+    .map((s) => ({
+      product_name: s.product.name,
+      brand: s.product.brand ?? undefined,
+      category: s.product.category,
+      match_score: s.matchScore,
+      key_ingredients: s.product.key_ingredients,
+      why_recommended: `Mengandung bahan yang cocok dengan kebutuhan kulitmu saat ini (tingkat kecocokan ${s.matchScore}%).`,
+      price_estimate: s.product.price_estimate ?? undefined,
+    }))
+}
+
+function tryParseAiJson(content: string): Record<string, unknown> | null {
+  try {
+    const cleaned = content.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '')
+    return JSON.parse(cleaned)
+  } catch {
+    return null
   }
 }

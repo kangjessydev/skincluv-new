@@ -436,6 +436,57 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          key_ingredients: string[]
+          listing_type: string
+          marketplace_url: string | null
+          name: string
+          price_estimate: string | null
+          skin_type_fit: string[]
+          sponsor_weight: number
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          key_ingredients?: string[]
+          listing_type?: string
+          marketplace_url?: string | null
+          name: string
+          price_estimate?: string | null
+          skin_type_fit?: string[]
+          sponsor_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          key_ingredients?: string[]
+          listing_type?: string
+          marketplace_url?: string | null
+          name?: string
+          price_estimate?: string | null
+          skin_type_fit?: string[]
+          sponsor_weight?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
