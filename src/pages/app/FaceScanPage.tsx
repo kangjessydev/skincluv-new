@@ -6,7 +6,6 @@ import {
   AlertCircle,
   Sparkles,
   RotateCcw,
-  Check,
   ShoppingBag,
   History,
 } from 'lucide-react'
@@ -17,11 +16,7 @@ import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { validateImageQuality, compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace } from '@/utils/faceLandmarkDetector'
 
-type Stage = 'upload' | 'validate' | 'scanning' | 'result'
-
-interface ValidationCheckItem {
-  label: string
-}
+type Stage = 'upload' | 'scanning' | 'result'
 
 export interface AreaEvaluation {
   id: string
@@ -335,11 +330,11 @@ const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean })
 // Scanner Stage Animation Text — module-level constant so it's a stable reference
 // and does not need to appear in useEffect dependency arrays.
 const FACE_SCAN_STAGES_TEXT = [
-  'Memetakan area wajah...',
-  'Menganalisis tekstur & pori...',
-  'Mendeteksi tanda penuaan & kemerahan...',
-  'Menyesuaikan dengan profil kulitmu...',
-  'Menyusun hasil analisis & rekomendasi...',
+  'Memeriksa kualitas foto & mendeteksi wajah...',
+  'Memetakan area & memindai tekstur kulit...',
+  'Mendeteksi pori-pori, sebum & tanda kemerahan...',
+  'Menyelaraskan dengan profil kulit pengguna...',
+  'Menyusun rekomendasi perawatan & bahan aktif...',
 ]
 
 export default function FaceScanPage() {
@@ -359,14 +354,6 @@ export default function FaceScanPage() {
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Validation Checklist States (Stage 1b: 3 Tahapan Validasi Gambar)
-  const validationChecksList: ValidationCheckItem[] = [
-    { label: 'Pencahayaan & Ketajaman Jelas' },
-    { label: 'Wajah Manusia Asli Terdeteksi' },
-    { label: 'Posisi Wajah Jelas & Terbuka' },
-  ]
-  const [passedCheckIndices, setPassedCheckIndices] = useState<number[]>([])
-
   const [scanTextIndex, setScanTextIndex] = useState(0)
 
   // Analysis Results & Errors
@@ -376,25 +363,20 @@ export default function FaceScanPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
 
-  const [failedCheckIndex, setFailedCheckIndex] = useState<number | null>(null)
-  const [validationFailReason, setValidationFailReason] = useState<string | null>(null)
-
-  // Stage 1b Real Validation Flow: Gerbang Klien CV (Zero-Cost) -> Gerbang AI Edge (Human Face Check)
+  // Unified Scanning Pipeline:
+  // Client CV (Canvas quality & MediaPipe Face Mesh) -> AI Gemini Analysis -> Result
   useEffect(() => {
-    if (stage !== 'validate') {
-      setPassedCheckIndices([])
-      setFailedCheckIndex(null)
-      setValidationFailReason(null)
+    if (stage !== 'scanning') {
+      setScanTextIndex(0)
       return
     }
 
     let isSubscribed = true
+    let textInterval: ReturnType<typeof setInterval> | null = null
 
-    const runValidationPipeline = async () => {
+    const runScanPipeline = async () => {
       try {
-        setPassedCheckIndices([])
-        setFailedCheckIndex(null)
-        setValidationFailReason(null)
+        setScanTextIndex(0) // "Memeriksa kualitas foto & mendeteksi wajah..."
 
         if (!imageBase64) {
           setErrorMsg('Pilih foto terlebih dahulu.')
@@ -410,21 +392,10 @@ export default function FaceScanPage() {
         if (!isSubscribed) return
 
         if (!qualityRes.isValid) {
-          setFailedCheckIndex(0) // Item 1: Pencahayaan & Ketajaman -> GAGAL
-          setPassedCheckIndices([])
-          setValidationFailReason(qualityRes.message)
           setErrorMsg(qualityRes.message)
-
-          setTimeout(() => {
-            if (isSubscribed) setStage('upload')
-          }, 2800)
+          setStage('upload')
           return
         }
-
-        // Item 1 Lolos!
-        setPassedCheckIndices([0])
-        await new Promise((r) => setTimeout(r, 250))
-        if (!isSubscribed) return
 
         // =========================================================================
         // GERBANG 2 (FRONTEND): Google MediaPipe 468 Face Mesh (Human & Obstruction)
@@ -433,82 +404,142 @@ export default function FaceScanPage() {
         const faceRes = await detectHumanFace(imageBase64)
         if (!isSubscribed) return
 
-        // 2a. Cek apakah ini wajah manusia asli (bukan kucing, bukan botol skincare, dll)
+        // 2a. Cek apakah ini wajah manusia asli
         if (!faceRes.isHuman || faceRes.faceCount === 0) {
-          setFailedCheckIndex(1) // Item 2: Wajah Manusia Asli -> GAGAL
           const failReason =
             faceRes.rejectionReason ||
             'Foto yang Anda unggah terdeteksi sebagai produk skincare, hewan, atau objek non-manusia.'
-          setValidationFailReason(failReason)
           setErrorMsg(failReason)
-
-          setTimeout(() => {
-            if (isSubscribed) setStage('upload')
-          }, 3000)
+          setStage('upload')
           return
         }
 
-        // Item 2 Lolos MediaPipe!
-        setPassedCheckIndices([0, 1])
-        await new Promise((r) => setTimeout(r, 200))
-        if (!isSubscribed) return
-
-        // 2b. Cek apakah wajah terhalang (mirror selfie tertutup HP, masker medis, dll)
+        // 2b. Cek apakah wajah terhalang
         if (!faceRes.isUnobstructed) {
-          setFailedCheckIndex(2) // Item 3: Posisi Wajah Jelas & Terbuka -> GAGAL
           const failReason =
             faceRes.rejectionReason ||
             'Wajah terdeteksi terhalang ponsel (mirror selfie) atau masker. Harap pastikan mata, hidung, dan mulut terlihat jelas.'
-          setValidationFailReason(failReason)
           setErrorMsg(failReason)
-
-          setTimeout(() => {
-            if (isSubscribed) setStage('upload')
-          }, 3000)
+          setStage('upload')
           return
         }
 
-        // SELURUH GERBANG VALIDASI KLIEN (CANVAS + MEDIAPIPE) LOLOS SEMPURNA!
-        setPassedCheckIndices([0, 1, 2])
-        await new Promise((r) => setTimeout(r, 400))
+        // =========================================================================
+        // GERBANG 3: Analisis Dermatologis AI Gemini + Product Matching Engine
+        // Mulai rotasi teks scanner agar pengguna tahu proses berjalan aktif
+        // =========================================================================
+        setScanTextIndex(1)
+        textInterval = setInterval(() => {
+          setScanTextIndex((prev) => (prev < FACE_SCAN_STAGES_TEXT.length - 1 ? prev + 1 : prev))
+        }, 1100)
+
+        const result = await invoke<AnalysisResult & { is_valid_face?: boolean; reason?: string }>({
+          feature_slug: 'face_analysis',
+          messages: [
+            {
+              role: 'user',
+              content: 'Analisis kondisi kulit dari foto wajah yang dilampirkan berikut ini.',
+            },
+          ],
+          input_context: {
+            image_base64: imageBase64 || '',
+          },
+        })
+
         if (!isSubscribed) return
 
-        // Lanjut ke Stage 2: Laser Scanning & Analisis Klinis Mendalam dengan Standar Forensik Optik
-        startScanningAndAI()
+        if (!result) {
+          setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
+          setStage('upload')
+          return
+        }
+
+        if (result.is_valid_face === false) {
+          setErrorMsg(
+            result.reason ||
+              'Wajah tidak terlihat cukup jelas untuk analisis dermatologis. Silakan gunakan foto yang lebih terang dan fokus.'
+          )
+          setStage('upload')
+          return
+        }
+
+        const enriched = enrichAnalysisResult(result)
+        setAnalysisResult(enriched)
+
+        // Save scan record & sync with Supabase skin_profiles and face_scans history schema
+        if (profile?.id && enriched.skin_type) {
+          // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
+          supabase
+            .from('face_scans')
+            .insert({
+              user_id: profile.id,
+              overall_score: enriched.overall_score || 80,
+              skin_status_title: enriched.skin_status_title || 'Kondisi Kulit Terpantau',
+              skin_type: enriched.skin_type || 'normal',
+              skin_concerns: enriched.skin_concerns || [],
+              analysis_notes: enriched.analysis_notes || '',
+              area_evaluations: (enriched.area_evaluations || []) as any,
+              product_recommendations: (enriched.product_recommendations || []) as any,
+              raw_ai_response: enriched as any,
+            })
+            .then((res) => {
+              if (res && 'error' in res && res.error) {
+                console.warn('[Supabase face_scans history insert]:', res.error.message)
+              }
+            }, (err: unknown) => console.warn('[Supabase face_scans insert error]:', err))
+
+          // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
+          supabase
+            .from('skin_profiles')
+            .select('id')
+            .eq('user_id', profile.id)
+            .eq('is_active', true)
+            .maybeSingle()
+            .then(({ data: existing }) => {
+              const payload = {
+                skin_type: enriched.skin_type,
+                skin_concerns: enriched.skin_concerns || [],
+                analysis_notes: enriched.analysis_notes || '',
+                raw_ai_response: enriched as any,
+              }
+              if (existing?.id) {
+                return supabase
+                  .from('skin_profiles')
+                  .update(payload)
+                  .eq('id', existing.id)
+              } else {
+                return supabase
+                  .from('skin_profiles')
+                  .insert({
+                    ...payload,
+                    user_id: profile.id,
+                    is_active: true,
+                  })
+              }
+            })
+            .then((res) => {
+              if (res && 'error' in res && (res as any).error) {
+                console.warn('[Supabase skin_profiles sync]:', (res as any).error.message)
+              }
+            }, (err: unknown) => console.warn('[Supabase skin_profiles sync error]:', err))
+        }
+
+        setStage('result')
       } catch (err: any) {
         if (!isSubscribed) return
-        console.error('Validation pipeline error:', err)
-        setErrorMsg('Gagal memvalidasi foto. Silakan coba lagi.')
+        console.error('Face scan pipeline error:', err)
+        setErrorMsg('Terjadi kendala saat menganalisis foto. Credit Anda tidak berkurang. Silakan coba lagi.')
         setStage('upload')
       }
     }
 
-    runValidationPipeline()
+    runScanPipeline()
 
     return () => {
       isSubscribed = false
+      if (textInterval) clearInterval(textInterval)
     }
-    // Intentional: deps are limited to [stage] only.
-    // • imageBase64 is always set before stage transitions to 'validate' in handleAnalyze(),
-    //   so the closure always captures the correct, up-to-date value when the effect fires.
-    // • startScanningAndAI relies on stable references (useState setters, invoke hook).
-    //   Wrapping it in useCallback would add complexity without any behavioral benefit.
-    // • The isSubscribed flag guards against stale closures and async race conditions.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage])
-
-  // Stage 2 Scanning Stage Text Rotation Timer
-  useEffect(() => {
-    if (stage !== 'scanning') {
-      setScanTextIndex(0)
-      return
-    }
-
-    const interval = setInterval(() => {
-      setScanTextIndex((prev) => (prev < FACE_SCAN_STAGES_TEXT.length - 1 ? prev + 1 : prev))
-    }, 900)
-
-    return () => clearInterval(interval)
   }, [stage])
 
   // Smooth Auto-scroll to results when Stage 3 activates
@@ -575,109 +606,7 @@ export default function FaceScanPage() {
       return
     }
     setErrorMsg(null)
-    setStage('validate')
-  }
-
-  const startScanningAndAI = async () => {
     setStage('scanning')
-
-    try {
-      // ATOMIC CALL FOR STAGE 2 (GRANULAR SKIN ANALYSIS) & STAGE 3 (PRODUCT MATCHING)
-      const result = await invoke<AnalysisResult & { is_valid_face?: boolean; reason?: string }>({
-        feature_slug: 'face_analysis',
-        messages: [
-          {
-            role: 'user',
-            content: 'Analisis kondisi kulit dari foto wajah yang dilampirkan berikut ini.',
-          },
-        ],
-        input_context: {
-          image_base64: imageBase64 || '',
-        },
-      })
-
-      if (!result) {
-        setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
-        setStage('upload')
-        return
-      }
-
-      if (result.is_valid_face === false) {
-        setErrorMsg(
-          result.reason ||
-            'Wajah tidak terlihat cukup jelas untuk analisis dermatologis. Silakan gunakan foto yang lebih terang dan fokus.'
-        )
-        setStage('upload')
-        return
-      }
-
-      const enriched = enrichAnalysisResult(result)
-      setAnalysisResult(enriched)
-
-      // Save scan record & sync with Supabase skin_profiles and face_scans history schema
-      if (profile?.id && enriched.skin_type) {
-        // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
-        supabase
-          .from('face_scans')
-          .insert({
-            user_id: profile.id,
-            overall_score: enriched.overall_score || 80,
-            skin_status_title: enriched.skin_status_title || 'Kondisi Kulit Terpantau',
-            skin_type: enriched.skin_type || 'normal',
-            skin_concerns: enriched.skin_concerns || [],
-            analysis_notes: enriched.analysis_notes || '',
-            area_evaluations: (enriched.area_evaluations || []) as any,
-            product_recommendations: (enriched.product_recommendations || []) as any,
-            raw_ai_response: enriched as any,
-          })
-          .then((res) => {
-            if (res && 'error' in res && res.error) {
-              console.warn('[Supabase face_scans history insert]:', res.error.message)
-            }
-          }, (err: unknown) => console.warn('[Supabase face_scans insert error]:', err))
-
-        // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
-        supabase
-          .from('skin_profiles')
-          .select('id')
-          .eq('user_id', profile.id)
-          .eq('is_active', true)
-          .maybeSingle()
-          .then(({ data: existing }) => {
-            const payload = {
-              skin_type: enriched.skin_type,
-              skin_concerns: enriched.skin_concerns || [],
-              analysis_notes: enriched.analysis_notes || '',
-              raw_ai_response: enriched as any,
-            }
-            if (existing?.id) {
-              return supabase
-                .from('skin_profiles')
-                .update(payload)
-                .eq('id', existing.id)
-            } else {
-              return supabase
-                .from('skin_profiles')
-                .insert({
-                  ...payload,
-                  user_id: profile.id,
-                  is_active: true,
-                })
-            }
-          })
-          .then((res) => {
-            if (res && 'error' in res && (res as any).error) {
-              console.warn('[Supabase skin_profiles sync]:', (res as any).error.message)
-            }
-          }, (err: unknown) => console.warn('[Supabase skin_profiles sync error]:', err))
-      }
-
-      setStage('result')
-    } catch (err: any) {
-      console.error('Face analysis execution error:', err)
-      setErrorMsg('Terjadi kendala saat menganalisis foto. Credit Anda tidak berkurang. Silakan coba lagi.')
-      setStage('upload')
-    }
   }
 
   const handleResetFlow = () => {
@@ -832,50 +761,6 @@ export default function FaceScanPage() {
         </div>
       )}
 
-      {/* STAGE 1b: PHOTO QUALITY CHECKLIST ANIMATION */}
-      {stage === 'validate' && (
-        <div className="validation-stage-card">
-          <div className="card-section-label">MEMERIKSA KUALITAS FOTO</div>
-          <div className="check-list-stack">
-            {validationChecksList.map((check, idx) => {
-              const isPassed = passedCheckIndices.includes(idx)
-              const isFailed = failedCheckIndex === idx
-              return (
-                <div key={idx} className="check-item-row">
-                  <div
-                    className={`check-icon-circle ${
-                      isPassed ? 'ok' : isFailed ? 'failed' : 'pending'
-                    }`}
-                  >
-                    {isPassed ? (
-                      <Check size={13} />
-                    ) : isFailed ? (
-                      <X size={13} />
-                    ) : (
-                      <div className="pulse-dot" />
-                    )}
-                  </div>
-                  <span className="check-label-text">{check.label}</span>
-                  <span
-                    className={`check-status-badge ${
-                      isPassed ? 'ok' : isFailed ? 'failed' : ''
-                    }`}
-                  >
-                    {isPassed ? 'Lolos' : isFailed ? 'Gagal' : 'Memeriksa...'}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-
-          {validationFailReason && (
-            <div className="validation-fail-banner">
-              <AlertCircle size={16} className="shrink-0" />
-              <span>{validationFailReason}</span>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* STAGE 2: ANIMATED LASER SCANNER */}
       {stage === 'scanning' && (
@@ -1264,106 +1149,6 @@ export default function FaceScanPage() {
           color: #0f6784;
         }
 
-        /* STAGE 1b: VALIDATION CHECKLIST CARD */
-        .validation-stage-card {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          padding: 24px;
-          max-width: 480px;
-          margin: 0 auto;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-        }
-
-        .check-list-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-
-        .check-item-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 0;
-          border-bottom: 1px solid #f1f5f9;
-          font-size: 0.84375rem;
-        }
-
-        .check-item-row:last-child {
-          border-bottom: none;
-        }
-
-        .check-icon-circle {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .check-icon-circle.pending {
-          background: #f1f5f9;
-          color: #94a3b8;
-        }
-
-        .pulse-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #94a3b8;
-          animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-          to { opacity: 0.3; }
-        }
-
-        .check-icon-circle.ok {
-          background: #f0fdf4;
-          color: #166534;
-        }
-
-        .check-icon-circle.failed {
-          background: #fbe9e7;
-          color: #b3261e;
-        }
-
-        .check-label-text {
-          flex: 1;
-          color: #1e293b;
-          font-weight: 500;
-        }
-
-        .check-status-badge {
-          font-size: 0.78125rem;
-          font-weight: 600;
-          color: #94a3b8;
-        }
-
-        .check-status-badge.ok {
-          color: #166534;
-        }
-
-        .check-status-badge.failed {
-          color: #b3261e;
-        }
-
-        .validation-fail-banner {
-          margin-top: 16px;
-          background: #fbe9e7;
-          border: 1px solid #ffcdd2;
-          color: #b3261e;
-          padding: 10px 14px;
-          border-radius: 12px;
-          font-size: 0.8125rem;
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          line-height: 1.4;
-        }
 
         /* STAGE 2: ANIMATED SCANNER CARD */
         .stage-card {
