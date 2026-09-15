@@ -33,6 +33,30 @@ interface Session {
   last_activity?: string
 }
 
+// Shortcut deterministik untuk sapaan/basa-basi generik — tidak perlu panggil AI,
+// hemat token dan Credit user, response instan.
+// PENTING: harus EXACT MATCH (bukan "starts with"/substring) supaya pesan yang
+// punya pertanyaan tambahan tetap diteruskan ke AI, bukan ke-intercept di sini.
+const TRIVIAL_GREETING_RESPONSES: Record<string, string> = {
+  'halo': 'Halo! Ada yang mau kamu tanyain soal kulit atau skincare hari ini? 😊',
+  'hai': 'Hai! Ada yang bisa aku bantu soal skincare kamu? 😊',
+  'hi': 'Hai! Ada yang bisa aku bantu soal skincare kamu? 😊',
+  'hallo': 'Halo! Ada yang mau kamu tanyain soal kulit atau skincare hari ini? 😊',
+  'p': 'Halo! Ada yang bisa aku bantu? 😊',
+  'permisi': 'Halo, silakan! Ada yang mau ditanyain soal skincare? 😊',
+  'makasih': 'Sama-sama! Semoga membantu ya ✨',
+  'terima kasih': 'Sama-sama! Semoga membantu ya ✨',
+  'thanks': 'Sama-sama! Semoga membantu ya ✨',
+  'ok': 'Oke! Ada lagi yang mau ditanyain? 😊',
+  'oke': 'Oke! Ada lagi yang mau ditanyain? 😊',
+  'siap': 'Siap! Ada lagi yang bisa aku bantu? 😊',
+}
+
+function getTrivialGreetingReply(text: string): string | null {
+  const normalized = text.trim().toLowerCase().replace(/[!.?,]+$/g, '')
+  return TRIVIAL_GREETING_RESPONSES[normalized] ?? null
+}
+
 export default function ChatbotPage() {
   const { sessionId } = useParams<{ sessionId?: string }>()
   const navigate = useNavigate()
@@ -222,6 +246,41 @@ export default function ChatbotPage() {
   const handleSendMessage = async (textToSend?: string) => {
     const query = textToSend || inputText
     if (!query.trim() || isSending) return
+
+    // Shortcut: sapaan/basa-basi generik dijawab instan tanpa panggil AI sama sekali.
+    const trivialReply = getTrivialGreetingReply(query)
+    if (trivialReply) {
+      let activeSessionId = sessionId
+      if (!activeSessionId) {
+        const newSid = await createNewSession()
+        if (!newSid) return
+        activeSessionId = newSid
+        navigate(`/chatbot/${newSid}`, { replace: true })
+      }
+
+      const tempUserMsg: Message = {
+        id: `user-${Date.now()}`,
+        sender: 'user',
+        text: query,
+        created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }
+      const tempBotMsg: Message = {
+        id: `bot-${Date.now()}`,
+        sender: 'bot',
+        text: trivialReply,
+        created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }
+
+      setMessages((prev) => [...prev, tempUserMsg, tempBotMsg])
+      setInputText('')
+
+      await supabase.from('chat_messages').insert([
+        { session_id: activeSessionId, role: 'user', content: query },
+        { session_id: activeSessionId, role: 'assistant', content: trivialReply },
+      ])
+
+      return
+    }
 
     let activeSessionId = sessionId
     if (!activeSessionId) {

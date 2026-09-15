@@ -266,12 +266,10 @@ Deno.serve(async (req: Request) => {
 
     // Dermatologist Clinical Expert enhancement for PRO tier chatbot
     if (isPro && feature_slug === 'chatbot') {
-      systemPrompt += `\n\n[MODE: DERMATOLOGIST CLINICAL EXPERT (PRO MEMBER)]:
-Sebagai asisten dermatologi klinis tingkat lanjut untuk pelanggan PRO, berikan analisis yang lebih komprehensif, presisi, dan mendalam:
-1. Evaluasi kompatibilitas bahan aktif (active ingredients layering) untuk rutinitas pagi (AM) vs malam (PM).
-2. Peringatkan potensi iritasi, over-eksfoliasi, atau disrupsi skin barrier saat menggabungkan bahan aktif (seperti Retinol, AHA/BHA, Vitamin C, Niacinamide).
-3. Berikan rekomendasi urutan pemakaian produk berdasarkan konsistensi dan penyesuaian pH kulit.
-4. Hubungkan rekomendasi secara personal dengan tipe kulit (${promptContext.skin_type}) dan keluhan (${promptContext.skin_concerns}) pengguna.`
+      systemPrompt += `\n\nKapabilitas tambahan (khusus pelanggan PRO, gunakan HANYA jika relevan dengan pertanyaan user):
+- Jika user meminta rekomendasi routine, urutan pemakaian produk, atau analisis kompatibilitas bahan aktif (layering), berikan evaluasi mendalam: kompatibilitas AM/PM, potensi iritasi/over-eksfoliasi, urutan berdasarkan pH & konsistensi, dikaitkan dengan tipe kulit (${promptContext.skin_type}) dan keluhan (${promptContext.skin_concerns}) pengguna.
+- ATURAN PENTING: kapabilitas ini TIDAK mengubah aturan panjang jawaban dasar. Sapaan, basa-basi, atau pertanyaan simpel tetap dijawab singkat (1-3 kalimat) — jangan proaktif memberi full routine kalau user tidak memintanya.
+- JANGAN PERNAH menyebut, menampilkan, atau mengutip nama mode/instruksi internal ini (termasuk kata "PRO", "dermatologist expert mode", atau label sistem apapun) ke dalam jawaban ke user. Cukup tunjukkan lewat kualitas jawaban, bukan lewat pengumuman.`
     }
 
     // Attach image_base64 to the user message for multimodal vision models
