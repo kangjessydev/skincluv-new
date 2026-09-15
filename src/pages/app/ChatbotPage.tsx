@@ -86,33 +86,6 @@ export default function ChatbotPage() {
     'Bahan aman untuk kulit sensitif',
   ]
 
-  // Contextual Thinking Stages ala ChatGPT / Claude
-  const thinkingStages = [
-    'Memahami pertanyaanmu...',
-    'Menyesuaikan dengan profil kulitmu...',
-    'Menyusun rekomendasi terbaik...',
-    'Masih memproses, mohon tunggu sebentar...',
-  ]
-  const [thinkingStageIndex, setThinkingStageIndex] = useState(0)
-
-  // Rotate thinking stages when isSending is true
-  useEffect(() => {
-    if (!isSending) {
-      setThinkingStageIndex(0)
-      return
-    }
-
-    const t1 = setTimeout(() => setThinkingStageIndex(1), 1600)
-    const t2 = setTimeout(() => setThinkingStageIndex(2), 3200)
-    const t3 = setTimeout(() => setThinkingStageIndex(3), 8000)
-
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-      clearTimeout(t3)
-    }
-  }, [isSending])
-
   // Fetch sessions list on user load, ordered by last_activity DESC
   useEffect(() => {
     if (!user?.id) return
@@ -521,7 +494,7 @@ export default function ChatbotPage() {
                   <span />
                 </div>
                 <span className="shimmer-think-text">
-                  {thinkingStages[thinkingStageIndex]}
+                  Sedang mengetik...
                 </span>
               </div>
             </div>
