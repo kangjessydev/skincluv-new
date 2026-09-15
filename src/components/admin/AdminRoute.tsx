@@ -4,9 +4,9 @@ import { useAuthStore } from '@/store/authStore'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 
 export default function AdminRoute() {
-  const { user, isAdmin, isInitialized } = useAuthStore()
+  const { user, isAdmin, isInitialized, isLoading } = useAuthStore()
 
-  if (!isInitialized) {
+  if (!isInitialized || isLoading) {
     return <LoadingScreen />
   }
 

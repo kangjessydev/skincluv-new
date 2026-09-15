@@ -35,7 +35,7 @@ export default function App() {
     <Routes>
       {/* Public auth routes */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
       </Route>
 

@@ -1,15 +1,23 @@
 // src/pages/auth/LoginPage.tsx
 // 100% Faithful Port of Claude's Form Side UI — Pure Vanilla CSS
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Loader2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string })?.from || '/'
+  const { user, isLoading: isAuthLoading } = useAuthStore()
+
+  useEffect(() => {
+    if (user && !isAuthLoading) {
+      navigate(from, { replace: true })
+    }
+  }, [user, isAuthLoading, from, navigate])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
