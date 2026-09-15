@@ -77,6 +77,10 @@ export function useAuthInit() {
 
         const coinData = coinRes.data
 
+        if (roleRes.error) {
+          console.error('[useAuthInit] Gagal mengambil role pengguna:', roleRes.error)
+        }
+
         setProfile(profileData ?? null)
         setActiveSkinProfile((skinProfileRes.data as unknown as SkinProfile) ?? null)
         setCoinBalance(coinData ?? { id: userId, user_id: userId, balance: 0, updated_at: new Date().toISOString() })

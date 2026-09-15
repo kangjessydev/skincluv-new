@@ -7,6 +7,13 @@ export default function AdminRoute() {
   if (!isInitialized) return null
 
   if (!user || !isAdmin) {
+    if (import.meta.env.DEV) {
+      console.warn('[AdminRoute] Akses ditolak, diarahkan ke /:', {
+        isLoggedIn: !!user,
+        email: user?.email ?? null,
+        isAdmin,
+      })
+    }
     return <Navigate to="/" replace />
   }
 
