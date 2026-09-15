@@ -307,6 +307,15 @@ export default function ChatbotPage() {
       }
     } catch (err) {
       console.error('AI invoke error:', err)
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          sender: 'bot',
+          text: '⚠️ Maaf, ada gangguan koneksi ke server AI. Credit-mu tidak berkurang. Coba kirim pesan lagi ya.',
+          created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ])
     } finally {
       setIsSending(false)
     }
