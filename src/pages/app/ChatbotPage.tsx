@@ -42,7 +42,6 @@ const TRIVIAL_GREETING_RESPONSES: Record<string, string> = {
   'hai': 'Hai! Ada yang bisa aku bantu soal skincare kamu? 😊',
   'hi': 'Hai! Ada yang bisa aku bantu soal skincare kamu? 😊',
   'hallo': 'Halo! Ada yang mau kamu tanyain soal kulit atau skincare hari ini? 😊',
-  'p': 'Halo! Ada yang bisa aku bantu? 😊',
   'permisi': 'Halo, silakan! Ada yang mau ditanyain soal skincare? 😊',
   'makasih': 'Sama-sama! Semoga membantu ya ✨',
   'terima kasih': 'Sama-sama! Semoga membantu ya ✨',
