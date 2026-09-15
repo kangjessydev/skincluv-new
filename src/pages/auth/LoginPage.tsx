@@ -2,12 +2,14 @@
 // 100% Faithful Port of Claude's Form Side UI — Pure Vanilla CSS
 
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Loader2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string })?.from || '/'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,10 +25,11 @@ export default function LoginPage() {
 
     try {
       const origin = window.location.origin
+      const redirectTarget = from === '/' ? `${origin}/` : `${origin}${from}`
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${origin}/`,
+          redirectTo: redirectTarget,
         },
       })
 
@@ -60,7 +63,7 @@ export default function LoginPage() {
             : error.message
         )
       } else {
-        navigate('/')
+        navigate(from, { replace: true })
       }
     } catch (err: any) {
       setError(err?.message || 'Gagal masuk ke akun.')
