@@ -927,6 +927,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       xendit_invoices: {
         Row: {
           amount_idr: number
@@ -1026,6 +1050,7 @@ export type Database = {
         Returns: boolean
       }
       get_decrypted_secret: { Args: { secret_name: string }; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
       record_mission_progress: {
         Args: { p_action: string; p_count?: number; p_user_id: string }
         Returns: undefined

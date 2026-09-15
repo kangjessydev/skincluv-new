@@ -10,6 +10,7 @@ interface AuthState {
   activeSkinProfile: SkinProfile | null
   coinBalance: CoinBalance | null
   subscription: Subscription | null
+  isAdmin: boolean
   isLoading: boolean
   isInitialized: boolean
 
@@ -20,6 +21,7 @@ interface AuthState {
   setActiveSkinProfile: (profile: SkinProfile | null) => void
   setCoinBalance: (balance: CoinBalance | null) => void
   setSubscription: (subscription: Subscription | null) => void
+  setIsAdmin: (isAdmin: boolean) => void
   setLoading: (isLoading: boolean) => void
   setInitialized: (initialized: boolean) => void
   reset: () => void
@@ -32,6 +34,7 @@ const initialState = {
   activeSkinProfile: null,
   coinBalance: null,
   subscription: null,
+  isAdmin: false,
   isLoading: true,
   isInitialized: false,
 }
@@ -47,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
       setActiveSkinProfile: (activeSkinProfile) => set({ activeSkinProfile }),
       setCoinBalance: (coinBalance) => set({ coinBalance }),
       setSubscription: (subscription) => set({ subscription }),
+      setIsAdmin: (isAdmin) => set({ isAdmin }),
       setLoading: (isLoading) => set({ isLoading }),
       setInitialized: (isInitialized) => set({ isInitialized }),
       reset: () => set({ ...initialState, isLoading: false, isInitialized: true }),

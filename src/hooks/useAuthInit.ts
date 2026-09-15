@@ -18,6 +18,7 @@ export function useAuthInit() {
     setActiveSkinProfile,
     setCoinBalance,
     setSubscription,
+    setIsAdmin,
     setLoading,
     setInitialized,
     reset,
@@ -29,7 +30,7 @@ export function useAuthInit() {
       const userId = userObj.id
       try {
         // Fetch all user data in parallel
-        const [profileRes, skinProfileRes, coinRes, subRes] = await Promise.all([
+        const [profileRes, skinProfileRes, coinRes, subRes, roleRes] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
           supabase
             .from('skin_profiles')
@@ -43,6 +44,12 @@ export function useAuthInit() {
             .select('*, subscription_tiers(slug, name)')
             .eq('user_id', userId)
             .eq('status', 'active')
+            .maybeSingle(),
+          supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .eq('role', 'admin')
             .maybeSingle(),
         ])
 
@@ -74,6 +81,7 @@ export function useAuthInit() {
         setActiveSkinProfile((skinProfileRes.data as unknown as SkinProfile) ?? null)
         setCoinBalance(coinData ?? { id: userId, user_id: userId, balance: 0, updated_at: new Date().toISOString() })
         setSubscription((subRes.data as unknown as Subscription) ?? null)
+        setIsAdmin(!!roleRes.data)
 
         // Track daily login & streak safely on the server
         void supabase.rpc('track_daily_login').then(null, (err: unknown) => {
@@ -86,7 +94,7 @@ export function useAuthInit() {
         setInitialized(true)
       }
     },
-    [setLoading, setProfile, setActiveSkinProfile, setCoinBalance, setSubscription, setInitialized]
+    [setLoading, setProfile, setActiveSkinProfile, setCoinBalance, setSubscription, setIsAdmin, setInitialized]
   )
 
   useEffect(() => {

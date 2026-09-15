@@ -19,6 +19,8 @@ import CoinHistoryPage from '@/pages/app/CoinHistoryPage'
 import ScanHistoryPage from '@/pages/app/ScanHistoryPage'
 import LandingPage from '@/pages/LandingPage'
 import LoadingScreen from '@/components/ui/LoadingScreen'
+import AdminRoute from '@/components/admin/AdminRoute'
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 
 export default function App() {
   useAuthInit()
@@ -57,6 +59,11 @@ export default function App() {
         <Route path="/payment-success" element={<PaymentSuccessPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/wallet" element={<Navigate to="/profile" replace />} />
+      </Route>
+
+      {/* Protected admin routes */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminDashboardPage />} />
       </Route>
 
       {/* Fallback */}
