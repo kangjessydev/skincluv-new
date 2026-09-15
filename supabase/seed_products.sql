@@ -1,6 +1,18 @@
 -- ============================================================
--- Seed Data: Katalog Produk Awal (15 Produk Populer & Terverifikasi BPOM)
+-- Template Seeding: Katalog Produk (public.products)
+-- STATUS: DRAFT / PANDUAN VERIFIKASI DATA ASLI
+-- 
+-- CATATAN PENTING:
+-- Sesuai guardrail anti-halusinasi, jangan jalankan file ini sebelum
+-- komposisi 'key_ingredients' diverifikasi dari kemasan fisik / official store,
+-- dan 'marketplace_url' diisi URL produk spesifik (bukan domain umum).
 -- ============================================================
+
+-- Catatan Review Khusus:
+-- 1. [PRIORITAS TINGGI] Somethinc Granactive Retinoid 2%: Gunakan 'Granactive Retinoid' / 'Hydroxypinacolone Retinoate', JANGAN campur dengan 'Retinol'.
+-- 2. [PRIORITAS TINGGI] Azarine Sunscreen: Wajib tambahkan UV filter resmi dari label kemasan.
+-- 3. [PRIORITAS TINGGI] Wardah Sunscreen: Wajib tambahkan UV filter resmi dari label kemasan.
+-- 4. [CATATAN] Cosrx Cleanser: Mengandung 'Betaine Salicylate' sebagai sumber BHA, hindari redundant 'Salicylic Acid'.
 
 INSERT INTO public.products (
   name,
@@ -22,7 +34,7 @@ INSERT INTO public.products (
   ARRAY['Ceramide', 'Hyaluronic Acid', 'Centella Asiatica', 'Panthenol'],
   ARRAY['dry', 'sensitive', 'normal', 'combination'],
   'Rp 120.000 - 140.000',
-  'https://shopee.co.id',
+  NULL, -- Isi URL spesifik produk di marketplace
   NULL,
   'organic',
   0,
@@ -35,7 +47,7 @@ INSERT INTO public.products (
   ARRAY['Salicylic Acid', 'Niacinamide', 'Ceramide', 'Centella Asiatica', 'Zinc PCA'],
   ARRAY['oily', 'combination', 'sensitive'],
   'Rp 115.000 - 135.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -48,7 +60,7 @@ INSERT INTO public.products (
   ARRAY['Niacinamide', 'Centella Asiatica', 'Zinc PCA'],
   ARRAY['oily', 'combination', 'normal'],
   'Rp 115.000 - 130.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -61,7 +73,7 @@ INSERT INTO public.products (
   ARRAY['Salicylic Acid', 'Zinc PCA', 'Tea Tree'],
   ARRAY['oily', 'combination'],
   'Rp 110.000 - 125.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -71,10 +83,10 @@ INSERT INTO public.products (
   'Somethinc Granactive Retinoid 2% Emulsion',
   'Somethinc',
   'Serum',
-  ARRAY['Retinol', 'Granactive Retinoid', 'Hyaluronic Acid', 'Ceramide'],
+  ARRAY['Granactive Retinoid', 'Hyaluronic Acid', 'Ceramide'], -- 'Retinol' dihapus sesuai catatan verifikasi
   ARRAY['normal', 'combination', 'dry', 'oily'],
   'Rp 150.000 - 175.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -87,7 +99,7 @@ INSERT INTO public.products (
   ARRAY['AHA', 'BHA', 'Salicylic Acid', 'Niacinamide', 'Tea Tree'],
   ARRAY['oily', 'combination'],
   'Rp 160.000 - 180.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -100,7 +112,7 @@ INSERT INTO public.products (
   ARRAY['Vitamin C', 'Niacinamide', 'Hyaluronic Acid'],
   ARRAY['normal', 'combination', 'dry'],
   'Rp 135.000 - 150.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -113,7 +125,7 @@ INSERT INTO public.products (
   ARRAY['Hyaluronic Acid', 'Ceramide', 'Centella Asiatica'],
   ARRAY['dry', 'normal', 'combination', 'oily'],
   'Rp 42.000 - 55.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -126,7 +138,7 @@ INSERT INTO public.products (
   ARRAY['Centella Asiatica', 'Panthenol', 'Salicylic Acid'],
   ARRAY['sensitive', 'oily', 'combination'],
   'Rp 38.000 - 45.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -139,7 +151,7 @@ INSERT INTO public.products (
   ARRAY['Centella Asiatica', 'Allantoin', 'Panthenol'],
   ARRAY['oily', 'sensitive', 'combination'],
   'Rp 39.000 - 49.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -152,7 +164,7 @@ INSERT INTO public.products (
   ARRAY['Salicylic Acid', 'Mugwort', 'Centella Asiatica', 'Niacinamide'],
   ARRAY['oily', 'combination'],
   'Rp 39.000 - 49.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -162,10 +174,10 @@ INSERT INTO public.products (
   'Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++',
   'Azarine',
   'Sunscreen',
-  ARRAY['Hyaluronic Acid', 'Centella Asiatica', 'Niacinamide'],
+  ARRAY['Hyaluronic Acid', 'Centella Asiatica', 'Niacinamide'], -- Catatan: Perlu dilengkapi UV filter dari kemasan resmi
   ARRAY['oily', 'combination', 'sensitive', 'normal'],
   'Rp 55.000 - 65.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -175,10 +187,10 @@ INSERT INTO public.products (
   'Cosrx Low pH Good Morning Gel Cleanser',
   'Cosrx',
   'Cleanser',
-  ARRAY['Tea Tree', 'Betaine Salicylate', 'Salicylic Acid'],
+  ARRAY['Tea Tree', 'Betaine Salicylate'], -- 'Salicylic Acid' disederhanakan ke Betaine Salicylate
   ARRAY['oily', 'sensitive', 'combination'],
   'Rp 95.000 - 120.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -191,7 +203,7 @@ INSERT INTO public.products (
   ARRAY['Snail Mucin', 'Hyaluronic Acid', 'Panthenol', 'Allantoin'],
   ARRAY['dry', 'sensitive', 'normal', 'combination'],
   'Rp 170.000 - 210.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
@@ -201,10 +213,10 @@ INSERT INTO public.products (
   'Wardah UV Shield Essential Gel Sunscreen SPF 35 PA+++',
   'Wardah',
   'Sunscreen',
-  ARRAY['Vitamin C', 'Vitamin E', 'Panthenol', 'Niacinamide'],
+  ARRAY['Vitamin C', 'Vitamin E', 'Panthenol', 'Niacinamide'], -- Catatan: Perlu dilengkapi UV filter dari kemasan resmi
   ARRAY['normal', 'dry', 'combination'],
   'Rp 35.000 - 42.000',
-  'https://shopee.co.id',
+  NULL,
   NULL,
   'organic',
   0,
