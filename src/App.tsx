@@ -20,7 +20,10 @@ import ScanHistoryPage from '@/pages/app/ScanHistoryPage'
 import LandingPage from '@/pages/LandingPage'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 import AdminRoute from '@/components/admin/AdminRoute'
+import AdminLayout from '@/components/admin/AdminLayout'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
+import AdminPromptsPage from '@/pages/admin/AdminPromptsPage'
+import AdminModelsPage from '@/pages/admin/AdminModelsPage'
 
 export default function App() {
   useAuthInit()
@@ -63,7 +66,11 @@ export default function App() {
 
       {/* Protected admin routes */}
       <Route element={<AdminRoute />}>
-        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/prompts" element={<AdminPromptsPage />} />
+          <Route path="/admin/models" element={<AdminModelsPage />} />
+        </Route>
       </Route>
 
       {/* Fallback */}

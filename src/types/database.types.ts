@@ -1066,6 +1066,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_vault_secret: {
+        Args: {
+          secret_description?: string
+          secret_name: string
+          secret_value: string
+        }
+        Returns: string
+      }
       track_daily_login: { Args: never; Returns: Json }
       track_profile_completion: { Args: never; Returns: Json }
     }
