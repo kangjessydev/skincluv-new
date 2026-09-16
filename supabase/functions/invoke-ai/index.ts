@@ -434,25 +434,6 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Curate interaction into ai_training_datasets (Auto-Flywheel for future fine-tuning)
-    if (feature_slug === 'face_analysis' || feature_slug === 'ingredient_scan' || feature_slug === 'chatbot') {
-      const parsedOutput = tryParseAiJson(finalContent)
-      supabaseService
-        .from('ai_training_datasets')
-        .insert({
-          feature_slug,
-          system_prompt: prompt.system_prompt,
-          user_input: messages.at(-1)?.content?.slice(0, 500) || '',
-          ideal_response: parsedOutput || { text: finalContent },
-          quality_tier: 'candidate',
-          quality_score: 1.0,
-          domain_tags: [feature_slug, promptContext.skin_type || 'general'],
-        })
-        .then(
-          () => {},
-          (tErr: unknown) => console.warn('[invoke-ai] Training dataset recording skipped:', tErr)
-        )
-    }
 
     // ---- Return response ----
     return new Response(
