@@ -340,6 +340,56 @@ export type Database = {
           },
         ]
       }
+      ingredient_scans: {
+        Row: {
+          brand: string | null
+          created_at: string
+          id: string
+          ingredients_breakdown: Json
+          is_safe: boolean
+          key_ingredients: string[]
+          matched_concerns: string[]
+          product_name: string
+          raw_ai_response: Json | null
+          safety_score: number | null
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          id?: string
+          ingredients_breakdown?: Json
+          is_safe?: boolean
+          key_ingredients?: string[]
+          matched_concerns?: string[]
+          product_name: string
+          raw_ai_response?: Json | null
+          safety_score?: number | null
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          id?: string
+          ingredients_breakdown?: Json
+          is_safe?: boolean
+          key_ingredients?: string[]
+          matched_concerns?: string[]
+          product_name?: string
+          raw_ai_response?: Json | null
+          safety_score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_scans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       missions: {
         Row: {
           coin_reward: number

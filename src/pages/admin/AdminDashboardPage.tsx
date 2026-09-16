@@ -1,5 +1,17 @@
 import { Link } from 'react-router-dom'
-import { FileText, Cpu, Target, CreditCard, Package, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
+import {
+  FileText,
+  Cpu,
+  Target,
+  CreditCard,
+  Package,
+  ShieldCheck,
+  ArrowRight,
+  Activity,
+  ScanFace,
+  FlaskConical,
+  MessageSquare,
+} from 'lucide-react'
 
 export default function AdminDashboardPage() {
   return (
@@ -9,7 +21,17 @@ export default function AdminDashboardPage() {
           Admin Overview
         </h1>
         <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
-          Pusat kendali konfigurasi AI, model, API key, gamifikasi, paket langganan, dan produk Skincluv.
+          Pusat kendali konfigurasi AI, model, API key, memori percakapan, database scan, dan metrik sistem Skincluv.
+        </p>
+      </div>
+
+      {/* Section 1: Konfigurasi Sistem */}
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#374151', margin: 0 }}>
+          Konfigurasi Sistem AI & Bisnis
+        </h2>
+        <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0 0' }}>
+          Atur parameter operasional, model LLM, prompt engineering, gamifikasi, dan paket.
         </p>
       </div>
 
@@ -18,7 +40,7 @@ export default function AdminDashboardPage() {
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: 20,
-          marginBottom: 32,
+          marginBottom: 40,
         }}
       >
         <Link
@@ -52,9 +74,9 @@ export default function AdminDashboardPage() {
             >
               <FileText size={20} />
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-              Prompt & AI Features
-            </h2>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Prompt & Fitur AI
+            </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
               Atur system prompt aktif, riwayat versi prompt, dan catatan kalibrasi per fitur AI.
             </p>
@@ -95,9 +117,9 @@ export default function AdminDashboardPage() {
             >
               <Cpu size={20} />
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
               Model & API Key
-            </h2>
+            </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
               Konfigurasi model LLM (Gemini, Claude, GPT) dan simpan API key secara terenkripsi ke Vault.
             </p>
@@ -138,9 +160,9 @@ export default function AdminDashboardPage() {
             >
               <Target size={20} />
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
               Misi Glow
-            </h2>
+            </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
               Kelola misi harian, mingguan, target count, cooldown, dan reward koin/credit pengguna.
             </p>
@@ -181,9 +203,9 @@ export default function AdminDashboardPage() {
             >
               <CreditCard size={20} />
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
               Paket & Kuota
-            </h2>
+            </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
               Atur harga paket membership (Free, Glow, Pro) dan matriks kuota bulanan tiap fitur AI.
             </p>
@@ -224,9 +246,9 @@ export default function AdminDashboardPage() {
             >
               <Package size={20} />
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
               Produk Rekomendasi
-            </h2>
+            </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
               Katalog produk skincare untuk rekomendasi engine AI di Scan Wajah dan Skinsistant.
             </p>
@@ -263,9 +285,9 @@ export default function AdminDashboardPage() {
             >
               <ShieldCheck size={20} />
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
               Keamanan RBAC & Vault
-            </h2>
+            </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
               Sistem diamankan dengan PostgreSQL RLS level-database dan Supabase Vault enkripsi AEAD.
             </p>
@@ -274,6 +296,196 @@ export default function AdminDashboardPage() {
             <Activity size={14} /> Sistem Aktif & Terlindungi
           </div>
         </div>
+      </div>
+
+      {/* Section 2: Database & Memori AI */}
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#374151', margin: 0 }}>
+          Database & Memori AI Pengguna
+        </h2>
+        <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0 0' }}>
+          Pantau riwayat hasil scan pengguna, percakapan chatbot asisten klinis, dan metrik inferensi AI.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 20,
+        }}
+      >
+        <Link
+          to="/admin/memory/face-scans"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#e0e7ff',
+                color: '#4f46e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <ScanFace size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Database Scan Wajah
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Riwayat scan wajah pengguna, evaluasi klinis per zona wajah, skin concerns, dan raw payload JSON AI.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4f46e5', marginTop: 20 }}>
+            Lihat Scan Wajah <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/memory/ingredient-scans"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#fdf2f8',
+                color: '#db2777',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <FlaskConical size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Database Scan Ingredient
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Hasil ekstraksi OCR dan analisis kandungan bahan aktif skincare, safety score, dan status kecocokan.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#db2777', marginTop: 20 }}>
+            Lihat Scan Ingredient <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/memory/chats"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#e0f2fe',
+                color: '#0284c7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <MessageSquare size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Riwayat Chat Skinsistant
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Thread percakapan pengguna dengan asisten AI Skinsistant, konsultasi interaktif, dan rekomendasi.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#0284c7', marginTop: 20 }}>
+            Lihat Riwayat Chat <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/memory/logs"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#fef3c7',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <Activity size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Log Permintaan & Metrik AI
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Observabilitas latensi, jumlah token yang digunakan, status eksekusi, serta feedback kepuasan user.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#d97706', marginTop: 20 }}>
+            Lihat Log AI <ArrowRight size={14} />
+          </div>
+        </Link>
       </div>
     </div>
   )

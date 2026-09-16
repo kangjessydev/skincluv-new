@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
+import { supabase } from '@/lib/supabase'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace } from '@/utils/faceLandmarkDetector'
@@ -293,6 +294,33 @@ PETUNJUK OCR & ANALISIS WAJIB:
         ''
       setEditableText(rawText)
       setStage('result')
+
+      // Save to ingredient_scans history (multi-session persistence)
+      if (profile?.id) {
+        const keyIngs = (result.key_ingredients || []).map((k) =>
+          typeof k === 'string' ? k : k.name
+        )
+        const isSafe = (result.safety_score ?? 80) >= 65 && (result.avoid_count ?? 0) === 0
+
+        supabase
+          .from('ingredient_scans')
+          .insert({
+            user_id: profile.id,
+            product_name: result.product_name || 'Formula Skincare Terdeteksi',
+            brand: (result as any).brand || null,
+            safety_score: result.safety_score ?? null,
+            is_safe: isSafe,
+            matched_concerns: activeSkinProfile?.skin_concerns || [],
+            key_ingredients: keyIngs,
+            ingredients_breakdown: (result.ingredients_breakdown || []) as any,
+            raw_ai_response: result as any,
+          })
+          .then((res) => {
+            if (res && 'error' in res && res.error) {
+              console.warn('[Supabase ingredient_scans history insert]:', res.error.message)
+            }
+          }, (err: unknown) => console.warn('[Supabase ingredient_scans insert error]:', err))
+      }
     } catch (err: any) {
       console.error('Ingredient scan error:', err)
       setErrorMsg(err.message || 'Gagal menganalisis komposisi produk.')

@@ -27,6 +27,10 @@ import AdminModelsPage from '@/pages/admin/AdminModelsPage'
 import AdminMissionsPage from '@/pages/admin/AdminMissionsPage'
 import AdminPricingPage from '@/pages/admin/AdminPricingPage'
 import AdminProductsPage from '@/pages/admin/AdminProductsPage'
+import AdminFaceScansPage from '@/pages/admin/AdminFaceScansPage'
+import AdminIngredientScansPage from '@/pages/admin/AdminIngredientScansPage'
+import AdminChatsPage from '@/pages/admin/AdminChatsPage'
+import AdminLogsPage from '@/pages/admin/AdminLogsPage'
 
 export default function App() {
   useAuthInit()
@@ -76,6 +80,10 @@ export default function App() {
           <Route path="/admin/missions" element={<AdminMissionsPage />} />
           <Route path="/admin/pricing" element={<AdminPricingPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin/memory/face-scans" element={<AdminFaceScansPage />} />
+          <Route path="/admin/memory/ingredient-scans" element={<AdminIngredientScansPage />} />
+          <Route path="/admin/memory/chats" element={<AdminChatsPage />} />
+          <Route path="/admin/memory/logs" element={<AdminLogsPage />} />
         </Route>
       </Route>
 

@@ -1,13 +1,31 @@
 import { Outlet, NavLink, Link } from 'react-router-dom'
-import { FileText, Cpu, LayoutDashboard, ArrowLeft, Target, CreditCard, Package } from 'lucide-react'
+import {
+  FileText,
+  Cpu,
+  LayoutDashboard,
+  ArrowLeft,
+  Target,
+  CreditCard,
+  Package,
+  ScanFace,
+  FlaskConical,
+  MessageSquare,
+  Activity,
+} from 'lucide-react'
 
-const adminNavItems = [
-  { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-  { to: '/admin/prompts', icon: FileText, label: 'Prompt & AI Features' },
+const configNavItems = [
+  { to: '/admin/prompts', icon: FileText, label: 'Prompt & Fitur AI' },
   { to: '/admin/models', icon: Cpu, label: 'Model & API Key' },
   { to: '/admin/missions', icon: Target, label: 'Misi Glow' },
   { to: '/admin/pricing', icon: CreditCard, label: 'Paket & Kuota' },
   { to: '/admin/products', icon: Package, label: 'Produk Rekomendasi' },
+]
+
+const memoryNavItems = [
+  { to: '/admin/memory/face-scans', icon: ScanFace, label: 'Scan Wajah' },
+  { to: '/admin/memory/ingredient-scans', icon: FlaskConical, label: 'Scan Ingredient' },
+  { to: '/admin/memory/chats', icon: MessageSquare, label: 'Chatbot Skinsistant' },
+  { to: '/admin/memory/logs', icon: Activity, label: 'Log & Metrik AI' },
 ]
 
 export default function AdminLayout() {
@@ -24,7 +42,7 @@ export default function AdminLayout() {
           flexShrink: 0,
         }}
       >
-        <div style={{ marginBottom: 24, paddingLeft: 4 }}>
+        <div style={{ marginBottom: 20, paddingLeft: 4 }}>
           <div
             style={{
               fontSize: 11,
@@ -62,27 +80,97 @@ export default function AdminLayout() {
           <ArrowLeft size={15} /> Kembali ke App
         </Link>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {adminNavItems.map((item) => (
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, overflowY: 'auto' }}>
+          <NavLink
+            to="/admin"
+            end
+            style={({ isActive }) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '9px 12px',
+              borderRadius: 8,
+              textDecoration: 'none',
+              fontSize: 13,
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? '#ffffff' : '#374151',
+              background: isActive ? '#111827' : 'transparent',
+              transition: 'all 0.15s ease',
+              marginBottom: 10,
+            })}
+          >
+            <LayoutDashboard size={17} />
+            Overview
+          </NavLink>
+
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#9ca3af',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              padding: '6px 12px 2px 12px',
+            }}
+          >
+            Konfigurasi Sistem
+          </div>
+
+          {configNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.end}
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '10px 14px',
+                padding: '8px 12px',
                 borderRadius: 8,
                 textDecoration: 'none',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#ffffff' : '#374151',
                 background: isActive ? '#111827' : 'transparent',
                 transition: 'all 0.15s ease',
               })}
             >
-              <item.icon size={18} />
+              <item.icon size={17} />
+              {item.label}
+            </NavLink>
+          ))}
+
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#9ca3af',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              padding: '14px 12px 2px 12px',
+            }}
+          >
+            Database & Memori AI
+          </div>
+
+          {memoryNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              style={({ isActive }) => ({
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '8px 12px',
+                borderRadius: 8,
+                textDecoration: 'none',
+                fontSize: 13,
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? '#ffffff' : '#374151',
+                background: isActive ? '#111827' : 'transparent',
+                transition: 'all 0.15s ease',
+              })}
+            >
+              <item.icon size={17} />
               {item.label}
             </NavLink>
           ))}

@@ -72,6 +72,20 @@ export interface FaceScan {
   created_at: string
 }
 
+export interface IngredientScan {
+  id: string
+  user_id: string
+  product_name: string
+  brand: string | null
+  safety_score: number | null
+  is_safe: boolean
+  matched_concerns: string[]
+  key_ingredients: string[]
+  ingredients_breakdown: Json
+  raw_ai_response: Json
+  created_at: string
+}
+
 export interface AiFeature {
   id: string
   slug: FeatureSlug
