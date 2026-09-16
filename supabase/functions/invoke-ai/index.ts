@@ -235,8 +235,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // ---- 7. Build prompt context & Attach Multimodal Image if present ----
-    // Fetch active skin profile & user profile for context injection
-    const [skinProfileRes, userProfileRes] = await Promise.all([
+    // Fetch active skin profile, user profile & clinical memories for context injection
+    const [skinProfileRes, userProfileRes, memoriesRes] = await Promise.all([
       supabaseService
         .from('skin_profiles')
         .select('skin_type, skin_concerns, analysis_notes')
@@ -248,6 +248,12 @@ Deno.serve(async (req: Request) => {
         .select('full_name')
         .eq('id', user.id)
         .maybeSingle(),
+      supabaseService
+        .from('user_clinical_memories')
+        .select('memory_type, entity, clinical_fact')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(8),
     ])
 
     const skinProfile = skinProfileRes.data
@@ -263,6 +269,14 @@ Deno.serve(async (req: Request) => {
     }
 
     let systemPrompt = interpolatePrompt(prompt.system_prompt, promptContext)
+
+    // Injeksi Memori Klinis Jangka Panjang Pasien (untuk asisten chatbot)
+    if (feature_slug === 'chatbot' && memoriesRes.data && memoriesRes.data.length > 0) {
+      const memoryLines = memoriesRes.data
+        .map((m: any) => `- [${String(m.memory_type).toUpperCase()}]: ${m.entity} (${m.clinical_fact})`)
+        .join('\n')
+      systemPrompt += `\n\n[MEMORI KLINIS PASIEN TERVERIFIKASI]:\n${memoryLines}\nGunakan catatan memori klinis di atas untuk mempersonalisasi saran dan secara mutlak menghindari bahan/treatment yang berpotensi memicu reaksi buruk pada pasien.`
+    }
 
     // Dermatologist Clinical Expert enhancement for PRO tier chatbot
     if (isPro && feature_slug === 'chatbot') {
@@ -389,6 +403,55 @@ Deno.serve(async (req: Request) => {
           finalContent = JSON.stringify(parsed)
         }
       }
+    }
+
+    // ---- 11. Autonomous AI Flywheel (Knowledge Base Ingestion & Fine-Tuning Repository) ----
+    if (feature_slug === 'ingredient_scan') {
+      const parsedIng = tryParseAiJson(finalContent)
+      if (parsedIng && parsedIng.is_valid_skincare !== false && Array.isArray(parsedIng.ingredients_breakdown)) {
+        const prodName = (parsedIng.product_name as string) || 'Produk Skincare'
+        const brandName = (parsedIng as any).brand || null
+        const breakdown = parsedIng.ingredients_breakdown as any[]
+        const formulaHash = breakdown
+          .map((i: any) => (i.name || '').toLowerCase().trim())
+          .filter(Boolean)
+          .sort()
+          .slice(0, 30)
+          .join('|') || (prodName.toLowerCase() + '_' + Date.now())
+
+        supabaseService
+          .rpc('ingest_ingredient_scan_knowledge', {
+            p_product_name: prodName,
+            p_brand: brandName,
+            p_formula_hash: formulaHash,
+            p_ingredients: breakdown,
+            p_safety_score: (parsedIng.safety_score as number) ?? 85,
+          })
+          .then(
+            () => {},
+            (kErr: unknown) => console.warn('[invoke-ai] Knowledge ingestion warning:', kErr)
+          )
+      }
+    }
+
+    // Curate interaction into ai_training_datasets (Auto-Flywheel for future fine-tuning)
+    if (feature_slug === 'face_analysis' || feature_slug === 'ingredient_scan' || feature_slug === 'chatbot') {
+      const parsedOutput = tryParseAiJson(finalContent)
+      supabaseService
+        .from('ai_training_datasets')
+        .insert({
+          feature_slug,
+          system_prompt: prompt.system_prompt,
+          user_input: messages.at(-1)?.content?.slice(0, 500) || '',
+          ideal_response: parsedOutput || { text: finalContent },
+          quality_tier: 'candidate',
+          quality_score: 1.0,
+          domain_tags: [feature_slug, promptContext.skin_type || 'general'],
+        })
+        .then(
+          () => {},
+          (tErr: unknown) => console.warn('[invoke-ai] Training dataset recording skipped:', tErr)
+        )
     }
 
     // ---- Return response ----

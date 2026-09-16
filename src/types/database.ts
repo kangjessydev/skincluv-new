@@ -270,6 +270,66 @@ export interface TripayInvoice {
   updated_at: string
 }
 
+export interface SkincareIngredient {
+  id: string
+  canonical_name: string
+  inci_name: string | null
+  aliases: string[]
+  category: string
+  safety_rating: 'aman' | 'hati' | 'hindari'
+  comedogenic_rating: number
+  description: string | null
+  common_functions: string[]
+  incompatible_with: string[]
+  occurrence_count: number
+  is_verified: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface SkincareProductFormula {
+  id: string
+  product_name: string
+  brand: string | null
+  category: string | null
+  formula_hash: string
+  ingredients_list: string[]
+  ingredients_breakdown: Json
+  overall_safety_score: number
+  scan_hit_count: number
+  estimated_tokens_saved: number
+  is_verified: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserClinicalMemory {
+  id: string
+  user_id: string
+  memory_type: 'allergy' | 'sensitivity' | 'treatment_reaction' | 'preference' | 'skin_trend'
+  entity: string
+  clinical_fact: string
+  confidence_score: number
+  source_feature: 'chatbot' | 'face_analysis' | 'ingredient_scan'
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AiTrainingDataset {
+  id: string
+  feature_slug: string
+  system_prompt: string
+  user_input: string
+  ideal_response: Json
+  quality_tier: 'gold' | 'silver' | 'candidate'
+  quality_score: number
+  is_few_shot_exemplar: boolean
+  domain_tags: string[]
+  source_log_id: string | null
+  created_at: string
+}
+
 // ----------------------------------------------------------------
 // Supabase Database interface (for typed client)
 // ----------------------------------------------------------------

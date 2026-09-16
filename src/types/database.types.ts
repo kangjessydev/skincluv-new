@@ -146,6 +146,56 @@ export type Database = {
           },
         ]
       }
+      ai_training_datasets: {
+        Row: {
+          created_at: string
+          domain_tags: string[] | null
+          feature_slug: string
+          id: string
+          ideal_response: Json
+          is_few_shot_exemplar: boolean | null
+          quality_score: number | null
+          quality_tier: string
+          source_log_id: string | null
+          system_prompt: string
+          user_input: string
+        }
+        Insert: {
+          created_at?: string
+          domain_tags?: string[] | null
+          feature_slug: string
+          id?: string
+          ideal_response: Json
+          is_few_shot_exemplar?: boolean | null
+          quality_score?: number | null
+          quality_tier?: string
+          source_log_id?: string | null
+          system_prompt: string
+          user_input: string
+        }
+        Update: {
+          created_at?: string
+          domain_tags?: string[] | null
+          feature_slug?: string
+          id?: string
+          ideal_response?: Json
+          is_few_shot_exemplar?: boolean | null
+          quality_score?: number | null
+          quality_tier?: string
+          source_log_id?: string | null
+          system_prompt?: string
+          user_input?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_training_datasets_source_log_id_fkey"
+            columns: ["source_log_id"]
+            isOneToOne: false
+            referencedRelation: "ai_request_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -789,6 +839,105 @@ export type Database = {
           },
         ]
       }
+      skincare_ingredients: {
+        Row: {
+          aliases: string[] | null
+          canonical_name: string
+          category: string | null
+          comedogenic_rating: number | null
+          common_functions: string[] | null
+          created_at: string
+          description: string | null
+          id: string
+          inci_name: string | null
+          incompatible_with: string[] | null
+          is_verified: boolean | null
+          occurrence_count: number | null
+          safety_rating: string | null
+          updated_at: string
+        }
+        Insert: {
+          aliases?: string[] | null
+          canonical_name: string
+          category?: string | null
+          comedogenic_rating?: number | null
+          common_functions?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          inci_name?: string | null
+          incompatible_with?: string[] | null
+          is_verified?: boolean | null
+          occurrence_count?: number | null
+          safety_rating?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aliases?: string[] | null
+          canonical_name?: string
+          category?: string | null
+          comedogenic_rating?: number | null
+          common_functions?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          inci_name?: string | null
+          incompatible_with?: string[] | null
+          is_verified?: boolean | null
+          occurrence_count?: number | null
+          safety_rating?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skincare_product_formulas: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          estimated_tokens_saved: number | null
+          formula_hash: string
+          id: string
+          ingredients_breakdown: Json
+          ingredients_list: string[] | null
+          is_verified: boolean | null
+          overall_safety_score: number | null
+          product_name: string
+          scan_hit_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          estimated_tokens_saved?: number | null
+          formula_hash: string
+          id?: string
+          ingredients_breakdown?: Json
+          ingredients_list?: string[] | null
+          is_verified?: boolean | null
+          overall_safety_score?: number | null
+          product_name: string
+          scan_hit_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          estimated_tokens_saved?: number | null
+          formula_hash?: string
+          id?: string
+          ingredients_breakdown?: Json
+          ingredients_list?: string[] | null
+          is_verified?: boolean | null
+          overall_safety_score?: number | null
+          product_name?: string
+          scan_hit_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_tiers: {
         Row: {
           created_at: string
@@ -919,6 +1068,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tripay_invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_clinical_memories: {
+        Row: {
+          clinical_fact: string
+          confidence_score: number | null
+          created_at: string
+          entity: string
+          id: string
+          is_active: boolean | null
+          memory_type: string
+          source_feature: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clinical_fact: string
+          confidence_score?: number | null
+          created_at?: string
+          entity: string
+          id?: string
+          is_active?: boolean | null
+          memory_type: string
+          source_feature?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clinical_fact?: string
+          confidence_score?: number | null
+          created_at?: string
+          entity?: string
+          id?: string
+          is_active?: boolean | null
+          memory_type?: string
+          source_feature?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_clinical_memories_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1100,7 +1296,21 @@ export type Database = {
         Returns: boolean
       }
       get_decrypted_secret: { Args: { secret_name: string }; Returns: string }
+      ingest_ingredient_scan_knowledge: {
+        Args: {
+          p_brand: string
+          p_formula_hash: string
+          p_ingredients: Json
+          p_product_name: string
+          p_safety_score: number
+        }
+        Returns: string
+      }
       is_admin: { Args: never; Returns: boolean }
+      record_formula_cache_hit: {
+        Args: { p_formula_id: string; p_tokens_saved?: number }
+        Returns: undefined
+      }
       record_mission_progress: {
         Args: { p_action: string; p_count?: number; p_user_id: string }
         Returns: undefined

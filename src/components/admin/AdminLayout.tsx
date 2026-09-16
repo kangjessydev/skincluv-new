@@ -7,9 +7,10 @@ import {
   Target,
   CreditCard,
   Package,
-  ScanFace,
+  BookOpen,
   FlaskConical,
-  MessageSquare,
+  BrainCircuit,
+  FileCode,
   Activity,
 } from 'lucide-react'
 
@@ -21,10 +22,11 @@ const configNavItems = [
   { to: '/admin/products', icon: Package, label: 'Produk Rekomendasi' },
 ]
 
-const memoryNavItems = [
-  { to: '/admin/memory/face-scans', icon: ScanFace, label: 'Scan Wajah' },
-  { to: '/admin/memory/ingredient-scans', icon: FlaskConical, label: 'Scan Ingredient' },
-  { to: '/admin/memory/chats', icon: MessageSquare, label: 'Chatbot Skinsistant' },
+const aiHubNavItems = [
+  { to: '/admin/knowledge/ingredients', icon: BookOpen, label: 'Kamus Bahan AI' },
+  { to: '/admin/knowledge/formulas', icon: FlaskConical, label: 'Formula & Cache' },
+  { to: '/admin/memory/clinical', icon: BrainCircuit, label: 'Memori Klinis Pasien' },
+  { to: '/admin/training/datasets', icon: FileCode, label: 'Dataset & Fine-Tuning' },
   { to: '/admin/memory/logs', icon: Activity, label: 'Log & Metrik AI' },
 ]
 
@@ -149,10 +151,10 @@ export default function AdminLayout() {
               padding: '14px 12px 2px 12px',
             }}
           >
-            Database & Memori AI
+            AI Knowledge & Training Hub
           </div>
 
-          {memoryNavItems.map((item) => (
+          {aiHubNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

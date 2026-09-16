@@ -8,9 +8,10 @@ import {
   ShieldCheck,
   ArrowRight,
   Activity,
-  ScanFace,
+  BookOpen,
   FlaskConical,
-  MessageSquare,
+  BrainCircuit,
+  FileCode,
 } from 'lucide-react'
 
 export default function AdminDashboardPage() {
@@ -21,7 +22,7 @@ export default function AdminDashboardPage() {
           Admin Overview
         </h1>
         <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
-          Pusat kendali konfigurasi AI, model, API key, memori percakapan, database scan, dan metrik sistem Skincluv.
+          Pusat kendali konfigurasi AI, model, API key, kamus bahan kosmetik, formula semantic cache, dan fine-tuning training center.
         </p>
       </div>
 
@@ -298,13 +299,13 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Section 2: Database & Memori AI */}
+      {/* Section 2: AI Knowledge & Training Hub */}
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: '#374151', margin: 0 }}>
-          Database & Memori AI Pengguna
+          AI Knowledge & Training Hub (Autonomous Data Flywheel)
         </h2>
         <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0 0' }}>
-          Pantau riwayat hasil scan pengguna, percakapan chatbot asisten klinis, dan metrik inferensi AI.
+          Basis data pengetahuan kosmetik, formula semantic cache, memori klinis pasien, dan fine-tuning training center.
         </p>
       </div>
 
@@ -316,7 +317,7 @@ export default function AdminDashboardPage() {
         }}
       >
         <Link
-          to="/admin/memory/face-scans"
+          to="/admin/knowledge/ingredients"
           style={{
             background: '#ffffff',
             borderRadius: 12,
@@ -344,22 +345,22 @@ export default function AdminDashboardPage() {
                 marginBottom: 16,
               }}
             >
-              <ScanFace size={20} />
+              <BookOpen size={20} />
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-              Database Scan Wajah
+              Kamus Bahan AI (Knowledge Base)
             </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-              Riwayat scan wajah pengguna, evaluasi klinis per zona wajah, skin concerns, dan raw payload JSON AI.
+              Ensiklopedia bahan skincare terstandar yang secara otomatis dipelajari dan diperkaya oleh AI dari setiap scan pengguna.
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4f46e5', marginTop: 20 }}>
-            Lihat Scan Wajah <ArrowRight size={14} />
+            Buka Kamus Bahan <ArrowRight size={14} />
           </div>
         </Link>
 
         <Link
-          to="/admin/memory/ingredient-scans"
+          to="/admin/knowledge/formulas"
           style={{
             background: '#ffffff',
             borderRadius: 12,
@@ -390,19 +391,19 @@ export default function AdminDashboardPage() {
               <FlaskConical size={20} />
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-              Database Scan Ingredient
+              Formula & Semantic Cache
             </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-              Hasil ekstraksi OCR dan analisis kandungan bahan aktif skincare, safety score, dan status kecocokan.
+              Big data formula produk yang menghemat ribuan token AI dan menghadirkan respons scan secepat kilat (&lt;0.3 detik).
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#db2777', marginTop: 20 }}>
-            Lihat Scan Ingredient <ArrowRight size={14} />
+            Lihat Formula Cache <ArrowRight size={14} />
           </div>
         </Link>
 
         <Link
-          to="/admin/memory/chats"
+          to="/admin/memory/clinical"
           style={{
             background: '#ffffff',
             borderRadius: 12,
@@ -422,30 +423,30 @@ export default function AdminDashboardPage() {
                 width: 40,
                 height: 40,
                 borderRadius: 8,
-                background: '#e0f2fe',
-                color: '#0284c7',
+                background: '#ede9fe',
+                color: '#7c3aed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 16,
               }}
             >
-              <MessageSquare size={20} />
+              <BrainCircuit size={20} />
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-              Riwayat Chat Skinsistant
+              Memori Klinis Pasien (Episodic)
             </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-              Thread percakapan pengguna dengan asisten AI Skinsistant, konsultasi interaktif, dan rekomendasi.
+              Fakta klinis riwayat alergi, sensitivitas, dan reaksi treatment per pengguna yang disuntikkan ke chatbot konsultasi.
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#0284c7', marginTop: 20 }}>
-            Lihat Riwayat Chat <ArrowRight size={14} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#7c3aed', marginTop: 20 }}>
+            Lihat Memori Klinis <ArrowRight size={14} />
           </div>
         </Link>
 
         <Link
-          to="/admin/memory/logs"
+          to="/admin/training/datasets"
           style={{
             background: '#ffffff',
             borderRadius: 12,
@@ -473,17 +474,60 @@ export default function AdminDashboardPage() {
                 marginBottom: 16,
               }}
             >
-              <Activity size={20} />
+              <FileCode size={20} />
             </div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-              Log Permintaan & Metrik AI
+              Pusat Dataset & Fine-Tuning
             </h3>
             <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-              Observabilitas latensi, jumlah token yang digunakan, status eksekusi, serta feedback kepuasan user.
+              Repositori pasangan instruksi ground-truth siap ekspor format JSONL untuk fine-tuning model AI apa pun (Vertex/OpenAI).
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#d97706', marginTop: 20 }}>
-            Lihat Log AI <ArrowRight size={14} />
+            Kurasi & Ekspor JSONL <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/memory/logs"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#f3f4f6',
+                color: '#4b5563',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <Activity size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Log Metrik & Observabilitas
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Telemetri performa latensi, jumlah token yang digunakan, status eksekusi, serta feedback kepuasan user.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4b5563', marginTop: 20 }}>
+            Lihat Metrik & Log <ArrowRight size={14} />
           </div>
         </Link>
       </div>
