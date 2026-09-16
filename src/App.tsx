@@ -24,6 +24,9 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import AdminPromptsPage from '@/pages/admin/AdminPromptsPage'
 import AdminModelsPage from '@/pages/admin/AdminModelsPage'
+import AdminMissionsPage from '@/pages/admin/AdminMissionsPage'
+import AdminPricingPage from '@/pages/admin/AdminPricingPage'
+import AdminProductsPage from '@/pages/admin/AdminProductsPage'
 
 export default function App() {
   useAuthInit()
@@ -70,6 +73,9 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/prompts" element={<AdminPromptsPage />} />
           <Route path="/admin/models" element={<AdminModelsPage />} />
+          <Route path="/admin/missions" element={<AdminMissionsPage />} />
+          <Route path="/admin/pricing" element={<AdminPricingPage />} />
+          <Route path="/admin/products" element={<AdminProductsPage />} />
         </Route>
       </Route>
 

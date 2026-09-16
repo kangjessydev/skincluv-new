@@ -1,10 +1,13 @@
 import { Outlet, NavLink, Link } from 'react-router-dom'
-import { FileText, Cpu, LayoutDashboard, ArrowLeft } from 'lucide-react'
+import { FileText, Cpu, LayoutDashboard, ArrowLeft, Target, CreditCard, Package } from 'lucide-react'
 
 const adminNavItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
   { to: '/admin/prompts', icon: FileText, label: 'Prompt & AI Features' },
   { to: '/admin/models', icon: Cpu, label: 'Model & API Key' },
+  { to: '/admin/missions', icon: Target, label: 'Misi Glow' },
+  { to: '/admin/pricing', icon: CreditCard, label: 'Paket & Kuota' },
+  { to: '/admin/products', icon: Package, label: 'Produk Rekomendasi' },
 ]
 
 export default function AdminLayout() {

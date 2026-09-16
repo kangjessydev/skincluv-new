@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FileText, Cpu, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
+import { FileText, Cpu, Target, CreditCard, Package, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
 
 export default function AdminDashboardPage() {
   return (
@@ -9,14 +9,14 @@ export default function AdminDashboardPage() {
           Admin Overview
         </h1>
         <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
-          Pusat kendali konfigurasi AI, model, API key, dan sistem Skincluv.
+          Pusat kendali konfigurasi AI, model, API key, gamifikasi, paket langganan, dan produk Skincluv.
         </p>
       </div>
 
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: 20,
           marginBottom: 32,
         }}
@@ -104,6 +104,135 @@ export default function AdminDashboardPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#16a34a', marginTop: 20 }}>
             Kelola Model <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/missions"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#fef3c7',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <Target size={20} />
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Misi Glow
+            </h2>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Kelola misi harian, mingguan, target count, cooldown, dan reward koin/credit pengguna.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#d97706', marginTop: 20 }}>
+            Kelola Misi <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/pricing"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#e0e7ff',
+                color: '#4f46e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <CreditCard size={20} />
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Paket & Kuota
+            </h2>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Atur harga paket membership (Free, Glow, Pro) dan matriks kuota bulanan tiap fitur AI.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4f46e5', marginTop: 20 }}>
+            Kelola Paket <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/products"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#fae8ff',
+                color: '#a21caf',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <Package size={20} />
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Produk Rekomendasi
+            </h2>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Katalog produk skincare untuk rekomendasi engine AI di Scan Wajah dan Skinsistant.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#a21caf', marginTop: 20 }}>
+            Kelola Produk <ArrowRight size={14} />
           </div>
         </Link>
 
