@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { CreditCard, CheckCircle2, AlertCircle, RefreshCw, Layers } from 'lucide-react'
+import { CreditCard, CheckCircle2, AlertCircle, RefreshCw, Layers, Coins } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface Tier {
@@ -14,6 +14,8 @@ interface Feature {
   id: string
   slug: string
   name: string
+  credit_cost?: number
+  is_active?: boolean
 }
 
 interface QuotaConfig {
@@ -35,7 +37,7 @@ export default function AdminPricingPage() {
     try {
       const [tiersRes, featuresRes, quotaRes] = await Promise.all([
         supabase.from('subscription_tiers').select('*').order('price_idr'),
-        supabase.from('ai_features').select('id, slug, name').order('slug'),
+        supabase.from('ai_features').select('id, slug, name, credit_cost, is_active').order('slug'),
         supabase.from('quota_configs').select('*'),
       ])
 
@@ -104,6 +106,27 @@ export default function AdminPricingPage() {
     } catch (err: any) {
       console.error('[AdminPricing] Gagal update kuota:', err)
       setFeedback({ type: 'error', message: `Gagal update kuota: ${err.message}` })
+    }
+  }
+
+  async function handleCreditCostUpdate(feature: Feature, newCost: number) {
+    if (newCost < 0) return
+    try {
+      const { error } = await supabase
+        .from('ai_features')
+        .update({ credit_cost: newCost })
+        .eq('id', feature.id)
+
+      if (error) throw error
+
+      setFeedback({
+        type: 'success',
+        message: `Biaya kredit untuk ${feature.name} berhasil diubah menjadi ${newCost} Credits.`,
+      })
+      await loadData()
+    } catch (err: any) {
+      console.error('[AdminPricing] Gagal update credit cost:', err)
+      setFeedback({ type: 'error', message: `Gagal update biaya kredit: ${err.message}` })
     }
   }
 
@@ -247,6 +270,97 @@ export default function AdminPricingPage() {
                         {t.is_active ? 'Aktif' : 'Nonaktif'}
                       </span>
                     </label>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Tabel Biaya Kredit per Fitur AI */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: 12,
+          border: '1px solid #e5e7eb',
+          padding: 24,
+          marginBottom: 32,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <Coins size={18} color="#d97706" />
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
+            Biaya Kredit Fitur AI (Pay-per-Use)
+          </h2>
+        </div>
+        <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 16px 0' }}>
+          Tentukan berapa Credits yang dipotong saat pengguna Free (atau pengguna berbayar yang kuotanya habis) mengakses fitur AI. Perubahan langsung aktif seketika di seluruh aplikasi.
+        </p>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Nama Fitur</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Identifier (Slug)</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Biaya Penggunaan</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Status Fitur</th>
+              </tr>
+            </thead>
+            <tbody>
+              {features.map((f) => (
+                <tr key={f.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '12px' }}>
+                    <span style={{ fontWeight: 600, color: '#111827' }}>{f.name}</span>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <code style={{ background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, fontSize: 12 }}>
+                      {f.slug}
+                    </code>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        defaultValue={f.credit_cost ?? 1}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value, 10)
+                          if (!isNaN(val) && val !== f.credit_cost) {
+                            handleCreditCostUpdate(f, val)
+                          }
+                        }}
+                        style={{
+                          width: 80,
+                          padding: '6px 10px',
+                          borderRadius: 6,
+                          border: '1px solid #d1d5db',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: '#b45309',
+                          textAlign: 'center',
+                          background: '#fffbeb',
+                        }}
+                      />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#92400e' }}>Credits / panggil</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 9999,
+                        background: f.is_active !== false ? '#dcfce7' : '#fee2e2',
+                        color: f.is_active !== false ? '#15803d' : '#991b1b',
+                      }}
+                    >
+                      {f.is_active !== false ? 'Aktif' : 'Nonaktif'}
+                    </span>
                   </td>
                 </tr>
               ))}

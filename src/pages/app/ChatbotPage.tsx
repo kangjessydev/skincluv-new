@@ -12,10 +12,15 @@ import {
   Paperclip,
   Loader2,
   MessageSquare,
+  Coins,
+  Crown,
+  Trophy,
+  ShieldAlert,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
+import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import FormattedMarkdown from '@/components/ui/FormattedMarkdown'
 
@@ -60,9 +65,11 @@ export default function ChatbotPage() {
   const { sessionId } = useParams<{ sessionId?: string }>()
   const navigate = useNavigate()
 
-  const { user, profile, coinBalance } = useAuthStore()
-  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
+  const { user, profile, coinBalance, subscription } = useAuthStore()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation } = useInvokeAI()
   const currentCoins = coinBalance?.balance ?? 0
+  const chatbotCost = getFeatureCreditCost('chatbot')
+  const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < chatbotCost
 
   const [sessions, setSessions] = useState<Session[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -254,6 +261,12 @@ export default function ChatbotPage() {
       return
     }
 
+    // Cek apakah akun Free kehabisan kredit sebelum mengirim pesan non-sapaan
+    if (isFreeTierOutOfCredits) {
+      const confirmed = await askCoinConfirmation(chatbotCost, 'Konsultasi Skinsistant AI')
+      if (!confirmed) return
+    }
+
     let activeSessionId = sessionId
     if (!activeSessionId) {
       const newSid = await createNewSession()
@@ -335,6 +348,16 @@ export default function ChatbotPage() {
           role: 'assistant',
           content: botReply,
         })
+      } else {
+        // Fallback bubble informatif jika invoke gagal atau credits habis — bukan hening/tidak ada respon
+        const noticeText = `⚠️ **Credits kamu tidak mencukupi** untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
+        const tempBotMsg: Message = {
+          id: `insufficient-${Date.now()}`,
+          sender: 'bot',
+          text: noticeText,
+          created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }
+        setMessages((prev) => [...prev, tempBotMsg])
       }
     } catch (err) {
       console.error('AI invoke error:', err)
@@ -506,6 +529,33 @@ export default function ChatbotPage() {
 
       {/* STICKY INPUT BAR AT BOTTOM */}
       <div className="chat-input-bar">
+        {isFreeTierOutOfCredits && (
+          <div className="chat-credit-warning-strip">
+            <div className="warning-left">
+              <Coins size={15} className="warning-coin-icon" />
+              <span>
+                Saldo <strong>0 Credits</strong>. Kumpulkan Credits dari Misi atau Upgrade Akun untuk konsultasi.
+              </span>
+            </div>
+            <div className="warning-cta-group">
+              <button
+                type="button"
+                className="strip-btn strip-btn-mission"
+                onClick={() => navigate('/missions')}
+              >
+                <Trophy size={13} /> Misi Gratis
+              </button>
+              <button
+                type="button"
+                className="strip-btn strip-btn-upgrade"
+                onClick={() => navigate('/pricing')}
+              >
+                <Crown size={13} /> Upgrade
+              </button>
+            </div>
+          </div>
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -521,7 +571,11 @@ export default function ChatbotPage() {
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Tanyakan sesuatu pada Skinsistant AI..."
+            placeholder={
+              isFreeTierOutOfCredits
+                ? 'Credits kamu 0. Kerjakan misi atau upgrade akun untuk chat...'
+                : 'Tanyakan sesuatu pada Skinsistant AI...'
+            }
             disabled={isSending}
           />
 
@@ -537,6 +591,11 @@ export default function ChatbotPage() {
             )}
           </button>
         </form>
+
+        <p className="chat-medical-disclaimer">
+          <ShieldAlert size={12} className="disclaimer-icon" />
+          <span>Skinsistant memberikan saran perawatan kosmetik & edukasi, bukan diagnosa medis klinis.</span>
+        </p>
       </div>
 
       {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
@@ -957,11 +1016,28 @@ export default function ChatbotPage() {
         .chat-input-bar {
           position: sticky;
           bottom: 0;
-          padding: 12px 20px;
+          padding: 10px 20px 8px 20px;
           background: #ffffff;
           border-top: 1px solid #e2e8f0;
           flex-shrink: 0;
           z-index: 10;
+        }
+
+        .chat-medical-disclaimer {
+          margin: 6px 0 0 0;
+          font-size: 0.6875rem;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          text-align: center;
+          user-select: none;
+        }
+
+        .chat-medical-disclaimer .disclaimer-icon {
+          color: #f59e0b;
+          flex-shrink: 0;
         }
 
         .input-wrap {
@@ -1033,7 +1109,85 @@ export default function ChatbotPage() {
           cursor: not-allowed;
         }
 
+        .chat-credit-warning-strip {
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 12px;
+          padding: 8px 14px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          font-size: 0.8125rem;
+          color: #92400e;
+          animation: fadeIn 0.2s ease;
+        }
+
+        .warning-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .warning-coin-icon {
+          color: #d97706;
+          flex-shrink: 0;
+        }
+
+        .warning-cta-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+
+        .strip-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 5px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          border: none;
+          transition: all 0.15s;
+        }
+
+        .strip-btn-mission {
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fde68a;
+        }
+
+        .strip-btn-mission:hover {
+          background: #fde68a;
+        }
+
+        .strip-btn-upgrade {
+          background: #0f6784;
+          color: #ffffff;
+        }
+
+        .strip-btn-upgrade:hover {
+          background: #0b4d63;
+        }
+
         @media (max-width: 768px) {
+          .chat-credit-warning-strip {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .warning-cta-group {
+            width: 100%;
+          }
+          .strip-btn {
+            flex: 1;
+            justify-content: center;
+          }
           .chat-util-bar {
             padding: 8px 12px;
           }

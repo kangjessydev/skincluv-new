@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { setDynamicCreditCosts } from '@/utils/subscriptionHelpers'
 import type { SkinProfile, Subscription } from '@/types/database'
 
 /**
@@ -30,7 +31,7 @@ export function useAuthInit() {
       const userId = userObj.id
       try {
         // Fetch all user data in parallel
-        const [profileRes, skinProfileRes, coinRes, subRes, roleRes] = await Promise.all([
+        const [profileRes, skinProfileRes, coinRes, subRes, roleRes, featuresRes] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
           supabase
             .from('skin_profiles')
@@ -51,7 +52,20 @@ export function useAuthInit() {
             .eq('user_id', userId)
             .eq('role', 'admin')
             .maybeSingle(),
+          supabase
+            .from('ai_features')
+            .select('slug, credit_cost'),
         ])
+
+        if (featuresRes?.data) {
+          const costMap: Record<string, number> = {}
+          for (const f of featuresRes.data) {
+            if (typeof f.credit_cost === 'number') {
+              costMap[f.slug] = f.credit_cost
+            }
+          }
+          setDynamicCreditCosts(costMap)
+        }
 
         let profileData = profileRes.data
 

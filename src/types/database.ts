@@ -91,6 +91,7 @@ export interface AiFeature {
   slug: FeatureSlug
   name: string
   description: string | null
+  credit_cost: number
   is_active: boolean
   created_at: string
 }

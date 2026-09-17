@@ -142,7 +142,8 @@ export default function ProfilePage() {
 
   const usedCount = usageInfo?.used || 0
   const limitCount = isPro ? 3000 : (usageInfo?.limit || 10)
-  const percent = Math.min((usedCount / limitCount) * 100, 100)
+  const usedPercent = Math.min(Math.round((usedCount / limitCount) * 100), 100)
+  const remainingPercent = Math.max(0, 100 - usedPercent)
 
   return (
     <div className="profile-page animate-fade-in">
@@ -194,14 +195,27 @@ export default function ProfilePage() {
                 <span className="usage-label"><Activity size={16} /> Kuota Analisis Bulan Ini</span>
                 <span className="usage-text">
                   {isFree ? (
-                    <span>0 Kuota (Gunakan Credits Misi)</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>0% Kuota (Gunakan Credits Misi)</span>
                   ) : (
-                    <><strong>{usedCount}</strong> / {limitCount} Penggunaan</>
+                    <span className="usage-percent-badge">
+                      <strong>{remainingPercent}% Tersisa</strong>
+                      <span className="usage-detail-fraction">({usedPercent}% terpakai)</span>
+                    </span>
                   )}
                 </span>
               </div>
               <div className="progress-bg">
-                <div className="progress-fill" style={{ width: isFree ? '0%' : `${percent}%` }} />
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: isFree ? '0%' : `${Math.max(usedPercent, 2)}%`,
+                    background: usedPercent >= 90
+                      ? 'linear-gradient(90deg, #f87171, #ef4444)'
+                      : usedPercent >= 75
+                      ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
+                      : 'linear-gradient(90deg, #60a5fa, #2563eb)'
+                  }}
+                />
               </div>
             </div>
 
@@ -346,11 +360,14 @@ export default function ProfilePage() {
         }
         .btn-upgrade-link { text-decoration: none; font-size: 0.75rem; gap: 6px; }
 
-        .usage-block { margin-top: 8px; }
-        .usage-meta { display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 6px; }
-        .usage-label { color: var(--color-text-muted); display: flex; align-items: center; gap: 6px; }
-        .progress-bg { width: 100%; height: 8px; background: var(--color-surface-container-high); border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--color-primary-container); border-radius: 4px; transition: width 0.5s ease-out; }
+        .usage-block { margin-top: 10px; }
+        .usage-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8125rem; margin-bottom: 8px; }
+        .usage-label { color: var(--color-text-muted); display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        .usage-percent-badge { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; }
+        .usage-percent-badge strong { color: #2563eb; font-weight: 700; }
+        .usage-detail-fraction { color: var(--color-text-muted); font-size: 0.75rem; }
+        .progress-bg { width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06); }
+        .progress-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3); }
 
         .pro-expiry-bar {
           margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--color-secondary-container);

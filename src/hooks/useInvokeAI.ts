@@ -92,30 +92,43 @@ export function useInvokeAI() {
 
       let res = await callEdge(formattedPayload.use_coins)
 
-      // Handle 402 Payment Required (Quota exceeded)
-      // Tampilkan modal konfirmasi — bukan window.confirm() blocking
+      // Handle 402 Payment Required (Quota exceeded / Insufficient Credits)
+      // Tampilkan modal konfirmasi edukatif — bukan window.confirm() blocking
       let is402 = false
       let dynamicCoinCost: number | null = null
       let dynamicFeatureSlug = feature_slug
 
       if (res.error) {
-        if ((res.error as any).context) {
+        let errBody: any = null
+        const errCtx = (res.error as any).context
+        if (errCtx) {
           try {
-            const errBody = await (res.error as any).context.clone().json()
-            if (errBody?.code === 'QUOTA_EXCEEDED' || errBody?.error?.toLowerCase().includes('quota exceeded')) {
-              is402 = true
-              if (typeof errBody.coin_cost === 'number') {
-                dynamicCoinCost = errBody.coin_cost
-              }
-              if (errBody.feature_slug) {
-                dynamicFeatureSlug = errBody.feature_slug
-              }
+            if (typeof errCtx.clone === 'function') {
+              errBody = await errCtx.clone().json()
+            } else if (typeof errCtx.json === 'function') {
+              errBody = await errCtx.json()
             }
           } catch {}
         }
 
-        if (!is402 && (res.error.message?.includes('402') || res.error.message?.toLowerCase().includes('quota exceeded'))) {
+        const isStatusCode402 = errCtx?.status === 402 || (res.error as any).status === 402
+        const isQuotaCode = errBody?.code === 'QUOTA_EXCEEDED' || errBody?.code === 'INSUFFICIENT_CREDITS'
+        const isQuotaMsg =
+          errBody?.error?.toLowerCase().includes('quota') ||
+          errBody?.error?.toLowerCase().includes('credits') ||
+          res.error.message?.includes('402') ||
+          res.error.message?.toLowerCase().includes('quota')
+
+        if (isStatusCode402 || isQuotaCode || isQuotaMsg) {
           is402 = true
+          if (typeof errBody?.coin_cost === 'number') {
+            dynamicCoinCost = errBody.coin_cost
+          } else if (typeof errBody?.credit_cost === 'number') {
+            dynamicCoinCost = errBody.credit_cost
+          }
+          if (errBody?.feature_slug) {
+            dynamicFeatureSlug = errBody.feature_slug
+          }
         }
       }
 
@@ -139,7 +152,7 @@ export function useInvokeAI() {
         const confirmed = await askCoinConfirmation(coinCost, featureLabel)
 
         if (!confirmed) {
-          setError('Dibatalkan. Kumpulkan Credits dari misi harian atau upgrade ke Paket Glow / PRO.')
+          setError('INSUFFICIENT_CREDITS')
           return null
         }
 
@@ -151,21 +164,30 @@ export function useInvokeAI() {
       if (fnError) {
         console.error('[useInvokeAI] Edge Function Network/Internal Error:', fnError)
         let msg = 'Terjadi kesalahan pada layanan AI. Coba lagi.'
+        let isCreditErr = false
         if ((fnError as any).context) {
           try {
             const errBody = await (fnError as any).context.clone().json()
             if (errBody?.error) msg = errBody.error
+            if (errBody?.code === 'INSUFFICIENT_CREDITS' || (fnError as any).context?.status === 402) {
+              isCreditErr = true
+            }
           } catch {}
         } else if (typeof fnError.message === 'string') {
           msg = fnError.message
+          if (fnError.message.includes('402') || fnError.message.toLowerCase().includes('credit')) {
+            isCreditErr = true
+          }
         }
-        setError(msg)
+
+        setError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
         return null
       }
 
       if (!data?.success) {
         console.error('[useInvokeAI] Edge Function Logical Error:', data)
-        setError(data?.error ?? 'Terjadi kesalahan saat memproses data.')
+        const isCreditErr = data?.code === 'INSUFFICIENT_CREDITS' || data?.error?.toLowerCase().includes('credit')
+        setError(isCreditErr ? 'INSUFFICIENT_CREDITS' : (data?.error ?? 'Terjadi kesalahan saat memproses data.'))
         return null
       }
 
@@ -206,10 +228,11 @@ export function useInvokeAI() {
     isLoading,
     error,
     clearError: () => setError(null),
-    // Modal state — gunakan ini di komponen yang memanggil useInvokeAI
+    // Modal state & helper — gunakan ini di komponen yang memanggil useInvokeAI
     pendingCoinConfirm,
     confirmCoinUsage,
     cancelCoinUsage,
+    askCoinConfirmation,
   }
 }
 

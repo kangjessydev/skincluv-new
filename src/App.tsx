@@ -32,6 +32,10 @@ import AdminKnowledgeBasePage from '@/pages/admin/AdminKnowledgeBasePage'
 import AdminProductFormulasPage from '@/pages/admin/AdminProductFormulasPage'
 import AdminClinicalMemoryPage from '@/pages/admin/AdminClinicalMemoryPage'
 import AdminTrainingDatasetsPage from '@/pages/admin/AdminTrainingDatasetsPage'
+import AdminTransactionsPage from '@/pages/admin/AdminTransactionsPage'
+import AdminFinancialsPage from '@/pages/admin/AdminFinancialsPage'
+import AdminUsersPage from '@/pages/admin/AdminUsersPage'
+import AdminMarketIntelligencePage from '@/pages/admin/AdminMarketIntelligencePage'
 
 export default function App() {
   useAuthInit()
@@ -76,11 +80,22 @@ export default function App() {
       <Route element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
+          {/* Bisnis & Transaksi */}
+          <Route path="/admin/market-intelligence" element={<AdminMarketIntelligencePage />} />
+          <Route path="/admin/transactions" element={<AdminTransactionsPage />} />
+          <Route path="/admin/financials" element={<AdminFinancialsPage />} />
+          <Route path="/admin/pricing" element={<AdminPricingPage />} />
+
+          {/* Pengguna & CRM */}
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+
+          {/* Konfigurasi Sistem */}
           <Route path="/admin/prompts" element={<AdminPromptsPage />} />
           <Route path="/admin/models" element={<AdminModelsPage />} />
           <Route path="/admin/missions" element={<AdminMissionsPage />} />
-          <Route path="/admin/pricing" element={<AdminPricingPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
+
+          {/* AI Knowledge Hub */}
           <Route path="/admin/knowledge/ingredients" element={<AdminKnowledgeBasePage />} />
           <Route path="/admin/knowledge/formulas" element={<AdminProductFormulasPage />} />
           <Route path="/admin/memory/clinical" element={<AdminClinicalMemoryPage />} />

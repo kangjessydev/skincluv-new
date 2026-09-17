@@ -41,6 +41,7 @@ export type Database = {
     Tables: {
       ai_features: {
         Row: {
+          credit_cost: number
           created_at: string
           description: string | null
           id: string
@@ -49,6 +50,7 @@ export type Database = {
           slug: string
         }
         Insert: {
+          credit_cost?: number
           created_at?: string
           description?: string | null
           id?: string
@@ -57,6 +59,7 @@ export type Database = {
           slug: string
         }
         Update: {
+          credit_cost?: number
           created_at?: string
           description?: string | null
           id?: string
@@ -1273,6 +1276,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_user_coins: {
+        Args: {
+          p_target_user_id: string
+          p_amount: number
+          p_reason?: string
+        }
+        Returns: number
+      }
+      admin_set_user_role: {
+        Args: {
+          p_target_user_id: string
+          p_role: string
+        }
+        Returns: boolean
+      }
       claim_mission: { Args: { p_mission_slug: string }; Returns: Json }
       credit_coins: {
         Args: {
@@ -1296,6 +1314,7 @@ export type Database = {
         Returns: boolean
       }
       get_decrypted_secret: { Args: { secret_name: string }; Returns: string }
+      get_market_intelligence_stats: { Args: never; Returns: Json }
       ingest_ingredient_scan_knowledge: {
         Args: {
           p_brand: string

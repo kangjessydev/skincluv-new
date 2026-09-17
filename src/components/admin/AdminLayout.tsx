@@ -8,43 +8,82 @@ import {
   CreditCard,
   Package,
   BookOpen,
-  FlaskConical,
   BrainCircuit,
   FileCode,
   Activity,
+  TrendingUp,
+  Users,
+  Layers,
+  Sparkles,
+  BarChart3,
 } from 'lucide-react'
 
+const businessNavItems = [
+  { to: '/admin/market-intelligence', icon: BarChart3, label: 'Tren & Riset Pasar' },
+  { to: '/admin/transactions', icon: CreditCard, label: 'Riwayat Transaksi' },
+  { to: '/admin/financials', icon: TrendingUp, label: 'Unit Economics AI' },
+  { to: '/admin/pricing', icon: Layers, label: 'Paket & Biaya Kredit' },
+]
+
+const userNavItems = [
+  { to: '/admin/users', icon: Users, label: 'Manajemen Pengguna' },
+]
+
 const configNavItems = [
+  { to: '/admin/missions', icon: Target, label: 'Misi Glow' },
+  { to: '/admin/products', icon: Package, label: 'Produk Rekomendasi' },
   { to: '/admin/prompts', icon: FileText, label: 'Prompt & Fitur AI' },
   { to: '/admin/models', icon: Cpu, label: 'Model & API Key' },
-  { to: '/admin/missions', icon: Target, label: 'Misi Glow' },
-  { to: '/admin/pricing', icon: CreditCard, label: 'Paket & Kuota' },
-  { to: '/admin/products', icon: Package, label: 'Produk Rekomendasi' },
 ]
 
 const aiHubNavItems = [
   { to: '/admin/knowledge/ingredients', icon: BookOpen, label: 'Kamus Bahan AI' },
-  { to: '/admin/knowledge/formulas', icon: FlaskConical, label: 'Formula & Cache' },
+  { to: '/admin/knowledge/formulas', icon: Sparkles, label: 'Formula & Cache' },
   { to: '/admin/memory/clinical', icon: BrainCircuit, label: 'Memori Klinis Pasien' },
   { to: '/admin/training/datasets', icon: FileCode, label: 'Dataset & Fine-Tuning' },
   { to: '/admin/memory/logs', icon: Activity, label: 'Log & Metrik AI' },
 ]
+
+function renderNavGroup(items: { to: string; icon: any; label: string }[]) {
+  return items.map((item) => (
+    <NavLink
+      key={item.to}
+      to={item.to}
+      style={({ isActive }) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '7px 12px',
+        borderRadius: 8,
+        textDecoration: 'none',
+        fontSize: 13,
+        fontWeight: isActive ? 600 : 500,
+        color: isActive ? '#ffffff' : '#374151',
+        background: isActive ? '#111827' : 'transparent',
+        transition: 'all 0.15s ease',
+      })}
+    >
+      <item.icon size={16} />
+      {item.label}
+    </NavLink>
+  ))
+}
 
 export default function AdminLayout() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb', fontFamily: 'inherit' }}>
       <aside
         style={{
-          width: 250,
+          width: 255,
           borderRight: '1px solid #e5e7eb',
           background: '#ffffff',
-          padding: '20px 16px',
+          padding: '20px 14px',
           display: 'flex',
           flexDirection: 'column',
           flexShrink: 0,
         }}
       >
-        <div style={{ marginBottom: 20, paddingLeft: 4 }}>
+        <div style={{ marginBottom: 16, paddingLeft: 4 }}>
           <div
             style={{
               fontSize: 11,
@@ -68,12 +107,12 @@ export default function AdminLayout() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            marginBottom: 20,
+            marginBottom: 16,
             fontSize: 13,
             fontWeight: 500,
             color: '#4b5563',
             textDecoration: 'none',
-            padding: '8px 12px',
+            padding: '7px 12px',
             borderRadius: 8,
             background: '#f3f4f6',
             transition: 'background 0.15s ease',
@@ -82,7 +121,7 @@ export default function AdminLayout() {
           <ArrowLeft size={15} /> Kembali ke App
         </Link>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, overflowY: 'auto' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflowY: 'auto' }}>
           <NavLink
             to="/admin"
             end
@@ -90,7 +129,7 @@ export default function AdminLayout() {
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              padding: '9px 12px',
+              padding: '8px 12px',
               borderRadius: 8,
               textDecoration: 'none',
               fontSize: 13,
@@ -98,84 +137,28 @@ export default function AdminLayout() {
               color: isActive ? '#ffffff' : '#374151',
               background: isActive ? '#111827' : 'transparent',
               transition: 'all 0.15s ease',
-              marginBottom: 10,
+              marginBottom: 8,
             })}
           >
             <LayoutDashboard size={17} />
             Overview
           </NavLink>
 
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: '#9ca3af',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              padding: '6px 12px 2px 12px',
-            }}
-          >
-            Konfigurasi Sistem
-          </div>
+          {/* Bisnis & Keuangan */}
+          <div style={groupHeaderStyle}>Bisnis & Keuangan</div>
+          {renderNavGroup(businessNavItems)}
 
-          {configNavItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              style={({ isActive }) => ({
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '8px 12px',
-                borderRadius: 8,
-                textDecoration: 'none',
-                fontSize: 13,
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#ffffff' : '#374151',
-                background: isActive ? '#111827' : 'transparent',
-                transition: 'all 0.15s ease',
-              })}
-            >
-              <item.icon size={17} />
-              {item.label}
-            </NavLink>
-          ))}
+          {/* Pengguna & CRM */}
+          <div style={groupHeaderStyle}>Pengguna & CRM</div>
+          {renderNavGroup(userNavItems)}
 
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: '#9ca3af',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              padding: '14px 12px 2px 12px',
-            }}
-          >
-            AI Knowledge & Training Hub
-          </div>
+          {/* Konfigurasi Sistem */}
+          <div style={groupHeaderStyle}>Konfigurasi Sistem</div>
+          {renderNavGroup(configNavItems)}
 
-          {aiHubNavItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              style={({ isActive }) => ({
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '8px 12px',
-                borderRadius: 8,
-                textDecoration: 'none',
-                fontSize: 13,
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#ffffff' : '#374151',
-                background: isActive ? '#111827' : 'transparent',
-                transition: 'all 0.15s ease',
-              })}
-            >
-              <item.icon size={17} />
-              {item.label}
-            </NavLink>
-          ))}
+          {/* AI Knowledge & Training Hub */}
+          <div style={groupHeaderStyle}>AI Brain & Training Hub</div>
+          {renderNavGroup(aiHubNavItems)}
         </nav>
       </aside>
 
@@ -184,4 +167,13 @@ export default function AdminLayout() {
       </main>
     </div>
   )
+}
+
+const groupHeaderStyle: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  color: '#9ca3af',
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
+  padding: '12px 12px 3px 12px',
 }

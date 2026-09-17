@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
     const [featureRes, subscriptionRes] = await Promise.all([
       supabaseService
         .from('ai_features')
-        .select('id, slug, is_active')
+        .select('id, slug, is_active, credit_cost')
         .eq('slug', feature_slug)
         .single(),
       supabaseService
@@ -153,6 +153,10 @@ Deno.serve(async (req: Request) => {
     // ---- 5. Quota / Coin Check & Atomic Deduction ----
     let deductMode: 'quota' | 'coin' | null = null
     let deductedFeatureId = feature.id // keep track for rollback
+    const dynamicCost = (feature as any).credit_cost
+    const creditCost = typeof dynamicCost === 'number' && dynamicCost >= 0
+      ? dynamicCost
+      : (CREDIT_COST_PER_FEATURE[feature_slug] ?? 3)
 
     if (subscription) {
       // Fetch universal feature id
@@ -179,8 +183,6 @@ Deno.serve(async (req: Request) => {
 
     // If quota failed or no subscription, try credits
     if (!deductMode) {
-      const creditCost = CREDIT_COST_PER_FEATURE[feature_slug] ?? 3
-
       if (!use_coins) {
         return new Response(
           JSON.stringify({
@@ -230,7 +232,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!apiKey) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, CREDIT_COST_PER_FEATURE[feature_slug])
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost)
       return jsonError('AI provider API key not configured. Check Vault secret name.', 503)
     }
 
@@ -378,7 +380,7 @@ Deno.serve(async (req: Request) => {
 
     // ---- Opsi A: Rollback on provider error ----
     if (aiError) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, CREDIT_COST_PER_FEATURE[feature_slug])
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost)
 
       // Log failed attempt (no quota/coin consumed)
       await supabaseService.from('ai_request_logs').insert({

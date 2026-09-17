@@ -8,10 +8,14 @@ import {
   RotateCcw,
   ShoppingBag,
   History,
+  Coins,
+  Crown,
+  Trophy,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
+import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { validateImageQuality, compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace } from '@/utils/faceLandmarkDetector'
@@ -338,8 +342,11 @@ const FACE_SCAN_STAGES_TEXT = [
 ]
 
 export default function FaceScanPage() {
-  const { profile, activeSkinProfile, coinBalance } = useAuthStore()
-  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage } = useInvokeAI()
+  const { profile, activeSkinProfile, coinBalance, subscription } = useAuthStore()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, error: invokeError } = useInvokeAI()
+  const currentCoins = coinBalance?.balance ?? 0
+  const faceCost = getFeatureCreditCost('face_analysis')
+  const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < faceCost
 
   const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'BERMINYAK'
   const userConcerns: string[] = activeSkinProfile?.skin_concerns?.length
@@ -449,7 +456,11 @@ export default function FaceScanPage() {
         if (!isSubscribed) return
 
         if (!result) {
-          setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
+          if (invokeError === 'INSUFFICIENT_CREDITS') {
+            setErrorMsg(`Credits kamu tidak mencukupi untuk Analisis Wajah (butuh ${faceCost} Credits). Selesaikan misi harian untuk mendapatkan Credits gratis atau upgrade ke paket Glow / PRO.`)
+          } else {
+            setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
+          }
           setStage('upload')
           return
         }
@@ -600,10 +611,14 @@ export default function FaceScanPage() {
     setAnalysisResult(null)
   }
 
-  const handleStartFlow = () => {
+  const handleStartFlow = async () => {
     if (!imageBase64) {
       setErrorMsg('Pilih atau unggah foto wajah terlebih dahulu.')
       return
+    }
+    if (isFreeTierOutOfCredits) {
+      const confirmed = await askCoinConfirmation(faceCost, 'Scan Wajah Spesialis')
+      if (!confirmed) return
     }
     setErrorMsg(null)
     setStage('scanning')
@@ -709,6 +724,25 @@ export default function FaceScanPage() {
                 style={{ display: 'none' }}
               />
             </div>
+
+            {isFreeTierOutOfCredits && (
+              <div className="face-scan-credit-notice">
+                <div className="notice-left">
+                  <Coins size={16} className="notice-coin-icon" />
+                  <span>
+                    Butuh <strong>{faceCost} Credits</strong> untuk analisis wajah (Saldo kamu: <strong>{currentCoins} Credits</strong>).
+                  </span>
+                </div>
+                <div className="notice-right">
+                  <Link to="/missions" className="notice-sub-btn mission">
+                    <Trophy size={13} /> Misi Gratis
+                  </Link>
+                  <Link to="/pricing" className="notice-sub-btn upgrade">
+                    <Crown size={13} /> Upgrade
+                  </Link>
+                </div>
+              </div>
+            )}
 
             <button
               className="btn-primary-action"
@@ -1696,6 +1730,85 @@ export default function FaceScanPage() {
 
         .btn-reset-scan:hover {
           background: #f8fafc;
+        }
+
+        .face-scan-credit-notice {
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 12px;
+          padding: 10px 14px;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          font-size: 0.8125rem;
+          color: #92400e;
+          animation: fadeIn 0.2s ease;
+        }
+
+        .notice-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .notice-coin-icon {
+          color: #d97706;
+          flex-shrink: 0;
+        }
+
+        .notice-right {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+
+        .notice-sub-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 5px 10px;
+          border-radius: 6px;
+          text-decoration: none;
+          transition: all 0.15s;
+        }
+
+        .notice-sub-btn.mission {
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fde68a;
+        }
+
+        .notice-sub-btn.mission:hover {
+          background: #fde68a;
+        }
+
+        .notice-sub-btn.upgrade {
+          background: #0f6784;
+          color: #ffffff;
+        }
+
+        .notice-sub-btn.upgrade:hover {
+          background: #0b4d63;
+        }
+
+        @media (max-width: 640px) {
+          .face-scan-credit-notice {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .notice-right {
+            width: 100%;
+          }
+          .notice-sub-btn {
+            flex: 1;
+            justify-content: center;
+          }
         }
 
         /* DESKTOP BREAKPOINT (>= 900px) */
