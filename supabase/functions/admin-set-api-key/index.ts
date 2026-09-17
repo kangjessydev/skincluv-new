@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { callAiProvider } from '../_shared/aiProviders.ts'
 
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req)
@@ -32,6 +33,70 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json()
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Action: TEST CONNECTION (End-to-End AI model check)
+    if (body.action === 'test_connection') {
+      const { provider, model_name, secret_name, secret_value } = body as {
+        provider?: 'google' | 'anthropic' | 'openai' | 'groq'
+        model_name?: string
+        secret_name?: string
+        secret_value?: string
+      }
+
+      if (!provider || !model_name || !secret_name) {
+        return jsonError('provider, model_name, dan secret_name wajib diisi untuk pengetesan.', 400)
+      }
+
+      // Resolve API key
+      let resolvedApiKey = secret_value?.trim() || ''
+      if (!resolvedApiKey) {
+        const { data: vaultKey, error: vaultErr } = await supabaseService.rpc('get_decrypted_secret', {
+          secret_name: secret_name.trim(),
+        })
+        if (vaultErr || !vaultKey) {
+          return jsonError(`API Key "${secret_name}" tidak ditemukan di Supabase Vault. Simpan API key terlebih dahulu.`, 404)
+        }
+        resolvedApiKey = vaultKey as string
+      }
+
+      // Execute ping
+      const startTime = performance.now()
+      try {
+        const aiResponse = await callAiProvider({
+          provider,
+          modelName: model_name.trim(),
+          apiKey: resolvedApiKey,
+          systemPrompt: 'Kamu adalah model AI sistem. Jawab hanya dengan 1 kalimat singkat bahwa kamu aktif dan siap.',
+          messages: [{ role: 'user', content: 'Tes koneksi sistem Skincluv. Konfirmasi status kamu.' }],
+          parameters: {
+            max_tokens: 60,
+            temperature: 0.2,
+          },
+        })
+        const latencyMs = Math.round(performance.now() - startTime)
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            latency_ms: latencyMs,
+            output: aiResponse.content.trim(),
+            tokens_used: aiResponse.tokensUsed,
+            provider,
+            model_name: model_name.trim(),
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          }
+        )
+      } catch (callErr: any) {
+        const latencyMs = Math.round(performance.now() - startTime)
+        return jsonError(`Gagal menghubungi model "${model_name}" via ${provider} (${latencyMs}ms): ${callErr.message}`, 502)
+      }
+    }
+
+    // Default Action: SET VAULT SECRET
     const { secret_name, secret_value } = body as { secret_name?: string; secret_value?: string }
 
     if (!secret_name || !secret_value || typeof secret_name !== 'string' || typeof secret_value !== 'string') {
@@ -39,8 +104,6 @@ Deno.serve(async (req: Request) => {
     }
 
     // Write to Vault via public.set_vault_secret using service_role client
-    const supabaseService = createClient(supabaseUrl, supabaseServiceKey)
-
     const { data: secretId, error: vaultErr } = await supabaseService.rpc('set_vault_secret', {
       secret_name: secret_name.trim(),
       secret_value: secret_value.trim(),
@@ -58,7 +121,7 @@ Deno.serve(async (req: Request) => {
     })
   } catch (err: any) {
     console.error('[admin-set-api-key] Error:', err)
-    return jsonError(err?.message || 'Gagal menyimpan API key', 500)
+    return jsonError(err?.message || 'Terjadi kesalahan sistem internal', 500)
   }
 })
 
