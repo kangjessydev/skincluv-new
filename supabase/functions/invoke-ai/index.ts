@@ -278,6 +278,38 @@ Deno.serve(async (req: Request) => {
       systemPrompt += `\n\n[MEMORI KLINIS PASIEN TERVERIFIKASI]:\n${memoryLines}\nGunakan catatan memori klinis di atas untuk mempersonalisasi saran dan secara mutlak menghindari bahan/treatment yang berpotensi memicu reaksi buruk pada pasien.`
     }
 
+    // Retrieval bahan aktif terverifikasi (RAG) untuk chatbot
+    if (feature_slug === 'chatbot') {
+      const lastUserMessage = trimmedMessages.at(-1)?.content
+      const messageText = typeof lastUserMessage === 'string' ? lastUserMessage.toLowerCase() : ''
+
+      if (messageText.trim()) {
+        const { data: verifiedIngredients } = await supabaseService
+          .from('skincare_ingredients')
+          .select('canonical_name, aliases, safety_rating, comedogenic_rating, description, incompatible_with')
+          .eq('is_verified', true)
+          .limit(300)
+
+        const mentioned = (verifiedIngredients ?? []).filter((ing: any) => {
+          const names = [ing.canonical_name, ...(ing.aliases ?? [])].filter(Boolean)
+          return names.some((n: string) => messageText.includes(n.toLowerCase()))
+        })
+
+        if (mentioned.length > 0) {
+          const referenceLines = mentioned
+            .slice(0, 8)
+            .map((ing: any) => {
+              const incompatible = ing.incompatible_with?.length
+                ? ` | Tidak cocok dicampur dengan: ${ing.incompatible_with.join(', ')}`
+                : ''
+              return `- ${ing.canonical_name}: safety=${ing.safety_rating}, comedogenic=${ing.comedogenic_rating}/5. ${ing.description ?? ''}${incompatible}`
+            })
+            .join('\n')
+          systemPrompt += `\n\n[REFERENSI BAHAN TERVERIFIKASI SKINCLUV]:\n${referenceLines}\nGunakan data di atas sebagai sumber kebenaran untuk bahan-bahan yang disebut, bukan asumsi dari pengetahuan umum kamu.`
+        }
+      }
+    }
+
     // Dermatologist Clinical Expert enhancement for PRO tier chatbot
     if (isPro && feature_slug === 'chatbot') {
       systemPrompt += `\n\nKapabilitas tambahan (khusus pelanggan PRO, gunakan HANYA jika relevan dengan pertanyaan user):
@@ -401,6 +433,52 @@ Deno.serve(async (req: Request) => {
           // parsed.product_recommendations kosong daripada crash.
           parsed.product_recommendations = []
           finalContent = JSON.stringify(parsed)
+        }
+      }
+    }
+
+    // ---- Enrichment: timpa penilaian AI dengan data skincare_ingredients terverifikasi ----
+    if (feature_slug === 'ingredient_scan') {
+      const parsedForEnrich = tryParseAiJson(finalContent)
+      if (
+        parsedForEnrich &&
+        parsedForEnrich.is_valid_skincare !== false &&
+        Array.isArray(parsedForEnrich.ingredients_breakdown) &&
+        parsedForEnrich.ingredients_breakdown.length > 0
+      ) {
+        const breakdown = parsedForEnrich.ingredients_breakdown as any[]
+        const { data: verifiedMatches } = await supabaseService
+          .from('skincare_ingredients')
+          .select('canonical_name, aliases, safety_rating, comedogenic_rating')
+          .eq('is_verified', true)
+          .limit(500)
+
+        if (verifiedMatches && verifiedMatches.length > 0) {
+          const badgeLabelMap: Record<string, string> = {
+            aman: 'Aman',
+            hati: 'Perlu Perhatian',
+            hindari: 'Hindari',
+          }
+
+          let enrichedCount = 0
+          for (const item of breakdown) {
+            const itemName = (item.name || '').toLowerCase().trim()
+            const match = verifiedMatches.find((v: any) => {
+              const dbNames = [v.canonical_name, ...(v.aliases ?? [])].map((n: string) => n.toLowerCase())
+              return dbNames.includes(itemName)
+            })
+            if (match) {
+              item.badge = match.safety_rating
+              item.badgeLabel = badgeLabelMap[match.safety_rating] ?? item.badgeLabel
+              item.comedogenic_score = match.comedogenic_rating
+              item.verified_by_skincluv = true
+              enrichedCount++
+            }
+          }
+
+          if (enrichedCount > 0) {
+            finalContent = JSON.stringify(parsedForEnrich)
+          }
         }
       }
     }
