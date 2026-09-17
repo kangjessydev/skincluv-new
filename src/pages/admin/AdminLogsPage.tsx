@@ -5,8 +5,6 @@ import {
   RefreshCw,
   Eye,
   X,
-  Copy,
-  Check,
   AlertCircle,
   Clock,
   Coins,
@@ -15,28 +13,21 @@ import {
   XCircle,
   ThumbsUp,
   ThumbsDown,
+  ShieldCheck,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface AiLogRecord {
   id: string
-  user_id: string
   feature_id: string
   prompt_version_id: string
   model_config_id: string
-  input_summary: string | null
-  output_summary: string | null
-  raw_output: any
   tokens_used: number | null
   latency_ms: number | null
   cost_usd: number | null
   status: string
   user_feedback: number | null
   created_at: string
-  profiles?: {
-    full_name: string | null
-    username: string | null
-  } | null
   ai_features?: {
     slug: string
     name: string
@@ -56,7 +47,6 @@ export default function AdminLogsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedLog, setSelectedLog] = useState<AiLogRecord | null>(null)
-  const [copiedJson, setCopiedJson] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const loadLogs = useCallback(async () => {
@@ -67,23 +57,15 @@ export default function AdminLogsPage() {
         .from('ai_request_logs')
         .select(`
           id,
-          user_id,
           feature_id,
           prompt_version_id,
           model_config_id,
-          input_summary,
-          output_summary,
-          raw_output,
           tokens_used,
           latency_ms,
           cost_usd,
           status,
           user_feedback,
           created_at,
-          profiles:user_id (
-            full_name,
-            username
-          ),
           ai_features:feature_id (
             slug,
             name
@@ -127,18 +109,14 @@ export default function AdminLogsPage() {
       const featureSlug = log.ai_features?.slug?.toLowerCase() || ''
       const model = log.model_configs?.model_name?.toLowerCase() || ''
       const provider = log.model_configs?.provider?.toLowerCase() || ''
-      const user = log.profiles?.full_name?.toLowerCase() || ''
-      const username = log.profiles?.username?.toLowerCase() || ''
-      const input = log.input_summary?.toLowerCase() || ''
+      const reqId = log.id.toLowerCase()
 
       return (
         featureName.includes(q) ||
         featureSlug.includes(q) ||
         model.includes(q) ||
         provider.includes(q) ||
-        user.includes(q) ||
-        username.includes(q) ||
-        input.includes(q)
+        reqId.includes(q)
       )
     })
   }, [logs, searchQuery, statusFilter])
@@ -157,13 +135,6 @@ export default function AdminLogsPage() {
 
     return { count, avgLatency, totalTokens, successRate }
   }, [logs])
-
-  const copyJsonToClipboard = () => {
-    if (!selectedLog) return
-    navigator.clipboard.writeText(JSON.stringify(selectedLog.raw_output, null, 2))
-    setCopiedJson(true)
-    setTimeout(() => setCopiedJson(false), 2000)
-  }
 
   const getLatencyBadge = (ms: number | null) => {
     if (ms === null) return { color: '#6b7280', text: '-' }
@@ -508,7 +479,7 @@ export default function AdminLogsPage() {
                   Model & Versi
                 </th>
                 <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Pengguna
+                  Permintaan ID
                 </th>
                 <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
                   Latensi
@@ -558,7 +529,6 @@ export default function AdminLogsPage() {
                     hour: '2-digit',
                     minute: '2-digit',
                   })
-                  const displayName = log.profiles?.full_name || log.profiles?.username || 'User'
 
                   return (
                     <tr
@@ -598,7 +568,9 @@ export default function AdminLogsPage() {
                       </td>
 
                       <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontWeight: 500, color: '#111827' }}>{displayName}</div>
+                        <code style={{ fontSize: 11, background: '#f3f4f6', padding: '3px 6px', borderRadius: 4, color: '#4b5563', fontFamily: 'monospace' }}>
+                          #{log.id.slice(0, 8)}
+                        </code>
                       </td>
 
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -795,101 +767,44 @@ export default function AdminLogsPage() {
                 </div>
               </div>
 
-              {/* Summaries */}
-              {selectedLog.input_summary && (
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
-                    Input Prompt Summary
-                  </div>
-                  <div
-                    style={{
-                      background: '#f8fafc',
-                      padding: 12,
-                      borderRadius: 8,
-                      border: '1px solid #e2e8f0',
-                      fontSize: 12,
-                      color: '#334155',
-                      whiteSpace: 'pre-wrap',
-                      maxHeight: 140,
-                      overflowY: 'auto',
-                    }}
-                  >
-                    {selectedLog.input_summary}
+              {/* Technical Telemetry Details */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+                <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Estimasi Biaya Token</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
+                    {selectedLog.cost_usd ? `$${Number(selectedLog.cost_usd).toFixed(5)}` : '$0.00000'}
                   </div>
                 </div>
-              )}
 
-              {selectedLog.output_summary && (
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
-                    Output Response Summary
-                  </div>
-                  <div
-                    style={{
-                      background: '#f8fafc',
-                      padding: 12,
-                      borderRadius: 8,
-                      border: '1px solid #e2e8f0',
-                      fontSize: 12,
-                      color: '#334155',
-                      whiteSpace: 'pre-wrap',
-                      maxHeight: 140,
-                      overflowY: 'auto',
-                    }}
-                  >
-                    {selectedLog.output_summary}
+                <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Rating User (CSAT)</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
+                    {selectedLog.user_feedback === 1 ? '👍 Puas (Positif)' : selectedLog.user_feedback === -1 ? '👎 Kurang (Negatif)' : 'Belum Ada Rating'}
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Raw JSON Payload */}
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 6,
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>
-                    Raw AI Execution Output (JSON)
-                  </span>
-                  <button
-                    onClick={copyJsonToClipboard}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid #d1d5db',
-                      background: '#ffffff',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      color: copiedJson ? '#059669' : '#374151',
-                    }}
-                  >
-                    {copiedJson ? <Check size={12} /> : <Copy size={12} />}
-                    {copiedJson ? 'Tersalin!' : 'Salin JSON'}
-                  </button>
+              {/* UU PDP Compliance Box */}
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: 10,
+                  padding: 16,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                }}
+              >
+                <ShieldCheck size={22} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>
+                    Privasi Data Pengguna Terlindungi (UU PDP No. 27/2022)
+                  </div>
+                  <p style={{ fontSize: 12, color: '#15803d', margin: '4px 0 0 0', lineHeight: 1.5 }}>
+                    Sesuai dengan regulasi privasi perlindungan data pribadi dan kerahasiaan konsumen, isi percakapan konsultasi serta foto/data biometrik wajah pengguna dienkripsi secara penuh dan tidak ditampilkan pada log operasional admin.
+                  </p>
                 </div>
-                <pre
-                  style={{
-                    margin: 0,
-                    background: '#0f172a',
-                    color: '#e2e8f0',
-                    padding: 14,
-                    borderRadius: 8,
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                    overflowX: 'auto',
-                    maxHeight: 220,
-                  }}
-                >
-                  {JSON.stringify(selectedLog.raw_output, null, 2)}
-                </pre>
               </div>
             </div>
 

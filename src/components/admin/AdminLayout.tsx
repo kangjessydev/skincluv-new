@@ -8,7 +8,6 @@ import {
   CreditCard,
   Package,
   BookOpen,
-  BrainCircuit,
   FileCode,
   Activity,
   TrendingUp,
@@ -39,7 +38,6 @@ const configNavItems = [
 const aiHubNavItems = [
   { to: '/admin/knowledge/ingredients', icon: BookOpen, label: 'Kamus Bahan AI' },
   { to: '/admin/knowledge/formulas', icon: Sparkles, label: 'Formula & Cache' },
-  { to: '/admin/memory/clinical', icon: BrainCircuit, label: 'Memori Klinis Pasien' },
   { to: '/admin/training/datasets', icon: FileCode, label: 'Dataset & Fine-Tuning' },
   { to: '/admin/memory/logs', icon: Activity, label: 'Log & Metrik AI' },
 ]

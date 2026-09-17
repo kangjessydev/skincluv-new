@@ -10,8 +10,10 @@ import {
   Activity,
   BookOpen,
   FlaskConical,
-  BrainCircuit,
   FileCode,
+  TrendingUp,
+  BarChart3,
+  Users,
 } from 'lucide-react'
 
 export default function AdminDashboardPage() {
@@ -22,14 +24,205 @@ export default function AdminDashboardPage() {
           Admin Overview
         </h1>
         <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
-          Pusat kendali konfigurasi AI, model, API key, kamus bahan kosmetik, formula semantic cache, dan fine-tuning training center.
+          Pusat kendali operasional Skincluv: riset pasar teragregasi, unit economics, transaksi pembayaran, CRM, konfigurasi AI, dan observabilitas sistem.
         </p>
       </div>
 
-      {/* Section 1: Konfigurasi Sistem */}
+      {/* Section 1: Bisnis, Transaksi & Riset Pasar */}
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: '#374151', margin: 0 }}>
-          Konfigurasi Sistem AI & Bisnis
+          Bisnis, Finansial & Riset Pasar
+        </h2>
+        <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0 0' }}>
+          Pantau omzet transaksi, unit economics model AI, matriks korelasi pasar, dan manajemen pengguna.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 20,
+          marginBottom: 40,
+        }}
+      >
+        <Link
+          to="/admin/market-intelligence"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#eef2ff',
+                color: '#4f46e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <BarChart3 size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Tren & Riset Pasar
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Demografi jenis kulit, top 10 keluhan terbanyak, dan matriks korelasi kebutuhan vs produk kosmetik (100% anonim).
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4f46e5', marginTop: 20 }}>
+            Lihat Riset Pasar <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/transactions"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#ecfdf5',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <CreditCard size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Riwayat Transaksi
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Catatan invoice pembayaran langganan Tripay, status lunas, nominal omzet, dan rincian transaksi user.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#059669', marginTop: 20 }}>
+            Buka Transaksi <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/financials"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#fef3c7',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <TrendingUp size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Unit Economics AI
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Kalkulasi gross profit margin, perbandingan omzet vs biaya token LLM, dan simulator diskon promo.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#d97706', marginTop: 20 }}>
+            Analisis Finansial <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/users"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#fdf2f8',
+                color: '#db2777',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <Users size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Manajemen Pengguna
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Daftar akun pelanggan, tier membership aktif, saldo credits, dan aksi cepat CS untuk top-up koin.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#db2777', marginTop: 20 }}>
+            Kelola Pengguna <ArrowRight size={14} />
+          </div>
+        </Link>
+      </div>
+
+      {/* Section 2: Konfigurasi Sistem */}
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#374151', margin: 0 }}>
+          Konfigurasi Sistem AI & Operasional
         </h2>
         <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0 0' }}>
           Atur parameter operasional, model LLM, prompt engineering, gamifikasi, dan paket.
@@ -399,49 +592,6 @@ export default function AdminDashboardPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#db2777', marginTop: 20 }}>
             Lihat Formula Cache <ArrowRight size={14} />
-          </div>
-        </Link>
-
-        <Link
-          to="/admin/memory/clinical"
-          style={{
-            background: '#ffffff',
-            borderRadius: 12,
-            border: '1px solid #e5e7eb',
-            padding: 24,
-            textDecoration: 'none',
-            color: 'inherit',
-            transition: 'all 0.15s ease',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                background: '#ede9fe',
-                color: '#7c3aed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 16,
-              }}
-            >
-              <BrainCircuit size={20} />
-            </div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-              Memori Klinis Pasien (Episodic)
-            </h3>
-            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-              Fakta klinis riwayat alergi, sensitivitas, dan reaksi treatment per pengguna yang disuntikkan ke chatbot konsultasi.
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#7c3aed', marginTop: 20 }}>
-            Lihat Memori Klinis <ArrowRight size={14} />
           </div>
         </Link>
 

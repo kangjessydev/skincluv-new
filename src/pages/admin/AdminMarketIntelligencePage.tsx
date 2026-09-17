@@ -12,8 +12,23 @@ import {
   CheckCircle2,
   AlertTriangle,
   Flame,
+  Filter,
+  Layers,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+
+interface CorrelationItem {
+  id: string
+  skin_concern: string
+  skin_type: string
+  product_name: string
+  brand: string | null
+  category: string | null
+  associated_ingredients: string[]
+  source_feature: string
+  occurrence_count: number
+  last_occurred_at: string
+}
 
 interface SkinTypeItem {
   skin_type: string
@@ -55,8 +70,26 @@ interface IntelligenceData {
 
 export default function AdminMarketIntelligencePage() {
   const [data, setData] = useState<IntelligenceData | null>(null)
+  const [correlations, setCorrelations] = useState<CorrelationItem[]>([])
+  const [selectedConcern, setSelectedConcern] = useState<string>('all')
+  const [loadingCorrelations, setLoadingCorrelations] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const loadCorrelations = useCallback(async (concern: string) => {
+    setLoadingCorrelations(true)
+    try {
+      const { data: res, error } = await supabase.rpc('get_market_correlations', {
+        p_concern: concern === 'all' ? undefined : concern,
+      })
+      if (error) throw error
+      setCorrelations((res as unknown as CorrelationItem[]) || [])
+    } catch (err: any) {
+      console.error('[AdminMarketIntelligence] Gagal memuat data korelasi:', err)
+    } finally {
+      setLoadingCorrelations(false)
+    }
+  }, [])
 
   const loadMarketIntelligence = useCallback(async () => {
     setIsLoading(true)
@@ -65,17 +98,23 @@ export default function AdminMarketIntelligencePage() {
       const { data: res, error } = await supabase.rpc('get_market_intelligence_stats' as any)
       if (error) throw error
       setData((res as any) || null)
+      await loadCorrelations(selectedConcern)
     } catch (err: any) {
       console.error('[AdminMarketIntelligence] Gagal mengambil data:', err)
       setErrorMessage(err.message || 'Gagal mengambil data intelijen pasar.')
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [loadCorrelations, selectedConcern])
 
   useEffect(() => {
     loadMarketIntelligence()
   }, [loadMarketIntelligence])
+
+  const handleConcernChange = (concern: string) => {
+    setSelectedConcern(concern)
+    loadCorrelations(concern)
+  }
 
   const telemetry = data?.ai_telemetry
   const totalReq = telemetry?.total_requests || 0
@@ -348,6 +387,173 @@ export default function AdminMarketIntelligencePage() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* SECTION 4: Matriks Korelasi Kebutuhan & Produk Populer (Zero PII) */}
+      <div className="section-card full-width" style={{ marginTop: 24 }}>
+        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div className="flex items-center gap-2">
+              <Layers size={18} className="text-indigo-600" />
+              <h3>Matriks Korelasi Masalah Kulit & Produk Populer</h3>
+            </div>
+            <p>
+              Data anonim yang memetakan hubungan antara <strong>keluhan kulit konsumen</strong> dengan <strong>produk dan bahan aktif</strong> yang paling sering dicari atau discan tanpa menyimpan data identitas pengguna.
+            </p>
+          </div>
+
+          {/* Filter Pills */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 4 }}>
+              <Filter size={13} /> Filter Masalah:
+            </span>
+            {['all', 'Jerawat', 'Flek Hitam', 'Kulit Kusam', 'Pori-pori Besar', 'Skin Barrier Rusak', 'Anti-Aging'].map((concern) => (
+              <button
+                key={concern}
+                onClick={() => handleConcernChange(concern)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: selectedConcern === concern ? 700 : 500,
+                  background: selectedConcern === concern ? '#4f46e5' : '#f1f5f9',
+                  color: selectedConcern === concern ? '#ffffff' : '#475569',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {concern === 'all' ? 'Semua Masalah' : concern}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table Correlations */}
+        <div className="table-responsive" style={{ marginTop: 16 }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th style={{ width: 140 }}>Masalah Kulit</th>
+                <th>Produk / Kosmetik Terkait</th>
+                <th>Brand & Kategori</th>
+                <th>Bahan Aktif Terkait</th>
+                <th style={{ textAlign: 'center' }}>Fitur Asal</th>
+                <th style={{ textAlign: 'right' }}>Frekuensi Korelasi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingCorrelations ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#64748b' }}>
+                    <RefreshCw size={18} className="animate-spin" style={{ margin: '0 auto 6px auto' }} />
+                    <div>Memuat matriks korelasi pasar...</div>
+                  </td>
+                </tr>
+              ) : correlations.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#94a3b8' }}>
+                    Belum ada data korelasi untuk keluhan yang dipilih.
+                  </td>
+                </tr>
+              ) : (
+                correlations.map((item) => (
+                  <tr key={item.id} className="table-row">
+                    <td>
+                      <span
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          background: '#fef3c7',
+                          color: '#b45309',
+                          display: 'inline-block',
+                        }}
+                      >
+                        {item.skin_concern}
+                      </span>
+                    </td>
+                    <td>
+                      <strong style={{ display: 'block', color: '#0f172a', fontSize: 13 }}>
+                        {item.product_name}
+                      </strong>
+                      <span style={{ fontSize: 11, color: '#64748b' }}>
+                        Tipe Kulit: <span style={{ fontWeight: 600 }}>{item.skin_type || 'Semua'}</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 600, color: '#334155', fontSize: 12 }}>{item.brand || '-'}</div>
+                      <span className="category-badge">{item.category || 'Skincare'}</span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {(item.associated_ingredients || []).slice(0, 3).map((ing, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              fontSize: 11,
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              padding: '2px 7px',
+                              borderRadius: 4,
+                              fontWeight: 500,
+                            }}
+                          >
+                            {ing}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          background: '#f8fafc',
+                          color: '#475569',
+                          fontWeight: 600,
+                          border: '1px solid #e2e8f0',
+                        }}
+                      >
+                        {item.source_feature === 'ingredient_scan'
+                          ? 'Scan Komposisi'
+                          : item.source_feature === 'face_scan'
+                          ? 'Scan Wajah'
+                          : 'Chatbot'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#4f46e5' }}>
+                        {item.occurrence_count.toLocaleString()}x
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Legal & Privacy Guarantee Footnote */}
+        <div
+          style={{
+            marginTop: 16,
+            padding: '12px 16px',
+            borderRadius: 8,
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <ShieldCheck size={18} color="#16a34a" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: '#166534', lineHeight: 1.4 }}>
+            <strong>Jaminan Kepatuhan UU PDP No. 27/2022</strong>: Matriks korelasi di atas disimpan secara de-identified (tanpa menyertakan nama, email, foto, user ID, atau chat session). Data ini murni mengagregasikan frekuensi hubungan antara jenis masalah kulit dan produk/bahan kosmetik yang dicari masyarakat.
+          </span>
         </div>
       </div>
 

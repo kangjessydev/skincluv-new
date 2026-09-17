@@ -1315,6 +1315,33 @@ export type Database = {
       }
       get_decrypted_secret: { Args: { secret_name: string }; Returns: string }
       get_market_intelligence_stats: { Args: never; Returns: Json }
+      get_market_correlations: {
+        Args: { p_concern?: string }
+        Returns: {
+          id: string
+          skin_concern: string
+          skin_type: string
+          product_name: string
+          brand: string | null
+          category: string | null
+          associated_ingredients: string[]
+          source_feature: string
+          occurrence_count: number
+          last_occurred_at: string
+        }[]
+      }
+      record_market_correlation: {
+        Args: {
+          p_skin_concern: string
+          p_skin_type?: string
+          p_product_name: string
+          p_brand?: string
+          p_category?: string
+          p_ingredients?: string[]
+          p_source_feature: string
+        }
+        Returns: undefined
+      }
       ingest_ingredient_scan_knowledge: {
         Args: {
           p_brand: string

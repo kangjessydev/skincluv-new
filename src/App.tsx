@@ -30,7 +30,6 @@ import AdminProductsPage from '@/pages/admin/AdminProductsPage'
 import AdminLogsPage from '@/pages/admin/AdminLogsPage'
 import AdminKnowledgeBasePage from '@/pages/admin/AdminKnowledgeBasePage'
 import AdminProductFormulasPage from '@/pages/admin/AdminProductFormulasPage'
-import AdminClinicalMemoryPage from '@/pages/admin/AdminClinicalMemoryPage'
 import AdminTrainingDatasetsPage from '@/pages/admin/AdminTrainingDatasetsPage'
 import AdminTransactionsPage from '@/pages/admin/AdminTransactionsPage'
 import AdminFinancialsPage from '@/pages/admin/AdminFinancialsPage'
@@ -98,7 +97,6 @@ export default function App() {
           {/* AI Knowledge Hub */}
           <Route path="/admin/knowledge/ingredients" element={<AdminKnowledgeBasePage />} />
           <Route path="/admin/knowledge/formulas" element={<AdminProductFormulasPage />} />
-          <Route path="/admin/memory/clinical" element={<AdminClinicalMemoryPage />} />
           <Route path="/admin/training/datasets" element={<AdminTrainingDatasetsPage />} />
           <Route path="/admin/memory/logs" element={<AdminLogsPage />} />
         </Route>
