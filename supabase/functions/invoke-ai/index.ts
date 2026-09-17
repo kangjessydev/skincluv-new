@@ -306,6 +306,24 @@ Deno.serve(async (req: Request) => {
             })
             .join('\n')
           systemPrompt += `\n\n[REFERENSI BAHAN TERVERIFIKASI SKINCLUV]:\n${referenceLines}\nGunakan data di atas sebagai sumber kebenaran untuk bahan-bahan yang disebut, bukan asumsi dari pengetahuan umum kamu.`
+        } else if (messageText.trim()) {
+          // Fase 3d: Jika bahan belum ada di verified DB, jadwalkan background enrichment via Gemini
+          const words = messageText
+            .replace(/[^a-zA-Z0-9\s-]/g, ' ')
+            .split(/\s+/)
+            .filter(
+              (w: string) =>
+                w.length >= 3 &&
+                ![
+                  'apa', 'itu', 'dan', 'sama', 'boleh', 'tidak', 'gak', 'bisa',
+                  'bagus', 'buat', 'untuk', 'kulit', 'saya', 'kamu', 'halo',
+                  'bagaimana', 'kenapa', 'kapan', 'cara', 'pakai', 'apakah',
+                ].includes(w.toLowerCase())
+            )
+          if (words.length > 0) {
+            enrichMissingIngredientsWithGemini(supabaseService, words.slice(0, 2))
+              .catch((err) => console.warn('[invoke-ai] Chatbot auto-enrichment warning:', err))
+          }
         }
       }
     }
@@ -426,14 +444,40 @@ Deno.serve(async (req: Request) => {
             parsed.skin_type as string | undefined
           )
           parsed.product_recommendations = matchedProducts
-          finalContent = JSON.stringify(parsed)
         } catch (matchErr) {
           console.error('[invoke-ai] Product matching failed:', matchErr)
           // Gagal matching bukan alasan gagalkan seluruh request — biarkan
           // parsed.product_recommendations kosong daripada crash.
           parsed.product_recommendations = []
-          finalContent = JSON.stringify(parsed)
         }
+
+        // Fallback ingredient: jika hasil matching products kosong,
+        // tampilkan recommended_ingredients yang dihasilkan AI sebagai teks pengganti
+        if (
+          !Array.isArray(parsed.product_recommendations) ||
+          parsed.product_recommendations.length === 0
+        ) {
+          const recIngs = parsed.recommended_ingredients as any[]
+          if (recIngs.length > 0) {
+            parsed.product_recommendations = recIngs.slice(0, 3).map((item: any) => {
+              const name = typeof item === 'string' ? item : item.name || 'Bahan Aktif'
+              const reason =
+                typeof item === 'object' && item.reason
+                  ? item.reason
+                  : `Kandungan ${name} cocok untuk kondisi kulitmu saat ini.`
+
+              return {
+                product_name: `Kandungan yang cocok: ${name}`,
+                category: 'Rekomendasi Bahan',
+                match_score: 95,
+                key_ingredients: [name],
+                why_recommended: reason,
+              }
+            })
+          }
+        }
+
+        finalContent = JSON.stringify(parsed)
       }
     }
 
@@ -509,6 +553,14 @@ Deno.serve(async (req: Request) => {
             () => {},
             (kErr: unknown) => console.warn('[invoke-ai] Knowledge ingestion warning:', kErr)
           )
+
+        // Fase 3d: Auto-enrichment bahan yang belum ada di skincare_ingredients via Gemini (non-blocking)
+        const scanCandidateNames = breakdown
+          .map((i: any) => (i.name || '').trim())
+          .filter(Boolean)
+
+        enrichMissingIngredientsWithGemini(supabaseService, scanCandidateNames)
+          .catch((err) => console.warn('[invoke-ai] Ingredient scan auto-enrichment warning:', err))
       }
     }
 
@@ -673,5 +725,111 @@ function tryParseAiJson(content: string): Record<string, unknown> | null {
     return JSON.parse(cleaned)
   } catch {
     return null
+  }
+}
+
+// ---- Fase 3d Helper: Background Auto-Enrichment via Gemini (is_verified = false) ----
+async function enrichMissingIngredientsWithGemini(
+  supabase: any,
+  candidateNames: string[]
+): Promise<void> {
+  const validCandidates = candidateNames
+    .map((n) => n.trim())
+    .filter((n) => n.length >= 3 && n.length <= 50)
+
+  if (validCandidates.length === 0) return
+
+  // 1. Check which candidates are already in the DB (verified or unverified)
+  const { data: existingRows } = await supabase
+    .from('skincare_ingredients')
+    .select('canonical_name')
+    .in('canonical_name', validCandidates.slice(0, 15))
+
+  const existingSet = new Set(
+    (existingRows ?? []).map((r: any) => String(r.canonical_name).toLowerCase())
+  )
+
+  const trulyMissing = validCandidates
+    .filter((n) => !existingSet.has(n.toLowerCase()))
+    .slice(0, 3)
+
+  if (trulyMissing.length === 0) return
+
+  // 2. Resolve Gemini API key from Vault
+  let geminiKey = ''
+  try {
+    const { data: keyData } = await supabase.rpc('get_decrypted_secret', {
+      secret_name: 'gemini_api_key',
+    })
+    if (keyData) geminiKey = keyData as string
+  } catch {
+    // fallback to env
+  }
+  if (!geminiKey) {
+    geminiKey = Deno.env.get('AI_KEY_GEMINI_API_KEY') || ''
+  }
+  if (!geminiKey) return
+
+  for (const name of trulyMissing) {
+    try {
+      const promptText = `Analisis bahan kosmetik/skincare berikut: "${name}".
+Jika ini BUKAN bahan/komposisi kosmetik (misal kata percakapan umum atau bukan zat kimia/tanaman untuk skincare), kembalikan HANYA: {"is_skincare_ingredient": false}.
+
+Jika ini BENAR bahan kosmetik/skincare, kembalikan data ilmiah dalam format JSON murni:
+{
+  "is_skincare_ingredient": true,
+  "canonical_name": "${name}",
+  "inci_name": "nama INCI resmi jika ada",
+  "category": "Active",
+  "safety_rating": "aman",
+  "comedogenic_rating": 0,
+  "description": "Ringkasan manfaat dan fungsi bahan bagi kulit (1-2 kalimat).",
+  "common_functions": ["fungsi 1", "fungsi 2"],
+  "incompatible_with": ["bahan bentrok jika ada"]
+}
+Catatan:
+- category pilih salah satu dari: Active, Antioxidant, Emollient, Hydrating, Preservative, Exfoliant, Other
+- safety_rating pilih salah satu dari: aman, hati, hindari
+- comedogenic_rating adalah angka bulat 0 sampai 5`
+
+      const aiRes = await callAiProvider({
+        provider: 'google',
+        modelName: 'gemini-2.0-flash',
+        apiKey: geminiKey,
+        systemPrompt: 'Kamu adalah API database formulasi kosmetik. Selalu respon dengan JSON valid murni tanpa formatting markdown atau teks pengantar.',
+        messages: [{ role: 'user', content: promptText }],
+        parameters: { temperature: 0.1, max_tokens: 400 },
+      })
+
+      const parsed = tryParseAiJson(aiRes.content)
+      if (parsed && parsed.is_skincare_ingredient !== false && parsed.canonical_name) {
+        const safety = ['aman', 'hati', 'hindari'].includes(String(parsed.safety_rating).toLowerCase())
+          ? String(parsed.safety_rating).toLowerCase()
+          : 'aman'
+
+        const comedo =
+          typeof parsed.comedogenic_rating === 'number'
+            ? Math.max(0, Math.min(5, Math.round(parsed.comedogenic_rating)))
+            : 0
+
+        await supabase.from('skincare_ingredients').upsert(
+          {
+            canonical_name: String(parsed.canonical_name).trim(),
+            inci_name: parsed.inci_name ? String(parsed.inci_name).trim() : null,
+            category: parsed.category ? String(parsed.category) : 'Other',
+            safety_rating: safety,
+            comedogenic_rating: comedo,
+            description: parsed.description ? String(parsed.description) : null,
+            common_functions: Array.isArray(parsed.common_functions) ? parsed.common_functions : [],
+            incompatible_with: Array.isArray(parsed.incompatible_with) ? parsed.incompatible_with : [],
+            is_verified: false,
+            occurrence_count: 1,
+          },
+          { onConflict: 'canonical_name' }
+        )
+      }
+    } catch (ingErr) {
+      console.warn(`[invoke-ai] Auto-enrichment error for "${name}":`, ingErr)
+    }
   }
 }

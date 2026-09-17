@@ -25,7 +25,7 @@ export default function AdminModelsPage() {
 
   // Form states
   const [selectedFeatureId, setSelectedFeatureId] = useState<string>('')
-  const [provider, setProvider] = useState<'google' | 'anthropic' | 'openai'>('google')
+  const [provider, setProvider] = useState<'google' | 'anthropic' | 'openai' | 'groq'>('google')
   const [modelName, setModelName] = useState('gemini-2.5-flash')
   const [secretName, setSecretName] = useState('')
   const [secretValue, setSecretValue] = useState('')
@@ -60,7 +60,7 @@ export default function AdminModelsPage() {
   }, [loadData])
 
   // Auto-suggest secret name based on provider
-  function handleProviderChange(newProvider: 'google' | 'anthropic' | 'openai') {
+  function handleProviderChange(newProvider: 'google' | 'anthropic' | 'openai' | 'groq') {
     setProvider(newProvider)
     if (!secretName || secretName.includes('_api_key')) {
       if (newProvider === 'google') {
@@ -72,6 +72,9 @@ export default function AdminModelsPage() {
       } else if (newProvider === 'openai') {
         setSecretName('openai_api_key')
         setModelName('gpt-4o-mini')
+      } else if (newProvider === 'groq') {
+        setSecretName('groq_api_key')
+        setModelName('qwen/qwen3.8-27b')
       }
     }
   }
@@ -375,6 +378,7 @@ export default function AdminModelsPage() {
                 <option value="google">Google (Gemini)</option>
                 <option value="anthropic">Anthropic (Claude)</option>
                 <option value="openai">OpenAI (GPT)</option>
+                <option value="groq">Groq (Ultra-Fast LPU)</option>
               </select>
             </div>
           </div>

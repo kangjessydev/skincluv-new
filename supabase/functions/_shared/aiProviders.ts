@@ -8,7 +8,7 @@ export interface AiMessage {
 }
 
 export interface AiRequestOptions {
-  provider: 'google' | 'anthropic' | 'openai'
+  provider: 'google' | 'anthropic' | 'openai' | 'groq'
   modelName: string
   apiKey: string
   systemPrompt: string
@@ -118,6 +118,58 @@ async function callClaude(opts: AiRequestOptions): Promise<AiResponse> {
   return { content, tokensUsed, rawResponse: data }
 }
 
+// ---- Groq (OpenAI-Compatible LPU) ----
+async function callGroq(opts: AiRequestOptions): Promise<AiResponse> {
+  const { modelName, apiKey, systemPrompt, messages, parameters } = opts
+
+  const groqMessages = [
+    { role: 'system', content: systemPrompt },
+    ...messages.map((m) => {
+      let contentStr = ''
+      if (typeof m.content === 'string') {
+        contentStr = m.content
+      } else if (Array.isArray(m.content)) {
+        contentStr = m.content
+          .map((part: any) => (typeof part === 'string' ? part : part.text ?? ''))
+          .join('\n')
+      } else {
+        contentStr = String(m.content ?? '')
+      }
+      return {
+        role: m.role,
+        content: contentStr,
+      }
+    }),
+  ]
+
+  const body = {
+    model: modelName,
+    messages: groqMessages,
+    temperature: parameters?.temperature ?? 0.7,
+    max_tokens: parameters?.max_tokens ?? 1024,
+  }
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Groq API error ${res.status}: ${err}`)
+  }
+
+  const data = await res.json()
+  const content = data.choices?.[0]?.message?.content ?? ''
+  const tokensUsed = data.usage?.total_tokens ?? 0
+
+  return { content, tokensUsed, rawResponse: data }
+}
+
 // ---- Router ----
 export async function callAiProvider(opts: AiRequestOptions): Promise<AiResponse> {
   switch (opts.provider) {
@@ -125,6 +177,8 @@ export async function callAiProvider(opts: AiRequestOptions): Promise<AiResponse
       return callGemini(opts)
     case 'anthropic':
       return callClaude(opts)
+    case 'groq':
+      return callGroq(opts)
     default:
       throw new Error(`Unsupported AI provider: ${opts.provider}`)
   }
@@ -144,6 +198,11 @@ const COST_PER_1K_TOKENS: Record<string, number> = {
   'claude-sonnet-4-5':       0.003,
   'claude-haiku-3-5':        0.00025,
   'gpt-4o-mini':             0.00015,
+  'qwen/qwen3.8-27b':        0.0002,
+  'groq/compound':           0.0002,
+  'groq/compound-mini':      0.0001,
+  'openai/gpt-oss-120b':     0.0003,
+  'openai/gpt-oss-20b':      0.0001,
 }
 
 export function estimateCostUsd(modelName: string, tokensUsed: number): number {
