@@ -146,7 +146,7 @@ async function callGroq(opts: AiRequestOptions): Promise<AiResponse> {
     model: modelName,
     messages: groqMessages,
     temperature: parameters?.temperature ?? 0.7,
-    max_tokens: parameters?.max_tokens ?? 1024,
+    max_tokens: Math.min(parameters?.max_tokens ?? 800, 800),
   }
 
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {

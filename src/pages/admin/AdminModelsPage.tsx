@@ -79,6 +79,26 @@ export default function AdminModelsPage() {
     }
   }
 
+  async function handleActivateConfig(configId: string) {
+    setIsSaving(true)
+    setFeedback(null)
+    try {
+      const { error } = await supabase
+        .from('model_configs')
+        .update({ is_active: true })
+        .eq('id', configId)
+
+      if (error) throw error
+      setFeedback({ type: 'success', message: 'Model berhasil diaktifkan!' })
+      await loadData()
+    } catch (err: any) {
+      console.error('[AdminModels] Gagal mengaktifkan model:', err)
+      setFeedback({ type: 'error', message: `Gagal mengaktifkan: ${err.message}` })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   async function handleSaveConfig(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedFeatureId || !modelName.trim() || !secretName.trim()) {
@@ -293,7 +313,24 @@ export default function AdminModelsPage() {
                           Aktif
                         </span>
                       ) : (
-                        <span style={{ fontSize: 12, color: '#9ca3af' }}>Nonaktif</span>
+                        <button
+                          type="button"
+                          onClick={() => handleActivateConfig(c.id)}
+                          disabled={isSaving}
+                          style={{
+                            padding: '4px 12px',
+                            borderRadius: 6,
+                            border: '1px solid #d1d5db',
+                            background: '#ffffff',
+                            color: '#1f2937',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            cursor: isSaving ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          Aktifkan
+                        </button>
                       )}
                     </td>
                   </tr>
