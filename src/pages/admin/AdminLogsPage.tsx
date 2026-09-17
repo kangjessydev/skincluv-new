@@ -46,7 +46,7 @@ interface AiLogRecord {
     model_name: string
   } | null
   prompt_versions?: {
-    version_number: number
+    version: number
   } | null
 }
 
@@ -93,7 +93,7 @@ export default function AdminLogsPage() {
             model_name
           ),
           prompt_versions:prompt_version_id (
-            version_number
+            version
           )
         `)
         .order('created_at', { ascending: false })
@@ -590,9 +590,9 @@ export default function AdminLogsPage() {
                             {log.model_configs?.model_name || 'LLM Model'}
                           </span>
                         </div>
-                        {log.prompt_versions?.version_number && (
+                        {log.prompt_versions?.version && (
                           <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                            Prompt v{log.prompt_versions.version_number}
+                            Prompt v{log.prompt_versions.version}
                           </div>
                         )}
                       </td>
