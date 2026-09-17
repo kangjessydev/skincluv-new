@@ -113,6 +113,30 @@ export default function AdminPromptsPage() {
     }
   }
 
+  async function handleDirectActivate(versionId: string, versionNum: number) {
+    setIsSaving(true)
+    setFeedback(null)
+    try {
+      const { error } = await supabase
+        .from('prompt_versions')
+        .update({ is_active: true })
+        .eq('id', versionId)
+
+      if (error) throw error
+
+      setFeedback({
+        type: 'success',
+        message: `Prompt versi v${versionNum} berhasil diaktifkan kembali! Versi lainnya otomatis dinonaktifkan.`,
+      })
+      await loadData()
+    } catch (err: any) {
+      console.error('[AdminPrompts] Gagal mengaktifkan versi:', err)
+      setFeedback({ type: 'error', message: `Gagal mengaktifkan versi: ${err.message}` })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const selectedFeature = features.find((f) => f.id === selectedFeatureId)
   const currentActivePrompt = selectedFeatureId ? activePrompts[selectedFeatureId] : null
   const selectedHistory = allVersions.filter((v) => v.feature_id === selectedFeatureId)
@@ -387,23 +411,45 @@ export default function AdminPromptsPage() {
                             })}
                           </span>
                           {!ver.is_active && (
-                            <button
-                              onClick={() => {
-                                setDraftPrompt(ver.system_prompt)
-                                setDraftNotes(`Restore dari versi v${ver.version}`)
-                              }}
-                              style={{
-                                padding: '4px 8px',
-                                fontSize: 11,
-                                fontWeight: 500,
-                                borderRadius: 4,
-                                border: '1px solid #d1d5db',
-                                background: '#f9fafb',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Gunakan Prompt Ini
-                            </button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <button
+                                type="button"
+                                onClick={() => handleDirectActivate(ver.id, ver.version)}
+                                disabled={isSaving}
+                                style={{
+                                  padding: '4px 10px',
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  borderRadius: 4,
+                                  border: '1px solid #86efac',
+                                  background: '#f0fdf4',
+                                  color: '#166534',
+                                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                Aktifkan Langsung
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDraftPrompt(ver.system_prompt)
+                                  setDraftNotes(`Restore dari versi v${ver.version}`)
+                                }}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: 11,
+                                  fontWeight: 500,
+                                  borderRadius: 4,
+                                  border: '1px solid #d1d5db',
+                                  background: '#f9fafb',
+                                  color: '#374151',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Salin ke Editor
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
