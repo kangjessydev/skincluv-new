@@ -54,16 +54,11 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
     maxOutputTokens: parameters?.max_tokens ?? 2500,
   }
 
-  // Disable internal chain-of-thought thinking for instant extraction & low latency
-  // (thinkingBudget: 0 eliminates the ~15-20s thoughtsTokenCount delay, dropping latency to ~3-6s)
-  if (
-    parameters?.thinking_budget !== undefined ||
-    modelName.includes('2.5') ||
-    modelName.includes('3.') ||
-    modelName.includes('thinking')
-  ) {
+  // Only send thinkingConfig if thinking_budget is explicitly configured in parameters.
+  // Never default to 0; if unset, allow Gemini to use its native default reasoning.
+  if (parameters?.thinking_budget !== undefined && parameters?.thinking_budget !== null) {
     generationConfig.thinkingConfig = {
-      thinkingBudget: parameters?.thinking_budget ?? 0,
+      thinkingBudget: Number(parameters.thinking_budget),
     }
   }
 

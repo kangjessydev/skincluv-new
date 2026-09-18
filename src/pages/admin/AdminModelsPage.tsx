@@ -14,6 +14,7 @@ interface ModelConfig {
   provider: 'google' | 'anthropic' | 'openai' | 'groq'
   model_name: string
   api_key_secret: string
+  parameters?: Record<string, any> | null
   is_active: boolean
   created_at: string
 }
@@ -59,6 +60,7 @@ export default function AdminModelsPage() {
   const [modelName, setModelName] = useState('gemini-2.5-flash')
   const [secretName, setSecretName] = useState('')
   const [secretValue, setSecretValue] = useState('')
+  const [thinkingBudget, setThinkingBudget] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
@@ -232,11 +234,20 @@ export default function AdminModelsPage() {
       }
 
       // 2. Simpan konfigurasi model ke tabel model_configs (HANYA menyimpan nama secret, BUKAN raw key)
+      const params: Record<string, any> = {
+        temperature: 0.3,
+        max_tokens: 8192,
+      }
+      if (provider === 'google' && thinkingBudget.trim() !== '') {
+        params.thinking_budget = Number(thinkingBudget.trim())
+      }
+
       const { error: insertErr } = await supabase.from('model_configs').insert({
         feature_id: selectedFeatureId,
         provider,
         model_name: modelName.trim(),
         api_key_secret: secretName.trim(),
+        parameters: params,
         is_active: true,
       })
 
@@ -497,8 +508,27 @@ export default function AdminModelsPage() {
                         {c.provider}
                       </span>
                     </td>
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600 }}>
-                      {c.model_name}
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 600, color: '#111827' }}>
+                        {c.model_name}
+                      </div>
+                      {c.provider === 'google' && (
+                        <div style={{ marginTop: 4 }}>
+                          {c.parameters?.thinking_budget === 0 ? (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                              ⚡ Thinking: 0 (Fast OCR)
+                            </span>
+                          ) : c.parameters?.thinking_budget !== undefined ? (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                              🧠 Thinking: {c.parameters.thinking_budget}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}>
+                              🧠 Default Reasoning
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '12px' }}>
                       <code style={{ background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, fontSize: 12 }}>
@@ -737,6 +767,36 @@ export default function AdminModelsPage() {
               </span>
             </div>
           </div>
+
+          {provider === 'google' && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 4 }}>
+                Thinking Budget (Gemini Reasoning)
+              </label>
+              <select
+                value={thinkingBudget}
+                onChange={(e) => setThinkingBudget(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '9px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #86efac',
+                  fontSize: 13,
+                  background: '#ffffff',
+                  color: '#1e293b',
+                }}
+              >
+                <option value="">Default Gemini (Reasoning Bawaan AI — Rekomendasi untuk Face Analysis & Diagnosa)</option>
+                <option value="0">0 — Matikan Reasoning (Ultra Cepat ~3-9s — Rekomendasi untuk Ingredient Scan / OCR)</option>
+                <option value="512">512 Tokens (Reasoning Singkat)</option>
+                <option value="1024">1024 Tokens (Reasoning Sedang)</option>
+                <option value="2048">2048 Tokens (Reasoning Mendalam)</option>
+              </select>
+              <span style={{ fontSize: 11, color: '#15803d', marginTop: 6, display: 'block' }}>
+                Tersimpan langsung di <code>model_configs.parameters</code> per-fitur tanpa hardcode di kode server.
+              </span>
+            </div>
+          )}
 
           <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 8, padding: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
