@@ -707,6 +707,23 @@ export default function AdminMarketIntelligencePage() {
           }
         }
 
+        @media (max-width: 768px) {
+          .admin-intel-page {
+            padding: 16px 12px;
+          }
+          .admin-intel-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .btn-refresh {
+            align-self: flex-start;
+          }
+          .section-card {
+            padding: 14px;
+          }
+        }
+
         .section-card {
           background: #ffffff;
           border: 1px solid #e2e8f0;

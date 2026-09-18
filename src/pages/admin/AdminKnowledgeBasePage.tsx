@@ -184,16 +184,9 @@ export default function AdminKnowledgeBasePage() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1360, margin: '0 auto' }}>
+    <div className="admin-page-container">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-page-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -283,14 +276,7 @@ export default function AdminKnowledgeBasePage() {
       )}
 
       {/* Top Metric Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-grid-cards">
         <div
           style={{
             background: '#ffffff',
@@ -715,7 +701,7 @@ export default function AdminKnowledgeBasePage() {
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
-            padding: 20,
+            padding: 12,
           }}
           onClick={() => setIsEditing(false)}
         >
@@ -766,8 +752,8 @@ export default function AdminKnowledgeBasePage() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} style={{ padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <form onSubmit={handleSave} style={{ padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="admin-grid-2col">
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
                     Nama Bahan (Canonical) *
@@ -808,7 +794,7 @@ export default function AdminKnowledgeBasePage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              <div className="admin-grid-3col">
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
                     Kategori
@@ -901,7 +887,7 @@ export default function AdminKnowledgeBasePage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="admin-grid-2col">
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
                     Fungsi Utama (pisahkan dengan koma)

@@ -142,7 +142,7 @@ export default function AdminPromptsPage() {
   const selectedHistory = allVersions.filter((v) => v.feature_id === selectedFeatureId)
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200, margin: '0 auto' }}>
+    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
@@ -174,7 +174,7 @@ export default function AdminPromptsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
+      <div className="admin-split-prompts">
         {/* Sidebar Fitur */}
         <div
           style={{

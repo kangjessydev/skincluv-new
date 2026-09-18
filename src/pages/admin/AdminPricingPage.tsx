@@ -131,9 +131,9 @@ export default function AdminPricingPage() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200, margin: '0 auto' }}>
+    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+      <div className="admin-page-header">
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
             Paket Langganan & Kuota AI

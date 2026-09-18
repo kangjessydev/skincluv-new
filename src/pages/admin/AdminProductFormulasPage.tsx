@@ -75,16 +75,9 @@ export default function AdminProductFormulasPage() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1360, margin: '0 auto' }}>
+    <div className="admin-page-container">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-page-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -154,14 +147,7 @@ export default function AdminProductFormulasPage() {
       )}
 
       {/* Top Metrics Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-grid-cards">
         <div
           style={{
             background: '#ffffff',
@@ -520,7 +506,7 @@ export default function AdminProductFormulasPage() {
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
-            padding: 20,
+            padding: 12,
           }}
           onClick={() => setSelectedFormula(null)}
         >
@@ -617,13 +603,7 @@ export default function AdminProductFormulasPage() {
               </div>
 
               {/* Stats Summary */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: 12,
-                }}
-              >
+              <div className="admin-grid-3col">
                 <div style={{ padding: 12, borderRadius: 8, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
                   <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
                     Safety Score

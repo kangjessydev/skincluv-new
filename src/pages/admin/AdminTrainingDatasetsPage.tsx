@@ -158,16 +158,9 @@ export default function AdminTrainingDatasetsPage() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1360, margin: '0 auto' }}>
+    <div className="admin-page-container">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-page-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -193,7 +186,7 @@ export default function AdminTrainingDatasetsPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="admin-page-header-actions">
           <button
             onClick={loadDatasets}
             disabled={isLoading}
@@ -259,14 +252,7 @@ export default function AdminTrainingDatasetsPage() {
       )}
 
       {/* Top Metrics Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-grid-cards">
         <div
           style={{
             background: '#ffffff',
@@ -701,7 +687,7 @@ export default function AdminTrainingDatasetsPage() {
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
-            padding: 20,
+            padding: 12,
           }}
           onClick={() => setSelectedDataset(null)}
         >

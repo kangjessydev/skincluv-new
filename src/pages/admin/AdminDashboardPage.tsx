@@ -18,7 +18,7 @@ import {
 
 export default function AdminDashboardPage() {
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200, margin: '0 auto' }}>
+    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: '#111827', margin: 0 }}>
           Admin Overview
@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
           gap: 20,
           marginBottom: 40,
         }}
@@ -232,7 +232,7 @@ export default function AdminDashboardPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: 20,
           marginBottom: 40,
         }}
@@ -505,7 +505,7 @@ export default function AdminDashboardPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: 20,
         }}
       >

@@ -134,9 +134,9 @@ export default function AdminMissionsPage() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200, margin: '0 auto' }}>
+    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+      <div className="admin-page-header">
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
             Misi Glow (Rewards & Gamifikasi)
@@ -146,7 +146,7 @@ export default function AdminMissionsPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="admin-page-header-actions">
           <button
             onClick={loadMissions}
             disabled={isLoading}
@@ -228,7 +228,7 @@ export default function AdminMissionsPage() {
           </div>
 
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="admin-grid-2col">
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
                   Slug Unik <span style={{ color: '#ef4444' }}>*</span>
@@ -293,7 +293,7 @@ export default function AdminMissionsPage() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            <div className="admin-grid-4col">
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
                   Tipe Misi

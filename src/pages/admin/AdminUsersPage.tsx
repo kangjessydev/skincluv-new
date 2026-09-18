@@ -1284,6 +1284,42 @@ export default function AdminUsersPage() {
           opacity: 0.5;
           cursor: not-allowed;
         }
+
+        @media (max-width: 768px) {
+          .admin-users-page {
+            padding: 16px 12px;
+          }
+          .admin-users-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .btn-refresh {
+            align-self: flex-start;
+          }
+          .kpi-grid {
+            grid-template-columns: 1fr;
+          }
+          .filter-bar-card {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .search-wrap {
+            min-width: 100%;
+          }
+          .filter-group {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .filter-select {
+            width: 100%;
+          }
+          .modal-content {
+            max-width: 100%;
+            margin: 10px;
+          }
+        }
       `}</style>
     </div>
   )

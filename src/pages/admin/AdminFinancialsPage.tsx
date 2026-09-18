@@ -620,8 +620,25 @@ export default function AdminFinancialsPage() {
         }
 
         @media (max-width: 768px) {
+          .admin-financials-page {
+            padding: 16px 12px;
+          }
+          .admin-fin-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .btn-refresh {
+            align-self: flex-start;
+          }
+          .kpi-grid {
+            grid-template-columns: 1fr;
+          }
           .simulator-grid {
             grid-template-columns: 1fr;
+          }
+          .section-card {
+            padding: 14px;
           }
         }
 

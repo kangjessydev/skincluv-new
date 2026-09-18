@@ -1055,6 +1055,42 @@ export default function AdminTransactionsPage() {
           color: #334155;
           cursor: pointer;
         }
+
+        @media (max-width: 768px) {
+          .admin-tx-page {
+            padding: 16px 12px;
+          }
+          .admin-tx-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .btn-refresh {
+            align-self: flex-start;
+          }
+          .kpi-grid {
+            grid-template-columns: 1fr;
+          }
+          .filter-bar-card {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .search-wrap {
+            min-width: 100%;
+          }
+          .filter-group {
+            width: 100%;
+          }
+          .status-pills {
+            overflow-x: auto;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+          }
+          .detail-meta-grid {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </div>
   )
