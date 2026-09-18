@@ -41,6 +41,8 @@ interface AiLogRecord {
   } | null
 }
 
+const USD_TO_IDR = 16000 // Kurs acuan standar konversi USD ke IDR
+
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<AiLogRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -579,8 +581,15 @@ export default function AdminLogsPage() {
                         </span>
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center', color: '#4b5563' }}>
-                        {log.tokens_used ? log.tokens_used.toLocaleString('id-ID') : '-'}
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        <div style={{ color: '#4b5563', fontWeight: 600 }}>
+                          {log.tokens_used ? log.tokens_used.toLocaleString('id-ID') : '-'}
+                        </div>
+                        {log.cost_usd !== null && log.cost_usd !== undefined && log.cost_usd > 0 && (
+                          <div style={{ fontSize: 11, color: '#059669', fontWeight: 600, marginTop: 2 }}>
+                            ≈ Rp {(Number(log.cost_usd) * USD_TO_IDR).toLocaleString('id-ID', { maximumFractionDigits: 1 })}
+                          </div>
+                        )}
                       </td>
 
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -771,8 +780,16 @@ export default function AdminLogsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
                 <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Estimasi Biaya Token</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
-                    {selectedLog.cost_usd ? `$${Number(selectedLog.cost_usd).toFixed(5)}` : '$0.00000'}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
+                      {selectedLog.cost_usd ? `$${Number(selectedLog.cost_usd).toFixed(5)}` : '$0.00000'}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: 6, border: '1px solid #a7f3d0' }}>
+                      ≈ Rp {selectedLog.cost_usd ? (Number(selectedLog.cost_usd) * USD_TO_IDR).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '0'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+                    Aktual API: USD • Estimasi konversi: $1 = Rp {USD_TO_IDR.toLocaleString('id-ID')}
                   </div>
                 </div>
 
