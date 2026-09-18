@@ -49,13 +49,28 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
     }
   })
 
+  const generationConfig: Record<string, any> = {
+    temperature: parameters?.temperature ?? 0.2,
+    maxOutputTokens: parameters?.max_tokens ?? 2500,
+  }
+
+  // Disable internal chain-of-thought thinking for instant extraction & low latency
+  // (thinkingBudget: 0 eliminates the ~15-20s thoughtsTokenCount delay, dropping latency to ~3-6s)
+  if (
+    parameters?.thinking_budget !== undefined ||
+    modelName.includes('2.5') ||
+    modelName.includes('3.') ||
+    modelName.includes('thinking')
+  ) {
+    generationConfig.thinkingConfig = {
+      thinkingBudget: parameters?.thinking_budget ?? 0,
+    }
+  }
+
   const body = {
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents,
-    generationConfig: {
-      temperature: parameters?.temperature ?? 0.2,
-      maxOutputTokens: parameters?.max_tokens ?? 1500,
-    },
+    generationConfig,
   }
 
   const res = await fetch(
