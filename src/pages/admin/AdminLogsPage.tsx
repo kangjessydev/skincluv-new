@@ -126,16 +126,18 @@ export default function AdminLogsPage() {
   // Summary Metrics
   const metrics = useMemo(() => {
     if (logs.length === 0) {
-      return { count: 0, avgLatency: 0, totalTokens: 0, successRate: 100 }
+      return { count: 0, avgLatency: 0, totalTokens: 0, totalCostUSD: 0, totalCostIDR: 0, successRate: 100 }
     }
     const count = logs.length
     const latencies = logs.filter((l) => l.latency_ms !== null).map((l) => l.latency_ms as number)
     const avgLatency = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0
     const totalTokens = logs.reduce((acc, l) => acc + (l.tokens_used || 0), 0)
+    const totalCostUSD = logs.reduce((acc, l) => acc + (l.cost_usd || 0), 0)
+    const totalCostIDR = totalCostUSD * USD_TO_IDR
     const successCount = logs.filter((l) => l.status === 'success').length
     const successRate = Math.round((successCount / count) * 100)
 
-    return { count, avgLatency, totalTokens, successRate }
+    return { count, avgLatency, totalTokens, totalCostUSD, totalCostIDR, successRate }
   }, [logs])
 
   const getLatencyBadge = (ms: number | null) => {
@@ -343,10 +345,17 @@ export default function AdminLogsPage() {
           </div>
           <div>
             <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Total Token Terpakai
+              Total Token & Biaya
             </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.totalTokens.toLocaleString('id-ID')}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
+                {metrics.totalTokens.toLocaleString('id-ID')}
+              </div>
+              {metrics.totalCostIDR > 0 && (
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#059669' }}>
+                  (≈ Rp {metrics.totalCostIDR.toLocaleString('id-ID', { maximumFractionDigits: 0 })})
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -487,7 +496,7 @@ export default function AdminLogsPage() {
                   Latensi
                 </th>
                 <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Token
+                  Token & Biaya
                 </th>
                 <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
                   Status
