@@ -14,7 +14,6 @@
   font-family: inherit;
   position: relative;
   width: 100%;
-  overflow-x: hidden;
 }
 
 /* Top Navigation Bar (Mobile & Tablet: < 1024px) */
@@ -104,7 +103,7 @@
   color: #111827;
 }
 
-/* Sidebar (Desktop Permanent, Mobile/Tablet Off-canvas Drawer) */
+/* Sidebar (Desktop Permanent Fixed, Mobile/Tablet Off-canvas Drawer) */
 .admin-sidebar {
   width: 256px;
   border-right: 1px solid #e5e7eb;
@@ -114,10 +113,18 @@
   flex-direction: column;
   flex-shrink: 0;
   height: 100vh;
-  position: sticky;
-  top: 0;
+  overflow-y: auto;
   z-index: 40;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 4px;
 }
 
 .admin-sidebar-header {
@@ -277,6 +284,22 @@
    Media Queries
    ============================================================ */
 
+/* Desktop Screens (>= 1024px): Sidebar Permanently Fixed in Viewport */
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+  }
+
+  .admin-main-content {
+    margin-left: 256px;
+    width: calc(100% - 256px);
+    min-height: 100vh;
+  }
+}
+
 /* Tablet & Mobile (< 1024px) */
 @media (max-width: 1023px) {
   .admin-layout-root {
@@ -285,6 +308,16 @@
 
   .admin-top-bar {
     display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .admin-main-content {
+    padding-top: 58px;
+    width: 100%;
+    margin-left: 0;
   }
 
   .admin-sidebar {
