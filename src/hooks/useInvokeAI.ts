@@ -135,7 +135,7 @@ export function useInvokeAI() {
       if (is402) {
         const DEFAULT_CREDIT_COST: Record<string, number> = {
           face_analysis: 5,
-          face_validation: 1,
+          face_validation: 0,
           ingredient_scan: 3,
           chatbot: 1,
         }

@@ -20,7 +20,7 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000   // 1 minute
 const RATE_LIMIT_MAX       = 10          // max requests per window
 // Cost in Credits per feature (when quota is exhausted or free tier)
 const CREDIT_COST_PER_FEATURE: Record<string, number> = {
-  face_validation: 1,
+  face_validation: 0,
   face_analysis:   5,
   ingredient_scan: 3,
   chatbot:         1,
@@ -158,57 +158,60 @@ Deno.serve(async (req: Request) => {
       ? dynamicCost
       : (CREDIT_COST_PER_FEATURE[feature_slug] ?? 3)
 
-    if (subscription) {
-      // Fetch universal feature id
-      const { data: univFeature } = await supabaseService
-        .from('ai_features')
-        .select('id')
-        .eq('slug', 'universal_ai')
-        .single()
+    // Only deduct quota/credits if feature has cost > 0 (e.g. face_validation is a free validation gate)
+    if (creditCost > 0) {
+      if (subscription) {
+        // Fetch universal feature id
+        const { data: univFeature } = await supabaseService
+          .from('ai_features')
+          .select('id')
+          .eq('slug', 'universal_ai')
+          .single()
 
-      if (univFeature) {
-        // Try quota deduction first against the universal feature
-        const { data: quotaOk } = await supabaseService.rpc('deduct_quota', {
-          p_user_id: user.id,
-          p_feature_id: univFeature.id,
-          p_subscription_id: subscription.id,
-        })
+        if (univFeature) {
+          // Try quota deduction first against the universal feature
+          const { data: quotaOk } = await supabaseService.rpc('deduct_quota', {
+            p_user_id: user.id,
+            p_feature_id: univFeature.id,
+            p_subscription_id: subscription.id,
+          })
 
-        if (quotaOk) {
-          deductMode = 'quota'
-          deductedFeatureId = univFeature.id
+          if (quotaOk) {
+            deductMode = 'quota'
+            deductedFeatureId = univFeature.id
+          }
         }
       }
-    }
 
-    // If quota failed or no subscription, try credits
-    if (!deductMode) {
-      if (!use_coins) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'Quota habis. Silakan gunakan Credits atau upgrade paket.',
-            code: 'QUOTA_EXCEEDED',
-            credit_cost: creditCost,
-            coin_cost: creditCost, // backward compatibility
-            feature_slug,
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
-        )
+      // If quota failed or no subscription, try credits
+      if (!deductMode) {
+        if (!use_coins) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Quota habis. Silakan gunakan Credits atau upgrade paket.',
+              code: 'QUOTA_EXCEEDED',
+              credit_cost: creditCost,
+              coin_cost: creditCost, // backward compatibility
+              feature_slug,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
+          )
+        }
+
+        // Proceed with credit deduction (using atomic deduct_coins function)
+        const tempRef = crypto.randomUUID()
+        const { data: creditOk } = await supabaseService.rpc('deduct_coins', {
+          p_user_id: user.id,
+          p_amount: creditCost,
+          p_reference_id: tempRef,
+        })
+
+        if (!creditOk) {
+          return jsonError('Credits tidak mencukupi. Selesaikan misi untuk mendapatkan Credits atau upgrade ke paket Glow/Pro.', 402)
+        }
+        deductMode = 'coin'
       }
-
-      // Proceed with credit deduction (using atomic deduct_coins function)
-      const tempRef = crypto.randomUUID()
-      const { data: creditOk } = await supabaseService.rpc('deduct_coins', {
-        p_user_id: user.id,
-        p_amount: creditCost,
-        p_reference_id: tempRef,
-      })
-
-      if (!creditOk) {
-        return jsonError('Credits tidak mencukupi. Selesaikan misi untuk mendapatkan Credits atau upgrade ke paket Glow/Pro.', 402)
-      }
-      deductMode = 'coin'
     }
 
     // ---- 6. Resolve API Key from Supabase Vault ----
@@ -398,7 +401,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // ---- 9. Log successful result ----
-    const costUsd = estimateCostUsd(model.model_name, aiResult!.tokensUsed)
+    const costUsd = estimateCostUsd(
+      model.model_name,
+      aiResult!.inputTokens,
+      aiResult!.outputTokens,
+      aiResult!.tokensUsed
+    )
 
     await supabaseService.from('ai_request_logs').insert({
       user_id: user.id,
@@ -409,6 +417,8 @@ Deno.serve(async (req: Request) => {
       output_summary: aiResult!.content.slice(0, 300),
       raw_output: aiResult!.rawResponse,
       tokens_used: aiResult!.tokensUsed,
+      input_tokens: aiResult!.inputTokens,
+      output_tokens: aiResult!.outputTokens,
       latency_ms: latencyMs,
       cost_usd: costUsd,
       status: 'success',

@@ -23,6 +23,8 @@ export interface AiRequestOptions {
 export interface AiResponse {
   content: string
   tokensUsed: number
+  inputTokens: number
+  outputTokens: number
   rawResponse: unknown
 }
 
@@ -84,11 +86,11 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
 
   const data = await res.json()
   const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-  const tokensUsed =
-    (data.usageMetadata?.promptTokenCount ?? 0) +
-    (data.usageMetadata?.candidatesTokenCount ?? 0)
+  const inputTokens = data.usageMetadata?.promptTokenCount ?? 0
+  const outputTokens = data.usageMetadata?.candidatesTokenCount ?? 0
+  const tokensUsed = inputTokens + outputTokens
 
-  return { content, tokensUsed, rawResponse: data }
+  return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
 }
 
 // ---- Anthropic Claude ----
@@ -123,9 +125,11 @@ async function callClaude(opts: AiRequestOptions): Promise<AiResponse> {
 
   const data = await res.json()
   const content = data.content?.[0]?.text ?? ''
-  const tokensUsed = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0)
+  const inputTokens = data.usage?.input_tokens ?? 0
+  const outputTokens = data.usage?.output_tokens ?? 0
+  const tokensUsed = inputTokens + outputTokens
 
-  return { content, tokensUsed, rawResponse: data }
+  return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
 }
 
 // ---- Groq (OpenAI-Compatible LPU) ----
@@ -175,9 +179,11 @@ async function callGroq(opts: AiRequestOptions): Promise<AiResponse> {
 
   const data = await res.json()
   const content = data.choices?.[0]?.message?.content ?? ''
-  const tokensUsed = data.usage?.total_tokens ?? 0
+  const inputTokens = data.usage?.prompt_tokens ?? 0
+  const outputTokens = data.usage?.completion_tokens ?? 0
+  const tokensUsed = data.usage?.total_tokens ?? (inputTokens + outputTokens)
 
-  return { content, tokensUsed, rawResponse: data }
+  return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
 }
 
 // ---- Router ----
@@ -201,24 +207,58 @@ export function interpolatePrompt(template: string, context: Record<string, stri
 }
 
 // ---- Cost estimation (approximate, USD) ----
-// Used for logging — not billing. Update rates periodically.
-const COST_PER_1K_TOKENS: Record<string, number> = {
-  'gemini-2.0-flash':             0.000075,
-  'gemini-2.5-flash':             0.00015,
-  'claude-sonnet-4-5':            0.003,
-  'claude-haiku-3-5':             0.00025,
-  'claude-3-5-sonnet-20241022':   0.003,
-  'claude-3-5-haiku-20241022':    0.0008,
-  'gpt-4o-mini':                  0.00015,
-  'gpt-4o':                       0.0025,
-  'llama-3.3-70b-versatile':      0.00059,
-  'llama-3.1-8b-instant':         0.00008,
-  'deepseek-r1-distill-llama-70b': 0.00075,
-  'mixtral-8x7b-32768':           0.00024,
-  'qwen/qwen3.8-27b':             0.0002,
+// Used for accurate logging & margin analysis.
+export interface TokenRate {
+  inputPer1k: number
+  outputPer1k: number
 }
 
-export function estimateCostUsd(modelName: string, tokensUsed: number): number {
-  const rate = COST_PER_1K_TOKENS[modelName] ?? 0.001
-  return (tokensUsed / 1000) * rate
+// Pricing benchmark rates per 1,000 tokens (USD)
+const MODEL_TOKEN_RATES: Record<string, TokenRate> = {
+  'gemini-3.6-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
+  'gemini-2.5-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
+  'gemini-2.0-flash':              { inputPer1k: 0.000075, outputPer1k: 0.0003 },
+  'claude-sonnet-4-5':             { inputPer1k: 0.003,    outputPer1k: 0.015 },
+  'claude-3-5-sonnet-20241022':    { inputPer1k: 0.003,    outputPer1k: 0.015 },
+  'claude-haiku-3-5':              { inputPer1k: 0.0008,   outputPer1k: 0.004 },
+  'claude-3-5-haiku-20241022':     { inputPer1k: 0.0008,   outputPer1k: 0.004 },
+  'gpt-4o-mini':                   { inputPer1k: 0.00015,  outputPer1k: 0.0006 },
+  'gpt-4o':                        { inputPer1k: 0.0025,   outputPer1k: 0.010 },
+  'llama-3.3-70b-versatile':       { inputPer1k: 0.00059,  outputPer1k: 0.00079 },
+  'llama-3.1-8b-instant':          { inputPer1k: 0.00005,  outputPer1k: 0.00008 },
+  'deepseek-r1-distill-llama-70b': { inputPer1k: 0.00075,  outputPer1k: 0.00099 },
+  'mixtral-8x7b-32768':            { inputPer1k: 0.00024,  outputPer1k: 0.00024 },
+  'qwen/qwen3.8-27b':              { inputPer1k: 0.00020,  outputPer1k: 0.00020 },
+}
+
+const BLENDED_FALLBACK_PER_1K: Record<string, number> = {
+  'gemini-3.6-flash':              0.00025,
+  'gemini-2.5-flash':              0.00025,
+  'gemini-2.0-flash':              0.00015,
+  'claude-sonnet-4-5':             0.009,
+  'claude-3-5-sonnet-20241022':    0.009,
+  'claude-haiku-3-5':              0.0024,
+  'claude-3-5-haiku-20241022':     0.0024,
+  'gpt-4o-mini':                   0.000375,
+  'gpt-4o':                        0.00625,
+  'llama-3.3-70b-versatile':       0.00069,
+  'llama-3.1-8b-instant':          0.000065,
+  'deepseek-r1-distill-llama-70b': 0.00087,
+  'mixtral-8x7b-32768':            0.00024,
+  'qwen/qwen3.8-27b':              0.0002,
+}
+
+export function estimateCostUsd(
+  modelName: string,
+  inputTokens: number,
+  outputTokens: number,
+  totalTokensFallback?: number
+): number {
+  const rate = MODEL_TOKEN_RATES[modelName]
+  if (rate) {
+    return (inputTokens / 1000) * rate.inputPer1k + (outputTokens / 1000) * rate.outputPer1k
+  }
+  const blendedRate = BLENDED_FALLBACK_PER_1K[modelName] ?? 0.0005
+  const total = totalTokensFallback ?? (inputTokens + outputTokens)
+  return (total / 1000) * blendedRate
 }

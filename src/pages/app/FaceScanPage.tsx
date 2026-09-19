@@ -331,14 +331,20 @@ const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean })
   return enriched
 }
 
+interface FaceValidationResponse {
+  is_valid_face: boolean
+  reason: string
+  confidence?: number
+}
+
 // Scanner Stage Animation Text — module-level constant so it's a stable reference
 // and does not need to appear in useEffect dependency arrays.
 const FACE_SCAN_STAGES_TEXT = [
-  'Memeriksa kualitas foto & mendeteksi wajah...',
-  'Memetakan area & memindai tekstur kulit...',
-  'Mendeteksi pori-pori, sebum & tanda kemerahan...',
-  'Menyelaraskan dengan profil kulit pengguna...',
-  'Menyusun rekomendasi perawatan & bahan aktif...',
+  'Tahap 1/2: Memverifikasi kejernihan & posisi wajah...',
+  'Tahap 2/2: Memetakan area & memindai tekstur kulit...',
+  'Tahap 2/2: Mendeteksi pori-pori, sebum & skin barrier...',
+  'Tahap 2/2: Menyelaraskan dengan profil kulit kamu...',
+  'Tahap 2/2: Menyusun rekomendasi perawatan & bahan aktif...',
 ]
 
 export default function FaceScanPage() {
@@ -371,7 +377,7 @@ export default function FaceScanPage() {
   const topResultRef = useRef<HTMLDivElement>(null)
 
   // Unified Scanning Pipeline:
-  // Client CV (Canvas quality & MediaPipe Face Mesh) -> AI Gemini Analysis -> Result
+  // Client CV (Canvas quality & MediaPipe Face Mesh) -> AI Face Validation Gate (0 Credits) -> AI Dermatologist Analysis -> Result
   useEffect(() => {
     if (stage !== 'scanning') {
       setScanTextIndex(0)
@@ -383,7 +389,7 @@ export default function FaceScanPage() {
 
     const runScanPipeline = async () => {
       try {
-        setScanTextIndex(0) // "Memeriksa kualitas foto & mendeteksi wajah..."
+        setScanTextIndex(0) // "Tahap 1/2: Memverifikasi kejernihan & posisi wajah..."
 
         if (!imageBase64) {
           setErrorMsg('Pilih foto terlebih dahulu.')
@@ -432,8 +438,36 @@ export default function FaceScanPage() {
         }
 
         // =========================================================================
-        // GERBANG 3: Analisis Dermatologis AI Gemini + Product Matching Engine
-        // Mulai rotasi teks scanner agar pengguna tahu proses berjalan aktif
+        // GERBANG 3 (AI GATE): Validasi Wajah Cepat AI (Gratis / 0 Credits)
+        // Memastikan foto layak secara klinis tanpa risiko memotong kredit pengguna
+        // =========================================================================
+        const valRes = await invoke<FaceValidationResponse>({
+          feature_slug: 'face_validation',
+          messages: [
+            {
+              role: 'user',
+              content: 'Verifikasi apakah gambar ini adalah foto wajah manusia yang layak dianalisis secara klinis.',
+            },
+          ],
+          input_context: {
+            image_base64: imageBase64 || '',
+          },
+        })
+
+        if (!isSubscribed) return
+
+        if (valRes && valRes.is_valid_face === false) {
+          setErrorMsg(
+            valRes.reason ||
+              'Wajah tidak terlihat cukup jelas untuk analisis dermatologis. Silakan gunakan foto dengan pencahayaan lebih terang dan tanpa filter.'
+          )
+          setStage('upload')
+          return
+        }
+
+        // =========================================================================
+        // GERBANG 4 (AI SPECIALIST): Analisis Dermatologis Mendalam (5 Credits)
+        // Model penalaran tinggi / spesialis klinis dengan rekomendasi produk
         // =========================================================================
         setScanTextIndex(1)
         textInterval = setInterval(() => {
