@@ -348,7 +348,7 @@ const FACE_SCAN_STAGES_TEXT = [
 ]
 
 export default function FaceScanPage() {
-  const { profile, activeSkinProfile, coinBalance, subscription } = useAuthStore()
+  const { user, session, profile, activeSkinProfile, setActiveSkinProfile, coinBalance, subscription } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, error: invokeError } = useInvokeAI()
   const currentCoins = coinBalance?.balance ?? 0
   const faceCost = getFeatureCreditCost('face_analysis')
@@ -512,61 +512,85 @@ export default function FaceScanPage() {
         setAnalysisResult(enriched)
 
         // Save scan record & sync with Supabase skin_profiles and face_scans history schema
-        if (profile?.id && enriched.skin_type) {
-          // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
-          supabase
-            .from('face_scans')
-            .insert({
-              user_id: profile.id,
-              overall_score: enriched.overall_score || 80,
+        let effectiveUserId = user?.id || session?.user?.id || profile?.id
+        if (!effectiveUserId) {
+          const { data: authUser } = await supabase.auth.getUser()
+          effectiveUserId = authUser?.user?.id
+        }
+
+        if (effectiveUserId && enriched.skin_type) {
+          try {
+            const scoreInt = Math.min(100, Math.max(0, Math.round(Number(enriched.overall_score) || 80)))
+            const scanRecord = {
+              user_id: effectiveUserId,
+              overall_score: scoreInt,
               skin_status_title: enriched.skin_status_title || 'Kondisi Kulit Terpantau',
-              skin_type: enriched.skin_type || 'normal',
+              skin_type: String(enriched.skin_type).toLowerCase(),
               skin_concerns: enriched.skin_concerns || [],
               analysis_notes: enriched.analysis_notes || '',
               area_evaluations: (enriched.area_evaluations || []) as any,
               product_recommendations: (enriched.product_recommendations || []) as any,
               raw_ai_response: enriched as any,
-            })
-            .then((res) => {
-              if (res && 'error' in res && res.error) {
-                console.warn('[Supabase face_scans history insert]:', res.error.message)
-              }
-            }, (err: unknown) => console.warn('[Supabase face_scans insert error]:', err))
+            }
 
-          // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
-          supabase
-            .from('skin_profiles')
-            .select('id')
-            .eq('user_id', profile.id)
-            .eq('is_active', true)
-            .maybeSingle()
-            .then(({ data: existing }) => {
-              const payload = {
-                skin_type: enriched.skin_type,
+            // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
+            const { error: insertErr } = await supabase
+              .from('face_scans')
+              .insert(scanRecord)
+
+            if (insertErr) {
+              console.error('[FaceScanPage] face_scans insert error:', insertErr.message)
+            } else {
+              console.log('[FaceScanPage] face_scans history saved for user:', effectiveUserId)
+            }
+
+            // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
+            const { data: existing } = await supabase
+              .from('skin_profiles')
+              .select('id')
+              .eq('user_id', effectiveUserId)
+              .eq('is_active', true)
+              .maybeSingle()
+
+            const payload = {
+              skin_type: String(enriched.skin_type).toLowerCase(),
+              skin_concerns: enriched.skin_concerns || [],
+              analysis_notes: enriched.analysis_notes || '',
+              raw_ai_response: enriched as any,
+            }
+
+            if (existing?.id) {
+              await supabase
+                .from('skin_profiles')
+                .update(payload)
+                .eq('id', existing.id)
+            } else {
+              await supabase
+                .from('skin_profiles')
+                .insert({
+                  ...payload,
+                  user_id: effectiveUserId,
+                  is_active: true,
+                })
+            }
+
+            // C. Perbarui activeSkinProfile di store Zustand
+            if (setActiveSkinProfile) {
+              setActiveSkinProfile({
+                id: existing?.id || effectiveUserId,
+                user_id: effectiveUserId,
+                skin_type: String(enriched.skin_type).toLowerCase(),
                 skin_concerns: enriched.skin_concerns || [],
                 analysis_notes: enriched.analysis_notes || '',
                 raw_ai_response: enriched as any,
-              }
-              if (existing?.id) {
-                return supabase
-                  .from('skin_profiles')
-                  .update(payload)
-                  .eq('id', existing.id)
-              } else {
-                return supabase
-                  .from('skin_profiles')
-                  .insert({
-                    ...payload,
-                    user_id: profile.id,
-                    is_active: true,
-                  })
-              }
-            })
-            .then((res) => {
-              if (res && 'error' in res && (res as any).error) {
-                console.warn('[Supabase skin_profiles sync]:', (res as any).error.message)
-              }
-            }, (err: unknown) => console.warn('[Supabase skin_profiles sync error]:', err))
+                is_active: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as any)
+            }
+          } catch (syncErr) {
+            console.error('[FaceScanPage] Sync face_scans/skin_profiles exception:', syncErr)
+          }
         }
 
         setStage('result')

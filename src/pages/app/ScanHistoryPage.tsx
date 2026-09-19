@@ -19,20 +19,30 @@ import { useAuthStore } from '@/store/authStore'
 import type { FaceScan } from '@/types/database'
 
 export default function ScanHistoryPage() {
-  const { session } = useAuthStore()
+  const { session, user, profile } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [scans, setScans] = useState<FaceScan[]>([])
   const [selectedScan, setSelectedScan] = useState<FaceScan | null>(null)
 
   const fetchScans = async () => {
-    if (!session?.user?.id) return
+    let targetUid = session?.user?.id || user?.id || profile?.id
+    if (!targetUid) {
+      const { data: authData } = await supabase.auth.getUser()
+      targetUid = authData?.user?.id
+    }
+
+    if (!targetUid) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     try {
       // 1. Coba fetch dari tabel face_scans (riwayat multi-sesi)
       const { data, error } = await supabase
         .from('face_scans')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', targetUid)
         .order('created_at', { ascending: false })
 
       if (!error && data && data.length > 0) {
@@ -45,7 +55,7 @@ export default function ScanHistoryPage() {
       const { data: profileScan, error: profileErr } = await supabase
         .from('skin_profiles')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', targetUid)
         .eq('is_active', true)
         .maybeSingle()
 
@@ -79,7 +89,7 @@ export default function ScanHistoryPage() {
   useEffect(() => {
     fetchScans()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session])
+  }, [session?.user?.id, user?.id, profile?.id])
 
   // Statistics calculation
   const totalScans = scans.length

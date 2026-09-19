@@ -23,6 +23,8 @@ interface AiLogRecord {
   prompt_version_id: string
   model_config_id: string
   tokens_used: number | null
+  input_tokens: number | null
+  output_tokens: number | null
   latency_ms: number | null
   cost_usd: number | null
   status: string
@@ -63,6 +65,8 @@ export default function AdminLogsPage() {
           prompt_version_id,
           model_config_id,
           tokens_used,
+          input_tokens,
+          output_tokens,
           latency_ms,
           cost_usd,
           status,
@@ -126,18 +130,20 @@ export default function AdminLogsPage() {
   // Summary Metrics
   const metrics = useMemo(() => {
     if (logs.length === 0) {
-      return { count: 0, avgLatency: 0, totalTokens: 0, totalCostUSD: 0, totalCostIDR: 0, successRate: 100 }
+      return { count: 0, avgLatency: 0, totalTokens: 0, totalInputTokens: 0, totalOutputTokens: 0, totalCostUSD: 0, totalCostIDR: 0, successRate: 100 }
     }
     const count = logs.length
     const latencies = logs.filter((l) => l.latency_ms !== null).map((l) => l.latency_ms as number)
     const avgLatency = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0
     const totalTokens = logs.reduce((acc, l) => acc + (l.tokens_used || 0), 0)
+    const totalInputTokens = logs.reduce((acc, l) => acc + (l.input_tokens || 0), 0)
+    const totalOutputTokens = logs.reduce((acc, l) => acc + (l.output_tokens || 0), 0)
     const totalCostUSD = logs.reduce((acc, l) => acc + (l.cost_usd || 0), 0)
     const totalCostIDR = totalCostUSD * USD_TO_IDR
     const successCount = logs.filter((l) => l.status === 'success').length
     const successRate = Math.round((successCount / count) * 100)
 
-    return { count, avgLatency, totalTokens, totalCostUSD, totalCostIDR, successRate }
+    return { count, avgLatency, totalTokens, totalInputTokens, totalOutputTokens, totalCostUSD, totalCostIDR, successRate }
   }, [logs])
 
   const getLatencyBadge = (ms: number | null) => {
@@ -343,6 +349,11 @@ export default function AdminLogsPage() {
                 </div>
               )}
             </div>
+            {(metrics.totalInputTokens > 0 || metrics.totalOutputTokens > 0) && (
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                📥 {metrics.totalInputTokens.toLocaleString('id-ID')} in • 📤 {metrics.totalOutputTokens.toLocaleString('id-ID')} out
+              </div>
+            )}
           </div>
         </div>
 
@@ -577,9 +588,17 @@ export default function AdminLogsPage() {
                       </td>
 
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <div style={{ color: '#4b5563', fontWeight: 600 }}>
+                        <div style={{ color: '#111827', fontWeight: 700 }}>
                           {log.tokens_used ? log.tokens_used.toLocaleString('id-ID') : '-'}
+                          <span style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginLeft: 4 }}>tk</span>
                         </div>
+                        {(log.input_tokens !== null || log.output_tokens !== null) && (
+                          <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'center', gap: 5 }}>
+                            <span title="Input Tokens">📥 {log.input_tokens?.toLocaleString('id-ID') ?? 0}</span>
+                            <span style={{ color: '#d1d5db' }}>|</span>
+                            <span title="Output Tokens">📤 {log.output_tokens?.toLocaleString('id-ID') ?? 0}</span>
+                          </div>
+                        )}
                         {log.cost_usd !== null && log.cost_usd !== undefined && log.cost_usd > 0 && (
                           <div style={{ fontSize: 11, color: '#059669', fontWeight: 600, marginTop: 2 }}>
                             ≈ Rp {(Number(log.cost_usd) * USD_TO_IDR).toLocaleString('id-ID', { maximumFractionDigits: 1 })}
@@ -759,6 +778,11 @@ export default function AdminLogsPage() {
                   <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginTop: 2 }}>
                     {selectedLog.tokens_used ? selectedLog.tokens_used.toLocaleString('id-ID') : '-'}
                   </div>
+                  {(selectedLog.input_tokens !== null || selectedLog.output_tokens !== null) && (
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                      📥 {selectedLog.input_tokens?.toLocaleString('id-ID') ?? 0} in • 📤 {selectedLog.output_tokens?.toLocaleString('id-ID') ?? 0} out
+                    </div>
+                  )}
                 </div>
 
                 <div>

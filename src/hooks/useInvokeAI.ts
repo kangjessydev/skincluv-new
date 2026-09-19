@@ -207,9 +207,16 @@ export function useInvokeAI() {
 
       // Jika caller expect JSON object (FaceScanPage, IngredientScanPage), parse otomatis
       try {
-        const cleanedStr = contentStr.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '')
-        const parsed = JSON.parse(cleanedStr)
-        return parsed as T
+        const cleanedStr = contentStr.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+        try {
+          return JSON.parse(cleanedStr) as T
+        } catch {
+          const jsonMatch = contentStr.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]) as T
+          }
+          throw new Error('Not JSON')
+        }
       } catch {
         // Jika content bukan JSON (Chatbot raw text), return data as is
         return data as unknown as T
