@@ -77,7 +77,7 @@ export default function ChatbotPage() {
   const { sessionId } = useParams<{ sessionId?: string }>()
   const navigate = useNavigate()
 
-  const { user, profile, coinBalance, subscription } = useAuthStore()
+  const { user, profile, setProfile, coinBalance, subscription } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation } = useInvokeAI()
   const currentCoins = coinBalance?.balance ?? 0
   const chatbotCost = getFeatureCreditCost('chatbot')
@@ -92,6 +92,59 @@ export default function ChatbotPage() {
   const [showMemoryModal, setShowMemoryModal] = useState(false)
   const [clinicalMemories, setClinicalMemories] = useState<ClinicalMemory[]>([])
   const [isLoadingMemories, setIsLoadingMemories] = useState(false)
+  const [memoryConsent, setMemoryConsent] = useState<boolean | null>(
+    profile?.chatbot_memory_consent ?? null
+  )
+
+  useEffect(() => {
+    if (profile?.chatbot_memory_consent !== undefined) {
+      setMemoryConsent(profile.chatbot_memory_consent ?? null)
+    }
+  }, [profile?.chatbot_memory_consent])
+
+  useEffect(() => {
+    if (!user?.id) return
+    const fetchConsent = async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('chatbot_memory_consent')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (data && data.chatbot_memory_consent !== undefined) {
+          setMemoryConsent(data.chatbot_memory_consent)
+        }
+      } catch (err) {
+        console.warn('Failed to fetch memory consent:', err)
+      }
+    }
+    fetchConsent()
+  }, [user?.id])
+
+  const handleSetMemoryConsent = async (consent: boolean) => {
+    if (!user?.id) return
+    try {
+      await supabase
+        .from('profiles')
+        .update({ chatbot_memory_consent: consent })
+        .eq('id', user.id)
+
+      setMemoryConsent(consent)
+      if (profile) {
+        setProfile({ ...profile, chatbot_memory_consent: consent })
+      }
+
+      if (!consent) {
+        // Jika memilih Lewati / Nonaktifkan, bersihkan data memori sesuai hak privasi UU Perlindungan Data Pribadi
+        await supabase.from('user_clinical_memories').delete().eq('user_id', user.id)
+        setClinicalMemories([])
+      } else {
+        fetchClinicalMemories()
+      }
+    } catch (err) {
+      console.error('Failed to set memory consent:', err)
+    }
+  }
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -130,7 +183,7 @@ export default function ChatbotPage() {
 
   const handleClearAllMemories = async () => {
     if (!user?.id) return
-    if (!window.confirm('Hapus seluruh memori klinis yang diingat AI tentang kulit Anda? Tindakan ini mematuhi Hak Penghapusan Data Pribadi (UU PDP No. 27/2022).')) return
+    if (!window.confirm('Hapus seluruh memori yang diingat AI tentang kulit Anda? Tindakan ini mematuhi hak penghapusan data pribadi Anda sesuai UU Perlindungan Data Pribadi.')) return
     try {
       await supabase.from('user_clinical_memories').delete().eq('user_id', user.id)
       setClinicalMemories([])
@@ -467,7 +520,7 @@ export default function ChatbotPage() {
         />
       )}
 
-      {/* CHAT UTILITY BAR (Riwayat Chat, Memori Klinis, Reset Sesi & Chat Baru) */}
+      {/* CHAT UTILITY BAR (Riwayat Chat, Memori Percakapan, Reset Sesi & Chat Baru) */}
       <div className="chat-util-bar">
         <div className="chat-util-left">
           <button
@@ -484,10 +537,10 @@ export default function ChatbotPage() {
               setShowMemoryModal(true)
             }}
             className="util-btn util-memory-btn"
-            title="Memori Klinis Pasien (Kepatuhan UU PDP No. 27/2022)"
+            title="Memori Percakapan (Sesuai UU Perlindungan Data Pribadi)"
           >
             <Brain size={16} />
-            <span>Memori Klinis ({clinicalMemories.length})</span>
+            <span>Memori ({clinicalMemories.length})</span>
           </button>
         </div>
 
@@ -510,14 +563,45 @@ export default function ChatbotPage() {
         </div>
       </div>
 
-      {/* CLINICAL MEMORY MODAL (UU PDP NO. 27/2022 COMPLIANT) */}
+      {/* CONSENT BANNER (SESUAI UU PERLINDUNGAN DATA PRIBADI) */}
+      {memoryConsent === null && user?.id && (
+        <div className="memory-consent-banner">
+          <div className="consent-content">
+            <div className="consent-title-row">
+              <Sparkles size={16} className="text-[#0f6784]" />
+              <strong>Aktifkan Memori Skinsistant?</strong>
+            </div>
+            <p>
+              AI akan mengingat hal penting dari obrolanmu (seperti bahan yang memicu iritasi, alergi, atau preferensi skincare-mu) supaya saran konsultasi berikutnya makin personal dan aman. Sesuai UU Perlindungan Data Pribadi — kamu bebas melihat, mematikan, atau menghapusnya kapan saja.
+            </p>
+          </div>
+          <div className="consent-action-buttons">
+            <button
+              type="button"
+              className="consent-btn-accept"
+              onClick={() => handleSetMemoryConsent(true)}
+            >
+              Aktifkan
+            </button>
+            <button
+              type="button"
+              className="consent-btn-dismiss"
+              onClick={() => handleSetMemoryConsent(false)}
+            >
+              Lewati
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MEMORY MODAL (SESUAI UU PERLINDUNGAN DATA PRIBADI) */}
       {showMemoryModal && (
         <div className="history-drawer-overlay" onClick={() => setShowMemoryModal(false)}>
           <div className="history-drawer clinical-memory-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-header">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={18} className="text-teal-600" />
-                <h3>Memori Klinis & Hak Privasi</h3>
+                <h3>Memori Percakapan &amp; Hak Privasi</h3>
               </div>
               <button onClick={() => setShowMemoryModal(false)} className="drawer-close-btn">
                 <X size={18} />
@@ -527,24 +611,41 @@ export default function ChatbotPage() {
             <div className="drawer-body">
               <div className="uupdp-compliance-card">
                 <div className="uupdp-badge">
-                  <ShieldCheck size={13} /> Kepatuhan UU PDP No. 27/2022
+                  <ShieldCheck size={13} /> Sesuai UU Perlindungan Data Pribadi
                 </div>
                 <p>
-                  <strong>Prinsip Minimisasi Data & Isolasi Pribadi:</strong> AI hanya mengingat fakta klinis (alergi, sensitivitas bahan, atau reaksi kulit) yang Anda diskusikan agar konsultasi berikutnya selalu aman. Memori ini 100% terisolasi untuk akun Anda dan tidak dapat dibaca admin ataupun pihak ketiga.
+                  <strong>Prinsip Minimisasi Data &amp; Isolasi Pribadi:</strong> AI hanya mengingat hal penting (seperti alergi, sensitivitas bahan, atau preferensi skincare) yang Anda diskusikan agar konsultasi berikutnya selalu aman dan relevan. Memori ini 100% terisolasi untuk akun Anda dan tidak dapat dibaca admin ataupun pihak ketiga.
                 </p>
                 <div className="uupdp-rights">
-                  <span>✓ Hak Menghapus Data Pribadi (Pasal 8)</span>
-                  <span>✓ Isolasi Sandboxing RLS (Pasal 35)</span>
+                  <span>✓ Hak Akses &amp; Hapus Data Pribadi</span>
+                  <span>✓ Isolasi Sandboxing Terenkripsi</span>
                 </div>
               </div>
 
+              {/* Status Consent Toggle */}
+              <div className="memory-consent-toggle-row">
+                <div className="consent-status-label">
+                  <span>Status Memori Percakapan: </span>
+                  <strong className={memoryConsent ? 'text-emerald-600' : 'text-slate-500'}>
+                    {memoryConsent ? 'Aktif' : 'Nonaktif'}
+                  </strong>
+                </div>
+                <button
+                  type="button"
+                  className={`consent-toggle-btn ${memoryConsent ? 'btn-disable' : 'btn-enable'}`}
+                  onClick={() => handleSetMemoryConsent(!memoryConsent)}
+                >
+                  {memoryConsent ? 'Nonaktifkan' : 'Aktifkan'}
+                </button>
+              </div>
+
               <div className="memories-section-header">
-                <h4>Fakta Kulit yang Diingat ({clinicalMemories.length})</h4>
+                <h4>Fakta yang Diingat ({clinicalMemories.length})</h4>
                 {clinicalMemories.length > 0 && (
                   <button
                     onClick={handleClearAllMemories}
                     className="clear-all-memories-btn"
-                    title="Hapus seluruh memori klinis"
+                    title="Hapus seluruh memori"
                   >
                     Hapus Semua
                   </button>
@@ -1422,6 +1523,125 @@ export default function ChatbotPage() {
           font-size: 11px;
           font-weight: 600;
           color: #0d9488;
+        }
+
+        /* Consent Banner */
+        .memory-consent-banner {
+          background: #f0fdfa;
+          border: 1px solid #99f6e4;
+          border-radius: 12px;
+          padding: 12px 16px;
+          margin: 10px 16px 0 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          animation: fadeIn 0.2s ease;
+        }
+
+        .consent-content {
+          flex: 1;
+        }
+
+        .consent-title-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          color: #0f766e;
+          margin-bottom: 4px;
+        }
+
+        .consent-content p {
+          font-size: 0.75rem;
+          color: #334155;
+          line-height: 1.4;
+          margin: 0;
+        }
+
+        .consent-action-buttons {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+
+        .consent-btn-accept {
+          background: #0f6784;
+          color: #ffffff;
+          border: none;
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 6px 14px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+
+        .consent-btn-accept:hover {
+          background: #0b4d63;
+        }
+
+        .consent-btn-dismiss {
+          background: #f1f5f9;
+          color: #64748b;
+          border: 1px solid #cbd5e1;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .consent-btn-dismiss:hover {
+          background: #e2e8f0;
+          color: #334155;
+        }
+
+        /* Consent Toggle in Drawer */
+        .memory-consent-toggle-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 12px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          margin-bottom: 14px;
+        }
+
+        .consent-status-label {
+          font-size: 0.75rem;
+          color: #475569;
+        }
+
+        .consent-toggle-btn {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          border: none;
+          transition: all 0.15s;
+        }
+
+        .consent-toggle-btn.btn-disable {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        .consent-toggle-btn.btn-disable:hover {
+          background: #fecdd3;
+        }
+
+        .consent-toggle-btn.btn-enable {
+          background: #dcfce7;
+          color: #15803d;
+        }
+
+        .consent-toggle-btn.btn-enable:hover {
+          background: #bbf7d0;
         }
 
         .memories-section-header {

@@ -250,7 +250,7 @@ Deno.serve(async (req: Request) => {
         .maybeSingle(),
       supabaseService
         .from('profiles')
-        .select('full_name')
+        .select('full_name, chatbot_memory_consent')
         .eq('id', user.id)
         .maybeSingle(),
       supabaseService
@@ -275,12 +275,14 @@ Deno.serve(async (req: Request) => {
 
     let systemPrompt = interpolatePrompt(prompt.system_prompt, promptContext)
 
-    // Injeksi Memori Klinis Jangka Panjang Pasien (untuk asisten chatbot)
-    if (feature_slug === 'chatbot' && memoriesRes.data && memoriesRes.data.length > 0) {
+    const hasMemoryConsent = userProfile?.chatbot_memory_consent === true
+
+    // Injeksi Memori Percakapan Pasien (HANYA jika user sudah memberikan consent)
+    if (feature_slug === 'chatbot' && hasMemoryConsent && memoriesRes.data && memoriesRes.data.length > 0) {
       const memoryLines = memoriesRes.data
         .map((m: any) => `- [${String(m.memory_type).toUpperCase()}]: ${m.entity} (${m.clinical_fact})`)
         .join('\n')
-      systemPrompt += `\n\n[MEMORI KLINIS PASIEN TERVERIFIKASI]:\n${memoryLines}\nGunakan catatan memori klinis di atas untuk mempersonalisasi saran dan secara mutlak menghindari bahan/treatment yang berpotensi memicu reaksi buruk pada pasien.`
+      systemPrompt += `\n\n[MEMORI PASIEN TERVERIFIKASI]:\n${memoryLines}\nGunakan catatan memori di atas untuk mempersonalisasi saran dan secara mutlak menghindari bahan/treatment yang berpotensi memicu reaksi buruk pada pasien.`
     }
 
     // Retrieval bahan aktif terverifikasi (RAG) untuk chatbot
@@ -576,12 +578,12 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // ---- 12. Asynchronous Clinical Memory Extraction for Chatbot (UU PDP Compliant) ----
-    if (feature_slug === 'chatbot') {
+    // ---- 12. Asynchronous AI-Based Memory Extraction for Chatbot (Consent Gated) ----
+    if (feature_slug === 'chatbot' && hasMemoryConsent) {
       const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
       if (typeof lastUserMsg === 'string') {
-        extractAndStoreClinicalMemory(supabaseService, user.id, lastUserMsg)
-          .catch((err) => console.warn('[invoke-ai] Clinical memory extractor warning:', err))
+        extractMemoryWithAi(supabaseService, user.id, lastUserMsg, finalContent, model, apiKey)
+          .catch((err) => console.warn('[invoke-ai] Memory extraction skipped:', err))
       }
     }
 
@@ -855,111 +857,120 @@ Catatan:
 }
 
 /**
- * Asynchronous Clinical Memory Extractor for Chatbot
- * Adheres strictly to UU PDP No. 27/2022:
- * - Data Minimization: only extracts cosmetic/clinical attributes (allergies, sensitivities, reactions)
- * - Strict Isolation: saves to user_clinical_memories strictly under user_id
+ * Ekstraksi memori percakapan berbasis AI (bukan regex) — HANYA dipanggil jika user sudah memberikan consent.
+ * Mengekstrak fakta penting (alergi bahan, sensitivitas kulit, reaksi buruk, preferensi, tren kulit) secara terstruktur.
  */
-async function extractAndStoreClinicalMemory(
+async function extractMemoryWithAi(
   supabaseService: ReturnType<typeof createClient>,
   userId: string,
-  userMessage: string
+  userMessage: string,
+  assistantReply: string,
+  model: { provider: string; model_name: string; api_key_secret?: string },
+  apiKey: string
 ): Promise<void> {
   if (!userMessage || userMessage.trim().length < 5) return
 
-  const text = userMessage.trim()
-  const lower = text.toLowerCase()
+  const extractionPrompt = `Baca percakapan singkat berikut. Kalau ada fakta yang PANTAS diingat untuk personalisasi skincare ke depan (alergi bahan, sensitivitas kulit, reaksi buruk saat memakai produk tertentu, preferensi jenis produk, atau tren/kondisi kulit user), keluarkan sebagai JSON array. Jika tidak ada fakta penting, kembalikan array kosong [].
 
-  const extracted: Array<{
-    type: 'allergy' | 'sensitivity' | 'treatment_reaction' | 'preference'
-    entity: string
-    fact: string
-  }> = []
+User: ${userMessage}
+Asisten: ${assistantReply.slice(0, 500)}
 
-  // Pattern 1: Alergi
-  const allergyMatch = lower.match(/(?:alergi|alergen)\s+(?:sama\s+|dengan\s+|terhadap\s+)?([a-z0-9\s-]{3,35})/i)
-  if (allergyMatch && allergyMatch[1]) {
-    const rawEntity = cleanEntityName(allergyMatch[1])
-    if (rawEntity && rawEntity.length >= 3) {
-      extracted.push({
-        type: 'allergy',
-        entity: rawEntity,
-        fact: `Pengguna menyatakan alergi terhadap ${rawEntity}`,
+Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
+[
+  {
+    "memory_type": "allergy" | "sensitivity" | "treatment_reaction" | "preference" | "skin_trend",
+    "entity": "nama bahan atau kategori singkat",
+    "clinical_fact": "keterangan fakta (1 kalimat padat)"
+  }
+]`
+
+  let callProvider: 'google' | 'groq' | 'anthropic' = 'google'
+  let callModel = 'gemini-3.6-flash'
+  let callKey = apiKey
+  let callParams: Record<string, any> = { thinking_budget: 0, max_tokens: 400, temperature: 0.1 }
+
+  if (model.provider === 'groq') {
+    callProvider = 'groq'
+    callModel = 'llama-3.1-8b-instant'
+    callParams = { max_tokens: 400, temperature: 0.1 }
+  } else if (model.provider === 'google') {
+    callProvider = 'google'
+    callModel = 'gemini-3.6-flash'
+  } else {
+    try {
+      const { data: keyData } = await supabaseService.rpc('get_decrypted_secret', {
+        secret_name: 'gemini_api_key',
       })
+      if (keyData) {
+        callProvider = 'google'
+        callModel = 'gemini-3.6-flash'
+        callKey = keyData as string
+      }
+    } catch {
+      // fallback
     }
   }
 
-  // Pattern 2: Sensitivitas / Tidak cocok
-  const sensMatch = lower.match(/(?:sensitif|gak cocok|nggak cocok|tidak cocok|kurang cocok)\s+(?:sama\s+|dengan\s+|terhadap\s+|pakai\s+)?([a-z0-9\s-]{3,35})/i)
-  if (sensMatch && sensMatch[1]) {
-    const rawEntity = cleanEntityName(sensMatch[1])
-    if (rawEntity && rawEntity.length >= 3 && !extracted.some((e) => e.entity.toLowerCase() === rawEntity.toLowerCase())) {
-      extracted.push({
-        type: 'sensitivity',
-        entity: rawEntity,
-        fact: `Kulit sensitif / tidak cocok menggunakan ${rawEntity}`,
-      })
-    }
-  }
+  const result = await callAiProvider({
+    provider: callProvider,
+    modelName: callModel,
+    apiKey: callKey,
+    systemPrompt: 'Kamu adalah ekstraktor fakta terstruktur untuk personalisasi skincare. Jawab HANYA JSON array valid, tanpa markdown, tanpa penjelasan.',
+    messages: [{ role: 'user', content: extractionPrompt }],
+    parameters: callParams,
+  })
 
-  // Pattern 3: Reaksi Breakout / Iritasi
-  const reactMatch = lower.match(/(?:breakout|beruntusan|bruntusan|iritasi|perih|kemerahan|gatal)\s+(?:setelah\s+|habis\s+|pas\s+|karena\s+|pakai\s+|menggunakan\s+)([a-z0-9\s-]{3,35})/i)
-  if (reactMatch && reactMatch[1]) {
-    const rawEntity = cleanEntityName(reactMatch[1])
-    if (rawEntity && rawEntity.length >= 3 && !extracted.some((e) => e.entity.toLowerCase() === rawEntity.toLowerCase())) {
-      extracted.push({
-        type: 'treatment_reaction',
-        entity: rawEntity,
-        fact: `Mengalami reaksi buruk pada kulit saat memakai ${rawEntity}`,
-      })
-    }
-  }
+  const parsed = tryParseAiJson(result.content)
+  const items = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray((parsed as any)?.data)
+    ? (parsed as any).data
+    : null
 
-  if (extracted.length === 0) return
+  if (!items || items.length === 0) return
 
-  for (const item of extracted) {
+  const validTypes = ['allergy', 'sensitivity', 'treatment_reaction', 'preference', 'skin_trend']
+
+  for (const item of items) {
+    if (!item?.entity || !item?.clinical_fact) continue
+    const memType = validTypes.includes(item.memory_type) ? item.memory_type : 'preference'
+    const entityClean = String(item.entity).trim().slice(0, 40)
+    if (entityClean.length < 2) continue
+
     try {
       const { data: existing } = await supabaseService
         .from('user_clinical_memories')
         .select('id')
         .eq('user_id', userId)
-        .ilike('entity', item.entity)
+        .ilike('entity', entityClean)
         .maybeSingle()
+
+      const payload = {
+        memory_type: memType,
+        clinical_fact: String(item.clinical_fact).trim().slice(0, 200),
+        confidence_score: 0.95,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      }
 
       if (existing) {
         await supabaseService
           .from('user_clinical_memories')
-          .update({
-            memory_type: item.type,
-            clinical_fact: item.fact,
-            is_active: true,
-            updated_at: new Date().toISOString(),
-          })
+          .update(payload)
           .eq('id', existing.id)
       } else {
         await supabaseService
           .from('user_clinical_memories')
           .insert({
             user_id: userId,
-            memory_type: item.type,
-            entity: item.entity,
-            clinical_fact: item.fact,
-            confidence_score: 0.9,
+            entity: entityClean,
             source_feature: 'chatbot',
-            is_active: true,
+            ...payload,
           })
       }
     } catch (e) {
-      console.warn('[invoke-ai] Error saving clinical memory:', e)
+      console.warn('[invoke-ai] Error upserting memory:', e)
     }
   }
-}
-
-function cleanEntityName(raw: string): string {
-  return raw
-    .replace(/[.,?!;:]/g, '')
-    .split(/\b(banget|sih|dong|ya|kak|min|terus|tapi|soalnya|karena|dan|atau)\b/i)[0]
-    .trim()
-    .slice(0, 35)
 }
 
