@@ -8,6 +8,11 @@ import {
   CheckCircle2,
   Sparkles,
   Calculator,
+  Plus,
+  Wallet,
+  AlertTriangle,
+  Trash2,
+  X,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -15,6 +20,8 @@ interface AiLogRecord {
   id: string
   feature_id: string
   tokens_used: number | null
+  input_tokens: number | null
+  output_tokens: number | null
   cost_usd: number | null
   status: string
   created_at: string
@@ -27,6 +34,16 @@ interface AiLogRecord {
     model_name: string
     provider: string
   } | null
+}
+
+interface ProviderTopupRecord {
+  id: string
+  provider: 'gemini' | 'groq' | 'claude' | 'other'
+  amount_idr: number
+  amount_usd: number
+  topped_up_at: string
+  notes?: string | null
+  created_at: string
 }
 
 interface InvoiceRecord {
@@ -50,19 +67,33 @@ export default function AdminFinancialsPage() {
   const [logs, setLogs] = useState<AiLogRecord[]>([])
   const [invoices, setInvoices] = useState<InvoiceRecord[]>([])
   const [features, setFeatures] = useState<AiFeatureMaster[]>([])
+  const [topups, setTopups] = useState<ProviderTopupRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [discountPercent, setDiscountPercent] = useState<number>(30)
+
+  // Modal & Form State untuk Top-Up Provider
+  const [showTopupModal, setShowTopupModal] = useState(false)
+  const [isSavingTopup, setIsSavingTopup] = useState(false)
+  const [topupForm, setTopupForm] = useState({
+    provider: 'gemini' as 'gemini' | 'groq' | 'claude' | 'other',
+    amount_idr: '',
+    amount_usd: '',
+    notes: '',
+    topped_up_at: new Date().toISOString().slice(0, 16),
+  })
 
   const loadFinancialData = useCallback(async () => {
     setIsLoading(true)
     try {
-      const [logsRes, invRes, featuresRes] = await Promise.all([
+      const [logsRes, invRes, featuresRes, topupsRes] = await Promise.all([
         supabase
           .from('ai_request_logs')
           .select(`
             id,
             feature_id,
             tokens_used,
+            input_tokens,
+            output_tokens,
             cost_usd,
             status,
             created_at,
@@ -82,15 +113,22 @@ export default function AdminFinancialsPage() {
           .select('id, slug, name, credit_cost, is_active')
           .eq('is_active', true)
           .order('slug'),
+        supabase
+          .from('provider_topups')
+          .select('id, provider, amount_idr, amount_usd, topped_up_at, notes, created_at')
+          .order('topped_up_at', { ascending: false }),
       ])
 
       if (logsRes.error) throw logsRes.error
       if (invRes.error) throw invRes.error
       if (featuresRes.error) throw featuresRes.error
+      // provider_topups query error handled gracefully if table was just created
+      if (topupsRes.error) console.warn('[AdminFinancials] Provider topups warning:', topupsRes.error)
 
       setLogs((logsRes.data as any) || [])
       setInvoices((invRes.data as any) || [])
       setFeatures((featuresRes.data as any) || [])
+      setTopups((topupsRes.data as any) || [])
     } catch (err) {
       console.error('[AdminFinancials] Error loading data:', err)
     } finally {
@@ -128,7 +166,7 @@ export default function AdminFinancialsPage() {
     }
   }, [invoices, logs])
 
-  // Analisis per Fitur AI — 100% Tersinkronisasi dengan Master ai_features
+  // Analisis per Fitur AI — Rentang Empiris MIN, MAX, AVG & Rasio Input/Output
   const featureBreakdown = useMemo(() => {
     const map = new Map<
       string,
@@ -137,18 +175,26 @@ export default function AdminFinancialsPage() {
         slug: string
         calls: number
         totalTokens: number
+        minTokens: number
+        maxTokens: number
+        totalInputTokens: number
+        totalOutputTokens: number
         totalCostUSD: number
         creditCost: number
       }
     >()
 
-    // 1. Inisialisasi seluruh fitur aktif dari tabel ai_features agar tarif kredit selalu live
+    // 1. Inisialisasi seluruh fitur aktif dari tabel ai_features
     features.forEach((f) => {
       map.set(f.id, {
         name: f.name,
         slug: f.slug,
         calls: 0,
         totalTokens: 0,
+        minTokens: Infinity,
+        maxTokens: 0,
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
         totalCostUSD: 0,
         creditCost: typeof f.credit_cost === 'number' ? f.credit_cost : 1,
       })
@@ -160,13 +206,102 @@ export default function AdminFinancialsPage() {
       if (map.has(featId)) {
         const item = map.get(featId)!
         item.calls += 1
-        item.totalTokens += log.tokens_used || 0
+        const t = log.tokens_used || 0
+        item.totalTokens += t
+        if (t > 0 && t < item.minTokens) item.minTokens = t
+        if (t > item.maxTokens) item.maxTokens = t
+        item.totalInputTokens += log.input_tokens || 0
+        item.totalOutputTokens += log.output_tokens || 0
         item.totalCostUSD += log.cost_usd || 0
       }
     })
 
-    return Array.from(map.values())
+    return Array.from(map.values()).map((item) => ({
+      ...item,
+      minTokens: item.minTokens === Infinity ? 0 : item.minTokens,
+    }))
   }, [features, logs])
+
+  // Hitung Rekonsiliasi Saldo Deposit Provider (Fase B)
+  const topupReconciliation = useMemo(() => {
+    const totalTopupIDR = topups.reduce((acc, t) => acc + (Number(t.amount_idr) || 0), 0)
+    const totalTopupUSD = topups.reduce((acc, t) => acc + (Number(t.amount_usd) || 0), 0)
+    const totalCostIDR = financials.totalCostIDR
+    const totalCostUSD = financials.totalCostUSD
+    const remainingIDR = totalTopupIDR - totalCostIDR
+    const remainingUSD = totalTopupUSD - totalCostUSD
+    const percentRemaining =
+      totalTopupIDR > 0 ? ((remainingIDR / totalTopupIDR) * 100).toFixed(1) : '0'
+
+    // Akumulasi per provider
+    const providerStats: Record<string, { topupIDR: number; count: number }> = {
+      gemini: { topupIDR: 0, count: 0 },
+      groq: { topupIDR: 0, count: 0 },
+      claude: { topupIDR: 0, count: 0 },
+      other: { topupIDR: 0, count: 0 },
+    }
+
+    topups.forEach((t) => {
+      const p = t.provider in providerStats ? t.provider : 'other'
+      providerStats[p].topupIDR += Number(t.amount_idr) || 0
+      providerStats[p].count += 1
+    })
+
+    return {
+      totalTopupIDR,
+      totalTopupUSD,
+      remainingIDR,
+      remainingUSD,
+      percentRemaining,
+      providerStats,
+    }
+  }, [topups, financials])
+
+  const handleAmountIdrChange = (val: string) => {
+    const num = parseFloat(val) || 0
+    const usd = num > 0 ? (num / USD_TO_IDR).toFixed(2) : ''
+    setTopupForm((prev) => ({
+      ...prev,
+      amount_idr: val,
+      amount_usd: usd,
+    }))
+  }
+
+  const handleSaveTopup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const idr = parseFloat(topupForm.amount_idr)
+    const usd = parseFloat(topupForm.amount_usd) || idr / USD_TO_IDR
+    if (!idr || idr <= 0) return
+
+    setIsSavingTopup(true)
+    try {
+      const { error } = await supabase.from('provider_topups').insert({
+        provider: topupForm.provider,
+        amount_idr: idr,
+        amount_usd: usd,
+        notes: topupForm.notes.trim() || null,
+        topped_up_at: new Date(topupForm.topped_up_at).toISOString(),
+      })
+      if (error) throw error
+      setShowTopupModal(false)
+      loadFinancialData()
+    } catch (err: any) {
+      alert(`Gagal mencatat top-up: ${err.message}`)
+    } finally {
+      setIsSavingTopup(false)
+    }
+  }
+
+  const handleDeleteTopup = async (id: string) => {
+    if (!window.confirm('Hapus catatan top-up provider ini?')) return
+    try {
+      const { error } = await supabase.from('provider_topups').delete().eq('id', id)
+      if (error) throw error
+      loadFinancialData()
+    } catch (err: any) {
+      alert(`Gagal menghapus top-up: ${err.message}`)
+    }
+  }
 
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -276,7 +411,7 @@ export default function AdminFinancialsPage() {
                 <th>NAMA FITUR</th>
                 <th>IDENTIFIER (SLUG)</th>
                 <th>TOTAL DIPANGGIL</th>
-                <th>RATA-RATA TOKEN</th>
+                <th>RATA-RATA &amp; RENTANG TOKEN</th>
                 <th>BIAYA RIIL PER PANGGIL</th>
                 <th>BIAYA KREDIT USER</th>
                 <th>STATUS PROFITABILITAS</th>
@@ -292,6 +427,8 @@ export default function AdminFinancialsPage() {
               ) : (
                 featureBreakdown.map((f) => {
                   const avgTokens = f.calls > 0 ? Math.round(f.totalTokens / f.calls) : 0
+                  const avgInput = f.calls > 0 ? Math.round(f.totalInputTokens / f.calls) : 0
+                  const avgOutput = f.calls > 0 ? Math.round(f.totalOutputTokens / f.calls) : 0
                   const avgCostIDR = f.calls > 0 ? ((f.totalCostUSD * USD_TO_IDR) / f.calls).toFixed(1) : '0'
 
                   return (
@@ -303,7 +440,16 @@ export default function AdminFinancialsPage() {
                         </span>
                       </td>
                       <td className="font-semibold">{f.calls.toLocaleString()} kali</td>
-                      <td>{avgTokens.toLocaleString()} tokens</td>
+                      <td>
+                        <div className="font-semibold text-gray-900">{avgTokens.toLocaleString()} tokens</div>
+                        {f.calls > 0 && (
+                          <div className="text-xs text-gray-500 font-mono mt-0.5">
+                            Rentang: {f.minTokens.toLocaleString()} - {f.maxTokens.toLocaleString()}
+                            <br />
+                            In: ~{avgInput.toLocaleString()} / Out: ~{avgOutput.toLocaleString()}
+                          </div>
+                        )}
+                      </td>
                       <td className="font-bold text-gray-900">Rp {avgCostIDR}</td>
                       <td>
                         <span className="credit-tag">
@@ -318,6 +464,136 @@ export default function AdminFinancialsPage() {
                     </tr>
                   )
                 })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Section: Rekonsiliasi Deposit Saldo Provider AI (Topup vs Real Cost) */}
+      <div className="section-card reconciliation-card">
+        <div className="section-header flex-header">
+          <div>
+            <div className="flex items-center gap-2">
+              <Wallet size={18} className="text-emerald-600" />
+              <h3>Rekonsiliasi Deposit Provider AI (Top-Up vs Riil COGS)</h3>
+            </div>
+            <p>
+              Pantau saldo deposit yang Anda bayarkan ke billing provider (Google Cloud / Groq / Anthropic) dibandingkan dengan konsumsi riil AI.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn-add-topup"
+            onClick={() => {
+              setTopupForm({
+                provider: 'gemini',
+                amount_idr: '',
+                amount_usd: '',
+                notes: '',
+                topped_up_at: new Date().toISOString().slice(0, 16),
+              })
+              setShowTopupModal(true)
+            }}
+          >
+            <Plus size={15} /> Catat Top-Up Saldo
+          </button>
+        </div>
+
+        {/* Topup KPI Summary */}
+        <div className="topup-kpi-grid">
+          <div className="topup-kpi-item">
+            <span className="topup-kpi-label">Total Deposit Diisi</span>
+            <span className="topup-kpi-value text-emerald-700">
+              {formatIDR(topupReconciliation.totalTopupIDR)}
+            </span>
+            <span className="topup-kpi-sub">
+              ${topupReconciliation.totalTopupUSD.toFixed(2)} dari {topups.length} transaksi
+            </span>
+          </div>
+
+          <div className="topup-kpi-item">
+            <span className="topup-kpi-label">Total AI Terpakai (COGS)</span>
+            <span className="topup-kpi-value text-red-600">
+              {formatIDR(financials.totalCostIDR)}
+            </span>
+            <span className="topup-kpi-sub">
+              ${financials.totalCostUSD.toFixed(4)} ({financials.totalTokens.toLocaleString()} tokens)
+            </span>
+          </div>
+
+          <div className="topup-kpi-item">
+            <span className="topup-kpi-label">Estimasi Sisa Saldo Tersedia</span>
+            <span className={`topup-kpi-value ${topupReconciliation.remainingIDR >= 0 ? 'text-indigo-700' : 'text-amber-600'}`}>
+              {formatIDR(topupReconciliation.remainingIDR)}
+            </span>
+            <span className="topup-kpi-sub">
+              ${topupReconciliation.remainingUSD.toFixed(2)} ({topupReconciliation.percentRemaining}% tersisa)
+            </span>
+          </div>
+        </div>
+
+        {/* Warning strip jika saldo menipis */}
+        {topupReconciliation.totalTopupIDR > 0 && topupReconciliation.remainingIDR < topupReconciliation.totalTopupIDR * 0.2 && (
+          <div className="topup-alert-warning">
+            <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+            <span>
+              <strong>Perhatian:</strong> Sisa saldo deposit provider Anda di bawah 20% ({topupReconciliation.percentRemaining}%). Disarankan untuk segera melakukan top-up billing di Google Cloud / Groq untuk mencegah gangguan layanan AI.
+            </span>
+          </div>
+        )}
+
+        {/* Tabel Riwayat Topup */}
+        <div className="table-responsive" style={{ marginTop: 16 }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>TANGGAL TOP-UP</th>
+                <th>PROVIDER</th>
+                <th>NOMINAL (IDR)</th>
+                <th>NOMINAL (USD)</th>
+                <th>CATATAN / INVOICE</th>
+                <th>AKSI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topups.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-gray-400">
+                    Belum ada riwayat top-up provider yang dicatat. Klik <strong>Catat Top-Up Saldo</strong> di atas untuk merekam deposit pertama Anda.
+                  </td>
+                </tr>
+              ) : (
+                topups.map((t) => (
+                  <tr key={t.id} className="table-row">
+                    <td className="font-semibold text-gray-800">
+                      {new Date(t.topped_up_at).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td>
+                      <span className={`provider-tag tag-${t.provider}`}>
+                        {t.provider.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="font-bold text-gray-900">{formatIDR(Number(t.amount_idr))}</td>
+                    <td className="font-mono text-gray-700">${Number(t.amount_usd).toFixed(2)}</td>
+                    <td className="text-gray-600 text-xs">{t.notes || '-'}</td>
+                    <td>
+                      <button
+                        onClick={() => handleDeleteTopup(t.id)}
+                        className="delete-topup-btn"
+                        title="Hapus catatan top-up"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -410,6 +686,115 @@ export default function AdminFinancialsPage() {
           </div>
         </div>
       </div>
+
+      {/* MODAL CATAT TOP-UP PROVIDER */}
+      {showTopupModal && (
+        <div className="topup-modal-overlay" onClick={() => setShowTopupModal(false)}>
+          <div className="topup-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="topup-modal-header">
+              <div className="flex items-center gap-2">
+                <Wallet size={18} className="text-emerald-600" />
+                <h3>Catat Deposit Top-Up Provider AI</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTopupModal(false)}
+                className="modal-close-btn"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTopup} className="topup-form">
+              <div className="form-group">
+                <label>Provider AI / Cloud</label>
+                <select
+                  value={topupForm.provider}
+                  onChange={(e) =>
+                    setTopupForm((prev) => ({
+                      ...prev,
+                      provider: e.target.value as any,
+                    }))
+                  }
+                  required
+                >
+                  <option value="gemini">Google Gemini (Google Cloud Vertex / AI Studio)</option>
+                  <option value="groq">Groq Cloud (Llama / Qwen)</option>
+                  <option value="claude">Anthropic Claude</option>
+                  <option value="other">Provider Lain</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Nominal Top-Up (Rupiah - IDR)</label>
+                <input
+                  type="number"
+                  placeholder="Contoh: 500000"
+                  value={topupForm.amount_idr}
+                  onChange={(e) => handleAmountIdrChange(e.target.value)}
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Estimasi Ekuivalen USD (Kurs Rp 16.000)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Contoh: 31.25"
+                  value={topupForm.amount_usd}
+                  onChange={(e) =>
+                    setTopupForm((prev) => ({ ...prev, amount_usd: e.target.value }))
+                  }
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Waktu Transaksi Top-Up</label>
+                <input
+                  type="datetime-local"
+                  value={topupForm.topped_up_at}
+                  onChange={(e) =>
+                    setTopupForm((prev) => ({ ...prev, topped_up_at: e.target.value }))
+                  }
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Catatan / Nomor Invoice (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Billing GCP Mei 2024 / Ref CC-9821"
+                  value={topupForm.notes}
+                  onChange={(e) =>
+                    setTopupForm((prev) => ({ ...prev, notes: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setShowTopupModal(false)}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-submit"
+                  disabled={isSavingTopup}
+                >
+                  {isSavingTopup ? 'Menyimpan...' : 'Simpan Transaksi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* VANILLA CSS STYLING */}
       <style>{`
@@ -693,6 +1078,250 @@ export default function AdminFinancialsPage() {
           gap: 8px;
           font-size: 12px;
           color: #065f46;
+        }
+
+        /* Topup Reconciliation Styles */
+        .flex-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .btn-add-topup {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          background: #059669;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-add-topup:hover {
+          background: #047857;
+        }
+
+        .topup-kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+          margin-bottom: 16px;
+        }
+
+        .topup-kpi-item {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .topup-kpi-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        .topup-kpi-value {
+          font-size: 20px;
+          font-weight: 800;
+          margin: 4px 0 2px 0;
+          letter-spacing: -0.02em;
+        }
+
+        .topup-kpi-sub {
+          font-size: 11px;
+          color: #94a3b8;
+        }
+
+        .topup-alert-warning {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 8px;
+          padding: 10px 14px;
+          font-size: 12px;
+          color: #92400e;
+          margin-bottom: 16px;
+        }
+
+        .provider-tag {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 6px;
+          letter-spacing: 0.03em;
+        }
+
+        .provider-tag.tag-gemini {
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+        }
+
+        .provider-tag.tag-groq {
+          background: #fff7ed;
+          color: #c2410c;
+          border: 1px solid #fed7aa;
+        }
+
+        .provider-tag.tag-claude {
+          background: #faf5ff;
+          color: #7e22ce;
+          border: 1px solid #e9d5ff;
+        }
+
+        .provider-tag.tag-other {
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #cbd5e1;
+        }
+
+        .delete-topup-btn {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+        }
+
+        .delete-topup-btn:hover {
+          color: #ef4444;
+          background: #fee2e2;
+        }
+
+        /* Topup Modal */
+        .topup-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.45);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 999;
+          padding: 16px;
+        }
+
+        .topup-modal-card {
+          background: #ffffff;
+          border-radius: 14px;
+          max-width: 460px;
+          width: 100%;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e2e8f0;
+          overflow: hidden;
+        }
+
+        .topup-modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .topup-modal-header h3 {
+          font-size: 15px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .modal-close-btn {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 6px;
+        }
+
+        .modal-close-btn:hover {
+          color: #475569;
+          background: #f1f5f9;
+        }
+
+        .topup-form {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .topup-form .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .topup-form label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .topup-form input, .topup-form select {
+          padding: 9px 12px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 13px;
+          color: #0f172a;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+
+        .topup-form input:focus, .topup-form select:focus {
+          border-color: #4f46e5;
+        }
+
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 10px;
+        }
+
+        .btn-cancel {
+          padding: 8px 14px;
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+        }
+
+        .btn-submit {
+          padding: 8px 16px;
+          background: #059669;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #ffffff;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+          background: #047857;
         }
       `}</style>
     </div>

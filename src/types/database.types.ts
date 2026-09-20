@@ -717,6 +717,39 @@ export type Database = {
           },
         ]
       }
+      provider_topups: {
+        Row: {
+          amount_idr: number
+          amount_usd: number
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          provider: 'gemini' | 'groq' | 'claude' | 'other'
+          topped_up_at: string
+        }
+        Insert: {
+          amount_idr: number
+          amount_usd: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          provider: 'gemini' | 'groq' | 'claude' | 'other'
+          topped_up_at?: string
+        }
+        Update: {
+          amount_idr?: number
+          amount_usd?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          provider?: 'gemini' | 'groq' | 'claude' | 'other'
+          topped_up_at?: string
+        }
+        Relationships: []
+      }
       quota_usage: {
         Row: {
           feature_id: string

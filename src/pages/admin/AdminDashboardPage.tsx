@@ -639,7 +639,7 @@ export default function AdminDashboardPage() {
         </Link>
 
         <Link
-          to="/admin/memory/logs"
+          to="/admin/logs"
           style={{
             background: '#ffffff',
             borderRadius: 12,

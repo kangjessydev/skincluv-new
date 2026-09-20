@@ -32,11 +32,13 @@ interface TestResult {
 const RECOMMENDED_MODELS: Record<'google' | 'anthropic' | 'openai' | 'groq', Array<{ name: string; desc: string }>> = {
   groq: [
     { name: 'llama-3.3-70b-versatile', desc: 'Rekomendasi Utama (70B, Cepat & Cerdas)' },
+    { name: 'qwen/qwen3.8-27b', desc: 'Chatbot & Konsultasi Medis Hemat' },
     { name: 'llama-3.1-8b-instant', desc: 'Ultra Cepat & Hemat' },
     { name: 'deepseek-r1-distill-llama-70b', desc: 'Reasoning Model' },
   ],
   google: [
     { name: 'gemini-2.5-flash', desc: 'Default Gemini (Cepat & Stabil)' },
+    { name: 'gemini-3.6-flash', desc: 'Generasi Terbaru (Tinggi Akurasi & Hemat)' },
     { name: 'gemini-2.0-flash', desc: 'Ultra Hemat' },
   ],
   anthropic: [

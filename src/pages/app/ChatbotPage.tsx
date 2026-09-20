@@ -1,7 +1,7 @@
 // src/pages/app/ChatbotPage.tsx
 // 100% Faithful Port of Claude's Skinsistant AI Chatbot UI — Pure Vanilla CSS, Sticky Input & Zero Page Scroll
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Send,
@@ -16,6 +16,9 @@ import {
   Crown,
   Trophy,
   ShieldAlert,
+  ShieldCheck,
+  Brain,
+  X,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -23,6 +26,15 @@ import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import FormattedMarkdown from '@/components/ui/FormattedMarkdown'
+
+interface ClinicalMemory {
+  id: string
+  memory_type: 'allergy' | 'sensitivity' | 'treatment_reaction' | 'preference' | 'skin_trend'
+  entity: string
+  clinical_fact: string
+  confidence_score: number
+  created_at: string
+}
 
 interface Message {
   id: string
@@ -77,8 +89,67 @@ export default function ChatbotPage() {
   const [isSending, setIsSending] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [showMemoryModal, setShowMemoryModal] = useState(false)
+  const [clinicalMemories, setClinicalMemories] = useState<ClinicalMemory[]>([])
+  const [isLoadingMemories, setIsLoadingMemories] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const fetchClinicalMemories = useCallback(async () => {
+    if (!user?.id) return
+    setIsLoadingMemories(true)
+    try {
+      const { data } = await supabase
+        .from('user_clinical_memories')
+        .select('id, memory_type, entity, clinical_fact, confidence_score, created_at')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (data) setClinicalMemories(data as ClinicalMemory[])
+    } catch (err) {
+      console.error('Failed to fetch clinical memories:', err)
+    } finally {
+      setIsLoadingMemories(false)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    fetchClinicalMemories()
+  }, [fetchClinicalMemories])
+
+  const handleDeleteSingleMemory = async (memId: string) => {
+    if (!user?.id) return
+    try {
+      await supabase.from('user_clinical_memories').delete().eq('id', memId).eq('user_id', user.id)
+      setClinicalMemories((prev) => prev.filter((m) => m.id !== memId))
+    } catch (err) {
+      console.error('Error deleting memory:', err)
+    }
+  }
+
+  const handleClearAllMemories = async () => {
+    if (!user?.id) return
+    if (!window.confirm('Hapus seluruh memori klinis yang diingat AI tentang kulit Anda? Tindakan ini mematuhi Hak Penghapusan Data Pribadi (UU PDP No. 27/2022).')) return
+    try {
+      await supabase.from('user_clinical_memories').delete().eq('user_id', user.id)
+      setClinicalMemories([])
+    } catch (err) {
+      console.error('Error clearing clinical memories:', err)
+    }
+  }
+
+  const handleResetCurrentSession = async () => {
+    const activeSessionId = sessionId
+    if (!activeSessionId) return
+    if (!window.confirm('Kosongkan seluruh riwayat obrolan dalam sesi chat ini?')) return
+    try {
+      await supabase.from('chat_messages').delete().eq('session_id', activeSessionId)
+      setMessages([])
+    } catch (err) {
+      console.error('Failed to reset current session:', err)
+    }
+  }
 
   const userName = profile?.full_name?.split(' ')[0] || 'Pengguna'
   const userInitials = profile?.full_name
@@ -318,9 +389,11 @@ export default function ChatbotPage() {
       console.error('Error saving user message:', err)
     }
 
-    // Call Supabase Edge Function AI Chat endpoint
+    // Call Supabase Edge Function AI Chat endpoint with extended context window
     try {
-      const historyFormatted = messages.slice(-6).map((m) => ({
+      const isProUser = (subscription as any)?.subscription_tiers?.slug === 'premium'
+      const maxHistory = isProUser ? 20 : 14
+      const historyFormatted = messages.slice(-maxHistory).map((m) => ({
         role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
         content: m.text,
       }))
@@ -348,6 +421,11 @@ export default function ChatbotPage() {
           role: 'assistant',
           content: botReply,
         })
+
+        // Segarkan memori klinis jika AI mendeteksi fakta baru di latar belakang
+        setTimeout(() => {
+          fetchClinicalMemories()
+        }, 1500)
       } else {
         // Fallback bubble informatif jika invoke gagal atau credits habis — bukan hening/tidak ada respon
         const noticeText = `⚠️ **Credits kamu tidak mencukupi** untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
@@ -389,21 +467,128 @@ export default function ChatbotPage() {
         />
       )}
 
-      {/* CHAT UTILITY BAR (Riwayat Chat & Chat Baru) */}
+      {/* CHAT UTILITY BAR (Riwayat Chat, Memori Klinis, Reset Sesi & Chat Baru) */}
       <div className="chat-util-bar">
-        <button
-          onClick={() => setShowHistoryModal(!showHistoryModal)}
-          className="util-btn util-history-btn"
-        >
-          <History size={16} />
-          <span>Riwayat Chat ({sessions.length})</span>
-        </button>
+        <div className="chat-util-left">
+          <button
+            onClick={() => setShowHistoryModal(!showHistoryModal)}
+            className="util-btn util-history-btn"
+          >
+            <History size={16} />
+            <span>Riwayat ({sessions.length})</span>
+          </button>
 
-        <button onClick={handleCreateNewChat} className="util-btn util-new-btn">
-          <Plus size={16} />
-          <span>Chat Baru</span>
-        </button>
+          <button
+            onClick={() => {
+              fetchClinicalMemories()
+              setShowMemoryModal(true)
+            }}
+            className="util-btn util-memory-btn"
+            title="Memori Klinis Pasien (Kepatuhan UU PDP No. 27/2022)"
+          >
+            <Brain size={16} />
+            <span>Memori Klinis ({clinicalMemories.length})</span>
+          </button>
+        </div>
+
+        <div className="chat-util-right">
+          {sessionId && messages.length > 0 && (
+            <button
+              onClick={handleResetCurrentSession}
+              className="util-btn util-reset-btn"
+              title="Kosongkan pesan dalam sesi ini"
+            >
+              <Trash2 size={15} />
+              <span>Reset Sesi</span>
+            </button>
+          )}
+
+          <button onClick={handleCreateNewChat} className="util-btn util-new-btn">
+            <Plus size={16} />
+            <span>Chat Baru</span>
+          </button>
+        </div>
       </div>
+
+      {/* CLINICAL MEMORY MODAL (UU PDP NO. 27/2022 COMPLIANT) */}
+      {showMemoryModal && (
+        <div className="history-drawer-overlay" onClick={() => setShowMemoryModal(false)}>
+          <div className="history-drawer clinical-memory-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-header">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-teal-600" />
+                <h3>Memori Klinis & Hak Privasi</h3>
+              </div>
+              <button onClick={() => setShowMemoryModal(false)} className="drawer-close-btn">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="drawer-body">
+              <div className="uupdp-compliance-card">
+                <div className="uupdp-badge">
+                  <ShieldCheck size={13} /> Kepatuhan UU PDP No. 27/2022
+                </div>
+                <p>
+                  <strong>Prinsip Minimisasi Data & Isolasi Pribadi:</strong> AI hanya mengingat fakta klinis (alergi, sensitivitas bahan, atau reaksi kulit) yang Anda diskusikan agar konsultasi berikutnya selalu aman. Memori ini 100% terisolasi untuk akun Anda dan tidak dapat dibaca admin ataupun pihak ketiga.
+                </p>
+                <div className="uupdp-rights">
+                  <span>✓ Hak Menghapus Data Pribadi (Pasal 8)</span>
+                  <span>✓ Isolasi Sandboxing RLS (Pasal 35)</span>
+                </div>
+              </div>
+
+              <div className="memories-section-header">
+                <h4>Fakta Kulit yang Diingat ({clinicalMemories.length})</h4>
+                {clinicalMemories.length > 0 && (
+                  <button
+                    onClick={handleClearAllMemories}
+                    className="clear-all-memories-btn"
+                    title="Hapus seluruh memori klinis"
+                  >
+                    Hapus Semua
+                  </button>
+                )}
+              </div>
+
+              {isLoadingMemories ? (
+                <div className="flex items-center justify-center py-8 text-gray-400">
+                  <Loader2 size={20} className="animate-spin" />
+                </div>
+              ) : clinicalMemories.length === 0 ? (
+                <div className="empty-memories-box">
+                  <Brain size={28} className="text-gray-300 mb-2" />
+                  <p className="text-sm font-semibold text-gray-600">Belum ada memori klinis tersimpan.</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Saat Anda menyebut alergi atau bahan yang membuat kulit iritasi (misal: "kulitku alergi parfum"), AI akan otomatis mengingatnya.
+                  </p>
+                </div>
+              ) : (
+                <div className="clinical-memories-list">
+                  {clinicalMemories.map((m) => (
+                    <div key={m.id} className="clinical-memory-card">
+                      <div className="memory-card-top">
+                        <span className={`memory-type-badge type-${m.memory_type}`}>
+                          {m.memory_type.replace('_', ' ').toUpperCase()}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteSingleMemory(m.id)}
+                          className="delete-memory-btn"
+                          title="Hapus fakta memori ini"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                      <div className="memory-entity-name">{m.entity}</div>
+                      <div className="memory-fact-text">{m.clinical_fact}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HISTORY SESSIONS POPOVER / DRAWER */}
       {showHistoryModal && (
@@ -1173,6 +1358,192 @@ export default function ChatbotPage() {
 
         .strip-btn-upgrade:hover {
           background: #0b4d63;
+        }
+
+        .chat-util-left, .chat-util-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .util-memory-btn {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .util-memory-btn:hover {
+          background: #dcfce7;
+        }
+
+        .util-reset-btn {
+          background: #fff1f2;
+          color: #be123c;
+          border: 1px solid #fecdd3;
+        }
+
+        .util-reset-btn:hover {
+          background: #ffe4e6;
+        }
+
+        .clinical-memory-drawer {
+          max-width: 480px;
+        }
+
+        .uupdp-compliance-card {
+          background: #f0fdfa;
+          border: 1px solid #ccfbf1;
+          border-radius: 10px;
+          padding: 12px;
+          margin-bottom: 16px;
+        }
+
+        .uupdp-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #0f766e;
+          margin-bottom: 6px;
+        }
+
+        .uupdp-compliance-card p {
+          font-size: 12px;
+          color: #334155;
+          line-height: 1.5;
+          margin: 0 0 8px 0;
+        }
+
+        .uupdp-rights {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          color: #0d9488;
+        }
+
+        .memories-section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .memories-section-header h4 {
+          font-size: 13px;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .clear-all-memories-btn {
+          font-size: 11px;
+          color: #e11d48;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+
+        .clear-all-memories-btn:hover {
+          background: #ffe4e6;
+        }
+
+        .empty-memories-box {
+          text-align: center;
+          padding: 24px 12px;
+          background: #f8fafc;
+          border-radius: 10px;
+          border: 1px dashed #cbd5e1;
+        }
+
+        .clinical-memories-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .clinical-memory-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 12px;
+          transition: all 0.15s ease;
+        }
+
+        .clinical-memory-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .memory-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+        }
+
+        .memory-type-badge {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 999px;
+          letter-spacing: 0.03em;
+        }
+
+        .memory-type-badge.type-allergy {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        .memory-type-badge.type-sensitivity {
+          background: #fef3c7;
+          color: #b45309;
+        }
+
+        .memory-type-badge.type-treatment_reaction {
+          background: #ede9fe;
+          color: #6d28d9;
+        }
+
+        .memory-type-badge.type-preference {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        .delete-memory-btn {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+        }
+
+        .delete-memory-btn:hover {
+          color: #ef4444;
+          background: #fee2e2;
+        }
+
+        .memory-entity-name {
+          font-size: 13px;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 3px;
+        }
+
+        .memory-fact-text {
+          font-size: 12px;
+          color: #64748b;
+          line-height: 1.4;
         }
 
         @media (max-width: 768px) {

@@ -91,8 +91,8 @@ Deno.serve(async (req: Request) => {
     const subscription = subscriptionRes.data
     const isPro = (subscription as any)?.subscription_tiers?.slug === 'premium'
 
-    // Deep context memory (10 messages) for PRO chatbot, 6 messages for standard
-    const historyLimit = isPro && feature_slug === 'chatbot' ? 10 : 6
+    // Extended context window: 20 messages (10 turns) for PRO chatbot, 14 messages (7 turns) for standard chatbot, 6 for other features
+    const historyLimit = isPro && feature_slug === 'chatbot' ? 20 : (feature_slug === 'chatbot' ? 14 : 6)
     const trimmedMessages = messages.slice(-historyLimit)
 
     // Load active prompt + model for this feature
@@ -576,6 +576,14 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ---- 12. Asynchronous Clinical Memory Extraction for Chatbot (UU PDP Compliant) ----
+    if (feature_slug === 'chatbot') {
+      const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
+      if (typeof lastUserMsg === 'string') {
+        extractAndStoreClinicalMemory(supabaseService, user.id, lastUserMsg)
+          .catch((err) => console.warn('[invoke-ai] Clinical memory extractor warning:', err))
+      }
+    }
 
     // ---- Return response ----
     return new Response(
@@ -845,3 +853,113 @@ Catatan:
     }
   }
 }
+
+/**
+ * Asynchronous Clinical Memory Extractor for Chatbot
+ * Adheres strictly to UU PDP No. 27/2022:
+ * - Data Minimization: only extracts cosmetic/clinical attributes (allergies, sensitivities, reactions)
+ * - Strict Isolation: saves to user_clinical_memories strictly under user_id
+ */
+async function extractAndStoreClinicalMemory(
+  supabaseService: ReturnType<typeof createClient>,
+  userId: string,
+  userMessage: string
+): Promise<void> {
+  if (!userMessage || userMessage.trim().length < 5) return
+
+  const text = userMessage.trim()
+  const lower = text.toLowerCase()
+
+  const extracted: Array<{
+    type: 'allergy' | 'sensitivity' | 'treatment_reaction' | 'preference'
+    entity: string
+    fact: string
+  }> = []
+
+  // Pattern 1: Alergi
+  const allergyMatch = lower.match(/(?:alergi|alergen)\s+(?:sama\s+|dengan\s+|terhadap\s+)?([a-z0-9\s-]{3,35})/i)
+  if (allergyMatch && allergyMatch[1]) {
+    const rawEntity = cleanEntityName(allergyMatch[1])
+    if (rawEntity && rawEntity.length >= 3) {
+      extracted.push({
+        type: 'allergy',
+        entity: rawEntity,
+        fact: `Pengguna menyatakan alergi terhadap ${rawEntity}`,
+      })
+    }
+  }
+
+  // Pattern 2: Sensitivitas / Tidak cocok
+  const sensMatch = lower.match(/(?:sensitif|gak cocok|nggak cocok|tidak cocok|kurang cocok)\s+(?:sama\s+|dengan\s+|terhadap\s+|pakai\s+)?([a-z0-9\s-]{3,35})/i)
+  if (sensMatch && sensMatch[1]) {
+    const rawEntity = cleanEntityName(sensMatch[1])
+    if (rawEntity && rawEntity.length >= 3 && !extracted.some((e) => e.entity.toLowerCase() === rawEntity.toLowerCase())) {
+      extracted.push({
+        type: 'sensitivity',
+        entity: rawEntity,
+        fact: `Kulit sensitif / tidak cocok menggunakan ${rawEntity}`,
+      })
+    }
+  }
+
+  // Pattern 3: Reaksi Breakout / Iritasi
+  const reactMatch = lower.match(/(?:breakout|beruntusan|bruntusan|iritasi|perih|kemerahan|gatal)\s+(?:setelah\s+|habis\s+|pas\s+|karena\s+|pakai\s+|menggunakan\s+)([a-z0-9\s-]{3,35})/i)
+  if (reactMatch && reactMatch[1]) {
+    const rawEntity = cleanEntityName(reactMatch[1])
+    if (rawEntity && rawEntity.length >= 3 && !extracted.some((e) => e.entity.toLowerCase() === rawEntity.toLowerCase())) {
+      extracted.push({
+        type: 'treatment_reaction',
+        entity: rawEntity,
+        fact: `Mengalami reaksi buruk pada kulit saat memakai ${rawEntity}`,
+      })
+    }
+  }
+
+  if (extracted.length === 0) return
+
+  for (const item of extracted) {
+    try {
+      const { data: existing } = await supabaseService
+        .from('user_clinical_memories')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('entity', item.entity)
+        .maybeSingle()
+
+      if (existing) {
+        await supabaseService
+          .from('user_clinical_memories')
+          .update({
+            memory_type: item.type,
+            clinical_fact: item.fact,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+      } else {
+        await supabaseService
+          .from('user_clinical_memories')
+          .insert({
+            user_id: userId,
+            memory_type: item.type,
+            entity: item.entity,
+            clinical_fact: item.fact,
+            confidence_score: 0.9,
+            source_feature: 'chatbot',
+            is_active: true,
+          })
+      }
+    } catch (e) {
+      console.warn('[invoke-ai] Error saving clinical memory:', e)
+    }
+  }
+}
+
+function cleanEntityName(raw: string): string {
+  return raw
+    .replace(/[.,?!;:]/g, '')
+    .split(/\b(banget|sih|dong|ya|kak|min|terus|tapi|soalnya|karena|dan|atau)\b/i)[0]
+    .trim()
+    .slice(0, 35)
+}
+
