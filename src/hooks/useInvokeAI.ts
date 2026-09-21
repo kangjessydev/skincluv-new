@@ -12,11 +12,14 @@ export interface InvokeAIRequest {
   payload?: Record<string, any> // Legacy fallback
   input_context?: Record<string, string>
   use_coins?: boolean
+  session_id?: string     // ID sesi aktif chatbot (untuk session summary trigger)
+  message_count?: number  // Jumlah pesan dalam sesi (untuk trigger summary di pesan ke-8, 13, 18, ...)
 }
 
 export interface InvokeAIResponse {
   success: boolean
   content: string
+  sources?: Array<{ title: string; url: string; snippet: string; score?: number }>
   deduct_mode: 'quota' | 'coin'
   tokens_used: number
 }
@@ -82,6 +85,8 @@ export function useInvokeAI() {
         messages,
         input_context,
         use_coins: req.use_coins ?? false,
+        session_id: req.session_id,
+        message_count: req.message_count,
       }
 
       const callEdge = async (useCoins: boolean) => {

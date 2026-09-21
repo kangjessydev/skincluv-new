@@ -95,12 +95,33 @@ export default function ChatbotPage() {
   const [memoryConsent, setMemoryConsent] = useState<boolean | null>(
     profile?.chatbot_memory_consent ?? null
   )
+  // Sources dari web search (diisi jika AI memakai Tavily)
+  const [lastSources, setLastSources] = useState<Array<{ title: string; url: string; snippet: string }>>([]) // eslint-disable-line
+  const [showSources, setShowSources] = useState(false)
+  // Consent banner: muncul sekali per sesi browser setelah BANNER_BUBBLE_THRESHOLD bubble
+  const BANNER_BUBBLE_THRESHOLD = 8
+  const [showConsentBanner, setShowConsentBanner] = useState(false)
 
   useEffect(() => {
     if (profile?.chatbot_memory_consent !== undefined) {
       setMemoryConsent(profile.chatbot_memory_consent ?? null)
     }
   }, [profile?.chatbot_memory_consent])
+
+  // Banner trigger: muncul setelah BANNER_BUBBLE_THRESHOLD bubble jika memori belum aktif
+  useEffect(() => {
+    if (!user?.id) return
+    const bannerKey = `memory_banner_shown_${user.id}`
+    const alreadyShown = sessionStorage.getItem(bannerKey)
+    if (
+      memoryConsent !== true &&
+      messages.length === BANNER_BUBBLE_THRESHOLD &&
+      !alreadyShown
+    ) {
+      setShowConsentBanner(true)
+      sessionStorage.setItem(bannerKey, '1')
+    }
+  }, [messages.length, memoryConsent, user?.id])
 
   useEffect(() => {
     if (!user?.id) return
@@ -130,6 +151,7 @@ export default function ChatbotPage() {
         .eq('id', user.id)
 
       setMemoryConsent(consent)
+      setShowConsentBanner(false)  // dismiss banner setelah user memilih
       if (profile) {
         setProfile({ ...profile, chatbot_memory_consent: consent })
       }
@@ -199,6 +221,8 @@ export default function ChatbotPage() {
     try {
       await supabase.from('chat_messages').delete().eq('session_id', activeSessionId)
       setMessages([])
+      setLastSources([])
+      setShowSources(false)
     } catch (err) {
       console.error('Failed to reset current session:', err)
     }
@@ -238,6 +262,8 @@ export default function ChatbotPage() {
 
   // Fetch messages when URL param `sessionId` changes
   useEffect(() => {
+    setLastSources([])
+    setShowSources(false)
     if (!sessionId) {
       setMessages([])
       setIsLoadingMessages(false)
@@ -328,6 +354,8 @@ export default function ChatbotPage() {
     const newSid = await createNewSession()
     if (newSid) {
       setMessages([])
+      setLastSources([])
+      setShowSources(false)
       navigate(`/chatbot/${newSid}`)
     }
   }
@@ -454,6 +482,8 @@ export default function ChatbotPage() {
       const res = await invoke({
         feature_slug: 'chatbot',
         messages: [...historyFormatted, { role: 'user', content: query }],
+        session_id: activeSessionId,
+        message_count: messages.length + 1,  // +1 untuk pesan user yang baru dikirim
       })
 
       if (res) {
@@ -468,6 +498,15 @@ export default function ChatbotPage() {
 
         setMessages((prev) => [...prev, tempBotMsg])
 
+        // Simpan sources dari web search (jika ada)
+        const resSources = (res as any).sources
+        if (Array.isArray(resSources) && resSources.length > 0) {
+          setLastSources(resSources)
+          setShowSources(false) // reset accordion
+        } else {
+          setLastSources([])
+        }
+
         // Save bot message to Supabase
         await supabase.from('chat_messages').insert({
           session_id: activeSessionId,
@@ -480,6 +519,7 @@ export default function ChatbotPage() {
           fetchClinicalMemories()
         }, 1500)
       } else {
+        setLastSources([])
         // Fallback bubble informatif jika invoke gagal atau credits habis — bukan hening/tidak ada respon
         const noticeText = `⚠️ **Credits kamu tidak mencukupi** untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
         const tempBotMsg: Message = {
@@ -492,6 +532,7 @@ export default function ChatbotPage() {
       }
     } catch (err) {
       console.error('AI invoke error:', err)
+      setLastSources([])
       setMessages((prev) => [
         ...prev,
         {
@@ -564,7 +605,7 @@ export default function ChatbotPage() {
       </div>
 
       {/* CONSENT BANNER (SESUAI UU PERLINDUNGAN DATA PRIBADI) */}
-      {memoryConsent === null && user?.id && (
+      {showConsentBanner && user?.id && (
         <div className="memory-consent-banner">
           <div className="consent-content">
             <div className="consent-title-row">
@@ -789,6 +830,48 @@ export default function ChatbotPage() {
             )}
           </div>
         ))}
+
+        {/* SOURCES ACCORDION — tampil di bawah pesan AI terakhir jika ada hasil search */}
+        {messages.length > 0 && lastSources.length > 0 && !isSending && (
+          <div className="chat-row bot">
+            <div className="chat-avatar bot-avatar" style={{ visibility: 'hidden' }}>
+              <Sparkles size={15} />
+            </div>
+            <div className="bubble-wrapper">
+              <div className="sources-accordion">
+                <button
+                  type="button"
+                  className="sources-accordion-toggle"
+                  onClick={() => setShowSources((v) => !v)}
+                >
+                  <ShieldCheck size={13} />
+                  <span>{lastSources.length} Sumber Referensi</span>
+                  <span className="sources-chevron">{showSources ? '▲' : '▼'}</span>
+                </button>
+                {showSources && (
+                  <div className="sources-list">
+                    {lastSources.map((src, i) => (
+                      <a
+                        key={i}
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="source-card"
+                      >
+                        <span className="source-num">[{i + 1}]</span>
+                        <div className="source-body">
+                          <span className="source-title">{src.title}</span>
+                          <span className="source-snippet">{src.snippet}</span>
+                          <span className="source-url">{src.url}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {isSending && (
           <div className="chat-row bot">
@@ -1523,6 +1606,110 @@ export default function ChatbotPage() {
           font-size: 11px;
           font-weight: 600;
           color: #0d9488;
+        }
+
+        /* Sources Accordion (Web Search Results) */
+        .sources-accordion {
+          margin-top: 6px;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #f8fafc;
+          font-size: 0.78rem;
+          max-width: 480px;
+        }
+
+        .sources-accordion-toggle {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          width: 100%;
+          background: none;
+          border: none;
+          padding: 8px 12px;
+          font-size: 0.78rem;
+          color: #0f766e;
+          cursor: pointer;
+          font-weight: 600;
+          text-align: left;
+        }
+
+        .sources-accordion-toggle:hover {
+          background: #f0fdfa;
+        }
+
+        .sources-chevron {
+          margin-left: auto;
+          font-size: 0.65rem;
+          opacity: 0.6;
+        }
+
+        .sources-list {
+          border-top: 1px solid #e2e8f0;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .source-card {
+          display: flex;
+          gap: 10px;
+          padding: 8px 12px;
+          text-decoration: none;
+          color: inherit;
+          border-bottom: 1px solid #f1f5f9;
+          transition: background 0.15s;
+        }
+
+        .source-card:last-child {
+          border-bottom: none;
+        }
+
+        .source-card:hover {
+          background: #f0fdfa;
+        }
+
+        .source-num {
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #0f766e;
+          min-width: 24px;
+          padding-top: 1px;
+        }
+
+        .source-body {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .source-title {
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: #1e293b;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .source-snippet {
+          font-size: 0.72rem;
+          color: #64748b;
+          line-height: 1.35;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .source-url {
+          font-size: 0.68rem;
+          color: #0f766e;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         /* Consent Banner */

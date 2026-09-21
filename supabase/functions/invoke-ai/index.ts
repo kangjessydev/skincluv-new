@@ -8,13 +8,23 @@
 //  3. Rate limiting (10 req/min per user per feature)
 //  4. Quota / coin check
 //  5. Atomic deduction (Postgres function)
-//  6. Call AI provider (with rollback on error — Opsi A)
-//  7. Log result
-//  8. Return response
+//  6. Build context (skin profile, clinical memory, session summaries)
+//  7. [Chatbot] Web search pipeline (keyword-triggered, cache-first)
+//  8. Call AI provider (with rollback on error — Opsi A)
+//  9. Log result
+// 10. [Chatbot] Background: session summary generation
+// 11. Return response (including sources[] for frontend accordion)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { callAiProvider, interpolatePrompt, estimateCostUsd } from '../_shared/aiProviders.ts'
+import {
+  needsWebSearch,
+  buildSearchQuery,
+  fetchSearchResults,
+  formatSourcesForPrompt,
+  type SearchSource,
+} from '../_shared/searchProvider.ts'
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000   // 1 minute
 const RATE_LIMIT_MAX       = 10          // max requests per window
@@ -57,11 +67,13 @@ Deno.serve(async (req: Request) => {
 
     // ---- 2. Parse request body ----
     const body = await req.json()
-    const { feature_slug, messages, input_context, use_coins } = body as {
+    const { feature_slug, messages, input_context, use_coins, session_id, message_count } = body as {
       feature_slug: string
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       input_context?: Record<string, string>
       use_coins?: boolean
+      session_id?: string       // ID sesi aktif (untuk session summary trigger)
+      message_count?: number    // Jumlah pesan dalam sesi ini (frontend kirim)
     }
 
     if (!feature_slug || !messages?.length) {
@@ -240,8 +252,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // ---- 7. Build prompt context & Attach Multimodal Image if present ----
-    // Fetch active skin profile, user profile & clinical memories for context injection
-    const [skinProfileRes, userProfileRes, memoriesRes] = await Promise.all([
+    // Fetch active skin profile, user profile, clinical memories & session summaries for context injection
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const [skinProfileRes, userProfileRes, memoriesRes, sessionSummariesRes] = await Promise.all([
       supabaseService
         .from('skin_profiles')
         .select('skin_type, skin_concerns, analysis_notes')
@@ -259,6 +272,17 @@ Deno.serve(async (req: Request) => {
         .eq('user_id', user.id)
         .eq('is_active', true)
         .limit(8),
+      // Fetch 5 session summaries terbaru dalam 30 hari (exclude sesi saat ini)
+      feature_slug === 'chatbot' && session_id
+        ? supabaseService
+            .from('chat_session_summaries')
+            .select('summary_text, updated_at')
+            .eq('user_id', user.id)
+            .neq('session_id', session_id)  // exclude sesi aktif sekarang
+            .gte('updated_at', thirtyDaysAgo)
+            .order('updated_at', { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] }),
     ])
 
     const skinProfile = skinProfileRes.data
@@ -277,12 +301,21 @@ Deno.serve(async (req: Request) => {
 
     const hasMemoryConsent = userProfile?.chatbot_memory_consent === true
 
-    // Injeksi Memori Percakapan Pasien (HANYA jika user sudah memberikan consent)
+    // Injeksi Memori Klinis Pasien (HANYA jika user sudah memberikan consent)
     if (feature_slug === 'chatbot' && hasMemoryConsent && memoriesRes.data && memoriesRes.data.length > 0) {
       const memoryLines = memoriesRes.data
         .map((m: any) => `- [${String(m.memory_type).toUpperCase()}]: ${m.entity} (${m.clinical_fact})`)
         .join('\n')
       systemPrompt += `\n\n[MEMORI PASIEN TERVERIFIKASI]:\n${memoryLines}\nGunakan catatan memori di atas untuk mempersonalisasi saran dan secara mutlak menghindari bahan/treatment yang berpotensi memicu reaksi buruk pada pasien.`
+    }
+
+    // Injeksi Ringkasan Sesi Sebelumnya untuk Cross-Session Context (HANYA jika consent aktif)
+    const sessionSummaries = (sessionSummariesRes as any)?.data ?? []
+    if (feature_slug === 'chatbot' && hasMemoryConsent && sessionSummaries.length > 0) {
+      const summaryLines = sessionSummaries
+        .map((s: any, i: number) => `Sesi ${i + 1}: ${s.summary_text}`)
+        .join('\n')
+      systemPrompt += `\n\n[KONTEKS PERCAKAPAN SEBELUMNYA]:\n${summaryLines}\nKonteks di atas adalah ringkasan dari topik yang pernah dibahas bersama user pada percakapan/sesi sebelumnya. Jika user menanyakan riwayat obrolan, masalah kulit yang pernah diceritakan, atau topik/produk yang pernah dibahas di sesi sebelumnya, gunakan ringkasan di atas untuk menjawab dan mengonfirmasi secara jelas.`
     }
 
     // Retrieval bahan aktif terverifikasi (RAG) untuk chatbot
@@ -363,7 +396,26 @@ Deno.serve(async (req: Request) => {
       return m
     })
 
-    // ---- 8. Call AI Provider ----
+    // ---- 8. Web Search Pipeline (keyword-triggered, cache-first) ----
+    let searchSources: SearchSource[] = []
+    if (feature_slug === 'chatbot') {
+      const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
+      const msgText = typeof lastUserMsg === 'string' ? lastUserMsg : ''
+      if (msgText.trim() && needsWebSearch(msgText)) {
+        try {
+          const searchQuery = buildSearchQuery(msgText, trimmedMessages)
+          console.log(`[invoke-ai] Web search query formulated: "${searchQuery}" (from: "${msgText}")`)
+          searchSources = await fetchSearchResults(supabaseService, searchQuery)
+          if (searchSources.length > 0) {
+            systemPrompt += `\n\n[OVERRIDE — REFERENSI KLINIS/WEB TERVERIFIKASI AKTIF]:\nUntuk pertanyaan ini, sistem telah memverifikasi dan mengambilkan referensi web/dermatologi nyata berikut untukmu. ABAIKAN instruksi sebelumnya tentang keterbatasan akses internet — kamu MEMILIKI referensi nyata berikut yang relevan:\n\n${formatSourcesForPrompt(searchSources)}\n\nATURAN WAJIB:\n- Jawab berdasarkan informasi dari referensi di atas secara langsung dan percaya diri\n- Sebutkan [1], [2], atau [3] di dalam jawabanmu saat mengutip informasi dari sumber tersebut\n- JANGAN bilang "saya tidak bisa akses internet" atau "tidak berkaitan" karena referensi ini sudah disaring relevan untuk topik ini\n- JANGAN minta user untuk mencari sendiri — berikan informasinya langsung dari sumber di atas`
+          }
+        } catch (searchErr) {
+          console.warn('[invoke-ai] Web search skipped:', searchErr)
+        }
+      }
+    }
+
+    // ---- 9. Call AI Provider ----
     const startTime = Date.now()
     let aiResult
     let aiError: Error | null = null
@@ -582,8 +634,22 @@ Deno.serve(async (req: Request) => {
     if (feature_slug === 'chatbot' && hasMemoryConsent) {
       const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
       if (typeof lastUserMsg === 'string') {
-        extractMemoryWithAi(supabaseService, user.id, lastUserMsg, finalContent, model, apiKey)
+        const memPromise = extractMemoryWithAi(supabaseService, user.id, lastUserMsg, finalContent, model, apiKey)
           .catch((err) => console.warn('[invoke-ai] Memory extraction skipped:', err))
+        if (typeof (globalThis as any).EdgeRuntime !== 'undefined' && (globalThis as any).EdgeRuntime?.waitUntil) {
+          (globalThis as any).EdgeRuntime.waitUntil(memPromise)
+        }
+      }
+    }
+
+    // ---- 13. Background Session Summary Generation (Consent Gated) ----
+    // Trigger jika chat sesi sudah memiliki >= 4 pesan (generate/update dicek di dalam fungsi)
+    const msgCount = typeof message_count === 'number' ? message_count : 0
+    if (feature_slug === 'chatbot' && hasMemoryConsent && session_id && msgCount >= 4) {
+      const summaryPromise = generateSessionSummary(supabaseService, session_id, user.id, model, apiKey)
+        .catch((err) => console.warn('[invoke-ai] Session summary skipped:', err))
+      if (typeof (globalThis as any).EdgeRuntime !== 'undefined' && (globalThis as any).EdgeRuntime?.waitUntil) {
+        (globalThis as any).EdgeRuntime.waitUntil(summaryPromise)
       }
     }
 
@@ -592,6 +658,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         content: finalContent,
+        sources: searchSources,     // [] jika tidak ada search, atau array SearchSource
         deduct_mode: deductMode,
         tokens_used: aiResult!.tokensUsed,
       }),
@@ -974,3 +1041,99 @@ Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
   }
 }
 
+/**
+ * Membuat atau memperbarui ringkasan sesi percakapan secara background.
+ * Dipanggil setelah pesan ke-8, lalu setiap +5 pesan dalam sesi yang sama.
+ * Menyimpan ke chat_session_summaries (upsert on session_id).
+ */
+async function generateSessionSummary(
+  supabaseService: ReturnType<typeof createClient>,
+  sessionId: string,
+  userId: string,
+  model: { provider: string; model_name: string },
+  apiKey: string
+): Promise<void> {
+  try {
+    // Ambil semua pesan dalam sesi ini (maksimal 40 pesan untuk summary)
+    const { data: messages, error: msgError } = await supabaseService
+      .from('chat_messages')
+      .select('role, content')
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: true })
+      .limit(40)
+
+    if (msgError || !messages || messages.length < 4) {
+      return // Terlalu sedikit untuk disimpulkan
+    }
+
+    // Cek apakah sudah pernah dibuat ringkasan untuk sesi ini
+    const { data: existingSummary } = await supabaseService
+      .from('chat_session_summaries')
+      .select('message_count_at_summary')
+      .eq('session_id', sessionId)
+      .maybeSingle()
+
+    // Jika sudah pernah disimpulkan, update HANYA jika ada penambahan minimal 5 pesan baru
+    if (existingSummary && (messages.length - (existingSummary.message_count_at_summary || 0) < 5)) {
+      return
+    }
+
+    const conversationText = messages
+      .map((m: any) => `${m.role === 'user' ? 'User' : 'AI'}: ${String(m.content).slice(0, 200)}`)
+      .join('\n')
+
+    const summaryPrompt = `Buat ringkasan singkat percakapan skincare berikut dalam 2-3 kalimat (maksimal 550 karakter). Fokus pada: topik yang dibahas, kondisi kulit user, masalah/keluhan yang diidentifikasi, dan rekomendasi/produk penting yang dibahas. Jangan sebut nama-nama atau info pribadi.\n\nPercakapan:\n${conversationText}\n\nRingkasan (langsung tulis, tanpa label atau prefix):`
+
+    let callProvider: 'google' | 'anthropic' | 'groq' = model.provider as any
+    let callModel = model.model_name || 'gemini-2.0-flash'
+    let callKey = apiKey
+
+    if (model.provider !== 'google') {
+      try {
+        const { data: keyData } = await supabaseService.rpc('get_decrypted_secret', {
+          secret_name: 'gemini_api_key',
+        })
+        if (keyData) {
+          callKey = keyData as string
+          callProvider = 'google'
+          callModel = 'gemini-2.0-flash'
+        }
+      } catch {
+        console.warn('[invoke-ai] Cannot resolve Gemini key for session summary')
+        return
+      }
+    }
+
+    const result = await callAiProvider({
+      provider: callProvider,
+      modelName: callModel,
+      apiKey: callKey,
+      systemPrompt: 'Kamu adalah asisten yang membuat ringkasan percakapan skincare singkat dan informatif. Jawab langsung tanpa label, prefix, atau markdown.',
+      messages: [{ role: 'user', content: summaryPrompt }],
+      parameters: { temperature: 0.2, max_tokens: 200 },
+    })
+
+    const summaryText = result?.content ? result.content.trim().slice(0, 600) : ''
+    if (summaryText.length < 10) return
+
+    // Upsert — satu baris per session_id
+    const { error: upsertErr } = await supabaseService.from('chat_session_summaries').upsert(
+      {
+        session_id: sessionId,
+        user_id: userId,
+        summary_text: summaryText,
+        message_count_at_summary: messages.length,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'session_id' }
+    )
+
+    if (upsertErr) {
+      console.warn('[invoke-ai] Error upserting session summary:', upsertErr)
+    } else {
+      console.log(`[invoke-ai] Successfully saved session summary for ${sessionId}`)
+    }
+  } catch (err) {
+    console.warn('[invoke-ai] generateSessionSummary unexpected error:', err)
+  }
+}
