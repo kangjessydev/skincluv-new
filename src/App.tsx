@@ -98,7 +98,6 @@ export default function App() {
           <Route path="/admin/knowledge/ingredients" element={<AdminKnowledgeBasePage />} />
           <Route path="/admin/knowledge/formulas" element={<AdminProductFormulasPage />} />
           <Route path="/admin/training/datasets" element={<AdminTrainingDatasetsPage />} />
-          <Route path="/admin/memory/logs" element={<AdminLogsPage />} />
           <Route path="/admin/logs" element={<AdminLogsPage />} />
         </Route>
       </Route>

@@ -11,22 +11,22 @@ export interface SearchSource {
 }
 
 // ---------------------------------------------------------------------------
-// Enhanced trigger patterns (handles typos: 'sumbenrya', 'refrensi', 'buktinya', etc.)
+// Enhanced trigger patterns (handles typos: 'sumbenrya', 'sumbrnya', 'refrensi', 'buktinya', etc.)
 // ---------------------------------------------------------------------------
 const SEARCH_TRIGGER_PATTERNS = [
-  /s+u+m+b+[enr]+/i,                          // sumber, sumbenr, sumbr, sumbenrya, sumbernya
+  /s+u+m+b+[ern]+/i,                          // sumber, sumbenr, sumbr, sumbenrya, sumbrnya, sumbernya
   /r+e+f+[er]*n+s+/i,                         // referensi, refrensi, reverensi
   /b+u+k+t+i+/i,                              // bukti, buktinya, buktikan
-  /j+u+r+n+a+l+/i,                            // jurnal, jurnalnya
-  /s+t+u+d+i+/i,                              // studi, studinya
+  /j+u+r+n+a+l+/i,                            // jurnal, jurnalnya, jurnallnya
+  /s+t+u+d+[iy]+/i,                           // studi, studinya, study, studynya
   /p+e+n+e+l+i+t+i+a+n+/i,                    // penelitian
   /r+i+s+e+t+/i,                              // riset
-  /k+l+i+n+i+s+/i,                            // klinis
+  /k+l+i+n+i+s+/i,                            // klinis, kliniss
   /e+v+i+d+e+n+c+e+/i,                        // evidence, evidence-based
   /b+e+n+a+r+k+a+h+/i,                        // benarkah
   /t+e+r+b+u+k+t+i+/i,                        // terbukti
   /v+a+l+i+d+/i,                              // valid, validkah, valid ga
-  /a+p+a(\s*k+a+h)?\s+b+e+n+a?r+/i,           // apakah benar, apa benar, emang bener
+  /a+p+a(\s*k+a+h)?\s+b+[en]*a*r+/i,          // apakah benar, apa benar, apakah bnr, emang bener
   /d+a+r+i+\s+m+a+n+a+(\s+i+n+f+o+)?/i,      // dari mana infonya
   /c+a+r+i+(k+a+n)?\s+(d+i+\s+)?(web|internet|google)/i, // cari di web/internet
   /c+e+k+\s+(d+i+\s+)?(web|internet|google)/i,           // cek di web/internet
@@ -114,9 +114,9 @@ export function extractSkincareEntities(text: string): string[] {
 }
 
 /**
- * Menyusun query pencarian web secara kontekstual.
- * Mencegah pengiriman string mentah seperti "berikan sumbernya" yang menyebabkan
- * mesin pencari mengembalikan teks acak / non-skincare (seperti kitab suci atau game).
+ * Menyusun query pencarian web secara kontekstual dan higienis privasi.
+ * Mencegah pengiriman string mentah atau kata ganti personal ("aku alergi...", "wajah saya...")
+ * yang mengotori akurasi pencarian atau mengekspos kata ganti orang pertama ke search engine.
  */
 export function buildSearchQuery(
   userMsg: string,
@@ -125,15 +125,17 @@ export function buildSearchQuery(
   const cleanMsg = userMsg.trim()
 
   // Pola permintaan sumber umum (tanpa subjek spesifik)
-  const genericSourceRegex = /^(tolong\s+|bantu\s+carikan\s+|bisa\s+carikan\s+|coba\s+cari(kan)?\s+|berikan\s+|tunjukkan\s+|mana\s+|apa\s+ada\s+|minta\s+|ada\s+)?(sumber(nya)?|sumbenr(ya)?|referensi(nya)?|bukti(nya)?|jurnal(nya)?|studi(nya)?|penelitian(nya)?|riset(nya)?|tautan(nya)?|link(nya)?)\s*(ga|dong|ya|kah|\?)?$/i
+  const genericSourceRegex = /^(tolong\s+|bantu\s+carikan\s+|bisa\s+carikan\s+|coba\s+cari(kan)?\s+|berikan\s+|tunjukkan\s+|mana\s+|apa\s+ada\s+|minta\s+|ada\s+)?(sumber(nya)?|sumbenr(ya)?|sumbr(nya)?|referensi(nya)?|bukti(nya)?|jurnal(nya)?|studi(nya)?|penelitian(nya)?|riset(nya)?|tautan(nya)?|link(nya)?)\s*(ga|dong|ya|kah|\?)?$/i
 
-  // Hilangkan kata filler dan tanda tanya
+  // Hilangkan kata ganti personal, kata filler, kata trigger sumber, dan tanda baca
   const strippedMsg = cleanMsg
-    .replace(/(\b(tolong|bantu|coba|carikan|cari|cek|ada|mana|minta|mohon|berikan)\b|\b(sumber(nya)?|sumbenr(ya)?|bukti(nya)?|referensi(nya)?|jurnal(nya)?|studi(nya)?|penelitian(nya)?)\b|\b(ga|dong|ya|sih|kan|kah|kok)\b|\?)/gi, ' ')
+    .replace(/[,\.\?!;:"'()\[\]{}]/g, ' ')
+    .replace(/\b(aku|saya|gue|gw|ku|kamu|anda|kulitku|wajahku|badanku|leherku|i|me|my)\b/gi, ' ')
+    .replace(/(\b(tolong|bantu|coba|carikan|cari|cek|ada|mana|minta|mohon|berikan)\b|\b(sumber(nya)?|sumbenr(ya)?|sumbr(nya)?|bukti(nya)?|referensi(nya)?|jurnal(nya)?|studi(nya)?|penelitian(nya)?)\b|\b(ga|dong|ya|sih|kan|kah|kok)\b)/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
-  const isGeneric = genericSourceRegex.test(cleanMsg) || strippedMsg.length < 8
+  const isGeneric = genericSourceRegex.test(cleanMsg) || strippedMsg.length < 5
   const hasDeictic = /\b(itu|tersebut|tadi|dimaksud|di\s*atas|sebelumnya)\b/i.test(cleanMsg)
 
   const terms: string[] = []
@@ -158,7 +160,7 @@ export function buildSearchQuery(
       terms.push(strippedMsg)
     }
   } else {
-    // Pertanyaan user sudah spesifik
+    // Pertanyaan user sudah spesifik (topik mandiri)
     terms.push(strippedMsg)
   }
 

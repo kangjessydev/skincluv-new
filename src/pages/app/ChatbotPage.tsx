@@ -157,8 +157,11 @@ export default function ChatbotPage() {
       }
 
       if (!consent) {
-        // Jika memilih Lewati / Nonaktifkan, bersihkan data memori sesuai hak privasi UU Perlindungan Data Pribadi
-        await supabase.from('user_clinical_memories').delete().eq('user_id', user.id)
+        // Jika memilih Lewati / Nonaktifkan, bersihkan data memori & rangkuman sesi sesuai hak privasi UU PDP (Right to be Forgotten)
+        await Promise.allSettled([
+          supabase.from('user_clinical_memories').delete().eq('user_id', user.id),
+          (supabase.from as any)('chat_session_summaries').delete().eq('user_id', user.id),
+        ])
         setClinicalMemories([])
       } else {
         fetchClinicalMemories()
