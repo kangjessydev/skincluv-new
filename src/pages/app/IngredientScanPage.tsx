@@ -119,42 +119,48 @@ export default function IngredientScanPage() {
   const [scanResult, setScanResult] = useState<IngredientAnalysisResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  // Scanner Stage Animation Text & Progress Counter
-  // useMemo because the array contains userSkinType interpolation — wrapping ensures
-  // a stable reference so it can be safely included in useEffect dependency arrays.
+  // Scanner Stage Animation Text & Educational Dermatology Tips
   const scanStagesText = useMemo(() => [
-    'Mengekstrak teks komposisi dari foto kemasan...',
-    'Mengidentifikasi bahan aktif & sensitizer...',
-    `Mencocokkan dengan profil kulitmu (${userSkinType})...`,
-    'Menghitung Safety Score & Panduan Layering...',
+    'Menganalisis citra kemasan via Gemini Vision...',
+    'Membaca teks mikro & mengurai urutan formula bahan...',
+    `Mengevaluasi indeks komedogenik & kecocokan kulit (${userSkinType})...`,
+    'Memvalidasi matriks keamanan BPOM & panduan layering...',
   ], [userSkinType])
+
+  const clinicalTips = useMemo(() => [
+    'Urutan komposisi bahan pada kemasan kosmetik dicantumkan dari konsentrasi tertinggi hingga terendah.',
+    'Bahan aktif seperti UV filter, retinoid, atau vitamin C bekerja optimal pada konsentrasi ilmiah tertentu.',
+    'Formula dengan banyak bahan dianalisis per molekul untuk mendeteksi potensi alergen dan pemicu iritasi.',
+    'Indeks komedogenik mengevaluasi kecenderungan bahan menyumbat pori-pori berdasarkan tipe kulitmu.',
+  ], [])
+
   const [scanTextIndex, setScanTextIndex] = useState(0)
-  const [foundCount, setFoundCount] = useState(0)
+  const [tipIndex, setTipIndex] = useState(0)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
 
-  // Stage 2 Scanning Timers
+  // Stage 2 Scanning Timers (Natural Pacing & Tip Rotation)
   useEffect(() => {
     if (stage !== 'scanning') {
       setScanTextIndex(0)
-      setFoundCount(0)
+      setTipIndex(0)
       return
     }
 
     const textInterval = setInterval(() => {
       setScanTextIndex((prev) => (prev < scanStagesText.length - 1 ? prev + 1 : prev))
-    }, 1100)
+    }, 2800)
 
-    const countInterval = setInterval(() => {
-      setFoundCount((prev) => (prev < 6 ? prev + 1 : prev))
-    }, 600)
+    const tipInterval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % clinicalTips.length)
+    }, 3800)
 
     return () => {
       clearInterval(textInterval)
-      clearInterval(countInterval)
+      clearInterval(tipInterval)
     }
-  }, [stage, scanStagesText])
+  }, [stage, scanStagesText, clinicalTips.length])
 
   // Auto-scroll smooth to results when Stage 3 activates
   useEffect(() => {
@@ -561,7 +567,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
             </div>
           )}
 
-          {/* STAGE 2: ANIMATED SCANNER */}
+          {/* STAGE 2: NEURAL AI SCANNER HUD */}
           {stage === 'scanning' && (
             <div className="stage-card scanning-card">
               <div className="scan-frame-viewport">
@@ -570,8 +576,25 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 ) : (
                   <div className="mock-label-box">📋 Foto Label Komposisi Produk</div>
                 )}
+
+                {/* HUD High-Tech Grid & Corner Brackets */}
+                <div className="hud-grid-overlay" />
+                <div className="hud-corner top-left" />
+                <div className="hud-corner top-right" />
+                <div className="hud-corner bottom-left" />
+                <div className="hud-corner bottom-right" />
+
+                {/* Sweeping Laser Beam */}
+                <div className="scan-laser-beam" />
+
+                {/* Live Neural Vision Status Pill */}
+                <div className="hud-status-badge">
+                  <span className="hud-pulse-dot" />
+                  <span>AI OCR VISION ACTIVE</span>
+                </div>
               </div>
 
+              {/* Shimmering Phase Status */}
               <div className="scan-status-row">
                 <div className="bouncing-dots">
                   <span />
@@ -581,7 +604,19 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 <span className="shimmer-scan-text">{scanStagesText[scanTextIndex]}</span>
               </div>
 
-              <p className="scan-counter-text">Bahan terdeteksi: {foundCount} komposisi</p>
+              {/* Smooth Indeterminate Progress Bar */}
+              <div className="scan-progress-bar-track">
+                <div className="scan-progress-bar-glow" />
+              </div>
+
+              {/* Educational Clinical Tip Box */}
+              <div className="scan-tip-card">
+                <div className="tip-header">
+                  <Sparkles size={13} className="tip-sparkle-icon" />
+                  <span>Catatan Dermatologi</span>
+                </div>
+                <p className="tip-body">{clinicalTips[tipIndex]}</p>
+              </div>
             </div>
           )}
 
@@ -1271,47 +1306,139 @@ PETUNJUK OCR & ANALISIS WAJIB:
           margin-top: 1px;
         }
 
-        /* SCANNING CARD & ANIMATION */
+        /* NEURAL AI SCANNER HUD & ANIMATION */
         .scanning-card {
           align-items: center;
-          padding: 32px 20px;
+          padding: 36px 20px;
+          gap: 16px;
         }
 
         .scan-frame-viewport {
           position: relative;
-          border-radius: 16px;
+          border-radius: 18px;
           overflow: hidden;
-          background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-          height: 220px;
+          background: linear-gradient(135deg, #0f172a, #1e293b);
+          height: 250px;
           width: 100%;
-          max-width: 400px;
+          max-width: 440px;
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+          border: 1.5px solid #cbd5e1;
         }
 
         .scan-img-preview {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          opacity: 0.65;
+          opacity: 0.72;
+          filter: contrast(1.05);
         }
 
-        .scan-frame-viewport::after {
-          content: '';
+        /* High-Tech HUD Grid Overlay */
+        .hud-grid-overlay {
+          position: absolute;
+          inset: 0;
+          background: 
+            radial-gradient(circle at center, transparent 35%, rgba(15, 23, 42, 0.5) 100%),
+            linear-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px) 0 0 / 22px 22px,
+            linear-gradient(90deg, rgba(14, 165, 233, 0.08) 1px, transparent 1px) 0 0 / 22px 22px;
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        /* HUD Corner Brackets */
+        .hud-corner {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          border-color: #38bdf8;
+          border-style: solid;
+          pointer-events: none;
+          z-index: 4;
+        }
+
+        .hud-corner.top-left {
+          top: 12px;
+          left: 12px;
+          border-width: 3px 0 0 3px;
+          border-top-left-radius: 5px;
+        }
+
+        .hud-corner.top-right {
+          top: 12px;
+          right: 12px;
+          border-width: 3px 3px 0 0;
+          border-top-right-radius: 5px;
+        }
+
+        .hud-corner.bottom-left {
+          bottom: 12px;
+          left: 12px;
+          border-width: 0 0 3px 3px;
+          border-bottom-left-radius: 5px;
+        }
+
+        .hud-corner.bottom-right {
+          bottom: 12px;
+          right: 12px;
+          border-width: 0 3px 3px 0;
+          border-bottom-right-radius: 5px;
+        }
+
+        /* Sweeping Laser Beam */
+        .scan-laser-beam {
           position: absolute;
           left: 0;
           right: 0;
           height: 3px;
-          background: linear-gradient(90deg, transparent, #10b981, transparent);
-          box-shadow: 0 0 14px 4px rgba(16, 185, 129, 0.8);
-          animation: scanline 2.1s ease-in-out infinite;
+          background: linear-gradient(90deg, transparent 0%, #0284c7 25%, #38bdf8 50%, #0284c7 75%, transparent 100%);
+          box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.75), 0 0 32px 8px rgba(2, 132, 199, 0.35);
+          animation: laserScan 2.4s ease-in-out infinite;
+          z-index: 3;
+          pointer-events: none;
         }
 
-        @keyframes scanline {
-          0% { top: 6%; }
-          50% { top: 92%; }
-          100% { top: 6%; }
+        @keyframes laserScan {
+          0% { top: 5%; opacity: 0.85; }
+          50% { top: 93%; opacity: 1; }
+          100% { top: 5%; opacity: 0.85; }
+        }
+
+        /* Live Neural Vision Status Pill */
+        .hud-status-badge {
+          position: absolute;
+          top: 12px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(15, 23, 42, 0.75);
+          backdrop-filter: blur(6px);
+          color: #e0f2fe;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          padding: 3px 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          z-index: 5;
+        }
+
+        .hud-pulse-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #38bdf8;
+          box-shadow: 0 0 6px #38bdf8;
+          animation: pulseBeacon 1.2s infinite ease-in-out;
+        }
+
+        @keyframes pulseBeacon {
+          0%, 100% { opacity: 0.4; transform: scale(0.9); }
+          50% { opacity: 1; transform: scale(1.15); }
         }
 
         .mock-label-box {
@@ -1326,7 +1453,10 @@ PETUNJUK OCR & ANALISIS WAJIB:
         .scan-status-row {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 10px;
+          margin-top: 4px;
+          text-align: center;
         }
 
         .bouncing-dots {
@@ -1338,7 +1468,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #0f6784;
+          background: #0284c7;
           animation: dotBounce 1.1s infinite ease-in-out;
         }
 
@@ -1358,13 +1488,70 @@ PETUNJUK OCR & ANALISIS WAJIB:
         }
 
         @keyframes thinkShimmer {
-          0%, 100% { opacity: 0.55; }
+          0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
         }
 
-        .scan-counter-text {
-          font-size: 0.78125rem;
-          color: #64748b;
+        /* Indeterminate Progress Glow Track */
+        .scan-progress-bar-track {
+          width: 100%;
+          max-width: 380px;
+          height: 4px;
+          background: #e2e8f0;
+          border-radius: 999px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .scan-progress-bar-glow {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 40%;
+          background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, transparent);
+          border-radius: 999px;
+          animation: progressSweep 1.8s infinite ease-in-out;
+        }
+
+        @keyframes progressSweep {
+          0% { left: -40%; }
+          100% { left: 100%; }
+        }
+
+        /* Educational Clinical Tip Box */
+        .scan-tip-card {
+          width: 100%;
+          max-width: 440px;
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          border-radius: 12px;
+          padding: 12px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          text-align: left;
+          animation: fadeIn 0.3s ease;
+        }
+
+        .tip-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.71875rem;
+          font-weight: 700;
+          color: #166534;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .tip-sparkle-icon {
+          color: #16a34a;
+        }
+
+        .tip-body {
+          font-size: 0.8125rem;
+          color: #334155;
+          line-height: 1.45;
           margin: 0;
         }
 
@@ -1759,12 +1946,13 @@ PETUNJUK OCR & ANALISIS WAJIB:
         .danger-combo-item {
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 6px;
           padding-left: 0 !important;
-          background: #fff;
-          border: 1px solid #fee2e2;
-          border-radius: 8px;
-          padding: 8px 10px;
+          background: #ffffff;
+          border: 1px solid #fecdd3;
+          border-radius: 10px;
+          padding: 10px 12px;
+          box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);
         }
 
         .danger-combo-item::before {
@@ -1773,17 +1961,30 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
         .danger-combo-title-row {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
-          gap: 6px;
+          gap: 10px;
+        }
+
+        .danger-combo-title-row b {
+          font-size: 0.84375rem;
+          color: #0f172a;
+          line-height: 1.35;
+          flex: 1;
         }
 
         .combo-severity-badge {
           font-size: 0.6875rem;
           font-weight: 700;
-          padding: 1px 7px;
+          padding: 2px 8px;
           border-radius: 999px;
           text-transform: uppercase;
+          white-space: nowrap;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          letter-spacing: 0.02em;
         }
 
         .severity-fatal {
@@ -1800,18 +2001,19 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
         .danger-combo-desc {
           font-size: 0.8125rem;
-          color: #334155;
-          line-height: 1.4;
+          color: #475569;
+          line-height: 1.45;
         }
 
         .danger-combo-action {
-          font-size: 0.75rem;
+          font-size: 0.78125rem;
           color: #0369a1;
           background: #f0f9ff;
-          border: 1px solid #e0f2fe;
-          border-radius: 6px;
-          padding: 4px 8px;
-          margin-top: 3px;
+          border: 1px solid #bae6fd;
+          border-radius: 8px;
+          padding: 6px 10px;
+          margin-top: 2px;
+          line-height: 1.4;
         }
 
         .ing-title-group-col {
