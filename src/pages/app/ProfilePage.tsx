@@ -141,7 +141,7 @@ export default function ProfilePage() {
   }
 
   const usedCount = usageInfo?.used || 0
-  const limitCount = isPro ? 3000 : (usageInfo?.limit || 10)
+  const limitCount = usageInfo?.limit && usageInfo.limit > 0 ? usageInfo.limit : (isPro ? 500 : 100)
   const usedPercent = Math.min(Math.round((usedCount / limitCount) * 100), 100)
   const remainingPercent = Math.max(0, 100 - usedPercent)
 
@@ -192,7 +192,7 @@ export default function ProfilePage() {
             {/* Usage Bar */}
             <div className="usage-block">
               <div className="usage-meta">
-                <span className="usage-label"><Activity size={16} /> Kuota Analisis Bulan Ini</span>
+                <span className="usage-label"><Activity size={16} /> Kuota Universal AI Bulan Ini</span>
                 <span className="usage-text">
                   {isFree ? (
                     <span style={{ color: 'var(--color-text-muted)' }}>0% Kuota (Gunakan Credits Misi)</span>
@@ -216,6 +216,17 @@ export default function ProfilePage() {
                       : 'linear-gradient(90deg, #60a5fa, #2563eb)'
                   }}
                 />
+              </div>
+
+              {/* Explainer Note: Kuota Bersama Fleksibel */}
+              <div className="universal-quota-hint">
+                {isPro ? (
+                  <span>✨ <strong>VIP PRO</strong>: Termasuk Chatbot Dermatologist Expert, Web Search Klinis & Scan Wajah. Kuota 500x terasa unlimited.</span>
+                ) : isGlow ? (
+                  <span>💡 <strong>Satu Kuota Bersama</strong>: Bebas dipakai untuk Chatbot Standar, Scan Wajah, & Scan Komposisi. Sisa jatah scan otomatis bisa kamu pakai untuk chat!</span>
+                ) : (
+                  <span>🎁 <strong>Akun Gratis</strong>: Akses scan dan chat menggunakan saldo AI Credits yang bisa kamu dapatkan gratis dari misi harian.</span>
+                )}
               </div>
             </div>
 
@@ -368,6 +379,17 @@ export default function ProfilePage() {
         .usage-detail-fraction { color: var(--color-text-muted); font-size: 0.75rem; }
         .progress-bg { width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06); }
         .progress-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3); }
+
+        .universal-quota-hint {
+          margin-top: 10px;
+          font-size: 0.75rem;
+          color: var(--color-text-muted);
+          line-height: 1.45;
+          background: rgba(0, 0, 0, 0.02);
+          padding: 8px 12px;
+          border-radius: var(--radius-md);
+          border: 1px dashed var(--color-secondary-container);
+        }
 
         .pro-expiry-bar {
           margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--color-secondary-container);

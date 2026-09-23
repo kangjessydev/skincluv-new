@@ -43,20 +43,21 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* GLOW Plan (Rp 19.000) */}
+        {/* GLOW Plan (Rp 25.000) */}
         <div className={`pricing-card glow-card glass-card ${isGlow ? 'current-active' : ''}`}>
           <div className="saving-badge"><HeartHandshake size={14} /> RAMAH KANTONG</div>
           <div className="plan-header">
             <h3>Skincluv GLOW</h3>
             <p>Paling pas untuk pelajar & pemula perawatan rutin</p>
-            <div className="plan-price">Rp 19.000 <span>/ bulan</span></div>
+            <div className="plan-price">Rp 25.000 <span>/ bulan</span></div>
           </div>
           <ul className="plan-features">
-            <li><Zap size={16} className="icon-amber" /> <strong>100 Kuota Pemakaian</strong> / Bulan</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Bebas Scan Wajah & Cek Bahan Skincare</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Chatbot Konsultasi Standar</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Riwayat Scan Tersimpan Lengkap</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Cadangan Credits Tetap Utuh</li>
+            <li><Zap size={16} className="icon-amber" /> <strong>100 Universal AI Uses</strong> / Bulan</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Satu Kuota Bersama</strong>: Bebas Dipakai Scan Maupun Chat</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Chatbot Konsultasi Standar</strong> (Cepat & Ramah)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Scan Wajah & Analisis Komposisi Skincare</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Riwayat Scan Tersimpan Multi-Sesi</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Cadangan AI Credits Misi Tetap Utuh</li>
           </ul>
           <div className="plan-footer">
             {isGlow ? (
@@ -80,12 +81,13 @@ export default function PricingPage() {
             <div className="plan-price">Rp 49.000 <span>/ bulan</span></div>
           </div>
           <ul className="plan-features">
-            <li><Zap size={16} className="icon-sky" /> <strong>500 Kuota FUP</strong> / Bulan (Terasa Unlimited)</li>
-            <li><Zap size={16} className="icon-sky" /> <strong>Chatbot Dermatologist Expert</strong> (Lebih Pintar)</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>500 Universal AI Uses</strong> / Bulan (Terasa Unlimited)</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>Chatbot Dermatologist Expert</strong> (Lebih Pintar & Analisis Mendalam)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Pencarian Web Klinis Real-Time</strong> (Tavily Grounding)</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Analisis Layering Bahan Aktif Pagi & Malam</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Peringatan Disrupsi Skin Barrier & pH Level</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Deep Memory (Ingat 10 Pesan Sebelumnya)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Prioritas Respon AI Paling Cepat</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Deep Memory (Ingatan Lintas Sesi Percakapan)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Prioritas Respon AI Paling Cepat & Presisi</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Badge Eksklusif PRO di Profil & Komunitas</li>
           </ul>
           <div className="plan-footer">

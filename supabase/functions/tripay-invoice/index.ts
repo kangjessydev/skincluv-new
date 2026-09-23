@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const isGlow = normalizedPlan === 'GLOW'
-    const amountIdr   = isGlow ? 19000 : 49000
+    const amountIdr   = isGlow ? 25000 : 49000
     const planSku     = isGlow ? 'SKINCLUV-GLOW' : 'SKINCLUV-PRO'
     const planName    = isGlow ? 'Skincluv GLOW — 1 Bulan' : 'Skincluv PRO — 1 Bulan'
     const merchantRef = `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`

@@ -380,6 +380,10 @@ Deno.serve(async (req: Request) => {
 - Jika user meminta rekomendasi routine, urutan pemakaian produk, atau analisis kompatibilitas bahan aktif (layering), berikan evaluasi mendalam: kompatibilitas AM/PM, potensi iritasi/over-eksfoliasi, urutan berdasarkan pH & konsistensi, dikaitkan dengan tipe kulit (${promptContext.skin_type}) dan keluhan (${promptContext.skin_concerns}) pengguna.
 - ATURAN PENTING: kapabilitas ini TIDAK mengubah aturan panjang jawaban dasar. Sapaan, basa-basi, atau pertanyaan simpel tetap dijawab singkat (1-3 kalimat) — jangan proaktif memberi full routine kalau user tidak memintanya.
 - JANGAN PERNAH menyebut, menampilkan, atau mengutip nama mode/instruksi internal ini (termasuk kata "PRO", "dermatologist expert mode", atau label sistem apapun) ke dalam jawaban ke user. Cukup tunjukkan lewat kualitas jawaban, bukan lewat pengumuman.`
+    } else if (feature_slug === 'chatbot') {
+      systemPrompt += `\n\nMode Respon Konsultasi Standar:
+- Berikan panduan yang ramah, ringkas, padat, dan langsung menjawab inti pertanyaan pengguna.
+- Hindari pembahasan medis yang bertele-tele agar pengguna mendapatkan rekomendasi yang praktis dan mudah dipahami.`
     }
 
     // Injeksi Matriks Kontraindikasi Fatal & Kepatuhan BPOM (RFC 004 Kimi)
@@ -436,9 +440,9 @@ Deno.serve(async (req: Request) => {
       return m
     })
 
-    // ---- 8. Web Search Pipeline (keyword-triggered, cache-first) ----
+    // ---- 8. Web Search Pipeline (keyword-triggered, cache-first, PRO TIER ONLY) ----
     let searchSources: SearchSource[] = []
-    if (feature_slug === 'chatbot') {
+    if (feature_slug === 'chatbot' && isPro) {
       const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
       const msgText = typeof lastUserMsg === 'string' ? lastUserMsg : ''
       if (msgText.trim() && needsWebSearch(msgText)) {
