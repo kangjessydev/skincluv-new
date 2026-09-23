@@ -109,7 +109,11 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
 
         const data = await res.json()
         const parts: any[] = data.candidates?.[0]?.content?.parts ?? []
-        const content = parts.find((p: any) => typeof p.text === 'string' && p.text.length > 0)?.text ?? ''
+        // Concatenate all text parts (Gemini splits large outputs across multiple parts)
+        const content = parts
+          .filter((p: any) => typeof p.text === 'string')
+          .map((p: any) => p.text)
+          .join('')
 
         if (!content) {
           throw new Error(`Gemini returned empty content. Raw: ${JSON.stringify(data).slice(0, 400)}`)
@@ -184,9 +188,12 @@ async function callClaude(opts: AiRequestOptions): Promise<AiResponse> {
   const data = await res.json()
 
   // Extended Thinking responses include a {type:"thinking"} block before the
-  // actual {type:"text"} block. Scan all blocks and pick the first text block.
+  // actual {type:"text"} block. Concatenate all text blocks into full content.
   const contentBlocks: any[] = Array.isArray(data.content) ? data.content : []
-  const content = contentBlocks.find((b: any) => b.type === 'text' && typeof b.text === 'string' && b.text.length > 0)?.text ?? ''
+  const content = contentBlocks
+    .filter((b: any) => b.type === 'text' && typeof b.text === 'string')
+    .map((b: any) => b.text)
+    .join('')
 
   if (!content) {
     throw new Error(`Claude returned empty content. Raw: ${JSON.stringify(data).slice(0, 400)}`)

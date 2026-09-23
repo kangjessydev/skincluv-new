@@ -176,10 +176,12 @@ export default function IngredientScanPage() {
       // Kompresi khusus OCR Ingredient: gunakan resolusi 1600px & quality 0.85 agar teks kecil komposisi kemasan tetap tajam terbaca
       const base64Data = await compressImageForAI(file, 1600, 0.85)
       
-      // Client-side Face Detection Gate: Cegah foto wajah manusia masuk ke Scan Ingredient
+      // Client-side Face Detection Gate: Cegah foto selfie wajah manusia masuk ke Scan Ingredient
+      // Hanya tolak jika BENAR-BENAR wajah manusia yang valid, tidak tertutup, dan dominan (>25% frame)
+      // agar tangan/jari yang memegang botol skincare atau gambar kemasan tidak salah ditolak
       try {
         const faceCheck = await detectHumanFace(base64Data)
-        if (faceCheck.isHuman && faceCheck.faceCoverage > 8) {
+        if (faceCheck.isValidFace && faceCheck.isUnobstructed && faceCheck.faceCoverage > 25) {
           setErrorMsg('Foto yang Anda unggah terdeteksi sebagai wajah manusia. Halaman Scan Ingredient ini khusus untuk membaca label/botol kemasan produk skincare. Untuk memeriksa kondisi kulit wajah, silakan gunakan menu Scan Wajah.')
           setPreviewUrl(null)
           setImageBase64(null)
