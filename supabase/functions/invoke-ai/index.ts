@@ -67,13 +67,14 @@ Deno.serve(async (req: Request) => {
 
     // ---- 2. Parse request body ----
     const body = await req.json()
-    const { feature_slug, messages, input_context, use_coins, session_id, message_count } = body as {
+    const { feature_slug, messages, input_context, use_coins, session_id, message_count, idempotency_key } = body as {
       feature_slug: string
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       input_context?: Record<string, string>
       use_coins?: boolean
       session_id?: string       // ID sesi aktif (untuk session summary trigger)
       message_count?: number    // Jumlah pesan dalam sesi ini (frontend kirim)
+      idempotency_key?: string  // Client-generated UUID untuk idempotensi finansial
     }
 
     if (!feature_slug || !messages?.length) {
@@ -170,6 +171,12 @@ Deno.serve(async (req: Request) => {
       ? dynamicCost
       : (CREDIT_COST_PER_FEATURE[feature_slug] ?? 3)
 
+    // Validasi idempotency key dari client (mencegah double-spending saat retry)
+    let operationRef = crypto.randomUUID()
+    if (typeof idempotency_key === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotency_key)) {
+      operationRef = idempotency_key
+    }
+
     // Only deduct quota/credits if feature has cost > 0 (e.g. face_validation is a free validation gate)
     if (creditCost > 0) {
       if (subscription) {
@@ -211,15 +218,14 @@ Deno.serve(async (req: Request) => {
           )
         }
 
-        // Proceed with credit deduction (using atomic deduct_coins function)
-        const tempRef = crypto.randomUUID()
-        const { data: creditOk } = await supabaseService.rpc('deduct_coins', {
+        // Proceed with credit deduction (using atomic & idempotent deduct_coins function)
+        const { data: creditOk, error: deductErr } = await supabaseService.rpc('deduct_coins', {
           p_user_id: user.id,
           p_amount: creditCost,
-          p_reference_id: tempRef,
+          p_reference_id: operationRef,
         })
 
-        if (!creditOk) {
+        if (deductErr || !creditOk) {
           return jsonError('Credits tidak mencukupi. Selesaikan misi untuk mendapatkan Credits atau upgrade ke paket Glow/Pro.', 402)
         }
         deductMode = 'coin'
@@ -247,7 +253,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!apiKey) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost)
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost, operationRef)
       return jsonError('AI provider API key not configured. Check Vault secret name.', 503)
     }
 
@@ -416,6 +422,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // ---- 9. Call AI Provider ----
+    // Circuit Breaker: Batasi input context maksimal 15.000 token (~60.000 karakter)
+    // demi proteksi margin tokenomics (RFC 003 DeepSeek)
+    const estimatedInputChars = (systemPrompt?.length ?? 0) + (finalMessages as any[]).reduce((acc, m) => acc + (typeof m.content === 'string' ? m.content.length : 1000), 0)
+    const MAX_ALLOWED_INPUT_CHARS = 60_000 // ~15.000 token
+    if (estimatedInputChars > MAX_ALLOWED_INPUT_CHARS) {
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost, operationRef)
+      return jsonError('Input konteks atau riwayat chat terlalu panjang (melebihi batas aman 15.000 token). Silakan mulai sesi chat baru.', 400)
+    }
+
     const startTime = Date.now()
     let aiResult
     let aiError: Error | null = null
@@ -437,7 +452,7 @@ Deno.serve(async (req: Request) => {
 
     // ---- Opsi A: Rollback on provider error ----
     if (aiError) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost)
+      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost, operationRef)
 
       // Log failed attempt (no quota/coin consumed)
       await supabaseService.from('ai_request_logs').insert({
@@ -685,7 +700,8 @@ async function rollback(
   featureId: string,
   subscriptionId: string | undefined,
   mode: 'quota' | 'coin' | null,
-  coinAmount?: number
+  coinAmount?: number,
+  operationRef?: string
 ): Promise<void> {
   if (!mode) return
   try {
@@ -695,6 +711,7 @@ async function rollback(
       p_subscription_id: subscriptionId ?? '00000000-0000-0000-0000-000000000000',
       p_mode: mode,
       p_coin_amount: mode === 'coin' ? (coinAmount ?? 0) : null,
+      p_coin_ref: operationRef ?? null,
     })
   } catch (err) {
     console.error('[invoke-ai] rollback failed:', err)

@@ -80,6 +80,8 @@ export function useInvokeAI() {
         { role: 'user', content: `Lakukan analisis untuk fitur ${feature_slug}` },
       ]
 
+      const clientOperationId = crypto.randomUUID()
+
       const formattedPayload = {
         feature_slug,
         messages,
@@ -87,6 +89,7 @@ export function useInvokeAI() {
         use_coins: req.use_coins ?? false,
         session_id: req.session_id,
         message_count: req.message_count,
+        idempotency_key: clientOperationId,
       }
 
       const callEdge = async (useCoins: boolean) => {

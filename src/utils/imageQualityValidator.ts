@@ -206,8 +206,8 @@ export async function validateImageQuality(
  */
 export function compressImageForAI(
   file: File,
-  maxDim = 1080,
-  quality = 0.85
+  maxDim = 800,
+  quality = 0.75
 ): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image()

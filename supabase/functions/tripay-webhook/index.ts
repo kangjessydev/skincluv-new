@@ -44,65 +44,26 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // ---- Update Invoice Status ----
-    const { data: invoice, error: invErr } = await supabase
-      .from('tripay_invoices')
-      .update({ status: 'PAID' })
-      .or(`reference.eq.${reference},merchant_ref.eq.${merchant_ref}`)
-      .select('user_id, plan')
-      .maybeSingle()
+    const amountReceived = Number(payload.total_amount ?? payload.amount_received ?? payload.amount ?? 0)
 
-    if (invErr || !invoice) {
-      console.error('[tripay-webhook] Invoice not found:', reference, merchant_ref, invErr)
-      return new Response(JSON.stringify({ success: false, message: 'Invoice not found' }), { status: 404 })
+    // ---- Atomic State Transition & Subscription Entitlement via Stored Procedure ----
+    const { data: result, error: rpcErr } = await supabase.rpc('process_tripay_payment', {
+      p_merchant_ref: merchant_ref,
+      p_tripay_reference: reference ?? null,
+      p_amount_received: amountReceived,
+    })
+
+    if (rpcErr || !result?.success) {
+      console.error('[tripay-webhook] Payment processing failed:', rpcErr || result)
+      return new Response(JSON.stringify({ 
+        success: false, 
+        code: result?.code || 'PROCESSING_ERROR',
+        message: result?.message || 'Payment processing failed' 
+      }), { status: 400 })
     }
 
-    // ---- Activate Subscription ----
-    // Find the subscription tier for the plan
-    const { data: tier } = await supabase
-      .from('subscription_tiers')
-      .select('id')
-      .eq('slug', invoice.plan.toLowerCase())
-      .single()
-
-    if (tier) {
-      const now = new Date()
-      const periodEnd = new Date(now)
-      periodEnd.setMonth(periodEnd.getMonth() + 1)
-
-      // Update existing subscription for user_id to Premium tier ID
-      const { data: existingSub } = await supabase
-        .from('subscriptions')
-        .select('id')
-        .eq('user_id', invoice.user_id)
-        .maybeSingle()
-
-      if (existingSub) {
-        await supabase
-          .from('subscriptions')
-          .update({
-            tier_id: tier.id,
-            status: 'active',
-            started_at: now.toISOString(),
-            expires_at: periodEnd.toISOString(),
-            quota_reset_at: periodEnd.toISOString()
-          })
-          .eq('id', existingSub.id)
-      } else {
-        await supabase.from('subscriptions').insert({
-          user_id: invoice.user_id,
-          tier_id: tier.id,
-          status: 'active',
-          started_at: now.toISOString(),
-          expires_at: periodEnd.toISOString(),
-          quota_reset_at: periodEnd.toISOString()
-        })
-      }
-
-      console.log(`[tripay-webhook] Subscription activated for user ${invoice.user_id}`)
-    }
-
-    return new Response(JSON.stringify({ success: true }), { status: 200 })
+    console.log(`[tripay-webhook] Result for ${merchant_ref}: ${result.code} - ${result.message}`)
+    return new Response(JSON.stringify({ success: true, code: result.code }), { status: 200 })
   } catch (err) {
     console.error('[tripay-webhook] Error:', err)
     return new Response(JSON.stringify({ success: false, message: 'Internal error' }), { status: 500 })
