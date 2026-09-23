@@ -173,7 +173,8 @@ export default function IngredientScanPage() {
     setScanResult(null)
 
     try {
-      const base64Data = await compressImageForAI(file)
+      // Kompresi khusus OCR Ingredient: gunakan resolusi 1600px & quality 0.85 agar teks kecil komposisi kemasan tetap tajam terbaca
+      const base64Data = await compressImageForAI(file, 1600, 0.85)
       
       // Client-side Face Detection Gate: Cegah foto wajah manusia masuk ke Scan Ingredient
       try {
@@ -589,8 +590,11 @@ PETUNJUK OCR & ANALISIS WAJIB:
               <div className="result-summary-card">
                 <div className="summary-card-top-row">
                   <div className={`score-ring-avatar ${avoidCount > 0 ? 'score-danger' : cautionCount > 0 ? 'score-caution' : 'score-safe'}`}>
-                    <span className="sr-val">{scanResult?.safety_score || Math.round((safeCount / (totalCount || 1)) * 100)}</span>
-                    <span className="sr-unit">Skor Keamanan</span>
+                    <div className="sr-number-row">
+                      <span className="sr-val">{scanResult?.safety_score || Math.round((safeCount / (totalCount || 1)) * 100)}</span>
+                      <span className="sr-scale">/100</span>
+                    </div>
+                    <span className="sr-unit">Keamanan</span>
                   </div>
                   <div className="summary-meta">
                     <div className="product-detected-pill">
@@ -1387,8 +1391,8 @@ PETUNJUK OCR & ANALISIS WAJIB:
         }
 
         .score-ring-avatar {
-          width: 72px;
-          height: 72px;
+          width: 82px;
+          height: 82px;
           border-radius: 50%;
           color: #ffffff;
           display: flex;
@@ -1396,21 +1400,25 @@ PETUNJUK OCR & ANALISIS WAJIB:
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+          border: 3px solid #ffffff;
+          outline: 1px solid rgba(0, 0, 0, 0.08);
+          position: relative;
         }
 
         .score-ring-avatar.score-safe {
-          background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
-          box-shadow: 0 4px 15px rgba(13, 148, 136, 0.25);
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
         }
 
         .score-ring-avatar.score-caution {
-          background: linear-gradient(135deg, #d97706 0%, #0284c7 100%);
-          box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
         }
 
         .score-ring-avatar.score-danger {
-          background: linear-gradient(135deg, #e11d48 0%, #b91c1c 100%);
-          box-shadow: 0 4px 15px rgba(225, 29, 72, 0.25);
+          background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+          box-shadow: 0 4px 15px rgba(244, 63, 94, 0.35);
         }
 
         .clinical-assessment-card {
@@ -1465,17 +1473,34 @@ PETUNJUK OCR & ANALISIS WAJIB:
           margin: 0;
         }
 
+        .sr-number-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 1px;
+        }
+
         .sr-val {
-          font-size: 1.45rem;
-          font-weight: 800;
+          font-size: 1.65rem;
+          font-weight: 900;
           line-height: 1;
+          letter-spacing: -0.5px;
+        }
+
+        .sr-scale {
+          font-size: 0.625rem;
+          font-weight: 600;
+          opacity: 0.85;
         }
 
         .sr-unit {
-          font-size: 0.6rem;
-          font-weight: 600;
-          opacity: 0.9;
+          font-size: 0.58rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+          opacity: 0.95;
           margin-top: 2px;
+          white-space: nowrap;
         }
 
         .product-detected-pill {
