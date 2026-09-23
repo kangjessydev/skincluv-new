@@ -70,6 +70,17 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
     }
   }
 
+  // Native Structured JSON (responseMimeType: "application/json")
+  const responseMimeType = parameters?.response_mime_type || parameters?.responseMimeType
+  if (responseMimeType) {
+    generationConfig.responseMimeType = String(responseMimeType)
+  }
+
+  const responseSchema = parameters?.response_schema || parameters?.responseSchema
+  if (responseSchema) {
+    generationConfig.responseSchema = responseSchema
+  }
+
   const body = {
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents,

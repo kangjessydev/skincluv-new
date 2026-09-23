@@ -481,6 +481,13 @@ Deno.serve(async (req: Request) => {
     let aiResult
     let aiError: Error | null = null
 
+    // Ensure structured JSON output for analysis features (eliminates markdown wrapping & syntax corruption)
+    const isJsonFeature = ['ingredient_scan', 'face_analysis', 'face_validation'].includes(feature_slug)
+    const effectiveParameters = {
+      ...(model.parameters as Record<string, unknown> ?? {}),
+      ...(isJsonFeature && model.provider === 'google' ? { response_mime_type: 'application/json' } : {}),
+    }
+
     try {
       aiResult = await callAiProvider({
         provider: model.provider as 'google' | 'anthropic',
@@ -488,7 +495,7 @@ Deno.serve(async (req: Request) => {
         apiKey,
         systemPrompt,
         messages: finalMessages as any[],
-        parameters: model.parameters as Record<string, number>,
+        parameters: effectiveParameters as any,
       })
     } catch (err) {
       aiError = err as Error
