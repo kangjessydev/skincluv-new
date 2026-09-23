@@ -30,7 +30,13 @@ export interface AiResponse {
 
 // ---- Google Gemini ----
 async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
-  const { modelName, apiKey, systemPrompt, messages, parameters } = opts
+  const { apiKey, systemPrompt, messages, parameters } = opts
+  
+  // Model failover list: if primary model is 3.6-flash, fallback to gemini-2.5-flash on 503/429
+  const candidateModels = [opts.modelName]
+  if (opts.modelName.includes('3.6') && !candidateModels.includes('gemini-2.5-flash')) {
+    candidateModels.push('gemini-2.5-flash')
+  }
 
   // Build contents array: system instruction + conversation with multimodal support
   const contents = messages.map((m) => {
@@ -70,37 +76,60 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
     generationConfig,
   }
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+  let lastStatus = 0
+  let lastErr = ''
+
+  for (const currentModel of candidateModels) {
+    // Retry up to 2 attempts per candidate model for transient 503 or 429
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 1200))
+      }
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          }
+        )
+
+        if (!res.ok) {
+          lastStatus = res.status
+          lastErr = await res.text()
+          console.warn(`[callGemini] Model ${currentModel} returned ${res.status}: ${lastErr.slice(0, 150)}`)
+          // If transient error (503 High Demand or 429 Rate Limit), retry or switch to fallback model
+          if (res.status === 503 || res.status === 429) {
+            continue
+          }
+          throw new Error(`Gemini API error ${res.status}: ${lastErr}`)
+        }
+
+        const data = await res.json()
+        const parts: any[] = data.candidates?.[0]?.content?.parts ?? []
+        const content = parts.find((p: any) => typeof p.text === 'string' && p.text.length > 0)?.text ?? ''
+
+        if (!content) {
+          throw new Error(`Gemini returned empty content. Raw: ${JSON.stringify(data).slice(0, 400)}`)
+        }
+
+        const inputTokens = data.usageMetadata?.promptTokenCount ?? 0
+        const outputTokens = data.usageMetadata?.candidatesTokenCount ?? 0
+        const tokensUsed = inputTokens + outputTokens
+
+        return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
+      } catch (err: any) {
+        // If it's a non-503/429 error, rethrow immediately
+        if (lastStatus !== 503 && lastStatus !== 429) {
+          throw err
+        }
+      }
     }
-  )
-
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Gemini API error ${res.status}: ${err}`)
   }
 
-  const data = await res.json()
-
-  // Thinking-enabled models (thinkingBudget > 0) return a "thought" part
-  // before the actual text part. Scan all parts and pick the first text part.
-  const parts: any[] = data.candidates?.[0]?.content?.parts ?? []
-  const content = parts.find((p: any) => typeof p.text === 'string' && p.text.length > 0)?.text ?? ''
-
-  if (!content) {
-    // Surface the raw response in the error for easier debugging
-    throw new Error(`Gemini returned empty content. Raw: ${JSON.stringify(data).slice(0, 400)}`)
-  }
-
-  const inputTokens = data.usageMetadata?.promptTokenCount ?? 0
-  const outputTokens = data.usageMetadata?.candidatesTokenCount ?? 0
-  const tokensUsed = inputTokens + outputTokens
-
-  return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
+  throw new Error(`Gemini API error ${lastStatus || 503}: ${lastErr || 'Model overloaded. All retry and fallback attempts failed.'}`)
 }
 
 // ---- Anthropic Claude ----

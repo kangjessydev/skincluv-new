@@ -415,6 +415,14 @@ Deno.serve(async (req: Request) => {
             .join('\n')
           systemPrompt += `\n\n[DAFTAR ZAT TERLARANG & OBAT KERAS REGULASI BPOM RI]:\nJika formula mengandung zat di bawah ini, kamu WAJIB menandainya sebagai bahaya tinggi/obat keras:\n${bannedLines}`
         }
+
+        if (feature_slug === 'ingredient_scan') {
+          systemPrompt += `\n\n[ATURAN PENTING PANDUAN KOMBINASI / LAYERING]:
+- HANYA masukkan item ke dalam 'danger_combos' jika MINIMAL SALAH SATU atau KEDUA bahan dalam pasangan tersebut BENAR-BENAR TERDAPAT dalam daftar komposisi produk yang dianalisis ini! (Contoh: jika produk mengandung Retinol atau Niacinamide, baru peringatkan interaksinya dengan zat lain).
+- DILARANG KERAS memunculkan 'danger_combos' jika kedua bahan sama sekali TIDAK ADA dalam kemasan produk ini (misal: JANGAN memunculkan bahaya AHA/BHA jika produk tidak mengandung zat eksfoliasi).
+- Jika formula produk ini aman dan tidak memiliki bahan yang rentan kontraindikasi berat, kosongkan array danger_combos ([]) atau fokuskan pada best_combos saja.
+- Pada ingredients_breakdown, untuk setiap bahan berikan nama jelas, peran fungsinya (misal: 'Pelarut pembawa formula', 'Humektan hidrasi', 'Pengental emulsi'), skor komedogenik (0-5), dan status keamanannya.`
+        }
       } catch (clinicalErr) {
         console.warn('[invoke-ai] Clinical context fetch skipped:', clinicalErr)
       }
