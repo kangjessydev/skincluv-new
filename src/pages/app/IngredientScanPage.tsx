@@ -14,6 +14,7 @@ import {
   BookOpen,
   Filter,
   ShieldCheck,
+  ShieldAlert,
   AlertTriangle,
   Zap,
   Edit3,
@@ -37,6 +38,8 @@ export interface LayeringCombo {
   pair: string
   benefit?: string
   warning?: string
+  severity?: 'fatal' | 'caution' | string
+  clinical_action?: string
 }
 
 export interface IngredientItem {
@@ -48,6 +51,7 @@ export interface IngredientItem {
   notes?: string
   skinType?: string
   interaction?: string
+  is_drug_or_banned?: boolean
   personal?: {
     ok: boolean
     text: string
@@ -70,6 +74,7 @@ export interface IngredientAnalysisResult {
   caution_count?: number
   avoid_count?: number
   overall_recommendation?: string
+  bpom_alert?: string | null
   suitable_for_skin_types?: string[]
   layering_guide?: {
     best_combos?: LayeringCombo[]
@@ -607,6 +612,17 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 </div>
               )}
 
+              {/* BPOM Regulatory Alert Banner (Jika terdeteksi zat terlarang / obat keras) */}
+              {scanResult?.bpom_alert && (
+                <div className="bpom-alert-banner">
+                  <div className="bpom-alert-header">
+                    <ShieldAlert size={18} className="text-rose-600 shrink-0" />
+                    <strong>Peringatan Regulasi BPOM RI & Keamanan Produk:</strong>
+                  </div>
+                  <p className="bpom-alert-text">{scanResult.bpom_alert}</p>
+                </div>
+              )}
+
               {/* QUICK-CORRECTION OCR REVIEW BOX */}
               <div className="detected-text-box">
                 <div className="dt-header">
@@ -679,8 +695,22 @@ PETUNJUK OCR & ANALISIS WAJIB:
                           </div>
                           <ul className="combos-list">
                             {scanResult.layering_guide.danger_combos.map((item, dIdx) => (
-                              <li key={dIdx}>
-                                <b>{item.pair}:</b> {item.warning}
+                              <li key={dIdx} className="danger-combo-item">
+                                <div className="danger-combo-title-row">
+                                  <b>{item.pair}</b>
+                                  {item.severity === 'fatal' && (
+                                    <span className="combo-severity-badge severity-fatal">🔴 FATAL</span>
+                                  )}
+                                  {item.severity === 'caution' && (
+                                    <span className="combo-severity-badge severity-caution">⚠️ PERHATIAN</span>
+                                  )}
+                                </div>
+                                <div className="danger-combo-desc">{item.warning}</div>
+                                {item.clinical_action && (
+                                  <div className="danger-combo-action">
+                                    💡 <em>Solusi Klinis: {item.clinical_action}</em>
+                                  </div>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -738,7 +768,14 @@ PETUNJUK OCR & ANALISIS WAJIB:
                     style={{ animationDelay: `${idx * 0.1}s` }}
                   >
                     <div className="card-top-header">
-                      <h4 className="ing-item-name">{ing.name}</h4>
+                      <div className="ing-title-group-col">
+                        <h4 className="ing-item-name">{ing.name}</h4>
+                        {ing.is_drug_or_banned && (
+                          <span className="bpom-drug-badge">
+                            ⚠️ Regulasi BPOM: Obat Keras / Zat Khusus
+                          </span>
+                        )}
+                      </div>
                       <span className={`ing-status-badge badge-${ing.badge}`}>
                         {ing.badgeLabel || (ing.badge === 'aman' ? 'Aman' : ing.badge === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')}
                       </span>
@@ -1509,6 +1546,107 @@ PETUNJUK OCR & ANALISIS WAJIB:
           position: absolute;
           left: 2px;
           color: #64748b;
+        }
+
+        .bpom-alert-banner {
+          background: #fef2f2;
+          border: 1.5px solid #f87171;
+          border-radius: 12px;
+          padding: 12px 14px;
+          margin-bottom: 14px;
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .bpom-alert-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #991b1b;
+          font-size: 0.875rem;
+          font-weight: 700;
+          margin-bottom: 4px;
+        }
+
+        .bpom-alert-text {
+          margin: 0;
+          font-size: 0.8125rem;
+          color: #7f1d1d;
+          line-height: 1.45;
+        }
+
+        .danger-combo-item {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          padding-left: 0 !important;
+          background: #fff;
+          border: 1px solid #fee2e2;
+          border-radius: 8px;
+          padding: 8px 10px;
+        }
+
+        .danger-combo-item::before {
+          display: none !important;
+        }
+
+        .danger-combo-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+        }
+
+        .combo-severity-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 1px 7px;
+          border-radius: 999px;
+          text-transform: uppercase;
+        }
+
+        .severity-fatal {
+          background: #fee2e2;
+          color: #b91c1c;
+          border: 1px solid #fca5a5;
+        }
+
+        .severity-caution {
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fde68a;
+        }
+
+        .danger-combo-desc {
+          font-size: 0.8125rem;
+          color: #334155;
+          line-height: 1.4;
+        }
+
+        .danger-combo-action {
+          font-size: 0.75rem;
+          color: #0369a1;
+          background: #f0f9ff;
+          border: 1px solid #e0f2fe;
+          border-radius: 6px;
+          padding: 4px 8px;
+          margin-top: 3px;
+        }
+
+        .ing-title-group-col {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .bpom-drug-badge {
+          font-size: 0.6875rem;
+          font-weight: 600;
+          color: #b91c1c;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          border-radius: 4px;
+          padding: 1px 6px;
+          align-self: flex-start;
         }
 
         .ing-title-group {

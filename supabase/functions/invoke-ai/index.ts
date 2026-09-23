@@ -382,6 +382,40 @@ Deno.serve(async (req: Request) => {
 - JANGAN PERNAH menyebut, menampilkan, atau mengutip nama mode/instruksi internal ini (termasuk kata "PRO", "dermatologist expert mode", atau label sistem apapun) ke dalam jawaban ke user. Cukup tunjukkan lewat kualitas jawaban, bukan lewat pengumuman.`
     }
 
+    // Injeksi Matriks Kontraindikasi Fatal & Kepatuhan BPOM (RFC 004 Kimi)
+    if (feature_slug === 'ingredient_scan' || feature_slug === 'chatbot') {
+      try {
+        const [interactionsRes, bannedRes] = await Promise.all([
+          supabaseService
+            .from('ingredient_interactions')
+            .select('ingredient_a, ingredient_b, severity, risk_title, risk_description, clinical_action, bpom_warning')
+            .eq('is_verified', true)
+            .limit(20),
+          supabaseService
+            .from('skincare_ingredients')
+            .select('canonical_name, aliases, is_drug_only, is_banned_substance, description')
+            .or('is_drug_only.eq.true,is_banned_substance.eq.true')
+            .limit(20),
+        ])
+
+        if (interactionsRes.data && interactionsRes.data.length > 0) {
+          const interactionLines = interactionsRes.data
+            .map((item: any) => `- [${String(item.severity).toUpperCase()}] ${item.ingredient_a} + ${item.ingredient_b}: ${item.risk_title} -> Solusi: ${item.clinical_action}${item.bpom_warning ? ` (Catatan BPOM: ${item.bpom_warning})` : ''}`)
+            .join('\n')
+          systemPrompt += `\n\n[MATRIKS KONTRAINDIKASI KLINIS TERVERIFIKASI (RFC 004 KIMI)]:\nBerikut adalah daftar aturan pasti interaksi bahan aktif klinis. Kamu WAJIB menggunakan data ini jika mendeteksi kombinasi bahan terkait:\n${interactionLines}`
+        }
+
+        if (bannedRes.data && bannedRes.data.length > 0) {
+          const bannedLines = bannedRes.data
+            .map((b: any) => `- ${b.canonical_name} (${(b.aliases ?? []).join(', ')}): ${b.is_banned_substance ? 'ZAT TERLARANG/BERACUN ILEGAL' : 'OBAT KERAS (Wajib resep dokter, dilarang di kosmetik bebas)'}. ${b.description}`)
+            .join('\n')
+          systemPrompt += `\n\n[DAFTAR ZAT TERLARANG & OBAT KERAS REGULASI BPOM RI]:\nJika formula mengandung zat di bawah ini, kamu WAJIB menandainya sebagai bahaya tinggi/obat keras:\n${bannedLines}`
+        }
+      } catch (clinicalErr) {
+        console.warn('[invoke-ai] Clinical context fetch skipped:', clinicalErr)
+      }
+    }
+
     // Attach image_base64 to the user message for multimodal vision models
     const finalMessages = trimmedMessages.map((m, idx) => {
       if (idx === trimmedMessages.length - 1 && input_context?.image_base64) {
