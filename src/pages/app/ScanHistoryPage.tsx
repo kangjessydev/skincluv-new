@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -96,6 +97,22 @@ export default function ScanHistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id, user?.id, profile?.id])
 
+  // Lock body scroll and close on Escape when modal is active
+  useEffect(() => {
+    if (selectedScan) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setSelectedScan(null)
+      }
+      window.addEventListener('keydown', handleKeyDown)
+      return () => {
+        document.body.style.overflow = originalOverflow
+        window.removeEventListener('keydown', handleKeyDown)
+      }
+    }
+  }, [selectedScan])
+
   // Statistics calculation
   const totalScans = scans.length
   const avgScore = totalScans > 0
@@ -106,23 +123,63 @@ export default function ScanHistoryPage() {
   const previousScore = scans[1]?.overall_score || latestScore
   const scoreDiff = latestScore - previousScore
 
-  // Helper extraction for selectedScan
-  const rawResponse = (selectedScan?.raw_ai_response as Record<string, any>) || {}
+  // Helper extraction for selectedScan (robust against stringified or object JSON)
+  let rawResponse: Record<string, any> = {}
+  try {
+    if (typeof selectedScan?.raw_ai_response === 'string') {
+      rawResponse = JSON.parse(selectedScan.raw_ai_response)
+    } else if (selectedScan?.raw_ai_response && typeof selectedScan.raw_ai_response === 'object') {
+      rawResponse = selectedScan.raw_ai_response as Record<string, any>
+    }
+  } catch {
+    rawResponse = {}
+  }
+
+  let parsedAreas: any[] = []
+  if (Array.isArray(selectedScan?.area_evaluations)) {
+    parsedAreas = selectedScan.area_evaluations
+  } else if (typeof selectedScan?.area_evaluations === 'string') {
+    try {
+      const p = JSON.parse(selectedScan.area_evaluations)
+      if (Array.isArray(p)) parsedAreas = p
+    } catch {}
+  } else if (Array.isArray(rawResponse.area_evaluations)) {
+    parsedAreas = rawResponse.area_evaluations
+  }
+
+  let parsedProducts: any[] = []
+  if (Array.isArray(selectedScan?.product_recommendations)) {
+    parsedProducts = selectedScan.product_recommendations
+  } else if (typeof selectedScan?.product_recommendations === 'string') {
+    try {
+      const p = JSON.parse(selectedScan.product_recommendations)
+      if (Array.isArray(p)) parsedProducts = p
+    } catch {}
+  } else if (Array.isArray(rawResponse.product_recommendations)) {
+    parsedProducts = rawResponse.product_recommendations
+  }
+
   const tipsAvoid = Array.isArray(rawResponse.tips_avoid) ? rawResponse.tips_avoid : []
   const tipsReduce = Array.isArray(rawResponse.tips_reduce) ? rawResponse.tips_reduce : []
   const tipsDo = Array.isArray(rawResponse.tips_do) ? rawResponse.tips_do : []
 
-  const heroIngredients = (
+  const rawHeroList = (
     Array.isArray(rawResponse.recommended_ingredients) && rawResponse.recommended_ingredients.length > 0
       ? rawResponse.recommended_ingredients
-      : (Array.isArray(selectedScan?.product_recommendations) ? (selectedScan!.product_recommendations as any[]) : [])
-  ).map((item: any) => {
-    const rawName = typeof item === 'string' ? item : (item.name || item.product_name || item.ingredient || 'Bahan Aktif')
-    const cleanName = rawName.replace(/^Kandungan yang cocok:\s*/i, '').trim()
-    const purpose = typeof item === 'object' ? (item.purpose || item.why_recommended || item.reason || 'Membantu merawat dan menjaga stabilitas lapisan kulit.') : 'Membantu merawat dan menjaga stabilitas lapisan kulit.'
-    const isEssential = typeof item === 'object' && item.priority
+      : parsedProducts
+  )
+
+  const heroIngredients = rawHeroList.map((item: any) => {
+    const rawName = typeof item === 'string'
+      ? item
+      : (item?.name || item?.product_name || item?.ingredient || 'Bahan Aktif')
+    const cleanName = String(rawName).replace(/^Kandungan yang cocok:\s*/i, '').trim()
+    const purpose = typeof item === 'object' && item
+      ? (item.purpose || item.why_recommended || item.reason || 'Membantu merawat dan menjaga stabilitas lapisan kulit.')
+      : 'Membantu merawat dan menjaga stabilitas lapisan kulit.'
+    const isEssential = typeof item === 'object' && item?.priority
       ? item.priority === 'essential'
-      : (item.category?.includes('Essential') || item.category?.includes('Utama'))
+      : (String(item?.category || '').includes('Essential') || String(item?.category || '').includes('Utama'))
 
     return {
       name: cleanName,
@@ -132,7 +189,7 @@ export default function ScanHistoryPage() {
   })
 
   return (
-    <div className="skincluv-scan-history-page animate-fade-in">
+    <div className="skincluv-scan-history-page">
       {/* Header Bar */}
       <div className="page-header-box">
         <Link to="/app/face-scan" className="back-link-btn">
@@ -255,10 +312,10 @@ export default function ScanHistoryPage() {
         </div>
       )}
 
-      {/* Modal Detail Hasil Scan Masa Lalu (Diselaraskan dengan Standar Baru FaceScanPage) */}
-      {selectedScan && (
+      {/* Modal Detail Hasil Scan Masa Lalu (Diselaraskan dengan Standar Baru FaceScanPage via Portal) */}
+      {selectedScan && createPortal(
         <div className="modal-backdrop" onClick={() => setSelectedScan(null)}>
-          <div className="modal-content-box glass-card animate-scale-up" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content-box glass-card animate-modal-zoom" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <div className="modal-date-tag">
@@ -268,7 +325,7 @@ export default function ScanHistoryPage() {
                 </div>
                 <h3 className="modal-title">{selectedScan.skin_status_title || 'Laporan Diagnosis Kulit'}</h3>
               </div>
-              <button className="btn-close-modal" onClick={() => setSelectedScan(null)}>
+              <button className="btn-close-modal" onClick={() => setSelectedScan(null)} aria-label="Tutup">
                 <X size={20} />
               </button>
             </div>
@@ -306,31 +363,33 @@ export default function ScanHistoryPage() {
               </div>
 
               {/* 3-Area Breakdown */}
-              {Array.isArray(selectedScan.area_evaluations) && selectedScan.area_evaluations.length > 0 && (
+              {parsedAreas.length > 0 && (
                 <div className="modal-areas-section">
                   <h4 className="modal-section-title">
                     <Layers size={16} /> Evaluasi Kondisi Kulit Per Area (Granular)
                   </h4>
                   <div className="modal-areas-stack">
-                    {(selectedScan.area_evaluations as any[]).map((area, aIdx) => (
+                    {parsedAreas.map((area: any, aIdx: number) => (
                       <div key={aIdx} className="area-detail-card">
                         <div className="area-card-header">
                           <div className="area-title-group">
                             <Target size={15} className="area-icon-accent" />
-                            <span className="area-name">{area.area_name}</span>
+                            <span className="area-name">{area.area_name || area.name || `Area ${aIdx + 1}`}</span>
                           </div>
                           <div className="area-badges-group">
                             <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
                               {area.status || 'Optimal'}
                             </span>
-                            <span className="area-score-badge">Skor: {area.score}/100</span>
+                            <span className="area-score-badge">Skor: {area.score || 80}/100</span>
                           </div>
                         </div>
 
-                        <div className="area-finding-box">
-                          <span className="af-label">🔬 Diagnosis Klinis:</span>
-                          <p className="af-text">{area.finding}</p>
-                        </div>
+                        {area.finding && (
+                          <div className="area-finding-box">
+                            <span className="af-label">🔬 Diagnosis Klinis:</span>
+                            <p className="af-text">{area.finding}</p>
+                          </div>
+                        )}
 
                         {area.analogy && (
                           <div className="area-analogy-box">
@@ -448,7 +507,8 @@ export default function ScanHistoryPage() {
               </Link>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Embedded CSS for Modern Bento Aesthetics */}
@@ -746,28 +806,51 @@ export default function ScanHistoryPage() {
         }
 
         /* MODAL STYLES */
+        @keyframes modalBackdropFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes modalContentZoomIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
         .modal-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.65);
-          backdrop-filter: blur(4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-          padding: 1rem;
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          background: rgba(15, 23, 42, 0.72) !important;
+          backdrop-filter: blur(8px) !important;
+          -webkit-backdrop-filter: blur(8px) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          z-index: 999999 !important;
+          padding: 1.25rem !important;
+          box-sizing: border-box !important;
+          animation: modalBackdropFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .modal-content-box {
-          background: #ffffff;
-          border-radius: 1.25rem;
-          max-width: 820px;
-          width: 100%;
-          max-height: 90vh;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-          overflow: hidden;
+          background: #ffffff !important;
+          border-radius: 1.5rem !important;
+          max-width: 840px !important;
+          width: 100% !important;
+          max-height: 88vh !important;
+          display: flex !important;
+          flex-direction: column !important;
+          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 1px 1px rgba(0, 0, 0, 0.08) !important;
+          overflow: hidden !important;
+          position: relative !important;
+          animation: modalContentZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .modal-header {
