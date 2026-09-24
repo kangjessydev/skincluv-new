@@ -32,10 +32,10 @@ export interface AiResponse {
 async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
   const { apiKey, systemPrompt, messages, parameters } = opts
   
-  // Model failover list: if primary model is 3.6-flash, fallback to gemini-2.5-flash on 503/429
+  // Model failover list: if primary model is 3.6-flash, fallback to gemini-2.0-flash on 503/429
   const candidateModels = [opts.modelName]
-  if (opts.modelName.includes('3.6') && !candidateModels.includes('gemini-2.5-flash')) {
-    candidateModels.push('gemini-2.5-flash')
+  if (opts.modelName.includes('3.6') && !candidateModels.includes('gemini-2.0-flash')) {
+    candidateModels.push('gemini-2.0-flash')
   }
 
   // Build contents array: system instruction + conversation with multimodal support
