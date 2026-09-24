@@ -132,7 +132,9 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
 
         const inputTokens = data.usageMetadata?.promptTokenCount ?? 0
         const outputTokens = data.usageMetadata?.candidatesTokenCount ?? 0
+        const thoughtsTokens = data.usageMetadata?.thoughtsTokenCount ?? 0
         const tokensUsed = inputTokens + outputTokens
+        console.log(`[callGemini] [TELEMETRY] model=${currentModel} inputTokens=${inputTokens} outputTokens=${outputTokens} thoughtsTokens=${thoughtsTokens} totalTokens=${tokensUsed}`)
 
         return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
       } catch (err: any) {

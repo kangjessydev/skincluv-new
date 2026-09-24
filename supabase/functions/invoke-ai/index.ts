@@ -307,12 +307,20 @@ Deno.serve(async (req: Request) => {
 
     const hasMemoryConsent = userProfile?.chatbot_memory_consent === true
 
-    // Injeksi Memori Klinis Pasien (HANYA jika user sudah memberikan consent)
+    // Injeksi Memori Klinis Pasien (HANYA jika user sudah memberikan consent untuk chatbot atau untuk keselamatan alergi scan wajah)
     if (feature_slug === 'chatbot' && hasMemoryConsent && memoriesRes.data && memoriesRes.data.length > 0) {
       const memoryLines = memoriesRes.data
         .map((m: any) => `- [${String(m.memory_type).toUpperCase()}]: ${m.entity} (${m.clinical_fact})`)
         .join('\n')
       systemPrompt += `\n\n[MEMORI PASIEN TERVERIFIKASI]:\n${memoryLines}\nGunakan catatan memori di atas untuk mempersonalisasi saran dan secara mutlak menghindari bahan/treatment yang berpotensi memicu reaksi buruk pada pasien.`
+    } else if (feature_slug === 'face_analysis' && memoriesRes.data && memoriesRes.data.length > 0) {
+      const allergyLines = memoriesRes.data
+        .filter((m: any) => ['allergy', 'sensitivity', 'treatment_reaction'].includes(m.memory_type))
+        .map((m: any) => `- [${String(m.memory_type).toUpperCase()}]: ${m.entity} (${m.clinical_fact})`)
+        .join('\n')
+      if (allergyLines) {
+        systemPrompt += `\n\n[MEMORI ALERGI & SENSITIVITAS PENGGUNA TERDAFTAR]:\n${allergyLines}\nDILARANG merekomendasikan bahan-bahan di atas atau turunannya dalam daftar Hero Actives (recommended_ingredients).`
+      }
     }
 
     // Injeksi Ringkasan Sesi Sebelumnya untuk Cross-Session Context (HANYA jika consent aktif)
@@ -386,27 +394,30 @@ Deno.serve(async (req: Request) => {
 - Hindari pembahasan medis yang bertele-tele agar pengguna mendapatkan rekomendasi yang praktis dan mudah dipahami.`
     }
 
-    // Injeksi Matriks Kontraindikasi Fatal & Kepatuhan BPOM (RFC 004 Kimi)
-    if (feature_slug === 'ingredient_scan' || feature_slug === 'chatbot') {
+    // Injeksi Matriks Kontraindikasi Fatal & Kepatuhan BPOM (RFC 004 & RFC 005 Kimi)
+    let verifiedInteractions: any[] = []
+    if (['ingredient_scan', 'chatbot', 'face_analysis'].includes(feature_slug)) {
       try {
         const [interactionsRes, bannedRes] = await Promise.all([
           supabaseService
             .from('ingredient_interactions')
             .select('ingredient_a, ingredient_b, severity, risk_title, risk_description, clinical_action, bpom_warning')
             .eq('is_verified', true)
-            .limit(20),
+            .limit(100),
           supabaseService
             .from('skincare_ingredients')
             .select('canonical_name, aliases, is_drug_only, is_banned_substance, description')
             .or('is_drug_only.eq.true,is_banned_substance.eq.true')
-            .limit(20),
+            .limit(100),
         ])
+
+        verifiedInteractions = interactionsRes.data ?? []
 
         if (interactionsRes.data && interactionsRes.data.length > 0) {
           const interactionLines = interactionsRes.data
             .map((item: any) => `- [${String(item.severity).toUpperCase()}] ${item.ingredient_a} + ${item.ingredient_b}: ${item.risk_title} -> Solusi: ${item.clinical_action}${item.bpom_warning ? ` (Catatan BPOM: ${item.bpom_warning})` : ''}`)
             .join('\n')
-          systemPrompt += `\n\n[MATRIKS KONTRAINDIKASI KLINIS TERVERIFIKASI (RFC 004 KIMI)]:\nBerikut adalah daftar aturan pasti interaksi bahan aktif klinis. Kamu WAJIB menggunakan data ini jika mendeteksi kombinasi bahan terkait:\n${interactionLines}`
+          systemPrompt += `\n\n[MATRIKS KONTRAINDIKASI KLINIS TERVERIFIKASI (RFC 004/005 KIMI)]:\nBerikut adalah daftar aturan pasti interaksi bahan aktif klinis. Kamu WAJIB menggunakan data ini jika mendeteksi kombinasi bahan terkait:\n${interactionLines}`
         }
 
         if (bannedRes.data && bannedRes.data.length > 0) {
@@ -414,6 +425,13 @@ Deno.serve(async (req: Request) => {
             .map((b: any) => `- ${b.canonical_name} (${(b.aliases ?? []).join(', ')}): ${b.is_banned_substance ? 'ZAT TERLARANG/BERACUN ILEGAL' : 'OBAT KERAS (Wajib resep dokter, dilarang di kosmetik bebas)'}. ${b.description}`)
             .join('\n')
           systemPrompt += `\n\n[DAFTAR ZAT TERLARANG & OBAT KERAS REGULASI BPOM RI]:\nJika formula mengandung zat di bawah ini, kamu WAJIB menandainya sebagai bahaya tinggi/obat keras:\n${bannedLines}`
+        }
+
+        if (feature_slug === 'face_analysis') {
+          systemPrompt += `\n\n[ATURAN REKOMENDASI BAHAN AKTIF KLINIS (HERO ACTIVES - WAJIB)]:
+- DILARANG KERAS merekomendasikan dua bahan dari pasangan kontraindikasi di atas dalam satu sesi rekomendasi.
+- Jika evaluasi menunjukkan skin barrier bermasalah/rusak/sensitif (kemerahan, iritasi, peradangan tinggi): HANYA rekomendasikan bahan pemulih barrier (Ceramide, Centella Asiatica, Hyaluronic Acid, Azelaic Acid <=10%, Niacinamide <=5%). DILARANG KERAS merekomendasikan Retinoid, AHA/BHA berkonsentrasi tinggi, atau Vitamin C murni (Ascorbic Acid) sampai barrier pulih.
+- Setiap bahan aktif rekomendasi WAJIB relevan dengan kebutuhan perbaikan area wajah pengguna.`
         }
 
         if (feature_slug === 'ingredient_scan') {
@@ -546,7 +564,7 @@ Deno.serve(async (req: Request) => {
       status: 'success',
     })
 
-    // ---- 9b. Track mission progress server-side (Anti-Spoofing) ----
+    // ---- 9b. Track mission progress server-side (Anti-Spoofing & Anti-Abuse Gating) ----
     const MISSION_ACTION_MAP: Record<string, string> = {
       face_analysis: 'face_scan',
       ingredient_scan: 'ingredient_scan',
@@ -554,16 +572,29 @@ Deno.serve(async (req: Request) => {
     }
     const missionAction = MISSION_ACTION_MAP[feature_slug]
     if (missionAction) {
-      supabaseService
-        .rpc('record_mission_progress', {
-          p_user_id: user.id,
-          p_action: missionAction,
-          p_count: 1,
-        })
-        .then(
-          () => {},
-          (mErr: unknown) => console.error('[invoke-ai] Error recording mission progress:', mErr)
-        )
+      let isEligible = true
+      // Gating anti-abuse chatbot: minimal 12 karakter & minimal 2 kata
+      if (feature_slug === 'chatbot') {
+        const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
+        const msgText = typeof lastUserMsg === 'string' ? lastUserMsg.trim() : ''
+        if (msgText.length < 12 || msgText.split(/\s+/).length < 2) {
+          isEligible = false
+        }
+      }
+
+      if (isEligible) {
+        supabaseService
+          .rpc('record_mission_progress', {
+            p_user_id: user.id,
+            p_action: missionAction,
+            p_count: 1,
+            p_reference_id: idempotencyKey || null,
+          })
+          .then(
+            () => {},
+            (mErr: unknown) => console.error('[invoke-ai] Error recording mission progress:', mErr)
+          )
+      }
     }
 
     // ---- 10. Product Matching Engine (khusus face_analysis) ----
@@ -572,6 +603,52 @@ Deno.serve(async (req: Request) => {
     if (feature_slug === 'face_analysis') {
       const parsed = tryParseAiJson(aiResult!.content)
       if (parsed && parsed.is_valid_face !== false && Array.isArray(parsed.recommended_ingredients)) {
+        // [KLINIS KIMI P0-2] Post-filter 1: Filter alergi & sensitivitas dari user_clinical_memories
+        if (memoriesRes.data && memoriesRes.data.length > 0) {
+          const forbiddenEntities = memoriesRes.data
+            .filter((m: any) => ['allergy', 'sensitivity', 'treatment_reaction'].includes(m.memory_type))
+            .map((m: any) => String(m.entity || '').toLowerCase().trim())
+            .filter(Boolean)
+
+          if (forbiddenEntities.length > 0) {
+            parsed.recommended_ingredients = parsed.recommended_ingredients.filter((ri: any) => {
+              const name = String(typeof ri === 'string' ? ri : ri.name || '').toLowerCase()
+              return !forbiddenEntities.some((forbidden: string) => name.includes(forbidden))
+            })
+          }
+        }
+
+        // [KLINIS KIMI & CHATGPT P0] Post-filter 2: Guardrail Barrier Rusak / Sensitif Ekstrem
+        // Jika analisis menunjukkan skin barrier compromised, otomatis saring bahan eksfoliasi/retinoid agresif
+        const analysisNotesLower = String(parsed.analysis_notes || '').toLowerCase()
+        const isBarrierCompromised =
+          analysisNotesLower.includes('barrier rusak') ||
+          analysisNotesLower.includes('barrier terganggu') ||
+          analysisNotesLower.includes('iritasi') ||
+          analysisNotesLower.includes('kemerahan') ||
+          analysisNotesLower.includes('mengelupas')
+
+        if (isBarrierCompromised) {
+          const aggressiveActives = ['retinol', 'retinoid', 'tretinoin', 'glycolic acid', 'lactic acid', 'salicylic acid >2%']
+          parsed.recommended_ingredients = parsed.recommended_ingredients.filter((ri: any) => {
+            const name = String(typeof ri === 'string' ? ri : ri.name || '').toLowerCase()
+            return !aggressiveActives.some((agg) => name.includes(agg))
+          })
+
+          // Pastikan setidaknya ada kandungan pemulih barrier esensial
+          const hasBarrierActive = parsed.recommended_ingredients.some((ri: any) => {
+            const name = String(typeof ri === 'string' ? ri : ri.name || '').toLowerCase()
+            return name.includes('ceramide') || name.includes('centella') || name.includes('hyaluronic')
+          })
+          if (!hasBarrierActive) {
+            parsed.recommended_ingredients.unshift({
+              name: 'Ceramide NP',
+              purpose: 'Memperbaiki dan memperkuat lapisan pertahanan kulit (skin barrier) yang sedang sensitif/teriritasi.',
+              priority: 'essential',
+            })
+          }
+        }
+
         try {
           const matchedProducts = await matchProductsFromIngredients(
             supabaseService,
@@ -662,6 +739,23 @@ Deno.serve(async (req: Request) => {
               item.verified_by_skincluv = true
               enrichedCount++
             }
+          }
+
+          // [KLINIS KIMI P0-3] Filter deterministik danger_combos terhadap verifiedInteractions dari DB
+          if (Array.isArray(parsedForEnrich.danger_combos) && verifiedInteractions.length > 0) {
+            parsedForEnrich.danger_combos = parsedForEnrich.danger_combos.filter((combo: any) => {
+              const a = String(combo.ingredient_a || '').toLowerCase().trim()
+              const b = String(combo.ingredient_b || '').toLowerCase().trim()
+              return verifiedInteractions.some((v: any) => {
+                const va = String(v.ingredient_a || '').toLowerCase().trim()
+                const vb = String(v.ingredient_b || '').toLowerCase().trim()
+                return (
+                  ((a.includes(va) || va.includes(a)) && (b.includes(vb) || vb.includes(b))) ||
+                  ((a.includes(vb) || vb.includes(a)) && (b.includes(va) || va.includes(b)))
+                )
+              })
+            })
+            enrichedCount++
           }
 
           if (enrichedCount > 0) {

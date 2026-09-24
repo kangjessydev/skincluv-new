@@ -520,7 +520,7 @@ export default function FaceScanPage() {
     setAnalysisResult(null)
 
     try {
-      const base64Data = await compressImageForAI(file)
+      const base64Data = await compressImageForAI(file, 800, 0.70)
       setImageBase64(base64Data)
     } catch {
       const reader = new FileReader()
