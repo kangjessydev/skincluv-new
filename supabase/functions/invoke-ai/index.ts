@@ -836,9 +836,10 @@ Deno.serve(async (req: Request) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
-  } catch (err) {
+  } catch (err: any) {
     console.error('[invoke-ai] Unhandled error:', err)
-    return jsonError('Internal server error', 500)
+    const errDetail = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+    return jsonError(`Internal server error: ${errDetail}`, 500)
   }
 })
 
@@ -907,7 +908,8 @@ const PRIORITY_WEIGHT: Record<string, number> = {
 const MIN_MATCH_SCORE_FOR_BOOST = 60
 const MAX_PRODUCTS_RETURNED = 3
 
-function normalizeIngredientName(name: string): string {
+function normalizeIngredientName(name: string | undefined | null): string {
+  if (!name || typeof name !== 'string') return ''
   return name.toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
@@ -924,7 +926,7 @@ async function matchProductsFromIngredients(
   why_recommended: string
   price_estimate?: string
 }>> {
-  if (!recommendedIngredients || recommendedIngredients.length === 0) return []
+  if (!recommendedIngredients || !Array.isArray(recommendedIngredients) || recommendedIngredients.length === 0) return []
 
   const { data: products, error } = await supabaseService
     .from('products')
@@ -933,9 +935,9 @@ async function matchProductsFromIngredients(
 
   if (error || !products || products.length === 0) return []
 
-  const normalizedTargets = recommendedIngredients.map((ri) => ({
-    normalized: normalizeIngredientName(ri.name),
-    weight: PRIORITY_WEIGHT[ri.priority ?? 'recommended'] ?? 2,
+  const normalizedTargets = recommendedIngredients.map((ri: any) => ({
+    normalized: normalizeIngredientName(typeof ri === 'string' ? ri : ri?.name),
+    weight: PRIORITY_WEIGHT[typeof ri === 'object' && ri?.priority ? ri.priority : 'recommended'] ?? 2,
   }))
 
   const scored = (products as unknown as ProductRow[]).map((p) => {
