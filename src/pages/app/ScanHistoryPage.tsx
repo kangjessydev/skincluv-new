@@ -13,6 +13,11 @@ import {
   Layers,
   Award,
   RefreshCw,
+  FlaskConical,
+  CheckCircle2,
+  Target,
+  ShieldCheck,
+  MessageSquare,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -101,6 +106,31 @@ export default function ScanHistoryPage() {
   const previousScore = scans[1]?.overall_score || latestScore
   const scoreDiff = latestScore - previousScore
 
+  // Helper extraction for selectedScan
+  const rawResponse = (selectedScan?.raw_ai_response as Record<string, any>) || {}
+  const tipsAvoid = Array.isArray(rawResponse.tips_avoid) ? rawResponse.tips_avoid : []
+  const tipsReduce = Array.isArray(rawResponse.tips_reduce) ? rawResponse.tips_reduce : []
+  const tipsDo = Array.isArray(rawResponse.tips_do) ? rawResponse.tips_do : []
+
+  const heroIngredients = (
+    Array.isArray(rawResponse.recommended_ingredients) && rawResponse.recommended_ingredients.length > 0
+      ? rawResponse.recommended_ingredients
+      : (Array.isArray(selectedScan?.product_recommendations) ? (selectedScan!.product_recommendations as any[]) : [])
+  ).map((item: any) => {
+    const rawName = typeof item === 'string' ? item : (item.name || item.product_name || item.ingredient || 'Bahan Aktif')
+    const cleanName = rawName.replace(/^Kandungan yang cocok:\s*/i, '').trim()
+    const purpose = typeof item === 'object' ? (item.purpose || item.why_recommended || item.reason || 'Membantu merawat dan menjaga stabilitas lapisan kulit.') : 'Membantu merawat dan menjaga stabilitas lapisan kulit.'
+    const isEssential = typeof item === 'object' && item.priority
+      ? item.priority === 'essential'
+      : (item.category?.includes('Essential') || item.category?.includes('Utama'))
+
+    return {
+      name: cleanName,
+      purpose,
+      priority: isEssential ? 'essential' : 'recommended',
+    }
+  })
+
   return (
     <div className="skincluv-scan-history-page animate-fade-in">
       {/* Header Bar */}
@@ -182,6 +212,8 @@ export default function ScanHistoryPage() {
                 hour: '2-digit',
                 minute: '2-digit',
               })
+              const isOptimal = (scan.overall_score || 0) >= 80
+              const isCaution = (scan.overall_score || 0) >= 65 && (scan.overall_score || 0) < 80
 
               return (
                 <div
@@ -190,7 +222,7 @@ export default function ScanHistoryPage() {
                   onClick={() => setSelectedScan(scan)}
                 >
                   <div className="scan-card-left">
-                    <div className="score-badge-circle">
+                    <div className={`score-badge-circle ${isOptimal ? 'optimal' : isCaution ? 'caution' : 'warning'}`}>
                       <span className="score-num">{scan.overall_score}</span>
                       <span className="score-unit">/100</span>
                     </div>
@@ -204,7 +236,7 @@ export default function ScanHistoryPage() {
 
                       <div className="scan-tags-row">
                         <span className="type-tag">Tipe: {scan.skin_type?.toUpperCase()}</span>
-                        {Array.isArray(scan.skin_concerns) && scan.skin_concerns.slice(0, 2).map((c, i) => (
+                        {Array.isArray(scan.skin_concerns) && scan.skin_concerns.slice(0, 3).map((c, i) => (
                           <span key={i} className="concern-tag">#{c}</span>
                         ))}
                       </div>
@@ -223,7 +255,7 @@ export default function ScanHistoryPage() {
         </div>
       )}
 
-      {/* Modal Detail Hasil Scan Masa Lalu */}
+      {/* Modal Detail Hasil Scan Masa Lalu (Diselaraskan dengan Standar Baru FaceScanPage) */}
       {selectedScan && (
         <div className="modal-backdrop" onClick={() => setSelectedScan(null)}>
           <div className="modal-content-box glass-card animate-scale-up" onClick={(e) => e.stopPropagation()}>
@@ -242,37 +274,76 @@ export default function ScanHistoryPage() {
             </div>
 
             <div className="modal-body-scroll">
-              {/* Score Hero */}
+              {/* Score Hero Banner */}
               <div className="modal-score-hero">
-                <div className="modal-score-circle">
-                  <span className="score-big">{selectedScan.overall_score}</span>
-                  <span className="score-label">Skor Total</span>
-                </div>
-                <div className="modal-score-desc">
-                  <p className="type-banner">Tipe Kulit: <strong>{selectedScan.skin_type?.toUpperCase()}</strong></p>
-                  <p className="notes-text">{selectedScan.analysis_notes}</p>
+                <div className="hero-glow-accent" />
+                <div className="dots-bg-pattern" />
+
+                <div className="score-hero-content">
+                  <div className={`score-ring-avatar ${
+                    (selectedScan.overall_score || 80) >= 80 ? 'score-optimal' :
+                    (selectedScan.overall_score || 80) >= 65 ? 'score-caution' : 'score-warning'
+                  }`}>
+                    <div className="sr-number-row">
+                      <span className="sr-val">{selectedScan.overall_score || 80}</span>
+                      <span className="sr-scale">/100</span>
+                    </div>
+                    <span className="sr-unit">Kesehatan Kulit</span>
+                  </div>
+
+                  <div className="score-meta-info">
+                    <div className="hero-badges-row">
+                      <span className="hero-skin-type-badge">
+                        <Sparkles size={12} /> TIPE KULIT: {String(selectedScan.skin_type || 'NORMAL').toUpperCase()}
+                      </span>
+                      <span className="hero-confidence-badge">
+                        <ShieldCheck size={12} /> REKAM MEDIS KLINIS
+                      </span>
+                    </div>
+                    <p className="hero-notes-text">{selectedScan.analysis_notes}</p>
+                  </div>
                 </div>
               </div>
 
               {/* 3-Area Breakdown */}
               {Array.isArray(selectedScan.area_evaluations) && selectedScan.area_evaluations.length > 0 && (
                 <div className="modal-areas-section">
-                  <h4 className="modal-section-title"><Layers size={16} /> Evaluasi Per Area Wajah</h4>
-                  <div className="modal-areas-grid">
+                  <h4 className="modal-section-title">
+                    <Layers size={16} /> Evaluasi Kondisi Kulit Per Area (Granular)
+                  </h4>
+                  <div className="modal-areas-stack">
                     {(selectedScan.area_evaluations as any[]).map((area, aIdx) => (
                       <div key={aIdx} className="area-detail-card">
                         <div className="area-card-header">
-                          <span className="area-name">{area.area_name}</span>
-                          <span className="area-score-badge">Skor: {area.score}/100</span>
+                          <div className="area-title-group">
+                            <Target size={15} className="area-icon-accent" />
+                            <span className="area-name">{area.area_name}</span>
+                          </div>
+                          <div className="area-badges-group">
+                            <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
+                              {area.status || 'Optimal'}
+                            </span>
+                            <span className="area-score-badge">Skor: {area.score}/100</span>
+                          </div>
                         </div>
-                        <p className="area-finding"><strong>Diagnosis:</strong> {area.finding}</p>
+
+                        <div className="area-finding-box">
+                          <span className="af-label">🔬 Diagnosis Klinis:</span>
+                          <p className="af-text">{area.finding}</p>
+                        </div>
+
                         {area.analogy && (
                           <div className="area-analogy-box">
-                            💡 <em>"{area.analogy}"</em>
+                            <span className="aa-label">💡 Analogi Bestie:</span>
+                            <p className="aa-text">{area.analogy}</p>
                           </div>
                         )}
+
                         {area.action_plan && (
-                          <p className="area-action"><strong>Rencana Aksi:</strong> {area.action_plan}</p>
+                          <div className="area-action-box">
+                            <span className="ac-label">🎯 Rencana Aksi Sederhana:</span>
+                            <p className="ac-text">{area.action_plan}</p>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -280,29 +351,86 @@ export default function ScanHistoryPage() {
                 </div>
               )}
 
-              {/* Product Recommendations */}
-              {Array.isArray(selectedScan.product_recommendations) && selectedScan.product_recommendations.length > 0 && (
-                <div className="modal-products-section">
-                  <h4 className="modal-section-title"><ShoppingBag size={16} /> Rekomendasi Produk Terkait</h4>
-                  <div className="modal-products-grid">
-                    {(selectedScan.product_recommendations as any[]).map((prod, pIdx) => (
-                      <div key={pIdx} className="prod-bento-card">
-                        <div className="prod-header">
-                          <span className="prod-badge">#{pIdx + 1} Match: {prod.match_score}%</span>
-                          <span className="prod-category">{prod.category}</span>
-                        </div>
-                        <h5 className="prod-name">{prod.product_name}</h5>
-                        <p className="prod-why">{prod.why_recommended}</p>
-                        <a
-                          href={`https://shopee.co.id/search?keyword=${encodeURIComponent(prod.product_name)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-shopee-link"
-                        >
-                          Cari di Marketplace <ExternalLink size={13} />
-                        </a>
+              {/* Personal Tips if available */}
+              {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
+                <div className="modal-tips-section">
+                  <h4 className="modal-section-title">
+                    <CheckCircle2 size={16} /> Tips Personal Untuk Kulitmu
+                  </h4>
+                  <div className="modal-tips-grid">
+                    {tipsAvoid.length > 0 && (
+                      <div className="tip-box tip-avoid">
+                        <span className="tb-title text-red">✕ Hindari</span>
+                        <ul className="tb-list">
+                          {tipsAvoid.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                        </ul>
                       </div>
-                    ))}
+                    )}
+                    {tipsReduce.length > 0 && (
+                      <div className="tip-box tip-reduce">
+                        <span className="tb-title text-amber">− Kurangi</span>
+                        <ul className="tb-list">
+                          {tipsReduce.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    {tipsDo.length > 0 && (
+                      <div className="tip-box tip-do">
+                        <span className="tb-title text-green">✓ Rutin Lakukan</span>
+                        <ul className="tb-list">
+                          {tipsDo.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Hero Actives Recommendations (Cleaned from Rp89.000 & Fake Commercial Products) */}
+              {heroIngredients.length > 0 && (
+                <div className="modal-products-section">
+                  <h4 className="modal-section-title">
+                    <FlaskConical size={16} /> Rekomendasi Bahan Aktif Klinis (Hero Actives)
+                  </h4>
+                  <div className="modal-actives-stack">
+                    {heroIngredients.map((item, pIdx) => {
+                      const isEssential = item.priority === 'essential'
+                      const searchKeyword = `serum ${item.name}`
+                      const askPrompt = `Halo SkinSistant! Dari riwayat scan wajah tanggal ${new Date(selectedScan.created_at).toLocaleDateString('id-ID')}, kulitku direkomendasikan bahan aktif "${item.name}". Bagaimana urutan dan cara pakainya yang aman?`
+
+                      return (
+                        <div key={pIdx} className="active-ing-card">
+                          <div className="aic-header">
+                            <div className="aic-badge-row">
+                              <span className="aic-rank">#{pIdx + 1}</span>
+                              <span className={`aic-priority-pill ${isEssential ? 'essential' : 'recommended'}`}>
+                                {isEssential ? '✨ Target Utama (Essential)' : '🛡️ Penyeimbang (Recommended)'}
+                              </span>
+                            </div>
+                            <h5 className="aic-name">{item.name}</h5>
+                          </div>
+
+                          <p className="aic-purpose">{item.purpose}</p>
+
+                          <div className="aic-actions-row">
+                            <a
+                              href={`https://shopee.co.id/search?keyword=${encodeURIComponent(searchKeyword)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-shopee-search"
+                            >
+                              <ShoppingBag size={13} /> Cari Skincare di Marketplace ↗
+                            </a>
+                            <Link
+                              to={`/chatbot?initialPrompt=${encodeURIComponent(askPrompt)}`}
+                              className="btn-ask-skinsistant"
+                            >
+                              <MessageSquare size={13} /> Tanya Cara Pakai
+                            </Link>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -312,6 +440,12 @@ export default function ScanHistoryPage() {
               <button className="btn-secondary" onClick={() => setSelectedScan(null)}>
                 Tutup Laporan
               </button>
+              <Link
+                to="/chatbot?initialPrompt=Halo%20SkinSistant%2C%20saya%20ingin%20konsultasi%20mengenai%20riwayat%20kesehatan%20kulitku%20dari%20scan%20sebelumnya."
+                className="btn-primary-consult"
+              >
+                <MessageSquare size={14} /> Konsultasikan ke SkinSistant AI
+              </Link>
             </div>
           </div>
         </div>
@@ -324,9 +458,11 @@ export default function ScanHistoryPage() {
           margin: 0 auto;
           padding: 1.5rem 1rem 4rem;
         }
+
         .page-header-box {
           margin-bottom: 2rem;
         }
+
         .back-link-btn {
           display: inline-flex;
           align-items: center;
@@ -338,9 +474,11 @@ export default function ScanHistoryPage() {
           margin-bottom: 0.75rem;
           transition: transform 0.2s;
         }
+
         .back-link-btn:hover {
           transform: translateX(-3px);
         }
+
         .page-title {
           font-size: 1.85rem;
           font-weight: 800;
@@ -348,17 +486,20 @@ export default function ScanHistoryPage() {
           margin-bottom: 0.4rem;
           letter-spacing: -0.02em;
         }
+
         .page-subtitle {
           font-size: 0.95rem;
           color: #64748b;
           line-height: 1.5;
         }
+
         .history-stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
           gap: 1rem;
           margin-bottom: 2.5rem;
         }
+
         .stat-bento-card {
           display: flex;
           align-items: center;
@@ -369,6 +510,7 @@ export default function ScanHistoryPage() {
           border-radius: 1rem;
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
+
         .stat-icon-wrapper {
           width: 50px;
           height: 50px;
@@ -378,12 +520,14 @@ export default function ScanHistoryPage() {
           justify-content: center;
           flex-shrink: 0;
         }
+
         .bg-sky-light { background: #e0f2fe; }
         .text-sky-dark { color: #0284c7; }
         .bg-emerald-light { background: #d1fae5; }
         .text-emerald-dark { color: #059669; }
         .bg-indigo-light { background: #e0e7ff; }
         .text-indigo-dark { color: #4f46e5; }
+
         .stat-label {
           font-size: 0.8rem;
           font-weight: 600;
@@ -391,28 +535,33 @@ export default function ScanHistoryPage() {
           text-transform: uppercase;
           letter-spacing: 0.03em;
         }
+
         .stat-value {
           font-size: 1.45rem;
           font-weight: 800;
           color: #0f172a;
           margin-top: 0.15rem;
         }
+
         .stat-subtext {
           font-size: 0.8rem;
           font-weight: 600;
           color: #059669;
         }
+
         .section-title {
           font-size: 1.25rem;
           font-weight: 700;
           color: #1e293b;
           margin-bottom: 1rem;
         }
+
         .scan-cards-container {
           display: flex;
           flex-direction: column;
           gap: 1rem;
         }
+
         .scan-history-card {
           display: flex;
           align-items: center;
@@ -424,43 +573,63 @@ export default function ScanHistoryPage() {
           cursor: pointer;
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .scan-history-card:hover {
           border-color: #38bdf8;
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(2, 132, 199, 0.08);
         }
+
         .scan-card-left {
           display: flex;
           align-items: center;
           gap: 1.25rem;
           flex: 1;
         }
+
         .score-badge-circle {
           width: 58px;
           height: 58px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
           color: #ffffff;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
           flex-shrink: 0;
         }
+
+        .score-badge-circle.optimal {
+          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .score-badge-circle.caution {
+          background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+        }
+
+        .score-badge-circle.warning {
+          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+        }
+
         .score-num {
           font-size: 1.25rem;
           font-weight: 800;
           line-height: 1;
         }
+
         .score-unit {
           font-size: 0.65rem;
           opacity: 0.85;
           font-weight: 600;
         }
+
         .scan-info {
           flex: 1;
         }
+
         .scan-date-badge {
           display: inline-flex;
           align-items: center;
@@ -470,6 +639,7 @@ export default function ScanHistoryPage() {
           color: #64748b;
           margin-bottom: 0.25rem;
         }
+
         .latest-pill {
           background: #0284c7;
           color: #ffffff;
@@ -479,12 +649,14 @@ export default function ScanHistoryPage() {
           border-radius: 9999px;
           margin-left: 0.35rem;
         }
+
         .scan-title {
           font-size: 1.05rem;
           font-weight: 700;
           color: #0f172a;
           margin-bottom: 0.25rem;
         }
+
         .scan-desc-preview {
           font-size: 0.85rem;
           color: #475569;
@@ -495,12 +667,14 @@ export default function ScanHistoryPage() {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+
         .scan-tags-row {
           display: flex;
           align-items: center;
           gap: 0.4rem;
           flex-wrap: wrap;
         }
+
         .type-tag {
           font-size: 0.7rem;
           font-weight: 700;
@@ -509,6 +683,7 @@ export default function ScanHistoryPage() {
           background: #f1f5f9;
           color: #334155;
         }
+
         .concern-tag {
           font-size: 0.7rem;
           font-weight: 600;
@@ -517,6 +692,7 @@ export default function ScanHistoryPage() {
           background: #e0f2fe;
           color: #0369a1;
         }
+
         .btn-view-detail {
           display: inline-flex;
           align-items: center;
@@ -531,11 +707,13 @@ export default function ScanHistoryPage() {
           cursor: pointer;
           transition: all 0.2s;
         }
+
         .scan-history-card:hover .btn-view-detail {
           background: #0284c7;
           border-color: #0284c7;
           color: #ffffff;
         }
+
         .empty-history-card {
           text-align: center;
           padding: 4rem 2rem;
@@ -543,10 +721,12 @@ export default function ScanHistoryPage() {
           border: 1px dashed #cbd5e1;
           border-radius: 1.25rem;
         }
+
         .empty-icon {
           color: #94a3b8;
           margin-bottom: 1rem;
         }
+
         .btn-primary-gradient {
           display: inline-flex;
           align-items: center;
@@ -560,13 +740,16 @@ export default function ScanHistoryPage() {
           box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
           transition: transform 0.2s;
         }
+
         .btn-primary-gradient:hover {
           transform: translateY(-2px);
         }
+
+        /* MODAL STYLES */
         .modal-backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(15, 23, 42, 0.6);
+          background: rgba(15, 23, 42, 0.65);
           backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
@@ -574,17 +757,19 @@ export default function ScanHistoryPage() {
           z-index: 9999;
           padding: 1rem;
         }
+
         .modal-content-box {
           background: #ffffff;
           border-radius: 1.25rem;
-          max-width: 750px;
+          max-width: 820px;
           width: 100%;
           max-height: 90vh;
           display: flex;
           flex-direction: column;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
           overflow: hidden;
         }
+
         .modal-header {
           display: flex;
           align-items: center;
@@ -592,6 +777,7 @@ export default function ScanHistoryPage() {
           padding: 1.25rem 1.5rem;
           border-bottom: 1px solid #e2e8f0;
         }
+
         .modal-date-tag {
           font-size: 0.75rem;
           font-weight: 600;
@@ -601,11 +787,14 @@ export default function ScanHistoryPage() {
           gap: 0.35rem;
           margin-bottom: 0.2rem;
         }
+
         .modal-title {
           font-size: 1.15rem;
           font-weight: 800;
           color: #0f172a;
+          margin: 0;
         }
+
         .btn-close-modal {
           background: none;
           border: none;
@@ -614,10 +803,12 @@ export default function ScanHistoryPage() {
           padding: 0.35rem;
           border-radius: 0.4rem;
         }
+
         .btn-close-modal:hover {
           background: #f1f5f9;
           color: #0f172a;
         }
+
         .modal-body-scroll {
           padding: 1.5rem;
           overflow-y: auto;
@@ -625,188 +816,485 @@ export default function ScanHistoryPage() {
           flex-direction: column;
           gap: 1.5rem;
         }
+
+        /* MODAL HERO BANNER */
         .modal-score-hero {
+          background: linear-gradient(135deg, #082d38 0%, #0d5265 65%, #0a3d4a 100%);
+          border-radius: 1rem;
+          padding: 1.5rem;
+          color: #ffffff;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 10px 25px rgba(13, 82, 101, 0.15);
+        }
+
+        .hero-glow-accent {
+          position: absolute;
+          top: -30px;
+          right: -30px;
+          width: 180px;
+          height: 180px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        .dots-bg-pattern {
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+          background-size: 14px 14px;
+        }
+
+        .score-hero-content {
+          position: relative;
+          z-index: 1;
           display: flex;
           align-items: center;
           gap: 1.5rem;
-          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-          border: 1px solid #bae6fd;
-          border-radius: 1rem;
-          padding: 1.25rem 1.5rem;
+          flex-wrap: wrap;
         }
-        .modal-score-circle {
-          width: 70px;
-          height: 70px;
+
+        .score-ring-avatar {
+          width: 80px;
+          height: 80px;
           border-radius: 50%;
-          background: #0284c7;
-          color: #ffffff;
+          background: rgba(255, 255, 255, 0.1);
+          border: 3px solid rgba(255, 255, 255, 0.25);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
         }
-        .score-big {
-          font-size: 1.6rem;
-          font-weight: 900;
+
+        .score-ring-avatar.score-optimal {
+          border-color: #34d399;
+          background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .score-ring-avatar.score-caution {
+          border-color: #fbbf24;
+          background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .score-ring-avatar.score-warning {
+          border-color: #f87171;
+          background: radial-gradient(circle, rgba(248, 113, 113, 0.2) 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .sr-number-row {
+          display: flex;
+          align-items: baseline;
           line-height: 1;
         }
-        .score-label {
-          font-size: 0.65rem;
+
+        .sr-val {
+          font-size: 1.7rem;
+          font-weight: 800;
+        }
+
+        .sr-scale {
+          font-size: 0.75rem;
+          opacity: 0.75;
+          margin-left: 2px;
+        }
+
+        .sr-unit {
+          font-size: 0.6rem;
           font-weight: 600;
-          opacity: 0.9;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          opacity: 0.85;
+          margin-top: 2px;
         }
-        .type-banner {
+
+        .score-meta-info {
+          flex: 1;
+          min-width: 240px;
+        }
+
+        .hero-badges-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+        }
+
+        .hero-skin-type-badge {
+          background: rgba(16, 185, 129, 0.2);
+          border: 1px solid rgba(52, 211, 153, 0.4);
+          color: #a7f3d0;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .hero-confidence-badge {
+          background: rgba(255, 255, 255, 0.12);
+          color: #e2e8f0;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .hero-notes-text {
           font-size: 0.85rem;
-          color: #0369a1;
-          margin-bottom: 0.3rem;
-        }
-        .notes-text {
-          font-size: 0.9rem;
-          color: #334155;
+          color: #d1fae5;
           line-height: 1.5;
+          margin: 0;
         }
+
         .modal-section-title {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 1rem;
+          font-size: 0.95rem;
           font-weight: 700;
           color: #1e293b;
-          margin-bottom: 0.75rem;
+          margin-bottom: 0.85rem;
         }
-        .modal-areas-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 0.75rem;
+
+        /* 3-AREA STACK IN MODAL */
+        .modal-areas-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 0.85rem;
         }
+
         .area-detail-card {
-          background: #f8fafc;
+          background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 0.75rem;
+          border-radius: 0.85rem;
           padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
         }
+
         .area-card-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 0.5rem;
+          flex-wrap: wrap;
+          gap: 8px;
         }
+
+        .area-title-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .area-icon-accent {
+          color: #0f6784;
+        }
+
         .area-name {
-          font-size: 0.85rem;
+          font-size: 0.9rem;
           font-weight: 700;
           color: #0f172a;
         }
-        .area-score-badge {
-          font-size: 0.75rem;
+
+        .area-badges-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .area-severity-badge {
+          font-size: 0.6875rem;
           font-weight: 700;
-          color: #0284c7;
-          background: #e0f2fe;
-          padding: 0.15rem 0.4rem;
-          border-radius: 0.35rem;
+          padding: 2px 8px;
+          border-radius: 12px;
         }
-        .area-finding {
-          font-size: 0.8rem;
-          color: #475569;
-          margin-bottom: 0.4rem;
-          line-height: 1.4;
+
+        .area-severity-badge.ringan {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
         }
+
+        .area-severity-badge.sedang {
+          background: #fffbeb;
+          color: #b45309;
+          border: 1px solid #fef3c7;
+        }
+
+        .area-score-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          color: #0f6784;
+          background: #eaf4fa;
+          padding: 2px 8px;
+          border-radius: 12px;
+        }
+
+        .area-finding-box, .area-analogy-box, .area-action-box {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .af-label, .aa-label, .ac-label {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #64748b;
+        }
+
+        .af-text {
+          font-size: 0.8125rem;
+          color: #1e293b;
+          line-height: 1.45;
+          margin: 0;
+        }
+
         .area-analogy-box {
-          font-size: 0.75rem;
-          background: #fefce8;
-          border: 1px solid #fef08a;
-          color: #854d0e;
-          padding: 0.4rem 0.5rem;
-          border-radius: 0.4rem;
-          margin-bottom: 0.4rem;
+          background: #f8fafc;
+          border-left: 3px solid #0f6784;
+          border-radius: 0 6px 6px 0;
+          padding: 6px 10px;
         }
-        .area-action {
-          font-size: 0.75rem;
-          color: #059669;
-          line-height: 1.4;
+
+        .aa-text {
+          font-size: 0.78125rem;
+          color: #334155;
+          line-height: 1.45;
+          margin: 0;
+          font-style: italic;
         }
-        .modal-products-grid {
+
+        .area-action-box {
+          background: #f0fdf4;
+          border-left: 3px solid #10b981;
+          border-radius: 0 6px 6px 0;
+          padding: 6px 10px;
+        }
+
+        .ac-text {
+          font-size: 0.78125rem;
+          color: #166534;
+          line-height: 1.45;
+          margin: 0;
+          font-weight: 500;
+        }
+
+        /* PERSONAL TIPS IN MODAL */
+        .modal-tips-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 0.75rem;
+          gap: 0.85rem;
         }
-        .prod-bento-card {
+
+        .tip-box {
           background: #f8fafc;
           border: 1px solid #e2e8f0;
           border-radius: 0.75rem;
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
+          padding: 12px;
         }
-        .prod-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 0.35rem;
-        }
-        .prod-badge {
-          font-size: 0.7rem;
+
+        .tip-box.tip-avoid { border-top: 3px solid #ef4444; }
+        .tip-box.tip-reduce { border-top: 3px solid #f59e0b; }
+        .tip-box.tip-do { border-top: 3px solid #10b981; }
+
+        .tb-title {
+          font-size: 0.78125rem;
           font-weight: 700;
-          color: #059669;
-          background: #d1fae5;
-          padding: 0.15rem 0.4rem;
-          border-radius: 0.35rem;
+          display: block;
+          margin-bottom: 8px;
         }
-        .prod-category {
-          font-size: 0.7rem;
-          color: #64748b;
-          font-weight: 600;
-        }
-        .prod-name {
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: #0f172a;
-          margin-bottom: 0.35rem;
-        }
-        .prod-why {
+
+        .text-red { color: #b3261e; }
+        .text-amber { color: #b45309; }
+        .text-green { color: #166534; }
+
+        .tb-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
           font-size: 0.75rem;
           color: #475569;
-          margin-bottom: 0.75rem;
-          line-height: 1.4;
+          line-height: 1.5;
         }
-        .btn-shopee-link {
+
+        .tb-list li {
+          margin-bottom: 4px;
+        }
+
+        /* HERO ACTIVES IN MODAL */
+        .modal-actives-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 0.85rem;
+        }
+
+        .active-ing-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.85rem;
+          padding: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .aic-header {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .aic-badge-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .aic-rank {
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: #0f6784;
+          background: #eaf4fa;
+          padding: 2px 6px;
+          border-radius: 6px;
+        }
+
+        .aic-priority-pill {
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 10px;
+        }
+
+        .aic-priority-pill.essential {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .aic-priority-pill.recommended {
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+        }
+
+        .aic-name {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .aic-purpose {
+          font-size: 0.78125rem;
+          color: #475569;
+          line-height: 1.45;
+          margin: 0;
+        }
+
+        .aic-actions-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 4px;
+          padding-top: 8px;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .btn-shopee-search {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          gap: 0.35rem;
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #ea580c;
-          background: #fff7ed;
-          border: 1px solid #ffedd5;
-          padding: 0.4rem 0.65rem;
-          border-radius: 0.5rem;
+          gap: 4px;
+          background: #ffffff;
+          border: 1px solid #0f6784;
+          color: #0f6784;
+          padding: 5px 10px;
+          border-radius: 6px;
+          font-size: 0.72rem;
+          font-weight: 600;
           text-decoration: none;
-          transition: background 0.2s;
+          transition: all 0.15s ease;
         }
-        .btn-shopee-link:hover {
-          background: #ffedd5;
+
+        .btn-shopee-search:hover {
+          background: #0f6784;
+          color: #ffffff;
         }
+
+        .btn-ask-skinsistant {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: #f8fafc;
+          border: 1px solid #cbd5e1;
+          color: #334155;
+          padding: 5px 10px;
+          border-radius: 6px;
+          font-size: 0.72rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.15s ease;
+        }
+
+        .btn-ask-skinsistant:hover {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+
+        /* MODAL FOOTER */
         .modal-footer {
           padding: 1rem 1.5rem;
           border-top: 1px solid #e2e8f0;
           display: flex;
           justify-content: flex-end;
+          gap: 10px;
+          flex-wrap: wrap;
         }
+
         .btn-secondary {
           background: #f1f5f9;
           border: 1px solid #cbd5e1;
           color: #334155;
-          padding: 0.5rem 1rem;
-          border-radius: 0.5rem;
+          padding: 0.55rem 1.1rem;
+          border-radius: 0.6rem;
           font-size: 0.85rem;
           font-weight: 600;
           cursor: pointer;
+          transition: background 0.15s;
         }
+
         .btn-secondary:hover {
           background: #e2e8f0;
+        }
+
+        .btn-primary-consult {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #0f6784;
+          border: none;
+          color: #ffffff;
+          padding: 0.55rem 1.1rem;
+          border-radius: 0.6rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+          text-decoration: none;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+
+        .btn-primary-consult:hover {
+          background: #0b4f5c;
         }
       `}</style>
     </div>
