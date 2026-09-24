@@ -550,6 +550,7 @@ Deno.serve(async (req: Request) => {
     const MISSION_ACTION_MAP: Record<string, string> = {
       face_analysis: 'face_scan',
       ingredient_scan: 'ingredient_scan',
+      chatbot: 'chatbot',
     }
     const missionAction = MISSION_ACTION_MAP[feature_slug]
     if (missionAction) {
