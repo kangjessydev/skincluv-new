@@ -588,7 +588,7 @@ Deno.serve(async (req: Request) => {
             p_user_id: user.id,
             p_action: missionAction,
             p_count: 1,
-            p_reference_id: idempotencyKey || null,
+            p_reference_id: operationRef || null,
           })
           .then(
             () => {},
