@@ -230,7 +230,7 @@ interface FaceValidationResponse {
 
 export default function FaceScanPage() {
   const { user, session, profile, activeSkinProfile, setActiveSkinProfile, coinBalance, subscription } = useAuthStore()
-  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, error: invokeError } = useInvokeAI()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, getLastError } = useInvokeAI()
   const currentCoins = coinBalance?.balance ?? 0
   const faceCost = getFeatureCreditCost('face_analysis')
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < faceCost
@@ -382,10 +382,11 @@ export default function FaceScanPage() {
         if (!isSubscribed) return
 
         if (!result) {
-          if (invokeError === 'INSUFFICIENT_CREDITS') {
+          const actualErr = getLastError()
+          if (actualErr === 'INSUFFICIENT_CREDITS') {
             setErrorMsg(`Credits kamu tidak mencukupi untuk Analisis Wajah (butuh ${faceCost} Credits). Selesaikan misi harian untuk mendapatkan Credits gratis atau upgrade ke paket Glow / PRO.`)
           } else {
-            setErrorMsg('Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
+            setErrorMsg(actualErr || 'Layanan analisis AI sedang sibuk atau mengalami gangguan koneksi. Saldo Credit Anda tetap aman. Silakan coba klik Mulai Analisis lagi.')
           }
           setStage('upload')
           return

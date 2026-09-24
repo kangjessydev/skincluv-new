@@ -32,10 +32,12 @@ export interface AiResponse {
 async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
   const { apiKey, systemPrompt, messages, parameters } = opts
   
-  // Model failover list: if primary model is 3.6-flash, fallback to gemini-2.0-flash on 503/429
+  // Model failover list: provide graceful fallback between active Flash models
   const candidateModels = [opts.modelName]
-  if (opts.modelName.includes('3.6') && !candidateModels.includes('gemini-2.0-flash')) {
-    candidateModels.push('gemini-2.0-flash')
+  if (opts.modelName.includes('3.6') && !candidateModels.includes('gemini-3.5-flash')) {
+    candidateModels.push('gemini-3.5-flash')
+  } else if (opts.modelName.includes('3.5') && !candidateModels.includes('gemini-3.6-flash')) {
+    candidateModels.push('gemini-3.6-flash')
   }
 
   // Build contents array: system instruction + conversation with multimodal support
@@ -111,7 +113,14 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
           lastStatus = res.status
           lastErr = await res.text()
           console.warn(`[callGemini] Model ${currentModel} returned ${res.status}: ${lastErr.slice(0, 150)}`)
-          // If transient error (503 High Demand or 429 Rate Limit), retry or switch to fallback model
+          
+          // If hard daily quota exhaustion, skip retrying this model and switch immediately
+          if (res.status === 429 && (lastErr.includes('RESOURCE_EXHAUSTED') || lastErr.includes('PerDay') || lastErr.includes('quota'))) {
+            console.warn(`[callGemini] Daily quota exceeded for ${currentModel}, switching to fallback model immediately.`)
+            break
+          }
+
+          // If transient error (503 High Demand or standard 429 Rate Limit burst), retry or switch to fallback model
           if (res.status === 503 || res.status === 429) {
             continue
           }
@@ -146,7 +155,12 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
     }
   }
 
-  throw new Error(`Gemini API error ${lastStatus || 503}: ${lastErr || 'Model overloaded. All retry and fallback attempts failed.'}`)
+  const isQuotaExhausted = lastStatus === 429 || lastErr.includes('RESOURCE_EXHAUSTED') || lastErr.includes('quota')
+  const formattedErrMsg = isQuotaExhausted
+    ? 'Kuota Google Gemini API Free Tier habis (limit harian tercapai). Silakan ganti API Key di Google AI Studio atau hubungkan billing pay-as-you-go.'
+    : `Gemini API error ${lastStatus || 503}: ${lastErr || 'Model overloaded. All retry and fallback attempts failed.'}`
+
+  throw new Error(formattedErrMsg)
 }
 
 // ---- Anthropic Claude ----
@@ -303,6 +317,7 @@ export interface TokenRate {
 // Pricing benchmark rates per 1,000 tokens (USD)
 const MODEL_TOKEN_RATES: Record<string, TokenRate> = {
   'gemini-3.6-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
+  'gemini-3.5-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
   'gemini-2.5-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
   'gemini-2.0-flash':              { inputPer1k: 0.000075, outputPer1k: 0.0003 },
   'claude-sonnet-4-6':             { inputPer1k: 0.003,    outputPer1k: 0.015 },
@@ -322,6 +337,7 @@ const MODEL_TOKEN_RATES: Record<string, TokenRate> = {
 
 const BLENDED_FALLBACK_PER_1K: Record<string, number> = {
   'gemini-3.6-flash':              0.00025,
+  'gemini-3.5-flash':              0.00025,
   'gemini-2.5-flash':              0.00025,
   'gemini-2.0-flash':              0.00015,
   'claude-sonnet-4-6':             0.009,

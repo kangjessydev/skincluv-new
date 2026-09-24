@@ -1057,7 +1057,7 @@ Catatan:
 
       const aiRes = await callAiProvider({
         provider: 'google',
-        modelName: 'gemini-2.0-flash',
+        modelName: 'gemini-3.5-flash',
         apiKey: geminiKey,
         systemPrompt: 'Kamu adalah API database formulasi kosmetik. Selalu respon dengan JSON valid murni tanpa formatting markdown atau teks pengantar.',
         messages: [{ role: 'user', content: promptText }],
@@ -1259,7 +1259,7 @@ async function generateSessionSummary(
     const summaryPrompt = `Buat ringkasan singkat percakapan skincare berikut dalam 2-3 kalimat (maksimal 550 karakter). Fokus pada: topik yang dibahas, kondisi kulit user, masalah/keluhan yang diidentifikasi, dan rekomendasi/produk penting yang dibahas. Jangan sebut nama-nama atau info pribadi.\n\nPercakapan:\n${conversationText}\n\nRingkasan (langsung tulis, tanpa label atau prefix):`
 
     let callProvider: 'google' | 'anthropic' | 'groq' = model.provider as any
-    let callModel = model.model_name || 'gemini-2.0-flash'
+    let callModel = model.model_name || 'gemini-3.5-flash'
     let callKey = apiKey
 
     if (model.provider !== 'google') {
@@ -1270,7 +1270,7 @@ async function generateSessionSummary(
         if (keyData) {
           callKey = keyData as string
           callProvider = 'google'
-          callModel = 'gemini-2.0-flash'
+          callModel = 'gemini-3.5-flash'
         }
       } catch {
         console.warn('[invoke-ai] Cannot resolve Gemini key for session summary')

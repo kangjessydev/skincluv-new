@@ -29,8 +29,8 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 
 2. **`face_validation` adalah 0-Credit Gatekeeper**:
    - `face_validation` berdiri sebagai fitur mandiri di `ai_features` dengan `credit_cost: 0` (gratis bagi user).
-   - Menggunakan model kilat `gemini-3.6-flash` dengan `thinking_budget: 0` dan prompt ultra-singkat (Migration 041, 042 & 055).
-   - Bertujuan menolak foto bukan wajah manusia/buram SEBELUM `face_analysis` (5 kredit, `gemini-3.6-flash`) dipanggil.
+   - Menggunakan model kilat `gemini-3.5-flash` (dengan dynamic fallback ke `gemini-3.6-flash`) dengan `thinking_budget: 0` dan prompt ultra-singkat (Migration 041, 042, 055 & 056).
+   - Bertujuan menolak foto bukan wajah manusia/buram SEBELUM `face_analysis` (5 kredit, `gemini-3.5-flash`) dipanggil.
 
 3. **Thinking Budget Strategy**:
    - `ingredient_scan` dan `face_validation`: **Wajib `thinking_budget: 0`** demi latensi di bawah 10 detik.

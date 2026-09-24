@@ -34,6 +34,12 @@ export function useInvokeAI() {
   const { user, setCoinBalance } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const lastErrorRef = useRef<string | null>(null)
+
+  const updateError = (msg: string | null) => {
+    lastErrorRef.current = msg
+    setError(msg)
+  }
 
   // State untuk coin confirmation modal (pengganti window.confirm)
   const [pendingCoinConfirm, setPendingCoinConfirm] = useState<PendingCoinConfirm | null>(null)
@@ -65,7 +71,7 @@ export function useInvokeAI() {
 
   const invoke = async <T = any>(req: InvokeAIRequest): Promise<T | null> => {
     setIsLoading(true)
-    setError(null)
+    updateError(null)
 
     try {
       // Adapter: resolve feature_slug & messages & input_context
@@ -160,7 +166,7 @@ export function useInvokeAI() {
         const confirmed = await askCoinConfirmation(coinCost, featureLabel)
 
         if (!confirmed) {
-          setError('INSUFFICIENT_CREDITS')
+          updateError('INSUFFICIENT_CREDITS')
           return null
         }
 
@@ -188,14 +194,14 @@ export function useInvokeAI() {
           }
         }
 
-        setError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
+        updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
         return null
       }
 
       if (!data?.success) {
         console.error('[useInvokeAI] Edge Function Logical Error:', data)
         const isCreditErr = data?.code === 'INSUFFICIENT_CREDITS' || data?.error?.toLowerCase().includes('credit')
-        setError(isCreditErr ? 'INSUFFICIENT_CREDITS' : (data?.error ?? 'Terjadi kesalahan saat memproses data.'))
+        updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : (data?.error ?? 'Terjadi kesalahan saat memproses data.'))
         return null
       }
 
@@ -231,7 +237,7 @@ export function useInvokeAI() {
       }
     } catch (err: any) {
       console.error('[useInvokeAI] Unexpected error:', err)
-      setError('Koneksi gagal. Periksa koneksi internet kamu.')
+      updateError('Koneksi gagal. Periksa koneksi internet kamu.')
       return null
     } finally {
       setIsLoading(false)
@@ -242,7 +248,8 @@ export function useInvokeAI() {
     invoke,
     isLoading,
     error,
-    clearError: () => setError(null),
+    getLastError: () => lastErrorRef.current,
+    clearError: () => updateError(null),
     // Modal state & helper — gunakan ini di komponen yang memanggil useInvokeAI
     pendingCoinConfirm,
     confirmCoinUsage,

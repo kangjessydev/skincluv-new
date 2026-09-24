@@ -89,7 +89,7 @@ export interface IngredientAnalysisResult {
 
 export default function IngredientScanPage() {
   const { profile, activeSkinProfile, coinBalance, subscription } = useAuthStore()
-  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, error: invokeError } = useInvokeAI()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, getLastError } = useInvokeAI()
   const currentCoins = coinBalance?.balance ?? 0
   const ingredientCost = getFeatureCreditCost('ingredient_scan')
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < ingredientCost
@@ -283,10 +283,11 @@ PETUNJUK OCR & ANALISIS WAJIB:
       })
 
       if (!result || typeof result !== 'object') {
-        if (invokeError === 'INSUFFICIENT_CREDITS') {
+        const actualErr = getLastError()
+        if (actualErr === 'INSUFFICIENT_CREDITS') {
           setErrorMsg(`Credits kamu tidak mencukupi untuk Analisis Komposisi (butuh ${ingredientCost} Credits). Selesaikan misi harian untuk mendapatkan Credits gratis atau upgrade ke paket Glow / PRO.`)
         } else {
-          setErrorMsg('Gagal menganalisis komposisi produk. Silakan periksa foto dan coba lagi.')
+          setErrorMsg(actualErr || 'Gagal menganalisis komposisi produk. Silakan periksa foto dan coba lagi.')
         }
         setStage('upload')
         return
