@@ -108,6 +108,15 @@ export default function ChatbotPage() {
     }
   }, [profile?.chatbot_memory_consent])
 
+  // Support prefilled prompt from URL search parameters (e.g. from FaceScan recommendations)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const prompt = params.get('initialPrompt')
+    if (prompt) {
+      setInputText(prompt)
+    }
+  }, [])
+
   // Banner trigger: muncul setelah BANNER_BUBBLE_THRESHOLD bubble jika memori belum aktif
   useEffect(() => {
     if (!user?.id) return

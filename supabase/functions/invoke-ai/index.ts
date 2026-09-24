@@ -593,19 +593,28 @@ Deno.serve(async (req: Request) => {
         ) {
           const recIngs = parsed.recommended_ingredients as any[]
           if (recIngs.length > 0) {
-            parsed.product_recommendations = recIngs.slice(0, 3).map((item: any) => {
-              const name = typeof item === 'string' ? item : item.name || 'Bahan Aktif'
+            // Normalize recommended_ingredients so frontend has consistent schema
+            parsed.recommended_ingredients = recIngs.map((item: any) => ({
+              name: typeof item === 'string' ? item : (item.name || item.ingredient || 'Bahan Aktif'),
+              purpose: typeof item === 'object' ? (item.purpose || item.why_recommended || item.reason || '') : '',
+              priority: typeof item === 'object' && item.priority ? item.priority : 'recommended',
+            }))
+
+            parsed.product_recommendations = parsed.recommended_ingredients.slice(0, 4).map((item: any) => {
+              const name = item.name
               const reason =
-                typeof item === 'object' && item.reason
-                  ? item.reason
-                  : `Kandungan ${name} cocok untuk kondisi kulitmu saat ini.`
+                item.purpose ||
+                `Kandungan ${name} terbukti secara dermatologis membantu merawat profil kulitmu.`
+              const priority = item.priority || 'essential'
 
               return {
-                product_name: `Kandungan yang cocok: ${name}`,
-                category: 'Rekomendasi Bahan',
-                match_score: 95,
+                product_name: name,
+                category: priority === 'essential' ? 'Bahan Utama (Essential)' : 'Bahan Pendukung (Recommended)',
+                match_score: priority === 'essential' ? 98 : 94,
                 key_ingredients: [name],
                 why_recommended: reason,
+                priority,
+                is_ingredient_recommendation: true,
               }
             })
           }

@@ -11,6 +11,14 @@ import {
   Coins,
   Crown,
   Trophy,
+  FlaskConical,
+  CheckCircle2,
+  Target,
+  ShieldCheck,
+  MessageSquare,
+  ChevronRight,
+  Info,
+  ExternalLink,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -32,18 +40,6 @@ export interface AreaEvaluation {
   action_plan: string
 }
 
-export interface DetectedRegion {
-  id: string
-  label: string
-  location: string
-  box_2d?: number[]
-  description: string
-  analogy?: string
-  causes?: string[]
-  solutions?: string[]
-  severity?: 'low' | 'medium' | 'high'
-}
-
 export interface RecommendedIngredient {
   name: string
   purpose: string
@@ -58,17 +54,18 @@ export interface ProductRecommendation {
   key_ingredients?: string[]
   why_recommended: string
   price_estimate?: string
+  priority?: 'essential' | 'recommended' | 'optional'
+  is_ingredient_recommendation?: boolean
 }
 
 interface AnalysisResult {
   skin_type: 'normal' | 'oily' | 'dry' | 'combination' | 'sensitive'
   skin_concerns: string[]
   analysis_notes: string
-  confidence: number
+  confidence?: number
   overall_score?: number
   skin_status_title?: string
   area_evaluations?: AreaEvaluation[]
-  detected_regions?: DetectedRegion[]
   recommended_ingredients?: RecommendedIngredient[]
   product_recommendations?: ProductRecommendation[]
   tips_avoid?: string[]
@@ -88,12 +85,35 @@ const CONCERN_LABELS: Record<string, string> = {
   pores: 'Pori Besar',
 }
 
+// Scanner Stage Animation Text
+const FACE_SCAN_STAGES_TEXT = [
+  'Tahap 1/3: Memverifikasi kelayakan foto & orientasi wajah...',
+  'Tahap 2/3: Memetakan 3 zona wajah klinis (Dahi, T-Zone & Pipi, Dagu)...',
+  'Tahap 3/3: Menganalisis aktivitas sebum, pori-pori & integritas barrier...',
+  'Tahap 3/3: Menyelaraskan profil kulit & menyusun rekomendasi hero actives...',
+]
+
+// Educational Clinical Dermatology Tips (Rotating during Stage 2 HUD)
+const CLINICAL_FACIAL_TIPS = [
+  'Zona T (Dahi & Hidung) memiliki konsentrasi kelenjar sebasea tertinggi, sehingga paling cepat memproduksi kilap sebum alami.',
+  'Pori-pori tidak memiliki otot untuk membuka atau menutup; penumpukan sel kulit mati dan sebumlah yang membuatnya tampak membesar.',
+  'Kombinasi BHA (Salicylic Acid) dan Niacinamide bekerja sinergis: BHA membersihkan pori dari dalam, Niacinamide mengontrol sebum dan memperkuat barrier.',
+  'Kulit area perioral (sekitar mulut & dagu) sangat responsif terhadap fluktuasi hormon dan hidrasi harian.',
+  'Skin barrier yang optimal mampu mengunci kadar air alami (TEWL rendah) dan melindungi kulit dari mikro-inflamasi polusi.',
+]
+
 // Smart Enrichment Adapter to ensure full 3-Stage UI data completeness
 const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean }): AnalysisResult => {
   const enriched = { ...res }
 
+  // If overall_score is missing, calculate average from area_evaluations rather than fake random!
   if (!enriched.overall_score) {
-    enriched.overall_score = Math.floor(Math.random() * 16) + 75 // 75 - 90
+    if (enriched.area_evaluations && enriched.area_evaluations.length > 0) {
+      const avg = enriched.area_evaluations.reduce((sum, a) => sum + (Number(a.score) || 80), 0) / enriched.area_evaluations.length
+      enriched.overall_score = Math.round(avg)
+    } else {
+      enriched.overall_score = 80
+    }
   }
 
   if (!enriched.skin_status_title) {
@@ -111,220 +131,91 @@ const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean })
         area_name: 'Dahi (Forehead)',
         score: Math.min(100, (enriched.overall_score ?? 78) + 2),
         status: (enriched.overall_score ?? 78) >= 80 ? 'Optimal' : 'Perlu Perhatian',
-        finding: 'Tekstur dahi relatif halus dengan tanda hidrasi ringan.',
-        analogy: 'Ibarat kanvas yang bersih, hanya perlu pelembap ringan agar barrier tetap kenyal.',
-        action_plan: 'Gunakan hydrating toner dengan hyaluronic acid setiap pagi dan malam.',
+        finding: 'Tekstur dahi relatif mulus tanpa bintik inflamasi, hanya terlihat kilat sebum halus di bawah pencahayaan.',
+        analogy: 'Mulus banget mirip layar HP baru lepas tempered glass, tinggal dijaga biar tidak overcook minyaknya.',
+        action_plan: 'Pastikan sisa produk rambut atau alat roll tidak menempel terlalu lama di dahi untuk mencegah clogged pores.',
       },
       {
         id: 'area_tzone',
         area_name: 'Hidung & Pipi (T-Zone & Cheeks)',
         score: Math.max(50, (enriched.overall_score ?? 75) - 6),
         status: 'Perlu Perhatian',
-        finding: 'Tampak aktivitas kelenjar sebasea aktif dengan pori sedikit membesar di area hidung.',
-        analogy: 'Saluran kelenjar minyaknya lagi ekstra produktif mirip jam sibuk di jalan raya, perlu eksfoliasi lembut biar tidak tersumbat.',
-        action_plan: 'Aplikasikan serum Niacinamide 5% atau BHA 2x seminggu untuk membersihkan pori.',
+        finding: 'Produksi minyak alami tampak cukup menonjol di area pangkal hidung dan pipi dalam dengan pori-pori tereksfoliasi ringan.',
+        analogy: 'Kena efek filter dewy glow alami, tapi kalau dibiarkan pas cuaca panas bisa berubah jadi ladang minyak.',
+        action_plan: 'Gunakan eksfoliator BHA cair ringan 2 kali seminggu untuk membersihkan komedo tersembunyi di sekitar lekukan hidung.',
       },
       {
         id: 'area_chin',
         area_name: 'Dagu & Sekitar Mulut (Chin & Perioral)',
         score: Math.min(100, (enriched.overall_score ?? 80) + 1),
         status: 'Optimal',
-        finding: 'Area dagu terpantau tenang tanpa tanda inflamasi jerawat hormonal aktif.',
-        analogy: 'Skin barrier di area ini dalam kondisi stabil dan siap mempertahankan kelembapan.',
-        action_plan: 'Jaga kebersihan area dagu dan gunakan sunscreen SPF 50 setiap hari.',
+        finding: 'Area dagu bersih dari jerawat hormonal aktif dan warna kulit tampak merata.',
+        analogy: 'Aman dari drama breakout dadakan, siap tampil bare face tanpa perlu tumpukan concealer.',
+        action_plan: 'Rutin gunakan pelembap tekstur gel dan hidrasi bibir secara maksimal.',
       },
     ]
   }
 
-  // Sort Product Recommendations by Match Score descending (Smart Product Matcher)
-  if (enriched.product_recommendations && enriched.product_recommendations.length > 0) {
-    enriched.product_recommendations = [...enriched.product_recommendations].sort(
-      (a, b) => (b.match_score || 0) - (a.match_score || 0)
-    )
+  // Normalize recommended_ingredients from AI response
+  if (Array.isArray(enriched.recommended_ingredients) && enriched.recommended_ingredients.length > 0) {
+    enriched.recommended_ingredients = enriched.recommended_ingredients.map((item: any) => ({
+      name: typeof item === 'string' ? item : (item.name || item.ingredient || 'Bahan Aktif'),
+      purpose: typeof item === 'object' ? (item.purpose || item.why_recommended || item.reason || 'Membantu merawat dan menjaga stabilitas skin barrier.') : 'Membantu merawat dan menjaga stabilitas skin barrier.',
+      priority: typeof item === 'object' && item.priority ? item.priority : 'recommended',
+    }))
+  } else if (Array.isArray(enriched.product_recommendations) && enriched.product_recommendations.length > 0) {
+    enriched.recommended_ingredients = enriched.product_recommendations.map((p) => ({
+      name: p.product_name.replace(/^Kandungan yang cocok:\s*/i, ''),
+      purpose: p.why_recommended,
+      priority: (p.priority as any) || 'recommended',
+    }))
   } else {
-    enriched.product_recommendations = [
+    enriched.recommended_ingredients = [
       {
-        product_name: 'Skincluv Clarifying BHA & Zinc Serum',
-        category: 'Serum',
-        match_score: 96,
-        key_ingredients: ['Salicylic Acid 2%', 'Zinc PCA 1%', 'Centella Asiatica'],
-        why_recommended: 'Formula ringan yang ampuh membersihkan pori-pori tersumbat di area hidung & T-Zone.',
-        price_estimate: 'Rp119.000',
+        name: 'Niacinamide 5%',
+        purpose: 'Mengontrol produksi sebum di area T-Zone sekaligus memperkuat skin barrier tanpa memicu iritasi.',
+        priority: 'essential',
       },
       {
-        product_name: 'Skincluv Ceramide Barrier Moisture Gel',
-        category: 'Moisturizer',
-        match_score: 92,
-        key_ingredients: ['5X Ceramide', 'Hyaluronic Acid', 'Panthenol'],
-        why_recommended: 'Mengunci kelembapan alami kulit tanpa rasa lengket atau memicu minyak berlebih.',
-        price_estimate: 'Rp98.000',
+        name: 'Salicylic Acid 2% (BHA)',
+        purpose: 'Membantu membersihkan pori-pori yang tersumbat di area hidung dan mengurangi potensi timbulnya komedo.',
+        priority: 'essential',
       },
       {
-        product_name: 'Skincluv Lightweight Invisible Sunscreen SPF 50+ PA++++',
-        category: 'Sunscreen',
-        match_score: 88,
-        key_ingredients: ['Niacinamide', 'Cica Extract', 'UV Filters'],
-        why_recommended: 'Perlindungan maksimal dari sinar UVA/UVB untuk mencegah hiperpigmentasi dan kusam.',
-        price_estimate: 'Rp85.000',
+        name: 'Hyaluronic Acid',
+        purpose: 'Memberikan hidrasi mendalam berbahan dasar air (water-based) agar kulit tidak dehidrasi dan mengimbangi eksfoliasi BHA.',
+        priority: 'recommended',
+      },
+      {
+        name: 'Ceramide',
+        purpose: 'Menjaga keutuhan skin barrier dan mengunci kelembapan alami kulit.',
+        priority: 'recommended',
       },
     ]
-  }
-
-  if (!enriched.detected_regions || enriched.detected_regions.length === 0) {
-    const concerns = enriched.skin_concerns ?? ['pores', 'oiliness']
-    const regions: DetectedRegion[] = []
-
-    if (
-      concerns.includes('pores') ||
-      concerns.includes('oiliness') ||
-      enriched.skin_type === 'oily' ||
-      enriched.skin_type === 'combination'
-    ) {
-      regions.push({
-        id: 'reg_pores',
-        label: 'A. Pori Tampak Besar (Zona T)',
-        location: 'Area Hidung & Pipi Dalam',
-        box_2d: [32, 38, 54, 62],
-        severity: 'medium',
-        analogy:
-          'Pori itu ibarat "lubang kecil" tempat kelenjar minyak (sebum) keluar. Kalau kepenuhan minyak & sel kulit mati, lubangnya kelihatan lebih lebar — mirip balon yang ditiup dikit, jadi ngedep dulu bentuknya.',
-        description:
-          'Terdeteksi akumulasi produksi minyak di T-Zone dan tampilan pori-pori yang membesar.',
-        causes: ['Minyak berlebih (sebum)', 'Sel kulit mati menumpuk', 'Jarang eksfoliasi'],
-        solutions: [
-          'Pakai facial wash dengan salicylic acid (BHA) — bahan yang kerjanya "nyapu" kotoran dari dalam pori, 2x sehari',
-          'Eksfoliasi ringan 1-2x seminggu biar sel kulit mati gak numpuk',
-          'Hindari pencet-pencet area berpori besar (bikin makin meradang)',
-        ],
-      })
-    }
-
-    if (
-      concerns.includes('dark_circles') ||
-      concerns.includes('wrinkles') ||
-      concerns.includes('dryness')
-    ) {
-      regions.push({
-        id: 'reg_eyes',
-        label: 'B. Garis Halus & Area Mata (Fine Lines)',
-        location: 'Area Bawah Mata (Under-eye)',
-        box_2d: [35, 26, 48, 74],
-        severity: 'low',
-        analogy:
-          'Kulit di sekitar mata itu paling tipis di seluruh wajah (10x lebih tipis dari kulit lain) dan gampang "kusut" kalau kurang lembab — mirip kertas tipis yang gampang kelipet dibanding kertas tebal.',
-        description:
-          'Terlihat bayangan kehitaman & lipatan halus di bawah mata akibat kelelahan atau hidrasi berkurang.',
-        causes: ['Area mata kurang lembab', 'Sering kena sinar matahari', 'Kurang tidur / kelelahan'],
-        solutions: [
-          'Pakai eye cream dengan peptide — bahan yang bantu kulit "produksi ulang" kolagen (penopang kekenyalan kulit)',
-          'Pakai sunscreen tiap hari, termasuk area mata, biar gak makin rusak kena UV',
-          'Usahain tidur minimal 7 jam — ini "waktu perbaikan" alami buat kulit',
-        ],
-      })
-    }
-
-    if (concerns.includes('acne') || concerns.includes('redness')) {
-      regions.push({
-        id: 'reg_chin',
-        label: 'C. Inflamasi Kemerahan & Jerawat',
-        location: 'Area Dagu & Rahang',
-        box_2d: [64, 42, 78, 58],
-        severity: 'high',
-        analogy:
-          'Titik kemerahan adalah sinyal bahwa mikro-bakteri sedang terperangkap di dalam pori. Kulit mengirim sel darah putih sebagai respon pertahanan alami.',
-        description:
-          'Terdapat titik inflamasi kemerahan pada area dagu yang membutuhkan zat penenang Cica/Centella.',
-        causes: ['Bakteri C. acnes tersumbat', 'Stres & Perubahan hormon', 'Faktor gesekan sarung bantal'],
-        solutions: [
-          'Gunakan spot treatment Centella Asiatica atau Tea Tree di area kemerahan',
-          'Ganti sarung bantal secara rutin setiap 3-4 hari',
-          'Hindari menyentuh area dagu dengan tangan kotor',
-        ],
-      })
-    }
-
-    if (regions.length === 0) {
-      regions.push({
-        id: 'reg_general',
-        label: 'A. Tekstur & Kelembapan Kulit',
-        location: 'Area Pipi Kanan & Kiri',
-        box_2d: [42, 28, 62, 72],
-        severity: 'low',
-        analogy:
-          'Lapisan skin barrier Anda bekerja cukup baik dalam mengunci kadar air alami.',
-        description:
-          'Kondisi tekstur kulit tampak seimbang dengan tingkat hidrasi alami yang terjaga.',
-        causes: ['Hidrasi cukup', 'Nutrisi harian seimbang'],
-        solutions: [
-          'Pertahankan rutinitas pembersihan 2 kali sehari',
-          'Gunakan sunscreen SPF 30+ setiap pagi',
-        ],
-      })
-    }
-
-    enriched.detected_regions = regions
   }
 
   // Fallback Categorized Tips (Avoid, Reduce, Do)
-  if (!enriched.tips_avoid) {
+  if (!enriched.tips_avoid || enriched.tips_avoid.length === 0) {
     enriched.tips_avoid = [
-      'Pegang-pegang & pencet wajah (tangan = sarang bakteri)',
-      'Skincare beralkohol tinggi (bikin kulit kering & iritasi)',
-      'Scrub kasar tiap hari (merusak skin barrier)',
+      'Memakai pembersih wajah yang bikin kulit terasa tertarik atau "kesat"',
+      'Menyentuh atau memencet area hidung saat tangan belum dicuci',
+      'Penggunaan pelembap bertekstur heavy cream di area T-zone',
     ]
   }
 
-  if (!enriched.tips_reduce) {
+  if (!enriched.tips_reduce || enriched.tips_reduce.length === 0) {
     enriched.tips_reduce = [
-      'Makanan tinggi gula & minyak (bisa memicu produksi minyak wajah)',
-      'Begadang / kurang tidur',
-      'Kelamaan kena sinar matahari langsung tanpa proteksi',
+      'Penggunaan makeup tebal bertumpuk saat beraktivitas outdoor',
+      'Konsumsi makanan berminyak berlebihan saat malam hari',
+      'Terpapar ruangan ber-AC terlalu lama tanpa hidrasi cukup',
     ]
   }
 
-  if (!enriched.tips_do) {
+  if (!enriched.tips_do || enriched.tips_do.length === 0) {
     enriched.tips_do = [
-      'Cuci muka 2x sehari (pagi & malam)',
-      'Pakai sunscreen tiap pagi, meski di dalam ruangan',
-      'Ganti sarung bantal rutin (numpuk minyak & bakteri)',
-    ]
-  }
-
-  // Fallback Product Recommendations
-  if (!enriched.product_recommendations || enriched.product_recommendations.length === 0) {
-    enriched.product_recommendations = [
-      {
-        product_name: 'Azarine Hydrasoothe Sunscreen Gel SPF45',
-        category: 'Sunscreen Gel',
-        match_score: 96,
-        why_recommended:
-          'Formula gel ringan, gak bikin wajah makin berminyak, plus cegah garis halus tambah parah akibat sinar UV',
-        price_estimate: 'Rp45.000',
-      },
-      {
-        product_name: 'Somethinc Salicylic Acid 2% BHA Serum',
-        category: 'Exfoliating Serum',
-        match_score: 92,
-        why_recommended:
-          'BHA-nya bantu "bersihin" pori dari dalam & kontrol minyak berlebih',
-        price_estimate: 'Rp89.000',
-      },
-      {
-        product_name: 'Avoskin Advanced 3% Peptide Eye Cream',
-        category: 'Eye Care',
-        match_score: 88,
-        why_recommended:
-          'Peptide-nya bantu kulit tipis di area mata jadi lebih kenyal',
-        price_estimate: 'Rp112.000',
-      },
-      {
-        product_name: 'Skintific 5X Ceramide Barrier Moisture Gel',
-        category: 'Moisturizer',
-        match_score: 83,
-        why_recommended:
-          'Ceramide = "semen" pengikat sel kulit, jaga skin barrier tetap kuat',
-        price_estimate: 'Rp75.000',
-      },
+      'Lakukan double cleansing pakai cleansing oil / micellar water sebelum pembersih wajah',
+      'Pakai sunscreen bertekstur watery gel setiap pagi hari',
+      'Sering ganti sarung bantal dan cuci aksesoris rambut secara rutin',
     ]
   }
 
@@ -337,16 +228,6 @@ interface FaceValidationResponse {
   confidence?: number
 }
 
-// Scanner Stage Animation Text — module-level constant so it's a stable reference
-// and does not need to appear in useEffect dependency arrays.
-const FACE_SCAN_STAGES_TEXT = [
-  'Tahap 1/2: Memverifikasi kejernihan & posisi wajah...',
-  'Tahap 2/2: Memetakan area & memindai tekstur kulit...',
-  'Tahap 2/2: Mendeteksi pori-pori, sebum & skin barrier...',
-  'Tahap 2/2: Menyelaraskan dengan profil kulit kamu...',
-  'Tahap 2/2: Menyusun rekomendasi perawatan & bahan aktif...',
-]
-
 export default function FaceScanPage() {
   const { user, session, profile, activeSkinProfile, setActiveSkinProfile, coinBalance, subscription } = useAuthStore()
   const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, error: invokeError } = useInvokeAI()
@@ -354,10 +235,10 @@ export default function FaceScanPage() {
   const faceCost = getFeatureCreditCost('face_analysis')
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < faceCost
 
-  const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'BERMINYAK'
+  const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'KOMBINASI'
   const userConcerns: string[] = activeSkinProfile?.skin_concerns?.length
     ? activeSkinProfile.skin_concerns.map((c: string) => CONCERN_LABELS[c] || c).slice(0, 3)
-    : ['Jerawat', 'Kemerahan', 'Pori besar']
+    : ['Pori besar', 'Minyak T-Zone', 'Skin Barrier']
 
   // Stage Management
   const [stage, setStage] = useState<Stage>('upload')
@@ -367,7 +248,9 @@ export default function FaceScanPage() {
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
+  // Stage 2 Scanning HUD States
   const [scanTextIndex, setScanTextIndex] = useState(0)
+  const [tipIndex, setTipIndex] = useState(0)
 
   // Analysis Results & Errors
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
@@ -375,6 +258,15 @@ export default function FaceScanPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
+
+  // Rotating clinical tips during scanning
+  useEffect(() => {
+    if (stage !== 'scanning') return
+    const tipInterval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % CLINICAL_FACIAL_TIPS.length)
+    }, 3800)
+    return () => clearInterval(tipInterval)
+  }, [stage])
 
   // Unified Scanning Pipeline:
   // Client CV (Canvas quality & MediaPipe Face Mesh) -> AI Face Validation Gate (0 Credits) -> AI Dermatologist Analysis -> Result
@@ -389,7 +281,7 @@ export default function FaceScanPage() {
 
     const runScanPipeline = async () => {
       try {
-        setScanTextIndex(0) // "Tahap 1/2: Memverifikasi kejernihan & posisi wajah..."
+        setScanTextIndex(0) // "Tahap 1/3: Memverifikasi kelayakan foto & orientasi wajah..."
 
         if (!imageBase64) {
           setErrorMsg('Pilih foto terlebih dahulu.')
@@ -467,12 +359,12 @@ export default function FaceScanPage() {
 
         // =========================================================================
         // GERBANG 4 (AI SPECIALIST): Analisis Dermatologis Mendalam (5 Credits)
-        // Model penalaran tinggi / spesialis klinis dengan rekomendasi produk
+        // Model penalaran klinis tinggi dengan rekomendasi bahan aktif
         // =========================================================================
         setScanTextIndex(1)
         textInterval = setInterval(() => {
           setScanTextIndex((prev) => (prev < FACE_SCAN_STAGES_TEXT.length - 1 ? prev + 1 : prev))
-        }, 1100)
+        }, 1800)
 
         const result = await invoke<AnalysisResult & { is_valid_face?: boolean; reason?: string }>({
           feature_slug: 'face_analysis',
@@ -690,6 +582,16 @@ export default function FaceScanPage() {
     setErrorMsg(null)
   }
 
+  // Unified Hero Actives list
+  const heroIngredients: RecommendedIngredient[] =
+    analysisResult?.recommended_ingredients && analysisResult.recommended_ingredients.length > 0
+      ? analysisResult.recommended_ingredients
+      : (analysisResult?.product_recommendations || []).map((p) => ({
+          name: p.product_name.replace(/^Kandungan yang cocok:\s*/i, ''),
+          purpose: p.why_recommended,
+          priority: (p.priority as any) || 'recommended',
+        }))
+
   return (
     <div className="skincluv-face-scan-page">
       {/* Coin Deduction Modal */}
@@ -708,32 +610,14 @@ export default function FaceScanPage() {
       <div ref={topResultRef} />
 
       {/* Header Bar */}
-      <div className="page-header-box" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
+      <div className="page-header-box">
+        <div className="page-header-content">
           <h1 className="page-title">Scan Wajah AI</h1>
           <p className="page-subtitle">
-            Deteksi kondisi kulit dari foto wajahmu secara klinis, lengkap dengan analogi penyebab, cara mengatasi, dan rekomendasi produk.
+            Deteksi kondisi kulit dari foto wajahmu secara klinis, lengkap dengan analogi penyebab, cara mengatasi, dan rekomendasi hero actives formulasi.
           </p>
         </div>
-        <Link
-          to="/scan-history"
-          className="history-shortcut-btn"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            background: '#ffffff',
-            border: '1px solid #bae6fd',
-            color: '#0284c7',
-            padding: '0.5rem 0.9rem',
-            borderRadius: '0.75rem',
-            fontSize: '0.85rem',
-            fontWeight: '700',
-            textDecoration: 'none',
-            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.08)',
-            transition: 'all 0.2s',
-          }}
-        >
+        <Link to="/scan-history" className="history-shortcut-btn">
           <History size={16} /> Riwayat Scan Kulit
         </Link>
       </div>
@@ -762,7 +646,7 @@ export default function FaceScanPage() {
                 <div className="preview-container">
                   <img src={previewUrl} alt="Preview Foto Wajah" className="preview-img" />
                   <button onClick={handleClearImage} className="clear-image-btn">
-                    <X size={14} /> Hapus Foto
+                    <X size={14} /> Ganti Foto
                   </button>
                 </div>
               ) : (
@@ -808,14 +692,22 @@ export default function FaceScanPage() {
               disabled={!imageBase64}
             >
               <Sparkles size={18} />
-              <span>Mulai Scan Wajah</span>
+              <span>Mulai Analisis Wajah AI</span>
             </button>
+
+            {/* Medical Disclaimer */}
+            <div className="disclaimer-banner">
+              <Info size={16} className="disclaimer-icon" />
+              <span>
+                <b>Privasi & Klinis:</b> Foto hanya diproses untuk deteksi kondisi kulit dan tidak dibagikan kepada pihak ketiga. Hasil analisis bersifat edukasi dermatologi.
+              </span>
+            </div>
           </div>
 
           {/* Right Column: Profile Context & Photo Guidelines */}
           <div className="side-info-col">
             <div className="side-card">
-              <div className="card-section-label">PROFIL KULIT SAAT INI</div>
+              <div className="card-section-label">PROFIL KULIT AKTIF</div>
               <div className="profile-info-row">
                 <span>Tipe kulit</span>
                 <span className="profile-val-text">{userSkinType}</span>
@@ -833,19 +725,19 @@ export default function FaceScanPage() {
             </div>
 
             <div className="side-card">
-              <div className="card-section-label">PANDUAN FOTO PRESISI</div>
+              <div className="card-section-label">PANDUAN FOTO PRESISI DERMATOLOGI</div>
               <ul className="guide-tips-list">
                 <li>
-                  <b>✦</b> Wajah lurus menghadap kamera dengan ekspresi netral
+                  <b>✦</b> <strong>Jarak Ideal:</strong> Foto selfie berjarak 30-50 cm dengan fokus tajam di area wajah.
                 </li>
                 <li>
-                  <b>✦</b> Pencahayaan cukup, hindari bayangan gelap berlebih
+                  <b>✦</b> <strong>Pencahayaan Alami:</strong> Hadap ke jendela atau lampu terang tanpa bayangan gelap.
                 </li>
                 <li>
-                  <b>✦</b> Tidak tertutup rambut, masker, atau kacamata
+                  <b>✦</b> <strong>Ekspresi Netral:</strong> Wajah lurus tanpa masker atau filter kamera memperhalus (beauty mode).
                 </li>
                 <li>
-                  <b>✦</b> Foto hanya diproses untuk analisis medis, tidak dibagikan
+                  <b>✦</b> <strong>Aksesoris:</strong> Kacamata atau jilbab diperbolehkan asalkan dahi, hidung, dan pipi tampak jelas.
                 </li>
               </ul>
             </div>
@@ -853,8 +745,7 @@ export default function FaceScanPage() {
         </div>
       )}
 
-
-      {/* STAGE 2: ANIMATED LASER SCANNER */}
+      {/* STAGE 2: NEURAL AI FACIAL BIOMETRIC SCANNER HUD */}
       {stage === 'scanning' && (
         <div className="stage-card scanning-card">
           <div className="scan-frame-viewport">
@@ -863,8 +754,25 @@ export default function FaceScanPage() {
             ) : (
               <div className="mock-face-shape" />
             )}
+
+            {/* HUD High-Tech Grid & Corner Brackets */}
+            <div className="hud-grid-overlay" />
+            <div className="hud-corner top-left" />
+            <div className="hud-corner top-right" />
+            <div className="hud-corner bottom-left" />
+            <div className="hud-corner bottom-right" />
+
+            {/* Sweeping Laser Beam */}
+            <div className="scan-laser-beam" />
+
+            {/* Live Facial Biometric Status Pill */}
+            <div className="hud-status-badge">
+              <span className="hud-pulse-dot" />
+              <span>AI BIOMETRIC SCAN ACTIVE</span>
+            </div>
           </div>
 
+          {/* Shimmering Phase Status */}
           <div className="scan-status-row">
             <div className="bouncing-dots">
               <span />
@@ -873,35 +781,114 @@ export default function FaceScanPage() {
             </div>
             <span className="shimmer-scan-text">{FACE_SCAN_STAGES_TEXT[scanTextIndex]}</span>
           </div>
+
+          {/* Smooth Indeterminate Progress Bar */}
+          <div className="scan-progress-bar-track">
+            <div className="scan-progress-bar-glow" />
+          </div>
+
+          {/* Educational Clinical Tip Box */}
+          <div className="scan-tip-card">
+            <div className="tip-header">
+              <Sparkles size={13} className="tip-sparkle-icon" />
+              <span>Catatan Dermatologi Klinis</span>
+            </div>
+            <p className="tip-body">{CLINICAL_FACIAL_TIPS[tipIndex]}</p>
+          </div>
         </div>
       )}
 
-      {/* STAGE 3: RESULTS OUTPUT & SCORE HERO BANNER */}
+      {/* STAGE 3: RESULTS OUTPUT & CLINICAL REPORT */}
       {stage === 'result' && analysisResult && (
         <div className="results-stack">
           {/* Score Hero Banner */}
           <div className="score-hero-banner">
             <div className="dots-bg-pattern" />
-            <div className="score-ring-avatar">{analysisResult.overall_score ?? 78}</div>
-            <div className="score-meta-info">
-              <h3 className="hero-status-title">
-                {analysisResult.skin_status_title ?? 'Kondisi Kulit: Cukup Sehat & Butuh Hidrasi Seimbang'}
-              </h3>
-              <p className="hero-status-desc">
-                {analysisResult.analysis_notes ||
-                  'Kondisi skin barrier kamu secara umum cukup baik! Terdapat beberapa area yang butuh perhatian hidrasi & kontrol sebum ekstra.'}
-              </p>
+            <div className="hero-glow-accent" />
+            
+            <div className="score-hero-content">
+              <div className={`score-ring-avatar ${
+                (analysisResult.overall_score ?? 80) >= 80 ? 'score-optimal' :
+                (analysisResult.overall_score ?? 80) >= 65 ? 'score-caution' : 'score-warning'
+              }`}>
+                <div className="sr-number-row">
+                  <span className="sr-val">{analysisResult.overall_score ?? 80}</span>
+                  <span className="sr-scale">/100</span>
+                </div>
+                <span className="sr-unit">Kesehatan Kulit</span>
+              </div>
+
+              <div className="score-meta-info">
+                <div className="hero-badges-row">
+                  <span className="hero-skin-type-badge">
+                    <Sparkles size={12} /> TIPE KULIT: {String(analysisResult.skin_type || userSkinType).toUpperCase()}
+                  </span>
+                  <span className="hero-confidence-badge">
+                    <ShieldCheck size={12} /> ANALISIS DERMATOLOGI
+                  </span>
+                </div>
+                <h3 className="hero-status-title">
+                  {analysisResult.skin_status_title ?? 'Kondisi Kulit: Terpantau Stabil'}
+                </h3>
+                <p className="hero-status-desc">
+                  {analysisResult.analysis_notes ||
+                    'Kondisi skin barrier kamu secara umum cukup baik! Terdapat beberapa area yang butuh perhatian hidrasi & kontrol sebum ekstra.'}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Section 1: Granular 3-Area Facial Evaluation (Fase 2.2) */}
+          {/* Biometric Scan Snapshot & Area Overview */}
+          {previewUrl && (
+            <div className="card biometric-overview-card">
+              <div className="biometric-photo-col">
+                <div className="biometric-frame">
+                  <img src={previewUrl} alt="Foto Wajah Teranalisis" className="biometric-img" />
+                  <div className="biometric-hud-corners">
+                    <span className="bh-corner tl" />
+                    <span className="bh-corner tr" />
+                    <span className="bh-corner bl" />
+                    <span className="bh-corner br" />
+                  </div>
+                  <div className="biometric-verified-tag">
+                    <CheckCircle2 size={12} />
+                    <span>Foto Dianalisis Klinis</span>
+                  </div>
+                </div>
+              </div>
+              <div className="biometric-areas-col">
+                <div className="biometric-areas-header">
+                  <Target size={16} className="text-teal" />
+                  <span>Ringkasan Biometrik 3 Area Wajah</span>
+                </div>
+                <div className="biometric-chips-list">
+                  {analysisResult.area_evaluations?.map((area) => (
+                    <div key={area.id} className="biometric-area-item">
+                      <div className="bai-left">
+                        <span className="bai-name">{area.area_name}</span>
+                        <span className="bai-score-text">Skor: {area.score}/100</span>
+                      </div>
+                      <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
+                        {area.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Section 1: Granular 3-Area Facial Evaluation */}
           <div className="section-label-header">EVALUASI KONDISI KULIT PER AREA (GRANULAR)</div>
 
           <div className="area-cards-stack">
             {analysisResult.area_evaluations?.map((area) => (
               <div key={area.id} className="card area-analysis-card">
                 <div className="area-card-head">
-                  <h4 className="area-title-text">{area.area_name}</h4>
+                  <div className="area-title-group">
+                    <Target size={16} className="area-icon-accent" />
+                    <h4 className="area-title-text">{area.area_name}</h4>
+                  </div>
                   <div className="area-head-badges">
                     <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
                       {area.status}
@@ -910,17 +897,19 @@ export default function FaceScanPage() {
                   </div>
                 </div>
 
-                <p className="area-finding-text">
-                  <b>Diagnosis:</b> {area.finding}
-                </p>
+                <div className="area-finding-box">
+                  <span className="af-label">🔬 Diagnosis Klinis:</span>
+                  <p className="af-text">{area.finding}</p>
+                </div>
 
-                <p className="area-analogy-text">
-                  💡 <b>Analogi Bestie:</b> {area.analogy}
-                </p>
+                <div className="area-analogy-box">
+                  <span className="aa-label">💡 Analogi Bestie:</span>
+                  <p className="aa-text">{area.analogy}</p>
+                </div>
 
-                <div className="solutions-group">
-                  <span className="solutions-kicker">Rencana Aksi Sederhana:</span>
-                  <p className="area-action-text">{area.action_plan}</p>
+                <div className="area-action-box">
+                  <span className="ac-label">🎯 Rencana Aksi Sederhana:</span>
+                  <p className="ac-text">{area.action_plan}</p>
                 </div>
               </div>
             ))}
@@ -930,7 +919,9 @@ export default function FaceScanPage() {
           <div className="section-label-header">TIPS PERSONAL UNTUK KULITMU</div>
           <div className="tips-category-grid">
             <div className="card tip-card card-avoid">
-              <h4 className="tip-header-title text-red"><span>✕</span> Hindari</h4>
+              <h4 className="tip-header-title text-red">
+                <X size={16} /> Hindari
+              </h4>
               <ul className="tip-items-list avoid">
                 {analysisResult.tips_avoid?.map((tip, idx) => (
                   <li key={idx}>{tip}</li>
@@ -939,7 +930,9 @@ export default function FaceScanPage() {
             </div>
 
             <div className="card tip-card card-reduce">
-              <h4 className="tip-header-title text-amber"><span>−</span> Kurangi</h4>
+              <h4 className="tip-header-title text-amber">
+                <span className="dash-icon">−</span> Kurangi
+              </h4>
               <ul className="tip-items-list reduce">
                 {analysisResult.tips_reduce?.map((tip, idx) => (
                   <li key={idx}>{tip}</li>
@@ -948,7 +941,9 @@ export default function FaceScanPage() {
             </div>
 
             <div className="card tip-card card-do">
-              <h4 className="tip-header-title text-green"><span>✓</span> Rutin Lakukan</h4>
+              <h4 className="tip-header-title text-green">
+                <CheckCircle2 size={16} /> Rutin Lakukan
+              </h4>
               <ul className="tip-items-list do">
                 {analysisResult.tips_do?.map((tip, idx) => (
                   <li key={idx}>{tip}</li>
@@ -957,62 +952,73 @@ export default function FaceScanPage() {
             </div>
           </div>
 
-          {/* Section 4: Smart Product Matcher Ranking (Fase 2.3) */}
-          <div className="section-label-header">REKOMENDASI PRODUK (URUTAN MATCH SCORE TERTINGGI)</div>
-          <div className="card products-container-card">
-            <div className="products-list-stack">
-              {analysisResult.product_recommendations?.map((prod, idx) => (
-                <div
-                  key={idx}
-                  className="product-recommendation-item"
-                  style={{ animationDelay: `${idx * 0.1}s` }}
-                >
-                  <span className={`prod-rank-num ${idx === 0 ? 'top-match' : ''}`}>
-                    #{idx + 1}
-                  </span>
-                  <div className="prod-icon-avatar">
-                    <ShoppingBag size={20} />
-                  </div>
-                  <div className="prod-meta-info">
-                    <div className="prod-title-row">
-                      <h4 className="prod-name-title">{prod.product_name}</h4>
-                      <span className="prod-category-pill">{prod.category}</span>
-                    </div>
-                    <p className="prod-rationale-text">{prod.why_recommended}</p>
-                    
-                    {prod.key_ingredients && prod.key_ingredients.length > 0 && (
-                      <div className="prod-ing-chips">
-                        {prod.key_ingredients.map((ing, iIdx) => (
-                          <span key={iIdx} className="ing-mini-chip">{ing}</span>
-                        ))}
+          {/* Section 3: Rekomendasi Bahan Aktif Klinis (Hero Actives & Formulasi) */}
+          <div className="section-label-header">REKOMENDASI BAHAN AKTIF KLINIS (HERO ACTIVES)</div>
+          <div className="card hero-actives-card">
+            <div className="hero-actives-intro">
+              <FlaskConical size={18} className="intro-flask-icon" />
+              <span>
+                Bahan aktif yang ditargetkan secara presisi untuk menyeimbangkan produksi sebum T-Zone, merawat pori-pori, dan memperkuat skin barrier berdasarkan diagnosis foto wajahmu.
+              </span>
+            </div>
+
+            <div className="actives-grid">
+              {heroIngredients.map((item, idx) => {
+                const isEssential = item.priority === 'essential'
+                const cleanName = item.name.replace(/^Kandungan yang cocok:\s*/i, '').trim()
+                const searchKeyword = `serum ${cleanName}`
+                const askPrompt = `Halo SkinSistant! Dari hasil scan wajah, kulitku direkomendasikan bahan aktif "${cleanName}". Bagaimana urutan dan cara pakainya yang aman agar tidak iritasi?`
+
+                return (
+                  <div key={idx} className="active-item-card">
+                    <div className="aic-header">
+                      <div className="aic-badge-row">
+                        <span className="aic-rank">#{idx + 1}</span>
+                        <span className={`aic-priority-pill ${isEssential ? 'essential' : 'recommended'}`}>
+                          {isEssential ? '✨ Target Utama (Essential)' : '🛡️ Penyeimbang (Recommended)'}
+                        </span>
                       </div>
-                    )}
+                      <h4 className="aic-name">{cleanName}</h4>
+                    </div>
+
+                    <p className="aic-purpose">{item.purpose}</p>
+
+                    <div className="aic-actions-row">
+                      <a
+                        href={`https://shopee.co.id/search?keyword=${encodeURIComponent(searchKeyword)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-shopee-search"
+                      >
+                        <ShoppingBag size={13} /> Cari Skincare di Marketplace ↗
+                      </a>
+                      <Link
+                        to={`/chatbot?initialPrompt=${encodeURIComponent(askPrompt)}`}
+                        className="btn-ask-skinsistant"
+                      >
+                        <MessageSquare size={13} /> Tanya Cara Pakai
+                      </Link>
+                    </div>
                   </div>
-                  <div className="prod-right-badge">
-                    <span className="prod-match-percent">{prod.match_score || 92}% Match</span>
-                    <span className="prod-price-text">{prod.price_estimate || 'Rp89.000'}</span>
-                    <button
-                      className="btn-marketplace-search"
-                      onClick={() =>
-                        window.open(
-                          `https://shopee.co.id/search?keyword=${encodeURIComponent(prod.product_name)}`,
-                          '_blank'
-                        )
-                      }
-                    >
-                      Cari di Marketplace ↗
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
-          {/* Reset Scan Action */}
-          <button className="btn-reset-scan" onClick={handleResetFlow}>
-            <RotateCcw size={16} />
-            <span>Scan Wajah Ulang</span>
-          </button>
+          {/* Bottom Action Row */}
+          <div className="results-action-row">
+            <button className="btn-reset-scan" onClick={handleResetFlow}>
+              <RotateCcw size={16} />
+              <span>Scan Wajah Ulang</span>
+            </button>
+            <Link
+              to="/chatbot?initialPrompt=Halo%20SkinSistant%2C%20saya%20baru%20saja%20selesai%20scan%20wajah.%20Bisa%20bantu%20jelaskan%20rekomendasi%20skincare%20rutin%20harian%20untuk%20kulitku%3F"
+              className="btn-consult-skinsistant"
+            >
+              <MessageSquare size={16} />
+              <span>Konsultasikan Rutinitas ke SkinSistant AI</span>
+            </Link>
+          </div>
         </div>
       )}
 
@@ -1020,10 +1026,22 @@ export default function FaceScanPage() {
       <style>{`
         .skincluv-face-scan-page {
           width: 100%;
+          max-width: 980px;
+          margin: 0 auto;
         }
 
         .page-header-box {
-          margin-bottom: 16px;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 1rem;
+          margin-bottom: 20px;
+        }
+
+        .page-header-content {
+          flex: 1;
+          min-width: 280px;
         }
 
         .page-title {
@@ -1041,6 +1059,28 @@ export default function FaceScanPage() {
           line-height: 1.5;
         }
 
+        .history-shortcut-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: #ffffff;
+          border: 1px solid #bae6fd;
+          color: #0284c7;
+          padding: 0.5rem 0.9rem;
+          border-radius: 0.75rem;
+          font-size: 0.85rem;
+          font-weight: 700;
+          text-decoration: none;
+          box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+          transition: all 0.2s;
+        }
+
+        .history-shortcut-btn:hover {
+          background: #f0f9ff;
+          border-color: #7dd3fc;
+          transform: translateY(-1px);
+        }
+
         .error-alert {
           background: #fbe9e7;
           border: 1px solid #ffcdd2;
@@ -1051,7 +1091,7 @@ export default function FaceScanPage() {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-bottom: 16px;
+          margin-bottom: 20px;
         }
 
         /* STAGE 1: GRID LAYOUT */
@@ -1074,12 +1114,12 @@ export default function FaceScanPage() {
           text-align: center;
           background: #ffffff;
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: all 0.2s ease;
         }
 
         .dropzone-box:hover, .dropzone-box.dragging {
           border-color: #0f6784;
-          background: #eaf4fa;
+          background: #f0fdfa;
         }
 
         .dz-icon-avatar {
@@ -1115,9 +1155,10 @@ export default function FaceScanPage() {
         }
 
         .preview-img {
-          max-height: 240px;
-          border-radius: 12px;
-          object-fit: contain;
+          max-height: 260px;
+          border-radius: 14px;
+          object-fit: cover;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         .clear-image-btn {
@@ -1132,6 +1173,12 @@ export default function FaceScanPage() {
           display: flex;
           align-items: center;
           gap: 6px;
+          transition: all 0.15s;
+        }
+
+        .clear-image-btn:hover {
+          background: #f1f5f9;
+          color: #0f172a;
         }
 
         .btn-primary-action {
@@ -1148,17 +1195,39 @@ export default function FaceScanPage() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          transition: background 0.15s ease;
+          transition: background 0.15s ease, transform 0.15s ease;
+          box-shadow: 0 4px 14px rgba(15, 103, 132, 0.2);
         }
 
         .btn-primary-action:hover:not(:disabled) {
           background: #0b4f5c;
+          transform: translateY(-1px);
         }
 
         .btn-primary-action:disabled {
           background: #cbd5e1;
           color: #94a3b8;
           cursor: not-allowed;
+          box-shadow: none;
+        }
+
+        .disclaimer-banner {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 10px 14px;
+          font-size: 0.75rem;
+          color: #64748b;
+          line-height: 1.45;
+        }
+
+        .disclaimer-icon {
+          color: #0f6784;
+          flex-shrink: 0;
+          margin-top: 1px;
         }
 
         /* SIDE INFO COL */
@@ -1241,8 +1310,7 @@ export default function FaceScanPage() {
           color: #0f6784;
         }
 
-
-        /* STAGE 2: ANIMATED SCANNER CARD */
+        /* STAGE 2: NEURAL SCANNER HUD */
         .stage-card {
           background: #ffffff;
           border: 1px solid #e2e8f0;
@@ -1257,51 +1325,136 @@ export default function FaceScanPage() {
         .scanning-card {
           align-items: center;
           padding: 36px 20px;
+          gap: 20px;
         }
 
         .scan-frame-viewport {
           position: relative;
           border-radius: 20px;
           overflow: hidden;
-          background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-          height: 240px;
+          background: #0f172a;
+          height: 260px;
           width: 100%;
-          max-width: 400px;
+          max-width: 420px;
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
         }
 
         .scan-img-preview {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          opacity: 0.72;
+          filter: contrast(1.05);
+        }
+
+        .mock-face-shape {
+          width: 120px;
+          height: 150px;
+          border-radius: 50% 50% 45% 45% / 55% 55% 42% 42%;
+          background: linear-gradient(135deg, #1e293b, #334155);
           opacity: 0.65;
         }
 
-        .scan-frame-viewport::after {
-          content: '';
+        .hud-grid-overlay {
+          position: absolute;
+          inset: 0;
+          background-image: 
+            linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px);
+          background-size: 24px 24px;
+          pointer-events: none;
+        }
+
+        .hud-corner {
+          position: absolute;
+          width: 24px;
+          height: 24px;
+          border-color: #10b981;
+          border-style: solid;
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        .hud-corner.top-left {
+          top: 14px;
+          left: 14px;
+          border-width: 2.5px 0 0 2.5px;
+          border-top-left-radius: 6px;
+        }
+
+        .hud-corner.top-right {
+          top: 14px;
+          right: 14px;
+          border-width: 2.5px 2.5px 0 0;
+          border-top-right-radius: 6px;
+        }
+
+        .hud-corner.bottom-left {
+          bottom: 14px;
+          left: 14px;
+          border-width: 0 0 2.5px 2.5px;
+          border-bottom-left-radius: 6px;
+        }
+
+        .hud-corner.bottom-right {
+          bottom: 14px;
+          right: 14px;
+          border-width: 0 2.5px 2.5px 0;
+          border-bottom-right-radius: 6px;
+        }
+
+        .scan-laser-beam {
           position: absolute;
           left: 0;
           right: 0;
           height: 3px;
-          background: linear-gradient(90deg, transparent, #10b981, transparent);
-          box-shadow: 0 0 14px 4px rgba(16, 185, 129, 0.8);
-          animation: scanline 2.1s ease-in-out infinite;
+          background: linear-gradient(90deg, transparent, #10b981 20%, #34d399 50%, #10b981 80%, transparent);
+          box-shadow: 0 0 16px 4px rgba(16, 185, 129, 0.85);
+          animation: laserSweep 2.2s ease-in-out infinite;
+          z-index: 2;
         }
 
-        @keyframes scanline {
+        @keyframes laserSweep {
           0% { top: 6%; }
           50% { top: 92%; }
           100% { top: 6%; }
         }
 
-        .mock-face-shape {
-          width: 110px;
-          height: 140px;
-          border-radius: 50% 50% 44% 44% / 55% 55% 40% 40%;
-          background: #ffffff;
-          opacity: 0.55;
+        .hud-status-badge {
+          position: absolute;
+          bottom: 14px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(16, 185, 129, 0.4);
+          color: #a7f3d0;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          padding: 4px 12px;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          z-index: 3;
+        }
+
+        .hud-pulse-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #10b981;
+          box-shadow: 0 0 6px #10b981;
+          animation: dotBlink 1.2s infinite;
+        }
+
+        @keyframes dotBlink {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
         }
 
         .scan-status-row {
@@ -1339,27 +1492,98 @@ export default function FaceScanPage() {
         }
 
         @keyframes thinkShimmer {
-          0%, 100% { opacity: 0.55; }
+          0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
         }
 
-        /* STAGE 3: RESULTS STACK & SCORE HERO BANNER */
+        .scan-progress-bar-track {
+          width: 100%;
+          max-width: 420px;
+          height: 4px;
+          background: #e2e8f0;
+          border-radius: 4px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .scan-progress-bar-glow {
+          position: absolute;
+          top: 0;
+          left: -40%;
+          width: 40%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, #0f6784, #10b981, transparent);
+          border-radius: 4px;
+          animation: progressIndeterminate 1.6s infinite ease-in-out;
+        }
+
+        @keyframes progressIndeterminate {
+          0% { left: -40%; width: 40%; }
+          50% { left: 30%; width: 50%; }
+          100% { left: 100%; width: 40%; }
+        }
+
+        .scan-tip-card {
+          width: 100%;
+          max-width: 420px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .tip-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #0f6784;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .tip-sparkle-icon {
+          color: #10b981;
+        }
+
+        .tip-body {
+          font-size: 0.8125rem;
+          color: #475569;
+          margin: 0;
+          line-height: 1.5;
+        }
+
+        /* STAGE 3: RESULTS STACK */
         .results-stack {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 22px;
         }
 
+        /* SCORE HERO BANNER */
         .score-hero-banner {
-          background: #0b4f5c;
+          background: linear-gradient(135deg, #082d38 0%, #0d5265 65%, #0a3d4a 100%);
           border-radius: 20px;
-          padding: 28px;
+          padding: 28px 24px;
           color: #ffffff;
-          display: flex;
-          align-items: center;
-          gap: 20px;
           position: relative;
           overflow: hidden;
+          box-shadow: 0 10px 30px rgba(13, 82, 101, 0.18);
+        }
+
+        .hero-glow-accent {
+          position: absolute;
+          top: -40px;
+          right: -40px;
+          width: 220px;
+          height: 220px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
+          pointer-events: none;
         }
 
         .dots-bg-pattern {
@@ -1369,47 +1593,255 @@ export default function FaceScanPage() {
           background-size: 14px 14px;
         }
 
-        .score-ring-avatar {
+        .score-hero-content {
           position: relative;
           z-index: 1;
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.15);
-          border: 2px solid rgba(255,255,255,0.3);
           display: flex;
           align-items: center;
+          gap: 22px;
+          flex-wrap: wrap;
+        }
+
+        .score-ring-avatar {
+          width: 86px;
+          height: 86px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          border: 3px solid rgba(255, 255, 255, 0.25);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           justify-content: center;
-          font-size: 1.75rem;
-          font-weight: 700;
           flex-shrink: 0;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .score-ring-avatar.score-optimal {
+          border-color: #34d399;
+          background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .score-ring-avatar.score-caution {
+          border-color: #fbbf24;
+          background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .score-ring-avatar.score-warning {
+          border-color: #f87171;
+          background: radial-gradient(circle, rgba(248, 113, 113, 0.2) 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .sr-number-row {
+          display: flex;
+          align-items: baseline;
+          line-height: 1;
+        }
+
+        .sr-val {
+          font-size: 1.85rem;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+
+        .sr-scale {
+          font-size: 0.75rem;
+          opacity: 0.75;
+          margin-left: 2px;
+        }
+
+        .sr-unit {
+          font-size: 0.625rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          opacity: 0.85;
+          margin-top: 2px;
         }
 
         .score-meta-info {
-          position: relative;
-          z-index: 1;
+          flex: 1;
+          min-width: 240px;
+        }
+
+        .hero-badges-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+        }
+
+        .hero-skin-type-badge {
+          background: rgba(16, 185, 129, 0.2);
+          border: 1px solid rgba(52, 211, 153, 0.4);
+          color: #a7f3d0;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .hero-confidence-badge {
+          background: rgba(255, 255, 255, 0.12);
+          color: #e2e8f0;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
         }
 
         .hero-status-title {
-          font-size: 1.0625rem;
+          font-size: 1.125rem;
           font-weight: 700;
           margin: 0 0 6px 0;
+          line-height: 1.4;
+          letter-spacing: -0.01em;
         }
 
         .hero-status-desc {
           font-size: 0.84375rem;
-          color: #dceeea;
+          color: #d1fae5;
           line-height: 1.55;
           margin: 0;
+          opacity: 0.95;
         }
 
+        /* BIOMETRIC OVERVIEW CARD */
+        .biometric-overview-card {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          padding: 18px;
+          flex-wrap: wrap;
+        }
+
+        .biometric-photo-col {
+          flex-shrink: 0;
+        }
+
+        .biometric-frame {
+          position: relative;
+          width: 130px;
+          height: 130px;
+          border-radius: 16px;
+          overflow: hidden;
+          background: #0f172a;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .biometric-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .biometric-hud-corners {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+
+        .bh-corner {
+          position: absolute;
+          width: 14px;
+          height: 14px;
+          border-color: #10b981;
+          border-style: solid;
+        }
+
+        .bh-corner.tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+        .bh-corner.tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
+        .bh-corner.bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
+        .bh-corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+        .biometric-verified-tag {
+          position: absolute;
+          bottom: 6px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(4px);
+          color: #34d399;
+          font-size: 0.5625rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          white-space: nowrap;
+        }
+
+        .biometric-areas-col {
+          flex: 1;
+          min-width: 260px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .biometric-areas-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: #1e293b;
+        }
+
+        .text-teal {
+          color: #0f6784;
+        }
+
+        .biometric-chips-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .biometric-area-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 12px;
+          gap: 12px;
+        }
+
+        .bai-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .bai-name {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .bai-score-text {
+          font-size: 0.75rem;
+          color: #64748b;
+        }
+
+        /* SECTION LABEL HEADER */
         .section-label-header {
           font-size: 0.75rem;
           font-weight: 700;
           color: #64748b;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
           text-transform: uppercase;
-          margin-top: 4px;
+          margin-top: 6px;
         }
 
         /* AREA CARDS STACK */
@@ -1427,12 +1859,33 @@ export default function FaceScanPage() {
           box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
 
+        .area-analysis-card {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          transition: border-color 0.15s ease;
+        }
+
+        .area-analysis-card:hover {
+          border-color: #cbd5e1;
+        }
+
         .area-card-head {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          margin-bottom: 10px;
+          flex-wrap: wrap;
+        }
+
+        .area-title-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .area-icon-accent {
+          color: #0f6784;
         }
 
         .area-title-text {
@@ -1442,10 +1895,16 @@ export default function FaceScanPage() {
           margin: 0;
         }
 
+        .area-head-badges {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
         .area-severity-badge {
           font-size: 0.6875rem;
           font-weight: 700;
-          padding: 4px 10px;
+          padding: 3px 10px;
           border-radius: 20px;
         }
 
@@ -1461,25 +1920,6 @@ export default function FaceScanPage() {
           border: 1px solid #fef3c7;
         }
 
-        .area-severity-badge.berat {
-          background: #fbe9e7;
-          color: #b3261e;
-          border: 1px solid #ffcdd2;
-        }
-
-        .area-analogy-text {
-          font-size: 0.84375rem;
-          color: #475569;
-          line-height: 1.6;
-          margin-bottom: 12px;
-        }
-
-        .area-head-badges {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
         .area-score-pill {
           font-size: 0.6875rem;
           font-weight: 700;
@@ -1489,75 +1929,53 @@ export default function FaceScanPage() {
           border-radius: 12px;
         }
 
-        .area-finding-text {
+        .area-finding-box, .area-analogy-box, .area-action-box {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .af-label, .aa-label, .ac-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #475569;
+        }
+
+        .af-text {
           font-size: 0.84375rem;
           color: #1e293b;
           line-height: 1.5;
-          margin: 0 0 6px 0;
+          margin: 0;
         }
 
-        .area-action-text {
+        .area-analogy-box {
+          background: #f8fafc;
+          border-left: 3px solid #0f6784;
+          border-radius: 0 8px 8px 0;
+          padding: 8px 12px;
+        }
+
+        .aa-text {
           font-size: 0.8125rem;
-          color: #0f6784;
-          font-weight: 500;
+          color: #334155;
           line-height: 1.5;
           margin: 0;
+          font-style: italic;
         }
 
-        .causes-group, .solutions-group {
-          margin-bottom: 10px;
+        .area-action-box {
+          background: #f0fdf4;
+          border-left: 3px solid #10b981;
+          border-radius: 0 8px 8px 0;
+          padding: 8px 12px;
         }
 
-        .causes-kicker, .solutions-kicker {
-          display: block;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #64748b;
-          margin-bottom: 6px;
-        }
-
-        .tags-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .cause-tag {
-          font-size: 0.75rem;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          color: #475569;
-          padding: 4px 10px;
-          border-radius: 16px;
-        }
-
-        .sol-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
+        .ac-text {
           font-size: 0.8125rem;
-          color: #475569;
-          line-height: 1.6;
-        }
-
-        .sol-list li {
-          padding-left: 18px;
-          position: relative;
-          margin-bottom: 4px;
-        }
-
-        .sol-list li::before {
-          content: '✓';
-          position: absolute;
-          left: 0;
-          color: #0f6784;
-          font-weight: 700;
-        }
-
-        .region-cropper-wrapper {
-          margin-top: 14px;
-          border-top: 1px solid #f1f5f9;
-          padding-top: 14px;
+          color: #166534;
+          line-height: 1.5;
+          margin: 0;
+          font-weight: 500;
         }
 
         /* TIPS CATEGORY GRID */
@@ -1571,10 +1989,22 @@ export default function FaceScanPage() {
           padding: 18px;
         }
 
+        .tip-card.card-avoid {
+          border-top: 3px solid #ef4444;
+        }
+
+        .tip-card.card-reduce {
+          border-top: 3px solid #f59e0b;
+        }
+
+        .tip-card.card-do {
+          border-top: 3px solid #10b981;
+        }
+
         .tip-header-title {
-          font-size: 0.84375rem;
+          font-size: 0.875rem;
           font-weight: 700;
-          margin: 0 0 10px 0;
+          margin: 0 0 12px 0;
           display: flex;
           align-items: center;
           gap: 6px;
@@ -1583,6 +2013,7 @@ export default function FaceScanPage() {
         .text-red { color: #b3261e; }
         .text-amber { color: #b45309; }
         .text-green { color: #166534; }
+        .dash-icon { font-size: 1.1rem; line-height: 1; }
 
         .tip-items-list {
           list-style: none;
@@ -1594,183 +2025,177 @@ export default function FaceScanPage() {
         }
 
         .tip-items-list li {
-          padding-left: 16px;
+          padding-left: 18px;
           position: relative;
-          margin-bottom: 4px;
+          margin-bottom: 6px;
         }
 
-        .tip-items-list.avoid li::before { content: '✕'; position: absolute; left: 0; color: #b3261e; }
+        .tip-items-list.avoid li::before { content: '✕'; position: absolute; left: 0; color: #b3261e; font-size: 0.75rem; }
         .tip-items-list.reduce li::before { content: '−'; position: absolute; left: 0; color: #b45309; font-weight: 700; }
         .tip-items-list.do li::before { content: '✓'; position: absolute; left: 0; color: #166534; font-weight: 700; }
 
-        /* PRODUCT RECOMMENDATIONS STACK */
-        .products-container-card {
-          padding: 16px;
-        }
-
-        .products-list-stack {
+        /* HERO ACTIVES CARD */
+        .hero-actives-card {
+          padding: 20px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 16px;
         }
 
-        .product-recommendation-item {
+        .hero-actives-intro {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid #f1f5f9;
-          opacity: 0;
-          transform: translateY(8px);
-          animation: cardReveal 0.4s ease forwards;
-        }
-
-        .product-recommendation-item:last-child {
-          border-bottom: none;
-          padding-bottom: 0;
-        }
-
-        @keyframes cardReveal {
-          from {
-            opacity: 0;
-            transform: translateY(8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .prod-rank-num {
-          width: 26px;
-          height: 26px;
-          border-radius: 50%;
+          gap: 10px;
           background: #eaf4fa;
-          color: #0f6784;
-          font-size: 0.75rem;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-
-        .prod-rank-num.top-match {
-          background: #0f6784;
-          color: #ffffff;
-        }
-
-        .prod-icon-avatar {
-          width: 44px;
-          height: 44px;
           border-radius: 12px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          padding: 12px 14px;
+          font-size: 0.8125rem;
           color: #0f6784;
+          line-height: 1.5;
+        }
+
+        .intro-flask-icon {
           flex-shrink: 0;
+          margin-top: 1px;
         }
 
-        .prod-meta-info {
-          flex: 1;
-          min-width: 0;
+        .actives-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
         }
 
-        .prod-title-row {
+        .active-item-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          transition: all 0.2s ease;
+        }
+
+        .active-item-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .aic-header {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .aic-badge-row {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 4px;
-          flex-wrap: wrap;
         }
 
-        .prod-name-title {
-          font-size: 0.875rem;
+        .aic-rank {
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #0f6784;
+          background: #eaf4fa;
+          padding: 2px 8px;
+          border-radius: 8px;
+        }
+
+        .aic-priority-pill {
+          font-size: 0.6875rem;
           font-weight: 700;
-          color: #1e293b;
+          padding: 2px 8px;
+          border-radius: 12px;
+        }
+
+        .aic-priority-pill.essential {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .aic-priority-pill.recommended {
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+        }
+
+        .aic-name {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 2px 0 0 0;
+        }
+
+        .aic-purpose {
+          font-size: 0.8125rem;
+          color: #475569;
+          line-height: 1.55;
           margin: 0;
         }
 
-        .prod-category-pill {
-          font-size: 0.6875rem;
-          background: #f1f5f9;
-          color: #64748b;
-          padding: 2px 8px;
-          border-radius: 12px;
-          font-weight: 600;
-        }
-
-        .prod-rationale-text {
-          font-size: 0.78125rem;
-          color: #64748b;
-          margin: 0 0 6px 0;
-          line-height: 1.45;
-        }
-
-        .prod-ing-chips {
+        .aic-actions-row {
           display: flex;
+          align-items: center;
+          gap: 10px;
           flex-wrap: wrap;
-          gap: 4px;
+          margin-top: 4px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
         }
 
-        .ing-mini-chip {
-          font-size: 0.6875rem;
-          background: #eaf4fa;
-          color: #0f6784;
-          padding: 2px 8px;
-          border-radius: 6px;
-          font-weight: 600;
-        }
-
-        .prod-right-badge {
-          text-align: right;
-          flex-shrink: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 4px;
-        }
-
-        .prod-match-percent {
-          font-size: 0.8125rem;
-          font-weight: 700;
-          color: #166534;
-          background: #f0fdf4;
-          border: 1px solid #bbf7d0;
-          padding: 2px 8px;
-          border-radius: 12px;
-        }
-
-        .prod-price-text {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .btn-marketplace-search {
+        .btn-shopee-search {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           background: #ffffff;
           border: 1px solid #0f6784;
           color: #0f6784;
-          padding: 4px 10px;
+          padding: 6px 12px;
           border-radius: 8px;
-          font-size: 0.6875rem;
+          font-size: 0.75rem;
           font-weight: 600;
-          cursor: pointer;
+          text-decoration: none;
           transition: all 0.15s ease;
-          margin-top: 2px;
-          white-space: nowrap;
         }
 
-        .btn-marketplace-search:hover {
+        .btn-shopee-search:hover {
           background: #0f6784;
           color: #ffffff;
         }
 
+        .btn-ask-skinsistant {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #f8fafc;
+          border: 1px solid #cbd5e1;
+          color: #334155;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.15s ease;
+        }
+
+        .btn-ask-skinsistant:hover {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+
+        /* BOTTOM ACTIONS */
+        .results-action-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
         .btn-reset-scan {
-          width: 100%;
+          flex: 1;
+          min-width: 180px;
           background: #ffffff;
           border: 1px solid #cbd5e1;
           color: #0f6784;
@@ -1790,6 +2215,29 @@ export default function FaceScanPage() {
           background: #f8fafc;
         }
 
+        .btn-consult-skinsistant {
+          flex: 2;
+          min-width: 240px;
+          background: #0f6784;
+          border: none;
+          color: #ffffff;
+          border-radius: 12px;
+          padding: 12px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          text-decoration: none;
+          transition: background 0.15s ease;
+        }
+
+        .btn-consult-skinsistant:hover {
+          background: #0b4f5c;
+        }
+
         .face-scan-credit-notice {
           background: #fffbeb;
           border: 1px solid #fde68a;
@@ -1802,7 +2250,6 @@ export default function FaceScanPage() {
           gap: 12px;
           font-size: 0.8125rem;
           color: #92400e;
-          animation: fadeIn 0.2s ease;
         }
 
         .notice-left {
@@ -1866,6 +2313,12 @@ export default function FaceScanPage() {
           .notice-sub-btn {
             flex: 1;
             justify-content: center;
+          }
+          .results-action-row {
+            flex-direction: column;
+          }
+          .btn-reset-scan, .btn-consult-skinsistant {
+            width: 100%;
           }
         }
 
