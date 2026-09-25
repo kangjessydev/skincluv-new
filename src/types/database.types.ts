@@ -1324,6 +1324,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_dashboard_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_chatbot_user_context: {
         Args: Record<PropertyKey, never>
         Returns: Json

@@ -1,46 +1,143 @@
 // src/pages/app/DashboardPage.tsx
-// Skincluv Design System Harmonized Dashboard (Clean Inter Typography, #0f6784 Brand Palette & Responsive Layout)
+// Skincluv Unified Data-Driven Dashboard (RFC 008 AI Council Consensus)
+// Integrated with get_user_dashboard_summary RPC, Zero-IDOR, Cold Start 3-State UX
 
 import { useNavigate } from 'react-router-dom'
 import {
   ScanFace,
   MessageSquare,
+  FlaskConical,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  Calendar,
+  Layers,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
+import { useDashboardData } from '@/hooks/useDashboardData'
+
+function formatRelativeDate(dateStr?: string | null): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - d.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 0) return 'Hari ini'
+    if (diffDays === 1) return 'Kemarin'
+    if (diffDays < 7) return `${diffDays} hari lalu`
+
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+  } catch {
+    return '—'
+  }
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { coinBalance, subscription } = useAuthStore()
+  const { data, loading, error } = useDashboardData()
 
   const isPro = isActivePremium(subscription)
   const isGlow = isActiveGlow(subscription)
   const userCredits = coinBalance?.balance ?? 0
 
+  const skinAssessment = data?.skin_assessment
+  const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
+  const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0, avg_safety_score: null }
+  const missions = data?.missions ?? { completed: 0, total: 1, active_list: [] }
+  const recentScans = data?.recent_scans ?? []
+
+  const hasFaceScan = skinAssessment?.has_face_scan ?? false
+  const latestScore = skinAssessment?.latest_score ?? null
+  const latestStatus = skinAssessment?.latest_status || 'Kondisi Kulit Terpantau'
+  const canShowDelta = skinAssessment?.can_show_delta ?? false
+  const deltaScore = skinAssessment?.delta_score ?? 0
+  const trendDir = skinAssessment?.trend_direction ?? 'none'
+  const trendLabel = skinAssessment?.trend_label || 'Scan berkala untuk melihat tren'
+
   return (
     <div className="skincluv-dashboard-grid">
-      {/* 1. STATUS HERO BANNER */}
-      <div className="status-hero">
+      {/* 1. STATUS HERO BANNER (3-STATE COLD START UX) */}
+      <div className={`status-hero ${!hasFaceScan ? 'hero-cold-start' : ''}`}>
         <div className="hero-pattern-dots" />
-        <div className="hero-top-row">
-          <div className="hero-label">SKOR KULIT KAMU</div>
-          <div className="hero-trend-badge">
-            <TrendingUp size={13} />
-            <span>+4 minggu ini</span>
+
+        {hasFaceScan ? (
+          // STATE C: User sudah memiliki Face Scan
+          <>
+            <div className="hero-top-row">
+              <div className="hero-label">SKOR KESEHATAN KULIT WAJAH</div>
+              <div className={`hero-trend-badge trend-${trendDir}`}>
+                {trendDir === 'improving' && <TrendingUp size={13} />}
+                {trendDir === 'attention' && <TrendingDown size={13} />}
+                {trendDir === 'stable' && <Minus size={13} />}
+                {trendDir === 'none' && <Sparkles size={13} />}
+                <span>
+                  {canShowDelta && deltaScore !== 0
+                    ? `${deltaScore > 0 ? `+${deltaScore}` : deltaScore} poin (${trendLabel})`
+                    : trendLabel}
+                </span>
+              </div>
+            </div>
+
+            <div className="hero-score-group">
+              <span className="hero-score-num">{latestScore}</span>
+              <span className="hero-score-sub">/ 100 — {latestStatus}</span>
+            </div>
+
+            <p className="hero-description">
+              {skinAssessment?.analysis_notes
+                ? skinAssessment.analysis_notes
+                : `Diagnosis dermatologis AI menunjukkan tipe kulit ${skinAssessment?.skin_type || 'normal'}. Lanjutkan perawatan rutin harianmu.`}
+            </p>
+
+            <div className="hero-footer-row">
+              <span className="hero-date-badge">
+                <Calendar size={12} /> Terakhir diperiksa: {formatRelativeDate(skinAssessment?.latest_scanned_at)}
+              </span>
+              <button onClick={() => navigate('/scan-history')} className="hero-action-link">
+                Lihat Detail Diagnosis <ArrowRight size={13} />
+              </button>
+            </div>
+          </>
+        ) : (
+          // STATE A & B: User belum pernah Face Scan
+          <div className="hero-onboarding-content">
+            <div className="hero-onboarding-badge">
+              <Sparkles size={14} className="text-amber-300" />
+              <span>
+                {scanCounts.ingredient_total > 0
+                  ? `Kamu sudah menganalisis ${scanCounts.ingredient_total} produk skincare`
+                  : 'Mulai Perjalanan Kulit Sehatmu'}
+              </span>
+            </div>
+            <h2 className="hero-onboarding-title">Kenali Kondisi & Kebutuhan Kulit Wajahmu</h2>
+            <p className="hero-onboarding-sub">
+              Dapatkan diagnosis 16 parameter klinis, rekomendasi bahan aktif terverifikasi dermatologi, dan skor kesehatan kulit dalam 10 detik.
+            </p>
+            <div className="hero-onboarding-actions">
+              <button onClick={() => navigate('/face-scan')} className="btn-hero-primary">
+                <ScanFace size={18} />
+                <span>Mulai Face Scan Pertama</span>
+              </button>
+              {scanCounts.ingredient_total === 0 && (
+                <button onClick={() => navigate('/ingredient-scan')} className="btn-hero-secondary">
+                  <FlaskConical size={16} />
+                  <span>Scan Komposisi Produk</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="hero-score-group">
-          <span className="hero-score-num">82</span>
-          <span className="hero-score-sub">/ 100 — Sangat Sehat</span>
-        </div>
-        <p className="hero-description">
-          Kelembaban kulit Anda stabil. Tekstur T-zone masih perlu perhatian ekstra minggu ini.
-        </p>
+        )}
       </div>
 
-      {/* 2. QUICK ACTIONS ROW */}
+      {/* 2. QUICK ACTIONS ROW (UPGRADED TO 3 COLS: FACE + INGREDIENT + CHATBOT) */}
       <div className="actions-row">
         <div className="action-card card-face-scan" onClick={() => navigate('/face-scan')}>
           <div className="action-icon-box purple">
@@ -48,7 +145,17 @@ export default function DashboardPage() {
           </div>
           <div className="action-meta">
             <h3 className="action-title">Face Scan AI</h3>
-            <p className="action-sub">Analisis kondisi kulit wajah terbaru</p>
+            <p className="action-sub">Analisis 16 parameter klinis wajah</p>
+          </div>
+        </div>
+
+        <div className="action-card card-ingredient-scan" onClick={() => navigate('/ingredient-scan')}>
+          <div className="action-icon-box emerald">
+            <FlaskConical size={22} />
+          </div>
+          <div className="action-meta">
+            <h3 className="action-title">Scan Komposisi</h3>
+            <p className="action-sub">Cek keamanan formula & red flags</p>
           </div>
         </div>
 
@@ -58,30 +165,30 @@ export default function DashboardPage() {
           </div>
           <div className="action-meta">
             <h3 className="action-title">Skinsistant AI</h3>
-            <p className="action-sub">Konsultasi bahan & keluhan kulit</p>
+            <p className="action-sub">Konsultasi interaktif & rekomendasi</p>
           </div>
         </div>
       </div>
 
-      {/* 3. RETENTION / PROGRESS STRIP */}
+      {/* 3. RETENTION / PROGRESS STRIP (DATA-DRIVEN) */}
       <div className="retention-section">
-        <div className="section-header-title">PROGRES KULIT KAMU</div>
+        <div className="section-header-title">PROGRES & AKTIVITAS KAMU</div>
         <div className="retention-strip">
           <div className="retention-card">
-            <div className="r-num">7 Hari</div>
-            <div className="r-cap streak">Streak Aktif 🔥</div>
+            <div className="r-num">{scanCounts.total}</div>
+            <div className="r-cap">Total Scan ({scanCounts.face_total} Wajah · {scanCounts.ingredient_total} Produk)</div>
           </div>
           <div className="retention-card">
-            <div className="r-num">14</div>
-            <div className="r-cap">Total Scan</div>
+            <div className="r-num">{productSummary.total_products_scanned}</div>
+            <div className="r-cap">Produk di Rak ({productSummary.safe_products_count} Formula Aman)</div>
           </div>
           <div className="retention-card">
-            <div className="r-num">2 / 5</div>
-            <div className="r-cap">Misi Glow Minggu Ini</div>
+            <div className="r-num">{missions.completed} / {missions.total}</div>
+            <div className="r-cap">Misi Aktif Selesai</div>
           </div>
           <div className="retention-card">
-            <div className="r-num">8</div>
-            <div className="r-cap">Produk di Rak Virtual</div>
+            <div className="r-num">{userCredits}</div>
+            <div className="r-cap streak">Saldo AI Credits ⚡</div>
           </div>
         </div>
       </div>
@@ -96,66 +203,111 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="side-stat-value">{userCredits} Credits</div>
-        </div>
-
-        <div className="side-card">
-          <div className="side-title mb-2">DAILY INSIGHT</div>
-          <p className="side-text">
-            Pastikan selalu memakai sunscreen SPF 30 setiap 3 jam saat beraktivitas di luar ruangan.
-          </p>
+          <div className="side-action-sub">
+            <button onClick={() => navigate('/pricing')} className="side-topup-btn">
+              Isi Ulang / Upgrade Paket →
+            </button>
+          </div>
         </div>
 
         <div className="side-card">
           <div className="side-card-header">
-            <span className="side-title">INDEKS UV HARI INI</span>
-            <span className="side-badge badge-warning">Sedang (UV 4)</span>
+            <span className="side-title">RAK VIRTUAL PRODUK</span>
+            <span className="side-badge badge-neutral">
+              {productSummary.total_products_scanned} Produk
+            </span>
           </div>
-          <p className="side-text">Disarankan memakai pelembab ber-SPF saat keluar rumah.</p>
+          <p className="side-text">
+            {productSummary.total_products_scanned > 0
+              ? `Rata-rata skor keamanan produk kamu adalah ${productSummary.avg_safety_score ?? 80}/100.`
+              : 'Belum ada produk yang kamu periksa. Scan komposisi krim, toner, atau serum harianmu!'}
+          </p>
+          <button onClick={() => navigate('/ingredient-scan')} className="side-inline-link">
+            + Tambah Scan Produk
+          </button>
+        </div>
+
+        <div className="side-card">
+          <div className="side-card-header">
+            <span className="side-title">DAILY CLINICAL INSIGHT</span>
+            <span className="side-badge badge-teal">Dermatology Tip</span>
+          </div>
+          <p className="side-text">
+            Siklus pergantian sel kulit (epidermis) membutuhkan waktu ~28 hari. Pertahankan rutinitas pembersihan lembut dan hidrasi untuk hasil optimal.
+          </p>
         </div>
       </div>
 
       {/* 5. PROMO UPGRADE CARD */}
-      <div className="promo-banner-card">
-        <div className="promo-meta">
-          <div className="promo-title-row">
-            <Sparkles size={16} className="text-amber-300" />
-            <b className="promo-title">Langganan Skincluv PRO</b>
+      {!isPro && (
+        <div className="promo-banner-card">
+          <div className="promo-meta">
+            <div className="promo-title-row">
+              <Sparkles size={16} className="text-amber-300" />
+              <b className="promo-title">Tingkatkan ke Skincluv PRO</b>
+            </div>
+            <p className="promo-sub">Buka kuota AI melimpah, audit formula tanpa batas, dan histori komprehensif</p>
           </div>
-          <p className="promo-sub">Buka akses AI melimpah & konsultasi Dermatologist tanpa batas</p>
+          <button onClick={() => navigate('/pricing')} className="promo-action-btn">
+            Upgrade Sekarang
+          </button>
         </div>
-        <button onClick={() => navigate('/pricing')} className="promo-action-btn">
-          Upgrade Sekarang
-        </button>
-      </div>
+      )}
 
-      {/* 6. RECENT HISTORY SECTION */}
+      {/* 6. RECENT HISTORY SECTION (UNIFIED FACE + INGREDIENT SCANS) */}
       <div className="history-section">
-        <div className="section-header-title">RIWAYAT SCAN TERBARU</div>
+        <div className="history-header-row">
+          <div className="section-header-title" style={{ margin: 0 }}>RIWAYAT SCAN TERBARU</div>
+          <button onClick={() => navigate('/scan-history')} className="btn-view-all-history">
+            Buka Riwayat Lengkap <ArrowRight size={13} />
+          </button>
+        </div>
+
         <div className="history-card-container">
-          <div className="history-item-row">
-            <div className="h-date">8 Agu</div>
-            <div className="h-type-title">Scan Wajah AI</div>
-            <div className="h-detail-result">Kombinasi (T-Zone berminyak)</div>
-            <span className="h-status-badge badge-optimal">Optimal</span>
-          </div>
-
-          <div className="history-item-row">
-            <div className="h-date">5 Agu</div>
-            <div className="h-type-title">Scan Ingredient</div>
-            <div className="h-detail-result">Brightening Serum (aman)</div>
-            <span className="h-status-badge badge-healthy">Sehat</span>
-          </div>
-
-          <div className="history-item-row">
-            <div className="h-date">1 Agu</div>
-            <div className="h-type-title">Scan Wajah AI</div>
-            <div className="h-detail-result">Kemerahan pipi ringan</div>
-            <span className="h-status-badge badge-attention">Perlu Perhatian</span>
-          </div>
+          {loading ? (
+            <div className="history-empty-box">
+              <p>Memuat ringkasan riwayat terbaru...</p>
+            </div>
+          ) : recentScans.length === 0 ? (
+            <div className="history-empty-box">
+              <p>Belum ada riwayat pemindaian tersimpan.</p>
+              <div className="history-empty-actions">
+                <button onClick={() => navigate('/face-scan')} className="btn-empty-action">
+                  <ScanFace size={14} /> Scan Wajah
+                </button>
+                <button onClick={() => navigate('/ingredient-scan')} className="btn-empty-action">
+                  <FlaskConical size={14} /> Scan Produk
+                </button>
+              </div>
+            </div>
+          ) : (
+            recentScans.map((item) => {
+              const isFace = item.type === 'face'
+              return (
+                <div
+                  key={`${item.type}-${item.id}`}
+                  className="history-item-row"
+                  onClick={() => navigate('/scan-history')}
+                >
+                  <div className="h-date">{formatRelativeDate(item.created_at)}</div>
+                  <div className="h-type-badge-col">
+                    <span className={`h-type-pill ${isFace ? 'pill-purple' : 'pill-emerald'}`}>
+                      {isFace ? <ScanFace size={12} /> : <FlaskConical size={12} />}
+                      <span>{isFace ? 'Face Scan' : 'Ingredient'}</span>
+                    </span>
+                  </div>
+                  <div className="h-detail-result">{item.title}</div>
+                  <span className={`h-status-badge ${isFace ? 'badge-optimal' : 'badge-healthy'}`}>
+                    {item.score !== null ? `Skor ${item.score}` : 'Terpantau'}
+                  </span>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 
-      {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
+      {/* SCOPED VANILLA CSS STYLING MATCHING SKINCLUV MASTER TOKENS */}
       <style>{`
         .skincluv-dashboard-grid {
           display: grid;
@@ -172,7 +324,7 @@ export default function DashboardPage() {
           max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
-          font-family: 'Inter', sans-serif;
+          font-family: var(--font-body, 'Quicksand', sans-serif);
         }
 
         .section-header-title {
@@ -187,7 +339,7 @@ export default function DashboardPage() {
         /* 1. STATUS HERO BANNER */
         .status-hero {
           grid-area: hero;
-          background: linear-gradient(135deg, #0f6784 0%, #0b4f5c 100%);
+          background: linear-gradient(135deg, var(--skincluv-teal, #0f6784) 0%, var(--skincluv-teal-hover, #0b4f5c) 100%);
           border-radius: 20px;
           padding: 24px;
           color: #ffffff;
@@ -199,11 +351,16 @@ export default function DashboardPage() {
           width: 100%;
         }
 
+        .hero-cold-start {
+          background: linear-gradient(135deg, #0b4f5c 0%, #006591 100%);
+        }
+
         .hero-pattern-dots {
           position: absolute;
           inset: 0;
           background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
           background-size: 16px 16px;
+          pointer-events: none;
         }
 
         .hero-top-row {
@@ -213,6 +370,8 @@ export default function DashboardPage() {
           align-items: center;
           justify-content: space-between;
           width: 100%;
+          flex-wrap: wrap;
+          gap: 8px;
         }
 
         .hero-label {
@@ -225,14 +384,28 @@ export default function DashboardPage() {
         .hero-trend-badge {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 5px;
           background: rgba(255, 255, 255, 0.18);
           backdrop-filter: blur(8px);
           border-radius: 9999px;
-          padding: 4px 10px;
+          padding: 4px 12px;
           font-size: 0.75rem;
           font-weight: 700;
+        }
+
+        .trend-improving {
           color: #86efac;
+          background: rgba(34, 197, 94, 0.25);
+        }
+
+        .trend-attention {
+          color: #fca5a5;
+          background: rgba(239, 68, 68, 0.25);
+        }
+
+        .trend-stable, .trend-none {
+          color: #bae6fd;
+          background: rgba(255, 255, 255, 0.15);
         }
 
         .hero-score-group {
@@ -241,7 +414,7 @@ export default function DashboardPage() {
           display: flex;
           align-items: baseline;
           gap: 8px;
-          margin: 12px 0 6px;
+          margin: 14px 0 6px;
         }
 
         .hero-score-num {
@@ -267,15 +440,140 @@ export default function DashboardPage() {
           word-break: break-word;
         }
 
-        /* 2. ACTIONS ROW */
+        .hero-footer-row {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255, 255, 255, 0.15);
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .hero-date-badge {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          color: #bae6fd;
+        }
+
+        .hero-action-link {
+          background: none;
+          border: none;
+          color: #ffffff;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+          padding: 0;
+          transition: opacity 0.2s;
+        }
+
+        .hero-action-link:hover {
+          opacity: 0.85;
+          text-decoration: underline;
+        }
+
+        /* Hero Onboarding State */
+        .hero-onboarding-content {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .hero-onboarding-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(255, 255, 255, 0.16);
+          padding: 4px 12px;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #fef08a;
+          width: fit-content;
+        }
+
+        .hero-onboarding-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          margin: 0;
+          line-height: 1.25;
+        }
+
+        .hero-onboarding-sub {
+          font-size: 0.875rem;
+          line-height: 1.5;
+          color: #e0f2fe;
+          margin: 0;
+          max-width: 600px;
+        }
+
+        .hero-onboarding-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 8px;
+          flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #ffffff;
+          color: #0b4f5c;
+          border: none;
+          border-radius: 12px;
+          padding: 10px 18px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-hero-primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-hero-secondary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 12px;
+          padding: 10px 16px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          backdrop-filter: blur(8px);
+        }
+
+        /* 2. ACTIONS ROW (3-COLUMNS) */
         .actions-row {
           grid-area: actions;
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(3, 1fr);
           gap: 12px;
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .actions-row {
+            grid-template-columns: 1fr;
+          }
         }
 
         .action-card {
@@ -284,8 +582,8 @@ export default function DashboardPage() {
           border-radius: 16px;
           padding: 16px;
           display: flex;
-          flex-direction: column;
-          gap: 10px;
+          align-items: center;
+          gap: 12px;
           cursor: pointer;
           transition: all 0.2s ease;
           box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -300,8 +598,8 @@ export default function DashboardPage() {
         }
 
         .action-icon-box {
-          width: 40px;
-          height: 40px;
+          width: 44px;
+          height: 44px;
           border-radius: 12px;
           display: flex;
           align-items: center;
@@ -314,9 +612,18 @@ export default function DashboardPage() {
           color: #7e22ce;
         }
 
+        .action-icon-box.emerald {
+          background: #dcfce7;
+          color: #15803d;
+        }
+
         .action-icon-box.teal {
-          background: #eaf4fa;
-          color: #0f6784;
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        .action-meta {
+          min-width: 0;
         }
 
         .action-title {
@@ -329,39 +636,34 @@ export default function DashboardPage() {
         .action-sub {
           font-size: 0.75rem;
           color: #64748b;
-          line-height: 1.4;
           margin: 0;
-          word-break: break-word;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        /* 3. RETENTION SECTION */
+        /* 3. RETENTION / PROGRESS STRIP */
         .retention-section {
           grid-area: retention;
-          width: 100%;
-          min-width: 0;
-          box-sizing: border-box;
         }
 
         .retention-strip {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
           gap: 12px;
-          overflow-x: auto;
-          padding-bottom: 4px;
-          width: 100%;
-          box-sizing: border-box;
         }
 
-        .retention-strip::-webkit-scrollbar {
-          display: none;
+        @media (max-width: 640px) {
+          .retention-strip {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
 
         .retention-card {
-          flex: 0 0 auto;
-          min-width: 120px;
           background: #ffffff;
           border: 1px solid #e2e8f0;
           border-radius: 14px;
-          padding: 14px 16px;
+          padding: 14px;
           box-sizing: border-box;
         }
 
@@ -369,34 +671,27 @@ export default function DashboardPage() {
           font-size: 1.25rem;
           font-weight: 800;
           color: #0f172a;
+          margin-bottom: 4px;
         }
 
         .r-cap {
-          font-size: 0.75rem;
+          font-size: 0.6875rem;
           color: #64748b;
-          margin-top: 2px;
+          font-weight: 600;
+          line-height: 1.3;
         }
 
         .r-cap.streak {
-          color: #15803d;
+          color: #0f6784;
           font-weight: 700;
         }
 
-        /* 4. SIDE RAIL SECTION */
+        /* 4. SIDE RAIL */
         .side-rail-section {
           grid-area: side;
-          display: grid;
-          grid-template-columns: 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 12px;
-          width: 100%;
-          min-width: 0;
-          box-sizing: border-box;
-        }
-
-        @media (max-width: 899px) {
-          .side-rail-section {
-            display: none !important;
-          }
         }
 
         .side-card {
@@ -404,7 +699,6 @@ export default function DashboardPage() {
           border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 16px;
-          box-sizing: border-box;
         }
 
         .side-card-header {
@@ -415,233 +709,291 @@ export default function DashboardPage() {
         }
 
         .side-title {
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #64748b;
-          letter-spacing: 0.04em;
-        }
-
-        .side-badge {
           font-size: 0.6875rem;
           font-weight: 700;
-          padding: 3px 10px;
-          border-radius: 9999px;
-        }
-
-        .side-badge.badge-free {
-          background: #eaf4fa;
-          color: #0f6784;
-        }
-
-        .side-badge.badge-pro {
-          background: #fef3c7;
-          color: #b45309;
-        }
-
-        .side-badge.badge-warning {
-          background: #ffedd5;
-          color: #c2410c;
+          letter-spacing: 0.05em;
+          color: #64748b;
+          text-transform: uppercase;
         }
 
         .side-stat-value {
           font-size: 1.5rem;
           font-weight: 800;
           color: #0f172a;
+          margin-bottom: 6px;
+        }
+
+        .side-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 9999px;
+        }
+
+        .badge-pro {
+          background: #e0e7ff;
+          color: #4338ca;
+        }
+
+        .badge-amber {
+          background: #fef3c7;
+          color: #b45309;
+        }
+
+        .badge-free {
+          background: #f1f5f9;
+          color: #64748b;
+        }
+
+        .badge-teal {
+          background: #ccfbf1;
+          color: #0f766e;
+        }
+
+        .badge-neutral {
+          background: #f8fafc;
+          color: #334155;
+          border: 1px solid #e2e8f0;
         }
 
         .side-text {
           font-size: 0.8125rem;
-          line-height: 1.5;
+          line-height: 1.45;
           color: #475569;
           margin: 0;
         }
 
-        /* 5. PROMO BANNER CARD */
+        .side-topup-btn {
+          background: none;
+          border: none;
+          color: #0f6784;
+          font-size: 0.75rem;
+          font-weight: 700;
+          cursor: pointer;
+          padding: 0;
+          margin-top: 4px;
+        }
+
+        .side-topup-btn:hover {
+          text-decoration: underline;
+        }
+
+        .side-inline-link {
+          background: none;
+          border: none;
+          color: #0f6784;
+          font-size: 0.75rem;
+          font-weight: 700;
+          cursor: pointer;
+          padding: 0;
+          margin-top: 8px;
+          display: block;
+        }
+
+        .side-inline-link:hover {
+          text-decoration: underline;
+        }
+
+        /* 5. PROMO BANNER */
         .promo-banner-card {
           grid-area: promo;
-          background: linear-gradient(135deg, #0f6784 0%, #0369a1 100%);
+          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
           border-radius: 16px;
           padding: 18px 20px;
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 14px;
-          width: 100%;
-          box-sizing: border-box;
-          min-width: 0;
-          box-shadow: 0 4px 14px rgba(15, 103, 132, 0.2);
+          gap: 16px;
+          flex-wrap: wrap;
         }
 
         .promo-title-row {
           display: flex;
           align-items: center;
           gap: 6px;
-          margin-bottom: 2px;
+          margin-bottom: 4px;
         }
 
         .promo-title {
           font-size: 0.9375rem;
-          color: #ffffff;
+          font-weight: 700;
         }
 
         .promo-sub {
           font-size: 0.75rem;
-          color: #e0f2fe;
+          color: #94a3b8;
           margin: 0;
         }
 
         .promo-action-btn {
-          background: #ffffff;
-          color: #0f6784;
-          font-size: 0.8125rem;
-          font-weight: 700;
+          background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
           border: none;
-          border-radius: 9999px;
-          padding: 8px 18px;
-          flex-shrink: 0;
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 0.8125rem;
+          padding: 8px 16px;
+          border-radius: 10px;
           cursor: pointer;
-          transition: transform 0.2s ease;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          white-space: nowrap;
         }
 
-        .promo-action-btn:hover {
-          transform: scale(1.04);
-        }
-
-        /* 6. RECENT HISTORY SECTION */
+        /* 6. RECENT HISTORY */
         .history-section {
           grid-area: history;
-          width: 100%;
-          min-width: 0;
-          box-sizing: border-box;
+        }
+
+        .history-header-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+
+        .btn-view-all-history {
+          background: none;
+          border: none;
+          color: #0f6784;
+          font-size: 0.75rem;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .btn-view-all-history:hover {
+          text-decoration: underline;
         }
 
         .history-card-container {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          width: 100%;
-          box-sizing: border-box;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          overflow: hidden;
         }
 
         .history-item-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
           padding: 12px 16px;
-          width: 100%;
-          box-sizing: border-box;
+          border-bottom: 1px solid #f1f5f9;
+          gap: 12px;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+
+        .history-item-row:last-child {
+          border-bottom: none;
+        }
+
+        .history-item-row:hover {
+          background: #f8fafc;
         }
 
         .h-date {
           font-size: 0.75rem;
+          font-weight: 700;
           color: #64748b;
-          width: 50px;
-          flex-shrink: 0;
+          min-width: 60px;
         }
 
-        .h-type-title {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #0f172a;
+        .h-type-badge-col {
+          display: flex;
+          align-items: center;
+        }
+
+        .h-type-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 8px;
+          border-radius: 6px;
+          font-size: 0.6875rem;
+          font-weight: 700;
+        }
+
+        .pill-purple {
+          background: #f3e8ff;
+          color: #7e22ce;
+        }
+
+        .pill-emerald {
+          background: #dcfce7;
+          color: #15803d;
         }
 
         .h-detail-result {
+          flex: 1;
           font-size: 0.8125rem;
-          color: #64748b;
-          display: none;
+          font-weight: 600;
+          color: #1e293b;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .h-status-badge {
           font-size: 0.6875rem;
           font-weight: 700;
-          padding: 4px 10px;
+          padding: 3px 8px;
           border-radius: 9999px;
-          flex-shrink: 0;
         }
 
-        .h-status-badge.badge-optimal {
-          background: #dcfce7;
-          color: #15803d;
+        .badge-optimal {
+          background: #f0fdf4;
+          color: #16a34a;
         }
 
-        .h-status-badge.badge-healthy {
-          background: #e0f2fe;
-          color: #0369a1;
+        .badge-healthy {
+          background: #ecfdf5;
+          color: #059669;
         }
 
-        .h-status-badge.badge-attention {
-          background: #ffedd5;
-          color: #c2410c;
+        .history-empty-box {
+          padding: 24px;
+          text-align: center;
+          color: #64748b;
+          font-size: 0.8125rem;
         }
 
-        /* DESKTOP BREAKPOINT (>= 900px) */
-        @media (min-width: 900px) {
+        .history-empty-actions {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 12px;
+        }
+
+        .btn-empty-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #334155;
+          cursor: pointer;
+        }
+
+        .btn-empty-action:hover {
+          background: #e2e8f0;
+        }
+
+        /* Desktop Layout Responsive Grid */
+        @media (min-width: 1024px) {
           .skincluv-dashboard-grid {
-            grid-template-columns: 1fr 1fr 320px;
+            grid-template-columns: 2fr 1fr;
             grid-template-areas:
-              "hero    hero    side"
-              "actions actions side"
-              "retention retention side"
-              "promo   history history";
+              "hero side"
+              "actions side"
+              "retention side"
+              "promo promo"
+              "history history";
             gap: 20px;
-          }
-
-          .status-hero {
-            padding: 32px;
-          }
-
-          .hero-score-num {
-            font-size: 3.75rem;
-          }
-
-          .actions-row {
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-          }
-
-          .action-card {
-            padding: 20px;
-            gap: 12px;
-          }
-
-          .history-card-container {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 8px 16px;
-            gap: 0;
-          }
-
-          .history-item-row {
-            border: none;
-            border-bottom: 1px solid #f1f5f9;
-            border-radius: 0;
-            padding: 14px 0;
-          }
-
-          .history-item-row:last-child {
-            border-bottom: none;
-          }
-
-          .h-detail-result {
-            display: block;
-            flex: 1;
-            margin: 0 16px;
-          }
-
-          .promo-banner-card {
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-          }
-
-          .promo-action-btn {
-            margin-top: 10px;
           }
         }
       `}</style>

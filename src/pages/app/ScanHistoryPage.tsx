@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Calendar,
@@ -9,28 +9,37 @@ import {
   ScanFace,
   ChevronRight,
   X,
-  ExternalLink,
-  ShoppingBag,
-  Layers,
   Award,
   RefreshCw,
   FlaskConical,
   CheckCircle2,
+  AlertTriangle,
   Target,
   ShieldCheck,
+  ShieldAlert,
   MessageSquare,
+  Layers,
+  Tag,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-import type { FaceScan } from '@/types/database'
+import type { FaceScan, IngredientScan } from '@/types/database'
 
 export default function ScanHistoryPage() {
+  const navigate = useNavigate()
   const { session, user, profile } = useAuthStore()
+  const [activeTab, setActiveTab] = useState<'face' | 'ingredient'>('face')
   const [loading, setLoading] = useState(true)
+
+  // Face Scans State
   const [scans, setScans] = useState<FaceScan[]>([])
   const [selectedScan, setSelectedScan] = useState<FaceScan | null>(null)
 
-  const fetchScans = async () => {
+  // Ingredient Scans State
+  const [ingredientScans, setIngredientScans] = useState<IngredientScan[]>([])
+  const [selectedIngredientScan, setSelectedIngredientScan] = useState<IngredientScan | null>(null)
+
+  const fetchAllHistory = async () => {
     let targetUid = session?.user?.id || user?.id || profile?.id
     if (!targetUid) {
       const { data: authData } = await supabase.auth.getUser()
@@ -44,66 +53,79 @@ export default function ScanHistoryPage() {
 
     setLoading(true)
     try {
-      // 1. Coba fetch dari tabel face_scans (riwayat multi-sesi)
-      const { data, error } = await supabase
+      // 1. Fetch Face Scans (Index-Only Scan)
+      const { data: faceData, error: faceErr } = await supabase
         .from('face_scans')
         .select('*')
         .eq('user_id', targetUid)
         .order('created_at', { ascending: false })
 
-      if (!error && data && data.length > 0) {
-        setScans(data as FaceScan[])
-        return
+      if (!faceErr && faceData) {
+        setScans(faceData as FaceScan[])
+      } else {
+        // Fallback skin_profiles jika face_scans kosong
+        const { data: profileScan } = await supabase
+          .from('skin_profiles')
+          .select('*')
+          .eq('user_id', targetUid)
+          .eq('is_active', true)
+          .maybeSingle()
+
+        if (profileScan?.raw_ai_response) {
+          const raw = profileScan.raw_ai_response as Record<string, any>
+          const fallbackScan: FaceScan = {
+            id: profileScan.id,
+            user_id: profileScan.user_id,
+            overall_score: raw.overall_score || 85,
+            skin_status_title: raw.skin_status_title || 'Diagnosis Kondisi Kulit Terpantau',
+            skin_type: profileScan.skin_type || raw.skin_type || 'normal',
+            skin_concerns: profileScan.skin_concerns || raw.skin_concerns || [],
+            analysis_notes: profileScan.analysis_notes || raw.analysis_notes || '',
+            area_evaluations: raw.area_evaluations || [],
+            product_recommendations: raw.product_recommendations || [],
+            raw_ai_response: profileScan.raw_ai_response,
+            created_at: profileScan.created_at || new Date().toISOString(),
+          }
+          setScans([fallbackScan])
+        } else {
+          setScans([])
+        }
       }
 
-      // 2. Fallback: Jika tabel face_scans belum ada di DB remote atau masih kosong,
-      // ambil dari profil aktif di tabel skin_profiles
-      const { data: profileScan, error: profileErr } = await supabase
-        .from('skin_profiles')
+      // 2. Fetch Ingredient Scans (RFC 008 Unification)
+      const { data: ingData, error: ingErr } = await supabase
+        .from('ingredient_scans')
         .select('*')
         .eq('user_id', targetUid)
-        .eq('is_active', true)
-        .maybeSingle()
+        .order('created_at', { ascending: false })
 
-      if (!profileErr && profileScan && profileScan.raw_ai_response) {
-        const raw = profileScan.raw_ai_response as Record<string, any>
-        const fallbackScan: FaceScan = {
-          id: profileScan.id,
-          user_id: profileScan.user_id,
-          overall_score: raw.overall_score || 85,
-          skin_status_title: raw.skin_status_title || 'Diagnosis Kondisi Kulit Terpantau',
-          skin_type: profileScan.skin_type || raw.skin_type || 'normal',
-          skin_concerns: profileScan.skin_concerns || raw.skin_concerns || [],
-          analysis_notes: profileScan.analysis_notes || raw.analysis_notes || '',
-          area_evaluations: raw.area_evaluations || [],
-          product_recommendations: raw.product_recommendations || [],
-          raw_ai_response: profileScan.raw_ai_response,
-          created_at: profileScan.created_at || new Date().toISOString(),
-        }
-        setScans([fallbackScan])
+      if (!ingErr && ingData) {
+        setIngredientScans(ingData as IngredientScan[])
       } else {
-        setScans([])
+        setIngredientScans([])
       }
     } catch (err) {
-      console.warn('Fetch face scans error, trying fallback:', err)
-      setScans([])
+      console.warn('Fetch history error:', err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchScans()
+    fetchAllHistory()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id, user?.id, profile?.id])
 
-  // Lock body scroll and close on Escape when modal is active
+  // Lock body scroll on modal active
   useEffect(() => {
-    if (selectedScan) {
+    if (selectedScan || selectedIngredientScan) {
       const originalOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') setSelectedScan(null)
+        if (e.key === 'Escape') {
+          setSelectedScan(null)
+          setSelectedIngredientScan(null)
+        }
       }
       window.addEventListener('keydown', handleKeyDown)
       return () => {
@@ -111,19 +133,25 @@ export default function ScanHistoryPage() {
         window.removeEventListener('keydown', handleKeyDown)
       }
     }
-  }, [selectedScan])
+  }, [selectedScan, selectedIngredientScan])
 
-  // Statistics calculation
-  const totalScans = scans.length
-  const avgScore = totalScans > 0
-    ? Math.round(scans.reduce((acc, s) => acc + (s.overall_score || 0), 0) / totalScans)
+  // Face Scan Statistics
+  const totalFaceScans = scans.length
+  const avgFaceScore = totalFaceScans > 0
+    ? Math.round(scans.reduce((acc, s) => acc + (s.overall_score || 0), 0) / totalFaceScans)
+    : 0
+  const latestFaceScore = scans[0]?.overall_score || 0
+  const previousFaceScore = scans[1]?.overall_score || latestFaceScore
+  const faceScoreDiff = latestFaceScore - previousFaceScore
+
+  // Ingredient Scan Statistics
+  const totalIngScans = ingredientScans.length
+  const safeProductsCount = ingredientScans.filter((i) => i.is_safe).length
+  const avgSafetyScore = totalIngScans > 0
+    ? Math.round(ingredientScans.reduce((acc, s) => acc + (s.safety_score || 0), 0) / totalIngScans)
     : 0
 
-  const latestScore = scans[0]?.overall_score || 0
-  const previousScore = scans[1]?.overall_score || latestScore
-  const scoreDiff = latestScore - previousScore
-
-  // Helper extraction for selectedScan (robust against stringified or object JSON)
+  // Helper extraction for Face Modal
   let rawResponse: Record<string, any> = {}
   try {
     if (typeof selectedScan?.raw_ai_response === 'string') {
@@ -131,450 +159,718 @@ export default function ScanHistoryPage() {
     } else if (selectedScan?.raw_ai_response && typeof selectedScan.raw_ai_response === 'object') {
       rawResponse = selectedScan.raw_ai_response as Record<string, any>
     }
-  } catch {
+  } catch (e) {
     rawResponse = {}
   }
 
-  let parsedAreas: any[] = []
-  if (Array.isArray(selectedScan?.area_evaluations)) {
-    parsedAreas = selectedScan.area_evaluations
-  } else if (typeof selectedScan?.area_evaluations === 'string') {
-    try {
-      const p = JSON.parse(selectedScan.area_evaluations)
-      if (Array.isArray(p)) parsedAreas = p
-    } catch {}
-  } else if (Array.isArray(rawResponse.area_evaluations)) {
-    parsedAreas = rawResponse.area_evaluations
-  }
+  const parsedAreas = Array.isArray(selectedScan?.area_evaluations) && selectedScan.area_evaluations.length > 0
+    ? selectedScan.area_evaluations
+    : Array.isArray(rawResponse.area_evaluations)
+    ? rawResponse.area_evaluations
+    : []
 
-  let parsedProducts: any[] = []
-  if (Array.isArray(selectedScan?.product_recommendations)) {
-    parsedProducts = selectedScan.product_recommendations
-  } else if (typeof selectedScan?.product_recommendations === 'string') {
-    try {
-      const p = JSON.parse(selectedScan.product_recommendations)
-      if (Array.isArray(p)) parsedProducts = p
-    } catch {}
-  } else if (Array.isArray(rawResponse.product_recommendations)) {
-    parsedProducts = rawResponse.product_recommendations
-  }
+  const tipsAvoid = Array.isArray(rawResponse?.personal_tips?.avoid) ? rawResponse.personal_tips.avoid : []
+  const tipsReduce = Array.isArray(rawResponse?.personal_tips?.reduce) ? rawResponse.personal_tips.reduce : []
+  const tipsDo = Array.isArray(rawResponse?.personal_tips?.do) ? rawResponse.personal_tips.do : []
 
-  const tipsAvoid = Array.isArray(rawResponse.tips_avoid) ? rawResponse.tips_avoid : []
-  const tipsReduce = Array.isArray(rawResponse.tips_reduce) ? rawResponse.tips_reduce : []
-  const tipsDo = Array.isArray(rawResponse.tips_do) ? rawResponse.tips_do : []
-
-  const rawHeroList = (
-    Array.isArray(rawResponse.recommended_ingredients) && rawResponse.recommended_ingredients.length > 0
-      ? rawResponse.recommended_ingredients
-      : parsedProducts
-  )
-
-  const heroIngredients = rawHeroList.map((item: any) => {
-    const rawName = typeof item === 'string'
-      ? item
-      : (item?.name || item?.product_name || item?.ingredient || 'Bahan Aktif')
-    const cleanName = String(rawName).replace(/^Kandungan yang cocok:\s*/i, '').trim()
-    const purpose = typeof item === 'object' && item
-      ? (item.purpose || item.why_recommended || item.reason || 'Membantu merawat dan menjaga stabilitas lapisan kulit.')
-      : 'Membantu merawat dan menjaga stabilitas lapisan kulit.'
-    const isEssential = typeof item === 'object' && item?.priority
-      ? item.priority === 'essential'
-      : (String(item?.category || '').includes('Essential') || String(item?.category || '').includes('Utama'))
-
-    return {
-      name: cleanName,
-      purpose,
-      priority: isEssential ? 'essential' : 'recommended',
+  // Helper extraction for Ingredient Modal
+  let ingRawResponse: Record<string, any> = {}
+  try {
+    if (typeof selectedIngredientScan?.raw_ai_response === 'string') {
+      ingRawResponse = JSON.parse(selectedIngredientScan.raw_ai_response)
+    } else if (selectedIngredientScan?.raw_ai_response && typeof selectedIngredientScan.raw_ai_response === 'object') {
+      ingRawResponse = selectedIngredientScan.raw_ai_response as Record<string, any>
     }
-  })
+  } catch {
+    ingRawResponse = {}
+  }
+
+  const ingBreakdown = Array.isArray(selectedIngredientScan?.ingredients_breakdown)
+    ? (selectedIngredientScan.ingredients_breakdown as any[])
+    : Array.isArray(ingRawResponse?.ingredients_breakdown)
+    ? ingRawResponse.ingredients_breakdown
+    : []
+
+  const heroIngredients = Array.isArray(ingRawResponse?.hero_actives)
+    ? ingRawResponse.hero_actives
+    : Array.isArray(selectedIngredientScan?.key_ingredients)
+    ? selectedIngredientScan.key_ingredients
+    : []
+
+  const dangerCombos = Array.isArray(ingRawResponse?.layering_guide?.danger_combos)
+    ? ingRawResponse.layering_guide.danger_combos
+    : []
+
+  const personalNotes = Array.isArray(ingRawResponse?.personal_contraindications)
+    ? ingRawResponse.personal_contraindications
+    : []
 
   return (
     <div className="skincluv-scan-history-page">
       {/* Header Bar */}
       <div className="page-header-box">
-        <Link to="/app/face-scan" className="back-link-btn">
-          <ArrowLeft size={16} /> Kembali ke Scan Wajah
+        <Link to="/" className="back-link-btn">
+          <ArrowLeft size={16} /> Kembali ke Dashboard
         </Link>
-        <h1 className="page-title">Skin Journey & Riwayat Scan</h1>
+        <h1 className="page-title">Skin Journey & Riwayat Analisis</h1>
         <p className="page-subtitle">
-          Pantau perkembangan kesehatan kulit wajahmu dari waktu ke waktu berdasarkan hasil diagnosis klinis AI.
+          Pantau perkembangan kesehatan kulit dan riwayat verifikasi formula skincare kamu dalam satu tempat.
         </p>
+
+        {/* Tab Switcher */}
+        <div className="history-tab-switcher">
+          <button
+            className={`tab-btn ${activeTab === 'face' ? 'active' : ''}`}
+            onClick={() => setActiveTab('face')}
+          >
+            <ScanFace size={16} />
+            <span>Analisis Wajah ({scans.length})</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
+            onClick={() => setActiveTab('ingredient')}
+          >
+            <FlaskConical size={16} />
+            <span>Analisis Formula Produk ({ingredientScans.length})</span>
+          </button>
+        </div>
       </div>
 
-      {/* Overview Statistics Cards */}
+      {/* Dynamic Statistics Bento Grid */}
       <div className="history-stats-grid">
-        <div className="stat-bento-card glass-card">
-          <div className="stat-icon-wrapper bg-sky-light">
-            <ScanFace size={22} className="text-sky-dark" />
-          </div>
-          <div>
-            <span className="stat-label">Total Sesi Scan</span>
-            <h3 className="stat-value">{totalScans} Kali</h3>
-          </div>
-        </div>
+        {activeTab === 'face' ? (
+          <>
+            <div className="stat-bento-card glass-card">
+              <div className="stat-icon-wrapper bg-sky-light">
+                <ScanFace size={22} className="text-sky-dark" />
+              </div>
+              <div>
+                <span className="stat-label">Total Sesi Scan Wajah</span>
+                <h3 className="stat-value">{totalFaceScans} Kali</h3>
+              </div>
+            </div>
 
-        <div className="stat-bento-card glass-card">
-          <div className="stat-icon-wrapper bg-emerald-light">
-            <Award size={22} className="text-emerald-dark" />
-          </div>
-          <div>
-            <span className="stat-label">Rata-rata Skor Kulit</span>
-            <h3 className="stat-value">{avgScore}/100</h3>
-          </div>
-        </div>
+            <div className="stat-bento-card glass-card">
+              <div className="stat-icon-wrapper bg-emerald-light">
+                <Award size={22} className="text-emerald-dark" />
+              </div>
+              <div>
+                <span className="stat-label">Rata-rata Skor Kulit</span>
+                <h3 className="stat-value">{avgFaceScore}/100</h3>
+              </div>
+            </div>
 
-        <div className="stat-bento-card glass-card">
-          <div className="stat-icon-wrapper bg-indigo-light">
-            <TrendingUp size={22} className="text-indigo-dark" />
-          </div>
-          <div>
-            <span className="stat-label">Tren Sesi Terakhir</span>
-            <h3 className="stat-value">
-              {scoreDiff >= 0 ? `+${scoreDiff}` : scoreDiff} Poin
-              <span className="stat-subtext"> {scoreDiff >= 0 ? 'Meningkat' : 'Perlu Perhatian'}</span>
-            </h3>
-          </div>
-        </div>
+            <div className="stat-bento-card glass-card">
+              <div className="stat-icon-wrapper bg-indigo-light">
+                <TrendingUp size={22} className="text-indigo-dark" />
+              </div>
+              <div>
+                <span className="stat-label">Tren Sesi Terakhir</span>
+                <h3 className="stat-value">
+                  {faceScoreDiff >= 0 ? `+${faceScoreDiff}` : faceScoreDiff} Poin
+                  <span className="stat-subtext"> {faceScoreDiff >= 0 ? 'Meningkat' : 'Perlu Perhatian'}</span>
+                </h3>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="stat-bento-card glass-card">
+              <div className="stat-icon-wrapper bg-emerald-light">
+                <FlaskConical size={22} className="text-emerald-dark" />
+              </div>
+              <div>
+                <span className="stat-label">Total Produk Diperiksa</span>
+                <h3 className="stat-value">{totalIngScans} Produk</h3>
+              </div>
+            </div>
+
+            <div className="stat-bento-card glass-card">
+              <div className="stat-icon-wrapper bg-sky-light">
+                <ShieldCheck size={22} className="text-sky-dark" />
+              </div>
+              <div>
+                <span className="stat-label">Rata-rata Safety Score</span>
+                <h3 className="stat-value">{avgSafetyScore}/100</h3>
+              </div>
+            </div>
+
+            <div className="stat-bento-card glass-card">
+              <div className="stat-icon-wrapper bg-indigo-light">
+                <CheckCircle2 size={22} className="text-indigo-dark" />
+              </div>
+              <div>
+                <span className="stat-label">Formula Terverifikasi Aman</span>
+                <h3 className="stat-value">
+                  {safeProductsCount} Produk
+                  <span className="stat-subtext"> Bebas Toksin</span>
+                </h3>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Main Content Area */}
       {loading ? (
         <div className="loading-state glass-card">
           <RefreshCw size={28} className="animate-spin text-brand" />
-          <p>Memuat rekam jejak kulitmu...</p>
+          <p>Memuat rekam jejak riwayat...</p>
         </div>
-      ) : scans.length === 0 ? (
-        <div className="empty-history-card glass-card">
-          <ScanFace size={54} className="empty-icon" />
-          <h3>Belum Ada Riwayat Scan</h3>
-          <p>Kamu belum melakukan scan wajah. Mulai scan sekarang untuk melacak kesehatan kulitmu!</p>
-          <Link to="/app/face-scan" className="btn-primary-gradient mt-md">
-            <Sparkles size={16} /> Mulai Scan Wajah Pertama
-          </Link>
-        </div>
-      ) : (
-        <div className="history-timeline-section">
-          <h2 className="section-title">Timeline Riwayat Scan</h2>
-
-          <div className="scan-cards-container">
-            {scans.map((scan, idx) => {
-              const dateObj = new Date(scan.created_at)
-              const formattedDate = dateObj.toLocaleDateString('id-ID', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })
-              const formattedTime = dateObj.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-              const isOptimal = (scan.overall_score || 0) >= 80
-              const isCaution = (scan.overall_score || 0) >= 65 && (scan.overall_score || 0) < 80
-
-              return (
-                <div
-                  key={scan.id}
-                  className="scan-history-card glass-card"
-                  onClick={() => setSelectedScan(scan)}
-                >
-                  <div className="scan-card-left">
-                    <div className={`score-badge-circle ${isOptimal ? 'optimal' : isCaution ? 'caution' : 'warning'}`}>
-                      <span className="score-num">{scan.overall_score}</span>
-                      <span className="score-unit">/100</span>
-                    </div>
-
-                    <div className="scan-info">
-                      <div className="scan-date-badge">
-                        <Calendar size={13} /> {formattedDate} • {formattedTime} {idx === 0 && <span className="latest-pill">Terbaru</span>}
-                      </div>
-                      <h4 className="scan-title">{scan.skin_status_title || 'Diagnosis Kondisi Kulit'}</h4>
-                      <p className="scan-desc-preview">{scan.analysis_notes || 'Hasil pemetaan kondisi kulit menyeluruh.'}</p>
-
-                      <div className="scan-tags-row">
-                        <span className="type-tag">Tipe: {scan.skin_type?.toUpperCase()}</span>
-                        {Array.isArray(scan.skin_concerns) && scan.skin_concerns.slice(0, 3).map((c, i) => (
-                          <span key={i} className="concern-tag">#{c}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="scan-card-right">
-                    <button className="btn-view-detail">
-                      Detail <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+      ) : activeTab === 'face' ? (
+        /* TAB 1: FACE SCANS LIST */
+        scans.length === 0 ? (
+          <div className="empty-history-card glass-card">
+            <ScanFace size={54} className="empty-icon" />
+            <h3>Belum Ada Riwayat Scan Wajah</h3>
+            <p>Kamu belum melakukan scan wajah. Mulai scan sekarang untuk melacak kesehatan kulitmu secara berkala!</p>
+            <Link to="/face-scan" className="btn-primary-gradient mt-md">
+              <Sparkles size={16} /> Mulai Face Scan Pertama
+            </Link>
           </div>
-        </div>
+        ) : (
+          <div className="history-timeline-section">
+            <h2 className="section-title">Timeline Scan Wajah Klinis</h2>
+
+            <div className="scan-cards-container">
+              {scans.map((scan, idx) => {
+                const dateObj = new Date(scan.created_at)
+                const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })
+                const formattedTime = dateObj.toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+                const isOptimal = (scan.overall_score || 0) >= 80
+                const isCaution = (scan.overall_score || 0) >= 65 && (scan.overall_score || 0) < 80
+
+                return (
+                  <div
+                    key={scan.id}
+                    className="scan-history-card glass-card"
+                    onClick={() => setSelectedScan(scan)}
+                  >
+                    <div className="scan-card-left">
+                      <div className={`score-badge-circle ${isOptimal ? 'optimal' : isCaution ? 'caution' : 'warning'}`}>
+                        <span className="score-num">{scan.overall_score}</span>
+                        <span className="score-unit">/100</span>
+                      </div>
+
+                      <div className="scan-info">
+                        <div className="scan-date-badge">
+                          <Calendar size={13} /> {formattedDate} • {formattedTime} {idx === 0 && <span className="latest-pill">Terbaru</span>}
+                        </div>
+                        <h4 className="scan-title">{scan.skin_status_title || 'Diagnosis Kondisi Kulit'}</h4>
+                        <p className="scan-desc-preview">{scan.analysis_notes || 'Hasil pemetaan kondisi kulit menyeluruh.'}</p>
+
+                        <div className="scan-tags-row">
+                          <span className="type-tag">Tipe: {scan.skin_type?.toUpperCase()}</span>
+                          {Array.isArray(scan.skin_concerns) && scan.skin_concerns.slice(0, 3).map((c, i) => (
+                            <span key={i} className="concern-tag">#{c}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scan-card-action">
+                      <span className="view-detail-hint">
+                        Buka Laporan Medis <ChevronRight size={16} />
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      ) : (
+        /* TAB 2: INGREDIENT SCANS LIST */
+        ingredientScans.length === 0 ? (
+          <div className="empty-history-card glass-card">
+            <FlaskConical size={54} className="empty-icon text-emerald-dark" />
+            <h3>Belum Ada Riwayat Scan Produk</h3>
+            <p>Periksa keamanan komposisi pembersih, toner, atau serum harianmu untuk memastikan bebas bahan berbahaya.</p>
+            <Link to="/ingredient-scan" className="btn-primary-gradient mt-md">
+              <FlaskConical size={16} /> Scan Komposisi Produk Pertama
+            </Link>
+          </div>
+        ) : (
+          <div className="history-timeline-section">
+            <h2 className="section-title">Daftar Produk yang Pernah Dianalisis</h2>
+
+            <div className="scan-cards-container">
+              {ingredientScans.map((ing, idx) => {
+                const dateObj = new Date(ing.created_at)
+                const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })
+                const score = ing.safety_score ?? 80
+                const isSafe = ing.is_safe && score >= 65
+
+                return (
+                  <div
+                    key={ing.id}
+                    className="scan-history-card glass-card"
+                    onClick={() => setSelectedIngredientScan(ing)}
+                  >
+                    <div className="scan-card-left">
+                      <div className={`score-badge-circle ${isSafe ? 'optimal' : 'warning'}`}>
+                        <span className="score-num">{score}</span>
+                        <span className="score-unit">Safety</span>
+                      </div>
+
+                      <div className="scan-info">
+                        <div className="scan-date-badge">
+                          <Calendar size={13} /> {formattedDate} {idx === 0 && <span className="latest-pill">Terbaru</span>}
+                        </div>
+                        <h4 className="scan-title">{ing.product_name}</h4>
+                        <p className="scan-desc-preview">
+                          {ing.brand ? `Brand: ${ing.brand} • ` : ''}
+                          {isSafe ? 'Formula terverifikasi aman & minim resiko iritasi.' : 'Formula memiliki bahan yang perlu diperhatikan.'}
+                        </p>
+
+                        <div className="scan-tags-row">
+                          <span className={`status-pill-badge ${isSafe ? 'safe' : 'caution'}`}>
+                            {isSafe ? '✓ Formula Aman' : '⚠️ Perlu Perhatian'}
+                          </span>
+                          {Array.isArray(ing.key_ingredients) && ing.key_ingredients.slice(0, 3).map((k, i) => (
+                            <span key={i} className="concern-tag">
+                              {typeof k === 'string' ? k : (k as any)?.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scan-card-action">
+                      <span className="view-detail-hint">
+                        Buka Audit Formula <ChevronRight size={16} />
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
       )}
 
-      {/* Modal Detail Hasil Scan Masa Lalu (Diselaraskan dengan Standar Baru FaceScanPage via Portal) */}
-      {selectedScan && createPortal(
-        <div className="modal-backdrop" onClick={() => setSelectedScan(null)}>
-          <div className="modal-content-box glass-card animate-modal-zoom" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <div className="modal-date-tag">
-                  <Calendar size={13} /> {new Date(selectedScan.created_at).toLocaleDateString('id-ID', {
-                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                  })}
-                </div>
-                <h3 className="modal-title">{selectedScan.skin_status_title || 'Laporan Diagnosis Kulit'}</h3>
-              </div>
-              <button className="btn-close-modal" onClick={() => setSelectedScan(null)} aria-label="Tutup">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="modal-body-scroll">
-              {/* Score Hero Banner */}
-              <div className="modal-score-hero">
-                <div className="hero-glow-accent" />
-                <div className="dots-bg-pattern" />
-
-                <div className="score-hero-content">
-                  <div className={`score-ring-avatar ${
-                    (selectedScan.overall_score || 80) >= 80 ? 'score-optimal' :
-                    (selectedScan.overall_score || 80) >= 65 ? 'score-caution' : 'score-warning'
-                  }`}>
-                    <div className="sr-number-row">
-                      <span className="sr-val">{selectedScan.overall_score || 80}</span>
-                      <span className="sr-scale">/100</span>
-                    </div>
-                    <span className="sr-unit">Kesehatan Kulit</span>
-                  </div>
-
-                  <div className="score-meta-info">
-                    <div className="hero-badges-row">
-                      <span className="hero-skin-type-badge">
-                        <Sparkles size={12} /> TIPE KULIT: {String(selectedScan.skin_type || 'NORMAL').toUpperCase()}
-                      </span>
-                      <span className="hero-confidence-badge">
-                        <ShieldCheck size={12} /> REKAM MEDIS KLINIS
-                      </span>
-                    </div>
-                    <p className="hero-notes-text">{selectedScan.analysis_notes}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3-Area Breakdown */}
-              {parsedAreas.length > 0 && (
-                <div className="modal-areas-section">
-                  <h4 className="modal-section-title">
-                    <Layers size={16} /> Evaluasi Kondisi Kulit Per Area (Granular)
-                  </h4>
-                  <div className="modal-areas-stack">
-                    {parsedAreas.map((area: any, aIdx: number) => (
-                      <div key={aIdx} className="area-detail-card">
-                        <div className="area-card-header">
-                          <div className="area-title-group">
-                            <Target size={15} className="area-icon-accent" />
-                            <span className="area-name">{area.area_name || area.name || `Area ${aIdx + 1}`}</span>
-                          </div>
-                          <div className="area-badges-group">
-                            <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
-                              {area.status || 'Optimal'}
-                            </span>
-                            <span className="area-score-badge">Skor: {area.score || 80}/100</span>
-                          </div>
-                        </div>
-
-                        {area.finding && (
-                          <div className="area-finding-box">
-                            <span className="af-label">🔬 Diagnosis Klinis:</span>
-                            <p className="af-text">{area.finding}</p>
-                          </div>
-                        )}
-
-                        {area.analogy && (
-                          <div className="area-analogy-box">
-                            <span className="aa-label">💡 Analogi Bestie:</span>
-                            <p className="aa-text">{area.analogy}</p>
-                          </div>
-                        )}
-
-                        {area.action_plan && (
-                          <div className="area-action-box">
-                            <span className="ac-label">🎯 Rencana Aksi Sederhana:</span>
-                            <p className="ac-text">{area.action_plan}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Personal Tips if available */}
-              {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
-                <div className="modal-tips-section">
-                  <h4 className="modal-section-title">
-                    <CheckCircle2 size={16} /> Tips Personal Untuk Kulitmu
-                  </h4>
-                  <div className="modal-tips-grid">
-                    {tipsAvoid.length > 0 && (
-                      <div className="tip-box tip-avoid">
-                        <span className="tb-title text-red">✕ Hindari</span>
-                        <ul className="tb-list">
-                          {tipsAvoid.map((t: string, i: number) => <li key={i}>{t}</li>)}
-                        </ul>
-                      </div>
-                    )}
-                    {tipsReduce.length > 0 && (
-                      <div className="tip-box tip-reduce">
-                        <span className="tb-title text-amber">− Kurangi</span>
-                        <ul className="tb-list">
-                          {tipsReduce.map((t: string, i: number) => <li key={i}>{t}</li>)}
-                        </ul>
-                      </div>
-                    )}
-                    {tipsDo.length > 0 && (
-                      <div className="tip-box tip-do">
-                        <span className="tb-title text-green">✓ Rutin Lakukan</span>
-                        <ul className="tb-list">
-                          {tipsDo.map((t: string, i: number) => <li key={i}>{t}</li>)}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Hero Actives Recommendations (Cleaned from Rp89.000 & Fake Commercial Products) */}
-              {heroIngredients.length > 0 && (
-                <div className="modal-products-section">
-                  <h4 className="modal-section-title">
-                    <FlaskConical size={16} /> Rekomendasi Bahan Aktif Klinis (Hero Actives)
-                  </h4>
-                  <div className="modal-actives-stack">
-                    {heroIngredients.map((item, pIdx) => {
-                      const isEssential = item.priority === 'essential'
-                      const searchKeyword = `serum ${item.name}`
-                      const askPrompt = `Halo SkinSistant! Dari riwayat scan wajah tanggal ${new Date(selectedScan.created_at).toLocaleDateString('id-ID')}, kulitku direkomendasikan bahan aktif "${item.name}". Bagaimana urutan dan cara pakainya yang aman?`
-
-                      return (
-                        <div key={pIdx} className="active-ing-card">
-                          <div className="aic-header">
-                            <div className="aic-badge-row">
-                              <span className="aic-rank">#{pIdx + 1}</span>
-                              <span className={`aic-priority-pill ${isEssential ? 'essential' : 'recommended'}`}>
-                                {isEssential ? '✨ Target Utama (Essential)' : '🛡️ Penyeimbang (Recommended)'}
-                              </span>
-                            </div>
-                            <h5 className="aic-name">{item.name}</h5>
-                          </div>
-
-                          <p className="aic-purpose">{item.purpose}</p>
-
-                          <div className="aic-actions-row">
-                            <a
-                              href={`https://shopee.co.id/search?keyword=${encodeURIComponent(searchKeyword)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn-shopee-search"
-                            >
-                              <ShoppingBag size={13} /> Cari Skincare di Marketplace ↗
-                            </a>
-                            <Link
-                              to={`/chatbot?initialPrompt=${encodeURIComponent(askPrompt)}`}
-                              className="btn-ask-skinsistant"
-                            >
-                              <MessageSquare size={13} /> Tanya Cara Pakai
-                            </Link>
-                          </div>
-                        </div>
-                      )
+      {/* MODAL 1: FACE SCAN CLINICAL DETAIL */}
+      {selectedScan &&
+        createPortal(
+          <div className="modal-backdrop-blur" onClick={() => setSelectedScan(null)}>
+            <div className="modal-card-dialog" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <div className="modal-date-tag">
+                    <Calendar size={13} /> {new Date(selectedScan.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
                     })}
                   </div>
+                  <h3 className="modal-title">{selectedScan.skin_status_title || 'Laporan Diagnosis Kulit'}</h3>
                 </div>
-              )}
-            </div>
+                <button className="btn-close-modal" onClick={() => setSelectedScan(null)} aria-label="Tutup">
+                  <X size={20} />
+                </button>
+              </div>
 
-            <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setSelectedScan(null)}>
-                Tutup Laporan
-              </button>
-              <Link
-                to="/chatbot?initialPrompt=Halo%20SkinSistant%2C%20saya%20ingin%20konsultasi%20mengenai%20riwayat%20kesehatan%20kulitku%20dari%20scan%20sebelumnya."
-                className="btn-primary-consult"
-              >
-                <MessageSquare size={14} /> Konsultasikan ke SkinSistant AI
-              </Link>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+              <div className="modal-body-scroll">
+                <div className="modal-score-hero">
+                  <div className="hero-glow-accent" />
+                  <div className="dots-bg-pattern" />
 
-      {/* Embedded CSS for Modern Bento Aesthetics */}
+                  <div className="score-hero-content">
+                    <div className={`score-ring-avatar ${
+                      (selectedScan.overall_score || 80) >= 80 ? 'score-optimal' :
+                      (selectedScan.overall_score || 80) >= 65 ? 'score-caution' : 'score-warning'
+                    }`}>
+                      <div className="sr-number-row">
+                        <span className="sr-val">{selectedScan.overall_score || 80}</span>
+                        <span className="sr-scale">/100</span>
+                      </div>
+                      <span className="sr-unit">Kesehatan Kulit</span>
+                    </div>
+
+                    <div className="score-meta-info">
+                      <div className="hero-badges-row">
+                        <span className="hero-skin-type-badge">
+                          <Sparkles size={12} /> TIPE KULIT: {String(selectedScan.skin_type || 'NORMAL').toUpperCase()}
+                        </span>
+                        <span className="hero-confidence-badge">
+                          <ShieldCheck size={12} /> REKAM MEDIS KLINIS
+                        </span>
+                      </div>
+                      <p className="hero-notes-text">{selectedScan.analysis_notes}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {parsedAreas.length > 0 && (
+                  <div className="modal-areas-section">
+                    <h4 className="modal-section-title">
+                      <Layers size={16} /> Evaluasi Kondisi Kulit Per Area (Granular)
+                    </h4>
+                    <div className="modal-areas-stack">
+                      {parsedAreas.map((area: any, aIdx: number) => (
+                        <div key={aIdx} className="area-detail-card">
+                          <div className="area-card-header">
+                            <div className="area-title-group">
+                              <Target size={15} className="area-icon-accent" />
+                              <span className="area-name">{area.area_name || area.name || `Area ${aIdx + 1}`}</span>
+                            </div>
+                            <div className="area-badges-group">
+                              <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
+                                {area.status || 'Optimal'}
+                              </span>
+                              <span className="area-score-badge">Skor: {area.score || 80}/100</span>
+                            </div>
+                          </div>
+
+                          {area.finding && (
+                            <div className="area-finding-box">
+                              <span className="af-label">🔬 Diagnosis Klinis:</span>
+                              <p className="af-text">{area.finding}</p>
+                            </div>
+                          )}
+
+                          {area.analogy && (
+                            <div className="area-analogy-box">
+                              <span className="aa-label">💡 Analogi Bestie:</span>
+                              <p className="aa-text">{area.analogy}</p>
+                            </div>
+                          )}
+
+                          {area.action_plan && (
+                            <div className="area-action-box">
+                              <span className="ac-label">🎯 Rencana Aksi Sederhana:</span>
+                              <p className="ac-text">{area.action_plan}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
+                  <div className="modal-tips-section">
+                    <h4 className="modal-section-title">
+                      <CheckCircle2 size={16} /> Tips Personal Untuk Kulitmu
+                    </h4>
+                    <div className="modal-tips-grid">
+                      {tipsAvoid.length > 0 && (
+                        <div className="tip-box tip-avoid">
+                          <span className="tb-title text-red">✕ Hindari</span>
+                          <ul className="tb-list">
+                            {tipsAvoid.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {tipsReduce.length > 0 && (
+                        <div className="tip-box tip-reduce">
+                          <span className="tb-title text-amber">− Kurangi</span>
+                          <ul className="tb-list">
+                            {tipsReduce.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {tipsDo.length > 0 && (
+                        <div className="tip-box tip-do">
+                          <span className="tb-title text-green">✓ Rutin Lakukan</span>
+                          <ul className="tb-list">
+                            {tipsDo.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="modal-footer-action">
+                  <button
+                    className="btn-consult-skinsistant-modal"
+                    onClick={() => {
+                      setSelectedScan(null)
+                      navigate('/chatbot')
+                    }}
+                  >
+                    <MessageSquare size={16} /> Konsultasikan Hasil Ini dengan Skinsistant AI
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* MODAL 2: INGREDIENT SCAN DETAIL */}
+      {selectedIngredientScan &&
+        createPortal(
+          <div className="modal-backdrop-blur" onClick={() => setSelectedIngredientScan(null)}>
+            <div className="modal-card-dialog" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <div className="modal-date-tag">
+                    <Calendar size={13} /> {new Date(selectedIngredientScan.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })}
+                  </div>
+                  <h3 className="modal-title">{selectedIngredientScan.product_name}</h3>
+                </div>
+                <button className="btn-close-modal" onClick={() => setSelectedIngredientScan(null)} aria-label="Tutup">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="modal-body-scroll">
+                {/* Score Hero Banner */}
+                <div className="modal-score-hero">
+                  <div className="hero-glow-accent" />
+                  <div className="dots-bg-pattern" />
+
+                  <div className="score-hero-content">
+                    <div className={`score-ring-avatar ${
+                      (selectedIngredientScan.safety_score ?? 80) >= 65 ? 'score-optimal' : 'score-warning'
+                    }`}>
+                      <div className="sr-number-row">
+                        <span className="sr-val">{selectedIngredientScan.safety_score ?? 80}</span>
+                        <span className="sr-scale">/100</span>
+                      </div>
+                      <span className="sr-unit">Safety Score</span>
+                    </div>
+
+                    <div className="score-meta-info">
+                      <div className="hero-badges-row">
+                        <span className="hero-skin-type-badge">
+                          <FlaskConical size={12} /> {selectedIngredientScan.brand ? `BRAND: ${selectedIngredientScan.brand.toUpperCase()}` : 'PRODUK SKINCARE'}
+                        </span>
+                        <span className="hero-confidence-badge">
+                          {selectedIngredientScan.is_safe ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
+                          {selectedIngredientScan.is_safe ? 'FORMULA AMAN' : 'PERLU PERHATIAN'}
+                        </span>
+                      </div>
+                      <p className="hero-notes-text">
+                        {ingRawResponse?.summary || 'Analisis keamanan formula bahan aktif dan kompatibilitas kulit.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hero Actives */}
+                {heroIngredients.length > 0 && (
+                  <div className="modal-areas-section">
+                    <h4 className="modal-section-title">
+                      <Sparkles size={16} /> Hero Actives & Bahan Kunci
+                    </h4>
+                    <div className="hero-actives-chips-grid">
+                      {heroIngredients.map((item: any, idx: number) => {
+                        const name = typeof item === 'string' ? item : item.name
+                        const func = typeof item === 'object' ? item.function : null
+                        return (
+                          <div key={idx} className="hero-active-chip-box">
+                            <span className="hac-name">{name}</span>
+                            {func && <span className="hac-function">{func}</span>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Danger Combos if any */}
+                {dangerCombos.length > 0 && (
+                  <div className="modal-areas-section">
+                    <h4 className="modal-section-title text-red">
+                      <AlertTriangle size={16} /> Peringatan Kombinasi Pemakaian (Layering)
+                    </h4>
+                    <div className="danger-combos-stack">
+                      {dangerCombos.map((dc: any, idx: number) => (
+                        <div key={idx} className="danger-combo-history-card">
+                          <div className="dc-pair-title">
+                            {Array.isArray(dc.pair) ? dc.pair.join(' + ') : 'Inkompatibilitas Bahan'}
+                          </div>
+                          <p className="dc-warning-text">{dc.warning || dc.reason}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Personal Contraindications if any */}
+                {personalNotes.length > 0 && (
+                  <div className="modal-areas-section">
+                    <h4 className="modal-section-title text-amber">
+                      <Tag size={16} /> Catatan Khusus untuk Kondisi Kulitmu
+                    </h4>
+                    <div className="personal-contraindications-stack">
+                      {personalNotes.map((pc: any, idx: number) => (
+                        <div key={idx} className="personal-contra-history-card">
+                          <div className="pc-head">
+                            <span className="pc-ing-name">{pc.ingredient}</span>
+                            <span className="pc-condition-tag">Untuk: {pc.user_condition}</span>
+                          </div>
+                          <p className="pc-warning-text">{pc.warning}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Ingredients Breakdown */}
+                {ingBreakdown.length > 0 && (
+                  <div className="modal-areas-section">
+                    <h4 className="modal-section-title">
+                      <Layers size={16} /> Komposisi Bahan Lengkap ({ingBreakdown.length} Bahan)
+                    </h4>
+                    <div className="ingredients-breakdown-mini-list">
+                      {ingBreakdown.map((item: any, idx: number) => {
+                        const badge = String(item.badge || 'safe').toLowerCase()
+                        return (
+                          <div key={idx} className="ing-mini-row">
+                            <span className={`ing-badge-dot ${badge}`} />
+                            <div className="ing-mini-meta">
+                              <span className="ing-mini-name">{item.name}</span>
+                              {item.function && <span className="ing-mini-fn">{item.function}</span>}
+                            </div>
+                            <span className={`ing-mini-badge ${badge}`}>
+                              {badge === 'safe' || badge === 'aman' ? 'Aman' : badge === 'caution' || badge === 'perhatian' ? 'Perhatian' : 'Hindari'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="modal-footer-action">
+                  <button
+                    className="btn-consult-skinsistant-modal"
+                    onClick={() => {
+                      setSelectedIngredientScan(null)
+                      navigate('/chatbot')
+                    }}
+                  >
+                    <MessageSquare size={16} /> Tanya Skinsistant tentang Produk Ini
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* STYLES */}
       <style>{`
         .skincluv-scan-history-page {
+          width: 100%;
           max-width: 1000px;
           margin: 0 auto;
-          padding: 1.5rem 1rem 4rem;
+          padding: 24px 16px 60px;
+          font-family: var(--font-body, 'Quicksand', sans-serif);
+          box-sizing: border-box;
         }
 
         .page-header-box {
-          margin-bottom: 2rem;
+          margin-bottom: 24px;
         }
 
         .back-link-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
-          font-size: 0.85rem;
-          color: #0284c7;
+          gap: 6px;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: var(--skincluv-teal, #0f6784);
           text-decoration: none;
-          font-weight: 600;
-          margin-bottom: 0.75rem;
-          transition: transform 0.2s;
+          margin-bottom: 12px;
+          transition: opacity 0.2s;
         }
 
         .back-link-btn:hover {
-          transform: translateX(-3px);
+          opacity: 0.8;
+          text-decoration: underline;
         }
 
         .page-title {
-          font-size: 1.85rem;
+          font-size: 1.75rem;
           font-weight: 800;
           color: #0f172a;
-          margin-bottom: 0.4rem;
+          margin: 0 0 6px 0;
           letter-spacing: -0.02em;
         }
 
         .page-subtitle {
-          font-size: 0.95rem;
+          font-size: 0.9375rem;
           color: #64748b;
+          margin: 0 0 16px 0;
           line-height: 1.5;
         }
 
+        /* TAB SWITCHER */
+        .history-tab-switcher {
+          display: flex;
+          gap: 8px;
+          background: #f1f5f9;
+          padding: 4px;
+          border-radius: 12px;
+          width: fit-content;
+        }
+
+        .tab-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border: none;
+          background: transparent;
+          border-radius: 10px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+          background: #ffffff;
+          color: var(--skincluv-teal, #0f6784);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        /* STATS GRID */
         .history-stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 1rem;
-          margin-bottom: 2.5rem;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+
+        @media (max-width: 768px) {
+          .history-stats-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         .stat-bento-card {
-          display: flex;
-          align-items: center;
-          gap: 1.25rem;
-          padding: 1.25rem 1.5rem;
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 1rem;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+          border-radius: 16px;
+          padding: 18px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
         }
 
         .stat-icon-wrapper {
-          width: 50px;
-          height: 50px;
-          border-radius: 0.85rem;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -582,148 +878,155 @@ export default function ScanHistoryPage() {
         }
 
         .bg-sky-light { background: #e0f2fe; }
-        .text-sky-dark { color: #0284c7; }
-        .bg-emerald-light { background: #d1fae5; }
-        .text-emerald-dark { color: #059669; }
+        .text-sky-dark { color: #0369a1; }
+        .bg-emerald-light { background: #dcfce7; }
+        .text-emerald-dark { color: #15803d; }
         .bg-indigo-light { background: #e0e7ff; }
-        .text-indigo-dark { color: #4f46e5; }
+        .text-indigo-dark { color: #4338ca; }
 
         .stat-label {
-          font-size: 0.8rem;
-          font-weight: 600;
+          display: block;
+          font-size: 0.75rem;
           color: #64748b;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.03em;
+          margin-bottom: 2px;
         }
 
         .stat-value {
-          font-size: 1.45rem;
+          font-size: 1.375rem;
           font-weight: 800;
           color: #0f172a;
-          margin-top: 0.15rem;
+          margin: 0;
         }
 
         .stat-subtext {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           font-weight: 600;
-          color: #059669;
+          color: #64748b;
         }
 
+        /* TIMELINE & CARDS */
         .section-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 1rem;
+          font-size: 1.125rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 16px 0;
         }
 
         .scan-cards-container {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 12px;
         }
 
         .scan-history-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 16px 20px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 1.25rem 1.5rem;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 1rem;
           cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.2s ease;
+          gap: 16px;
         }
 
         .scan-history-card:hover {
-          border-color: #38bdf8;
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(2, 132, 199, 0.08);
+          border-color: var(--skincluv-teal, #0f6784);
+          box-shadow: 0 8px 24px -6px rgba(15, 103, 132, 0.15);
         }
 
         .scan-card-left {
           display: flex;
           align-items: center;
-          gap: 1.25rem;
+          gap: 18px;
+          min-width: 0;
           flex: 1;
         }
 
         .score-badge-circle {
-          width: 58px;
-          height: 58px;
-          border-radius: 50%;
-          color: #ffffff;
+          width: 54px;
+          height: 54px;
+          border-radius: 16px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          font-weight: 800;
         }
 
         .score-badge-circle.optimal {
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+          background: #ecfdf5;
+          color: #059669;
+          border: 1px solid #a7f3d0;
         }
 
         .score-badge-circle.caution {
-          background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+          background: #fffbeb;
+          color: #d97706;
+          border: 1px solid #fde68a;
         }
 
         .score-badge-circle.warning {
-          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+          background: #fff1f2;
+          color: #e11d48;
+          border: 1px solid #fecdd3;
         }
 
         .score-num {
-          font-size: 1.25rem;
-          font-weight: 800;
+          font-size: 1.125rem;
           line-height: 1;
         }
 
         .score-unit {
-          font-size: 0.65rem;
-          opacity: 0.85;
-          font-weight: 600;
+          font-size: 0.625rem;
+          text-transform: uppercase;
         }
 
         .scan-info {
+          min-width: 0;
           flex: 1;
         }
 
         .scan-date-badge {
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          gap: 0.35rem;
+          gap: 6px;
           font-size: 0.75rem;
-          font-weight: 600;
           color: #64748b;
-          margin-bottom: 0.25rem;
+          font-weight: 600;
+          margin-bottom: 4px;
         }
 
         .latest-pill {
-          background: #0284c7;
-          color: #ffffff;
-          font-size: 0.65rem;
-          font-weight: 700;
-          padding: 0.1rem 0.45rem;
+          background: #e0f2fe;
+          color: #0284c7;
+          font-size: 0.625rem;
+          padding: 2px 6px;
           border-radius: 9999px;
-          margin-left: 0.35rem;
+          font-weight: 700;
         }
 
         .scan-title {
-          font-size: 1.05rem;
-          font-weight: 700;
+          font-size: 1rem;
+          font-weight: 800;
           color: #0f172a;
-          margin-bottom: 0.25rem;
+          margin: 0 0 4px 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .scan-desc-preview {
-          font-size: 0.85rem;
+          font-size: 0.8125rem;
           color: #475569;
-          margin-bottom: 0.5rem;
-          line-height: 1.4;
+          margin: 0 0 8px 0;
           display: -webkit-box;
-          -webkit-line-clamp: 2;
+          -webkit-line-clamp: 1;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
@@ -731,202 +1034,189 @@ export default function ScanHistoryPage() {
         .scan-tags-row {
           display: flex;
           align-items: center;
-          gap: 0.4rem;
+          gap: 6px;
           flex-wrap: wrap;
         }
 
         .type-tag {
-          font-size: 0.7rem;
+          font-size: 0.6875rem;
           font-weight: 700;
-          padding: 0.15rem 0.5rem;
-          border-radius: 0.35rem;
           background: #f1f5f9;
           color: #334155;
+          padding: 2px 8px;
+          border-radius: 6px;
+        }
+
+        .status-pill-badge {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 6px;
+        }
+
+        .status-pill-badge.safe {
+          background: #dcfce7;
+          color: #15803d;
+        }
+
+        .status-pill-badge.caution {
+          background: #fef3c7;
+          color: #b45309;
         }
 
         .concern-tag {
-          font-size: 0.7rem;
-          font-weight: 600;
-          padding: 0.15rem 0.5rem;
-          border-radius: 0.35rem;
-          background: #e0f2fe;
-          color: #0369a1;
+          font-size: 0.6875rem;
+          color: #64748b;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 2px 6px;
+          border-radius: 6px;
         }
 
-        .btn-view-detail {
+        .scan-card-action {
+          flex-shrink: 0;
+        }
+
+        .view-detail-hint {
           display: inline-flex;
           align-items: center;
-          gap: 0.25rem;
-          background: #f8fafc;
-          border: 1px solid #cbd5e1;
-          color: #334155;
-          padding: 0.45rem 0.85rem;
-          border-radius: 0.5rem;
-          font-size: 0.85rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
+          gap: 4px;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: var(--skincluv-teal, #0f6784);
         }
 
-        .scan-history-card:hover .btn-view-detail {
-          background: #0284c7;
-          border-color: #0284c7;
-          color: #ffffff;
-        }
-
+        /* EMPTY STATES */
         .empty-history-card {
-          text-align: center;
-          padding: 4rem 2rem;
           background: #ffffff;
-          border: 1px dashed #cbd5e1;
-          border-radius: 1.25rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 20px;
+          padding: 48px 24px;
+          text-align: center;
         }
 
         .empty-icon {
           color: #94a3b8;
-          margin-bottom: 1rem;
+          margin-bottom: 16px;
+        }
+
+        .empty-history-card h3 {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 8px 0;
+        }
+
+        .empty-history-card p {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0 0 20px 0;
+          max-width: 440px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
         .btn-primary-gradient {
           display: inline-flex;
           align-items: center;
-          gap: 0.5rem;
-          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          gap: 8px;
+          background: linear-gradient(135deg, var(--skincluv-teal, #0f6784) 0%, var(--skincluv-teal-hover, #0b4f5c) 100%);
           color: #ffffff;
-          padding: 0.65rem 1.25rem;
-          border-radius: 0.75rem;
+          padding: 10px 20px;
+          border-radius: 12px;
+          font-size: 0.875rem;
           font-weight: 700;
           text-decoration: none;
-          box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
-          transition: transform 0.2s;
+          transition: transform 0.15s;
         }
 
         .btn-primary-gradient:hover {
-          transform: translateY(-2px);
+          transform: translateY(-1px);
         }
 
         /* MODAL STYLES */
-        @keyframes modalBackdropFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        .modal-backdrop-blur {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(6px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
         }
 
-        @keyframes modalContentZoomIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-
-        .modal-backdrop {
-          position: fixed !important;
-          inset: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          background: rgba(15, 23, 42, 0.72) !important;
-          backdrop-filter: blur(8px) !important;
-          -webkit-backdrop-filter: blur(8px) !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          z-index: 999999 !important;
-          padding: 1.25rem !important;
-          box-sizing: border-box !important;
-          animation: modalBackdropFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .modal-content-box {
-          background: #ffffff !important;
-          border-radius: 1.5rem !important;
-          max-width: 840px !important;
-          width: 100% !important;
-          max-height: 88vh !important;
-          display: flex !important;
-          flex-direction: column !important;
-          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 1px 1px rgba(0, 0, 0, 0.08) !important;
-          overflow: hidden !important;
-          position: relative !important;
-          animation: modalContentZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .modal-card-dialog {
+          background: #ffffff;
+          border-radius: 20px;
+          max-width: 680px;
+          width: 100%;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+          overflow: hidden;
         }
 
         .modal-header {
+          padding: 18px 24px;
+          border-bottom: 1px solid #f1f5f9;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 1.25rem 1.5rem;
-          border-bottom: 1px solid #e2e8f0;
         }
 
         .modal-date-tag {
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 0.75rem;
           font-weight: 600;
           color: #64748b;
-          display: flex;
-          align-items: center;
-          gap: 0.35rem;
-          margin-bottom: 0.2rem;
+          margin-bottom: 4px;
         }
 
         .modal-title {
-          font-size: 1.15rem;
+          font-size: 1.25rem;
           font-weight: 800;
           color: #0f172a;
           margin: 0;
         }
 
         .btn-close-modal {
-          background: none;
+          background: #f1f5f9;
           border: none;
-          cursor: pointer;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           color: #64748b;
-          padding: 0.35rem;
-          border-radius: 0.4rem;
+          cursor: pointer;
         }
 
         .btn-close-modal:hover {
-          background: #f1f5f9;
+          background: #e2e8f0;
           color: #0f172a;
         }
 
         .modal-body-scroll {
-          padding: 1.5rem;
+          padding: 20px 24px;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 20px;
         }
 
-        /* MODAL HERO BANNER */
         .modal-score-hero {
-          background: linear-gradient(135deg, #082d38 0%, #0d5265 65%, #0a3d4a 100%);
-          border-radius: 1rem;
-          padding: 1.5rem;
+          background: linear-gradient(135deg, var(--skincluv-teal, #0f6784) 0%, var(--skincluv-teal-hover, #0b4f5c) 100%);
+          border-radius: 16px;
+          padding: 20px;
           color: #ffffff;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 10px 25px rgba(13, 82, 101, 0.15);
-        }
-
-        .hero-glow-accent {
-          position: absolute;
-          top: -30px;
-          right: -30px;
-          width: 180px;
-          height: 180px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
-          pointer-events: none;
-        }
-
-        .dots-bg-pattern {
-          position: absolute;
-          inset: 0;
-          background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
-          background-size: 14px 14px;
         }
 
         .score-hero-content {
@@ -934,16 +1224,15 @@ export default function ScanHistoryPage() {
           z-index: 1;
           display: flex;
           align-items: center;
-          gap: 1.5rem;
-          flex-wrap: wrap;
+          gap: 20px;
         }
 
         .score-ring-avatar {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          border: 3px solid rgba(255, 255, 255, 0.25);
+          width: 76px;
+          height: 76px;
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(8px);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -951,433 +1240,374 @@ export default function ScanHistoryPage() {
           flex-shrink: 0;
         }
 
-        .score-ring-avatar.score-optimal {
-          border-color: #34d399;
-          background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, rgba(255,255,255,0.05) 100%);
-        }
-
-        .score-ring-avatar.score-caution {
-          border-color: #fbbf24;
-          background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, rgba(255,255,255,0.05) 100%);
-        }
-
-        .score-ring-avatar.score-warning {
-          border-color: #f87171;
-          background: radial-gradient(circle, rgba(248, 113, 113, 0.2) 0%, rgba(255,255,255,0.05) 100%);
-        }
-
-        .sr-number-row {
-          display: flex;
-          align-items: baseline;
-          line-height: 1;
-        }
-
         .sr-val {
-          font-size: 1.7rem;
+          font-size: 1.75rem;
           font-weight: 800;
         }
 
         .sr-scale {
           font-size: 0.75rem;
-          opacity: 0.75;
-          margin-left: 2px;
+          opacity: 0.8;
         }
 
         .sr-unit {
-          font-size: 0.6rem;
-          font-weight: 600;
+          font-size: 0.625rem;
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          font-weight: 700;
           opacity: 0.85;
-          margin-top: 2px;
-        }
-
-        .score-meta-info {
-          flex: 1;
-          min-width: 240px;
         }
 
         .hero-badges-row {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           flex-wrap: wrap;
         }
 
-        .hero-skin-type-badge {
-          background: rgba(16, 185, 129, 0.2);
-          border: 1px solid rgba(52, 211, 153, 0.4);
-          color: #a7f3d0;
+        .hero-skin-type-badge, .hero-confidence-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
           font-size: 0.6875rem;
           font-weight: 700;
-          padding: 3px 10px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-
-        .hero-confidence-badge {
-          background: rgba(255, 255, 255, 0.12);
-          color: #e2e8f0;
-          font-size: 0.6875rem;
-          font-weight: 700;
-          padding: 3px 10px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
+          background: rgba(255, 255, 255, 0.15);
+          padding: 2px 8px;
+          border-radius: 6px;
         }
 
         .hero-notes-text {
-          font-size: 0.85rem;
-          color: #d1fae5;
+          font-size: 0.8125rem;
           line-height: 1.5;
           margin: 0;
+          color: #e0f2fe;
         }
 
         .modal-section-title {
+          font-size: 0.875rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 12px 0;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          font-size: 0.95rem;
-          font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 0.85rem;
+          gap: 8px;
         }
 
-        /* 3-AREA STACK IN MODAL */
-        .modal-areas-stack {
+        .modal-section-title.text-red { color: #dc2626; }
+        .modal-section-title.text-amber { color: #d97706; }
+
+        /* HERO ACTIVES CHIPS IN MODAL */
+        .hero-actives-chips-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+
+        @media (max-width: 600px) {
+          .hero-actives-chips-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .hero-active-chip-box {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 10px 12px;
           display: flex;
           flex-direction: column;
-          gap: 0.85rem;
+          gap: 2px;
         }
 
-        .area-detail-card {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.85rem;
-          padding: 1rem;
+        .hac-name {
+          font-size: 0.8125rem;
+          font-weight: 800;
+          color: #0f172a;
+        }
+
+        .hac-function {
+          font-size: 0.6875rem;
+          color: #64748b;
+        }
+
+        /* DANGER COMBOS IN MODAL */
+        .danger-combos-stack {
           display: flex;
           flex-direction: column;
           gap: 8px;
+        }
+
+        .danger-combo-history-card {
+          background: #fff1f2;
+          border: 1px solid #fecdd3;
+          border-radius: 10px;
+          padding: 10px 14px;
+        }
+
+        .dc-pair-title {
+          font-size: 0.8125rem;
+          font-weight: 800;
+          color: #be123c;
+          margin-bottom: 2px;
+        }
+
+        .dc-warning-text {
+          font-size: 0.75rem;
+          color: #9f1239;
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        /* PERSONAL CONTRAINDICATIONS */
+        .personal-contraindications-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .personal-contra-history-card {
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 10px;
+          padding: 10px 14px;
+        }
+
+        .pc-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 2px;
+        }
+
+        .pc-ing-name {
+          font-size: 0.8125rem;
+          font-weight: 800;
+          color: #b45309;
+        }
+
+        .pc-condition-tag {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          color: #d97706;
+          background: #fef3c7;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+
+        .pc-warning-text {
+          font-size: 0.75rem;
+          color: #92400e;
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        /* INGREDIENTS BREAKDOWN MINI LIST */
+        .ingredients-breakdown-mini-list {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          overflow: hidden;
+          max-height: 220px;
+          overflow-y: auto;
+        }
+
+        .ing-mini-row {
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          border-bottom: 1px solid #f1f5f9;
+          gap: 10px;
+          font-size: 0.75rem;
+        }
+
+        .ing-mini-row:last-child {
+          border-bottom: none;
+        }
+
+        .ing-badge-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 9999px;
+          flex-shrink: 0;
+        }
+
+        .ing-badge-dot.safe, .ing-badge-dot.aman { background: #22c55e; }
+        .ing-badge-dot.caution, .ing-badge-dot.perhatian { background: #f59e0b; }
+        .ing-badge-dot.avoid, .ing-badge-dot.hindari { background: #ef4444; }
+
+        .ing-mini-meta {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .ing-mini-name {
+          font-weight: 700;
+          color: #0f172a;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .ing-mini-fn {
+          font-size: 0.6875rem;
+          color: #64748b;
+        }
+
+        .ing-mini-badge {
+          font-size: 0.625rem;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+
+        .ing-mini-badge.safe, .ing-mini-badge.aman {
+          background: #dcfce7;
+          color: #15803d;
+        }
+
+        .ing-mini-badge.caution, .ing-mini-badge.perhatian {
+          background: #fef3c7;
+          color: #b45309;
+        }
+
+        .ing-mini-badge.avoid, .ing-mini-badge.hindari {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        /* AREAS STACK IN FACE MODAL */
+        .modal-areas-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .area-detail-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 14px;
         }
 
         .area-card-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 8px;
+          margin-bottom: 8px;
         }
 
         .area-title-group {
           display: flex;
           align-items: center;
           gap: 6px;
-        }
-
-        .area-icon-accent {
-          color: #0f6784;
-        }
-
-        .area-name {
-          font-size: 0.9rem;
-          font-weight: 700;
+          font-weight: 800;
+          font-size: 0.8125rem;
           color: #0f172a;
         }
 
-        .area-badges-group {
-          display: flex;
-          align-items: center;
-          gap: 6px;
+        .area-icon-accent {
+          color: var(--skincluv-teal, #0f6784);
         }
 
         .area-severity-badge {
           font-size: 0.6875rem;
           font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 12px;
+          padding: 2px 6px;
+          border-radius: 4px;
         }
 
         .area-severity-badge.ringan {
-          background: #f0fdf4;
-          color: #166534;
-          border: 1px solid #bbf7d0;
+          background: #dcfce7;
+          color: #15803d;
         }
 
         .area-severity-badge.sedang {
-          background: #fffbeb;
+          background: #fef3c7;
           color: #b45309;
-          border: 1px solid #fef3c7;
         }
 
         .area-score-badge {
           font-size: 0.6875rem;
           font-weight: 700;
-          color: #0f6784;
-          background: #eaf4fa;
-          padding: 2px 8px;
-          border-radius: 12px;
-        }
-
-        .area-finding-box, .area-analogy-box, .area-action-box {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
+          color: #64748b;
+          margin-left: 6px;
         }
 
         .af-label, .aa-label, .ac-label {
-          font-size: 0.72rem;
+          font-size: 0.6875rem;
           font-weight: 700;
-          color: #64748b;
+          color: #475569;
+          display: block;
         }
 
-        .af-text {
-          font-size: 0.8125rem;
+        .af-text, .aa-text, .ac-text {
+          font-size: 0.75rem;
           color: #1e293b;
-          line-height: 1.45;
-          margin: 0;
+          margin: 2px 0 6px 0;
+          line-height: 1.4;
         }
 
-        .area-analogy-box {
-          background: #f8fafc;
-          border-left: 3px solid #0f6784;
-          border-radius: 0 6px 6px 0;
-          padding: 6px 10px;
-        }
-
-        .aa-text {
-          font-size: 0.78125rem;
-          color: #334155;
-          line-height: 1.45;
-          margin: 0;
-          font-style: italic;
-        }
-
-        .area-action-box {
-          background: #f0fdf4;
-          border-left: 3px solid #10b981;
-          border-radius: 0 6px 6px 0;
-          padding: 6px 10px;
-        }
-
-        .ac-text {
-          font-size: 0.78125rem;
-          color: #166534;
-          line-height: 1.45;
-          margin: 0;
-          font-weight: 500;
-        }
-
-        /* PERSONAL TIPS IN MODAL */
+        /* TIPS GRID */
         .modal-tips-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 0.85rem;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+
+        @media (max-width: 600px) {
+          .modal-tips-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         .tip-box {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.75rem;
+          border-radius: 12px;
           padding: 12px;
         }
 
-        .tip-box.tip-avoid { border-top: 3px solid #ef4444; }
-        .tip-box.tip-reduce { border-top: 3px solid #f59e0b; }
-        .tip-box.tip-do { border-top: 3px solid #10b981; }
+        .tip-avoid { background: #fff1f2; border: 1px solid #fecdd3; }
+        .tip-reduce { background: #fffbeb; border: 1px solid #fde68a; }
+        .tip-do { background: #f0fdf4; border: 1px solid #bbf7d0; }
 
         .tb-title {
-          font-size: 0.78125rem;
-          font-weight: 700;
+          font-size: 0.75rem;
+          font-weight: 800;
           display: block;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
         }
-
-        .text-red { color: #b3261e; }
-        .text-amber { color: #b45309; }
-        .text-green { color: #166534; }
 
         .tb-list {
-          list-style: none;
-          padding: 0;
           margin: 0;
-          font-size: 0.75rem;
-          color: #475569;
-          line-height: 1.5;
+          padding-left: 16px;
+          font-size: 0.6875rem;
+          color: #334155;
+          line-height: 1.4;
         }
 
-        .tb-list li {
-          margin-bottom: 4px;
+        .modal-footer-action {
+          margin-top: 10px;
         }
 
-        /* HERO ACTIVES IN MODAL */
-        .modal-actives-stack {
+        .btn-consult-skinsistant-modal {
+          width: 100%;
           display: flex;
-          flex-direction: column;
-          gap: 0.85rem;
-        }
-
-        .active-ing-card {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.85rem;
-          padding: 14px;
-          display: flex;
-          flex-direction: column;
+          align-items: center;
+          justify-content: center;
           gap: 8px;
-        }
-
-        .aic-header {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .aic-badge-row {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .aic-rank {
-          font-size: 0.7rem;
-          font-weight: 800;
-          color: #0f6784;
-          background: #eaf4fa;
-          padding: 2px 6px;
-          border-radius: 6px;
-        }
-
-        .aic-priority-pill {
-          font-size: 0.65rem;
-          font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 10px;
-        }
-
-        .aic-priority-pill.essential {
-          background: #f0fdf4;
-          color: #166534;
-          border: 1px solid #bbf7d0;
-        }
-
-        .aic-priority-pill.recommended {
-          background: #eff6ff;
-          color: #1d4ed8;
-          border: 1px solid #bfdbfe;
-        }
-
-        .aic-name {
-          font-size: 0.95rem;
-          font-weight: 700;
-          color: #0f172a;
-          margin: 0;
-        }
-
-        .aic-purpose {
-          font-size: 0.78125rem;
-          color: #475569;
-          line-height: 1.45;
-          margin: 0;
-        }
-
-        .aic-actions-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-top: 4px;
-          padding-top: 8px;
-          border-top: 1px solid #f1f5f9;
-        }
-
-        .btn-shopee-search {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          background: #ffffff;
-          border: 1px solid #0f6784;
-          color: #0f6784;
-          padding: 5px 10px;
-          border-radius: 6px;
-          font-size: 0.72rem;
-          font-weight: 600;
-          text-decoration: none;
-          transition: all 0.15s ease;
-        }
-
-        .btn-shopee-search:hover {
-          background: #0f6784;
+          background: linear-gradient(135deg, var(--skincluv-teal, #0f6784) 0%, var(--skincluv-teal-hover, #0b4f5c) 100%);
           color: #ffffff;
-        }
-
-        .btn-ask-skinsistant {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          background: #f8fafc;
-          border: 1px solid #cbd5e1;
-          color: #334155;
-          padding: 5px 10px;
-          border-radius: 6px;
-          font-size: 0.72rem;
-          font-weight: 600;
-          text-decoration: none;
-          transition: all 0.15s ease;
-        }
-
-        .btn-ask-skinsistant:hover {
-          background: #e2e8f0;
-          color: #0f172a;
-        }
-
-        /* MODAL FOOTER */
-        .modal-footer {
-          padding: 1rem 1.5rem;
-          border-top: 1px solid #e2e8f0;
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .btn-secondary {
-          background: #f1f5f9;
-          border: 1px solid #cbd5e1;
-          color: #334155;
-          padding: 0.55rem 1.1rem;
-          border-radius: 0.6rem;
-          font-size: 0.85rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-
-        .btn-secondary:hover {
-          background: #e2e8f0;
-        }
-
-        .btn-primary-consult {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: #0f6784;
           border: none;
-          color: #ffffff;
-          padding: 0.55rem 1.1rem;
-          border-radius: 0.6rem;
-          font-size: 0.85rem;
-          font-weight: 600;
-          text-decoration: none;
+          border-radius: 12px;
+          padding: 12px;
+          font-size: 0.875rem;
+          font-weight: 700;
           cursor: pointer;
-          transition: background 0.15s;
+          transition: transform 0.15s;
         }
 
-        .btn-primary-consult:hover {
-          background: #0b4f5c;
+        .btn-consult-skinsistant-modal:hover {
+          transform: translateY(-1px);
         }
       `}</style>
     </div>
