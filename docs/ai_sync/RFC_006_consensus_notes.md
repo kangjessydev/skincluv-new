@@ -125,30 +125,74 @@ RFC 006 secara tokenomics dan unit economics dinyatakan **SEHAT**. Injeksi conte
 
 ---
 
-## 5. Reviewer: Kimi (Clinical Skincare Researcher)
-**Status**: ⏳ Menunggu tanggapan pengguna / sesi konsultasi
+## 5. Reviewer: Kimi (Clinical Skincare & Regulatory Researcher)
+**Status**: ✅ APPROVED WITH CLINICAL GOVERNANCE RULES
+
+### Inti Evaluasi:
+Kimi menyetujui integrasi ini dengan menegakkan **Clinical Contract** yang ketat dan **Deteksi Kontraindikasi Deterministik**. Akar masalah ketidakkonsistenan antar-model bukanlah model mana yang lebih pintar, melainkan ketiadaan *ground truth contract* yang mengikat Qwen agar tidak mengarang atau mengontradiksi diagnosis Gemini. Selain itu, potensi bahaya terbesar (misal: user dengan *barrier compromised* menanyakan serum eksfoliasi *Glycolic Acid*) **TIDAK BOLEH** diserahkan pada penalaran LLM murni, melainkan wajib disaring oleh tabel aturan klinis deterministik di database.
+
+### Poin Kritis & Rekomendasi Klinis Kimi:
+1. **Clinical Contract Ground Truth (Gemini → Qwen)**:
+   - Data scan wajah dari Gemini wajib diinjeksi bukan sebagai narasi opini, melainkan sebagai *Clinical Contract*:
+     - Tipe kulit terdiagnosis & *Hero Actives* adalah regime resmi yang disetujui sistem.
+     - **Aturan 1**: Qwen dilarang keras merekomendasikan bahan aktif baru di luar daftar *Hero Actives* tersebut.
+     - **Aturan 2**: Jika user butuh penyesuaian regime, Qwen harus menyatakan perlunya diagnosis ulang dan menyajikan CTA Scan Wajah.
+     - **Aturan 3 (Batas Usia Diagnosis 14 Hari)**: Kondisi kulit berubah dalam 2–4 minggu. Jika scan berusia >14 hari dan user menanyakan kondisi terkini, respon wajib diposisikan sebagai "berdasarkan scan lama" dan memprioritaskan CTA Scan Wajah baru.
+     - **Aturan 4**: Struktur *Hero Actives* terstruktur selalu mengalahkan ringkasan teks bebas.
+2. **Ekstraksi Flag Klinis Terstruktur Saat Scan**:
+   - Di schema `responseSchema` face_analysis Gemini, tambahkan field terstruktur eksplisit:
+     `barrier_status: 'intact' | 'compromised' | 'damaged'` dan `active_conditions: string[]`.
+   - Qwen tidak boleh menebak-nebak kondisi klinis dari teks bebas.
+3. **Tabel Aturan Deterministik: `clinical_condition_rules`**:
+   - Mencegah bahaya interaksi kondisi wajah vs kategori bahan:
+     | Kondisi Wajah (`condition_flag`) | Kategori Bahan (`ingredient_category`) | Tingkat Bahaya (`severity`) | Tindakan Klinis |
+     | :--- | :--- | :--- | :--- |
+     | `barrier_compromised` | AHA, BHA, Retinoid, Pure Vit C (pH < 3.5), Denat Alcohol | `forbidden_temporarily` | Larang sementara, alihkan ke Ceramide / Panthenol |
+     | `active_acne_inflamed` | Heavy Occlusives (comedogenic 4–5), Isopropyl Myristate | `caution` | Peringatan risiko komedo/breakout |
+     | `rosacea_suspected` / `sensitive` | BPO, Pure Ascorbic, Scrub Fisik | `forbidden_temporarily` | Hindari iritan kuat |
+     | *Semua Kondisi* | `is_banned_substance` / `is_drug_only` | `forbidden_absolute` | Peringatan bahaya zat terlarang BPOM |
+4. **Alur Cek Risiko Deterministik di `invoke-ai`**:
+   - Edge Function melakukan *cross-check* antara `condition_flag` wajah user dan `ingredient_category` produk yang sedang ditanyakan.
+   - Jika terdapat *match*, sistem menyuntikkan blok fakta risiko baku `[CEK RISIKO OTOMATIS — SKINCLUV]`.
+   - **Qwen hanya berfungsi sebagai penyampai (naratif & empati)** — keputusan risiko 100% diputuskan oleh database PostgreSQL!
+5. **Invarian Klinis Baru untuk `AGENTS.md`**:
+   > *"Tidak ada klaim risiko/kontraindikasi yang lahir dari penalaran LLM murni — semua harus melewati tabel terverifikasi (`clinical_condition_rules` & `ingredient_interactions`)."*
 
 ---
 
-## 6. Komparasi Tiga Pilar Dewan AI (Claude, ChatGPT, DeepSeek)
+## 6. Komparasi Empat Pilar AI Council (Sintesis Lengkap)
 
-| Dimensi Arsitektur | Claude (Arsitektur) | ChatGPT (Keamanan) | DeepSeek (Matematika & Biaya) | Konsensus Final Antigravity |
-| :--- | :--- | :--- | :--- | :--- |
-| **Bentuk Injeksi** | Bullet teks natural | Canonical JSON boundary `<USER_SCAN_DATA>` | Bullet teks terstruktur (15–25% lebih hemat dari JSON) | **Bullet teks dermatologis ringkas** di dalam boundary `<USER_SCAN_DATA>`. |
-| **Budget Konteks** | Maks 500 token | Minimalkan seminimal mungkin | Cap ketat di **375 token** (Face 200 + Products 175) | **Cap 375 token** dengan prioritasi top-N sinyal klinis. |
-| **Gating Konteks** | Injeksi selalu jika ON | **Relevance Gating** (hanya jika relevan) | Relevance Gating memotong 70% biaya chat umum | **Relevance Gating Aktif** (Keyword/Intent deterministik). |
-| **Mekanisme CTA** | Marker `[ACTION:X]` | Structured Enum Whitelist | Marker hemat ~30 output token dibanding JSON | Marker `[ACTION:FACE_SCAN]` / `[ACTION:INGREDIENT_SCAN]` divalidasi via **Strict Enum Whitelist**. |
-| **Monetisasi Post-Scan**| Belum dispesifikasikan | Idempotency token deduction | **Wajib potong 1 kredit** (cegah abuse farming) | **Tetap potong 1 kredit** via atomic RPC `deduct_coins`. |
-| **Consent & Residu** | 2 Toggle profil | Master + Sub-toggle + Audit Version | Redaksi residu chat lama saat consent dicabut | **Master Toggle + Sub-toggles + Redaksi Residu Chat**. |
+| Dimensi Arsitektur | Claude (Arsitektur & DX) | ChatGPT (Security Red Team) | DeepSeek (Matematika & Token) | Kimi (Klinis & Regulasi) | Konsensus Final Antigravity (Lead Engineer) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Pola Pengambilan Data** | `Promise.all` di Edge Function | RPC `get_chatbot_user_context()` via `auth.uid()` | Transactional 1-read snapshot | Validasi via DB sebelum LLM | **RPC `get_chatbot_user_context()`** (`SECURITY DEFINER`, `SET search_path = ''`, membaca `auth.uid()`). |
+| **Format & Isolasi Konteks** | Bullet teks natural (hemat token) | Boundary XML `<USER_SCAN_DATA>` anti-injection | Bullet teks terstruktur hemat 15–25% vs JSON | *Clinical Contract* & *Hero Actives* terstruktur | **Bullet teks dermatologis** dalam boundary isolasi `<USER_SCAN_DATA>` dengan aturan anti-poisoning. |
+| **Batas Token Konteks** | Maks 500 token | Minimalkan seminimal mungkin | **Cap 375 token** (Face 200 + Products 175) | Ringkas, fokus flag & actives | **Cap ketat 375 token** dengan prioritasi top-N sinyal klinis. |
+| **Gating Konteks** | Injeksi selalu jika ON | **Relevance Gating** (gating deterministik) | Memotong 70% biaya chat umum | Gating berdasarkan topik wajah / produk | **Relevance Gating Aktif** (Keyword/Intent deterministik, 0 token untuk Q&A umum). |
+| **Mekanisme Action CTA** | Marker `[ACTION:X]` | Structured Enum Whitelist | Marker hemat ~30 output token vs JSON | CTA Scan Wajah jika usia scan >14 hari | **Marker `[ACTION:X]`** divalidasi via **Strict Enum Whitelist** di frontend & backend. |
+| **Pencegahan Celah Kredit** | N/A | Idempotency token deduction | **Wajib potong 1 kredit** (cegah abuse farming) | N/A | **Tetap potong 1 kredit** via atomic RPC `deduct_coins`. |
+| **Konsistensi & Aturan Klinis**| N/A | Gemini = Fakta, Qwen = Explainer | N/A | Tabel `clinical_condition_rules` + Clinical Contract | **Deterministik via DB**: Gemini & DB adalah *ground truth*, Qwen adalah *explainer* tanpa hak re-diagnosis. |
+| **Usia Validitas Scan** | N/A | Sertakan `ageHours` | N/A | **Max 14 hari** untuk status aktif, lewat itu offer CTA re-scan | **Sertakan usia scan**: Jika >14 hari, arahkan ke re-scan wajah. |
+| **Privasi & Consent** | 2 Toggle profil | Master + Sub-toggle + Audit Log | Redaksi residu chat lama saat revoke | N/A | **Master Switch + Sub-toggles + Redaksi Residu Chat**. |
 
 ---
 
-## 7. Daftar Tugas P0 Produksi (Sintesis Konsensus Tiga Model)
-- [ ] **P0.1 Server-Side Context Isolation**: RPC PostgreSQL `get_chatbot_user_context()` dengan `auth.uid()`, `SECURITY DEFINER`, `SET search_path = ''`.
-- [ ] **P0.2 Consent Hierarchy & Zero-Query**: Master toggle + sub-toggles di profil. Jika OFF, nol query dijalankan.
-- [ ] **P0.3 Relevance Gating & 375-Token Cap**: Cek relevansi query; cap konteks maksimal 375 token (Face 200, Products 175).
-- [ ] **P0.4 XML Boundary & Imunitas Poisoning**: Format bullet diisolasi dalam `<USER_SCAN_DATA>` dengan aturan anti-prompt-injection.
-- [ ] **P0.5 Atomic Token & Anti-Abuse**: "Diskusikan dengan Skinsistant" tetap memotong 1 kredit via `deduct_coins` dengan `operation_id` idempotent.
-- [ ] **P0.6 Marker CTA dengan Strict Whitelist**: Parse `[ACTION:FACE_SCAN]` & `[ACTION:INGREDIENT_SCAN]` dengan whitelist enum ketat di frontend.
-- [ ] **P0.7 Clinical Hierarchy**: Fakta klinis Gemini adalah patokan baku; Qwen hanya berfungsi sebagai *explainer*.
+## 7. Roadmap Implementasi Siap Eksekusi (Lead Engineer Plan)
+
+### Fase 1: Database & Skema Klinis (PostgreSQL Migrations)
+1. **Migration 057**: Tambah kolom master toggle consent di `user_profiles` (`chatbot_scan_master_consent`, `chatbot_face_scan_consent`, `chatbot_product_scan_consent`).
+2. **Migration 058**: Buat tabel `clinical_condition_rules` (seed 15 aturan awal konsensus dermatologi untuk `barrier_compromised`, `active_acne`, dsb.).
+3. **Migration 059**: Buat fungsi PostgreSQL `get_chatbot_user_context()` (`SECURITY DEFINER`, `SET search_path = ''`, zero-query jika consent OFF, output canonical DTO).
+
+### Fase 2: Backend & Logic Gatekeeper (`invoke-ai/index.ts`)
+1. Pasang **Relevance Gating** (klasifikasi cepat: apakah pesan user berkaitan dengan kulit/wajah atau produk/bahan kosmetik?).
+2. Panggil RPC `get_chatbot_user_context()` jika lolos relevance gating & consent ON.
+3. Jalankan **Deterministic Clinical Rule Engine**: cocokkan kondisi wajah user dengan kategori bahan produk yang ditanyakan via `clinical_condition_rules`.
+4. Susun *System Prompt Context* dalam batas **375 token** yang diisolasi tag `<USER_SCAN_DATA>` + *Clinical Contract* Kimi.
+5. Jalankan Qwen di Groq dengan penegakan role sebagai *explainer*.
+
+### Fase 3: Frontend & UX Interaktif (`ChatbotPage.tsx`)
+1. Implementasi **Master Switch & Sub-toggles** di dialog Pengaturan Memori & Privasi Chatbot.
+2. Tambahkan parser aman untuk mendeteksi marker `[ACTION:FACE_SCAN]` dan `[ACTION:INGREDIENT_SCAN]` menggunakan *strict enum whitelist*.
+3. Render tombol CTA interaktif yang elegan di bawah bubble chat yang mengarahkan user langsung ke `/face-scan` atau `/ingredient-scan`.
+4. Dukung alur *"Diskusikan dengan Skinsistant"* dari halaman hasil scan wajah/produk dengan membawa intent pertanyaan awal secara mulus.
 
