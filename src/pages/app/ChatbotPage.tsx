@@ -135,12 +135,37 @@ export default function ChatbotPage() {
     }
   }, [profile?.chatbot_memory_consent])
 
-  // Support prefilled prompt from URL search parameters (e.g. from FaceScan / IngredientScan recommendations)
+  // Support prefilled prompt from URL search parameters (RFC 009: secure scan_id context resolver)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const prompt = params.get('initialPrompt') || params.get('q')
-    if (prompt) {
-      setInputText(prompt)
+    const scanId = params.get('scan_id')
+    const queryPrompt = params.get('q') || params.get('initialPrompt')
+
+    if (scanId) {
+      const fetchContext = async () => {
+        try {
+          const { data: scanCtx, error: rpcErr } = await supabase.rpc('get_face_scan_chat_context', { p_scan_id: scanId })
+          if (!rpcErr && scanCtx && typeof scanCtx === 'object' && (scanCtx as any).allowed) {
+            const ctx = scanCtx as any
+            const concernsList = Array.isArray(ctx.concerns) && ctx.concerns.length > 0
+              ? ctx.concerns.join(', ')
+              : 'tidak ada keluhan khusus'
+
+            const promptGreeting = queryPrompt
+              ? `Halo Skinsistant! Terkait hasil analisis wajahku barusan (tipe kulit ${ctx.skin_type}, skor ${ctx.overall_score}/100): ${queryPrompt}`
+              : `Halo Skinsistant, saya baru saja selesai melakukan analisis wajah. Hasil pemetaan menunjukkan tipe kulitku ${ctx.skin_type} (skor ${ctx.overall_score}/100) dengan perhatian pada: ${concernsList}. Bisa bantu buatkan rekomendasi rutinitas skincare pagi dan malam yang cocok untuk kondisiku?`
+
+            setInputText(promptGreeting)
+          } else if (queryPrompt) {
+            setInputText(queryPrompt)
+          }
+        } catch {
+          if (queryPrompt) setInputText(queryPrompt)
+        }
+      }
+      fetchContext()
+    } else if (queryPrompt) {
+      setInputText(queryPrompt)
     }
   }, [])
 

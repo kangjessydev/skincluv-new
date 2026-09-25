@@ -1328,6 +1328,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_face_scan_chat_context: {
+        Args: {
+          p_scan_id: string
+        }
+        Returns: Json
+      }
       get_chatbot_user_context: {
         Args: Record<PropertyKey, never>
         Returns: Json

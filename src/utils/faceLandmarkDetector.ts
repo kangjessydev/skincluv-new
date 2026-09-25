@@ -205,3 +205,19 @@ export async function detectHumanFace(
     }
   }
 }
+
+/**
+ * Explicit memory cleanup for MediaPipe Wasm & WebGL allocations (RFC 009 DeepSeek consensus).
+ */
+export function disposeFaceLandmarker() {
+  if (landmarkerInstance) {
+    try {
+      landmarkerInstance.close()
+    } catch (e) {
+      console.warn('[FaceLandmarker] cleanup warning:', e)
+    }
+    landmarkerInstance = null
+    initPromise = null
+  }
+}
+

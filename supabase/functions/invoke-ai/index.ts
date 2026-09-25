@@ -886,7 +886,8 @@ END PRODUCT_TEXT`
               return {
                 product_name: name,
                 category: priority === 'essential' ? 'Bahan Utama (Essential)' : 'Bahan Pendukung (Recommended)',
-                match_score: priority === 'essential' ? 98 : 94,
+                priority_label: priority === 'essential' ? 'Tingkat prioritas: utama' : 'Tingkat prioritas: pendukung',
+                match_score: null,
                 key_ingredients: [name],
                 why_recommended: reason,
                 priority,

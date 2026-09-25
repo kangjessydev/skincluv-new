@@ -26,7 +26,7 @@ import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { validateImageQuality, compressImageForAI } from '@/utils/imageQualityValidator'
-import { detectHumanFace } from '@/utils/faceLandmarkDetector'
+import { detectHumanFace, disposeFaceLandmarker } from '@/utils/faceLandmarkDetector'
 
 type Stage = 'upload' | 'scanning' | 'result'
 
@@ -50,7 +50,8 @@ export interface ProductRecommendation {
   product_name: string
   brand?: string
   category: string
-  match_score: number
+  match_score?: number | null
+  priority_label?: string
   key_ingredients?: string[]
   why_recommended: string
   price_estimate?: string
@@ -254,10 +255,18 @@ export default function FaceScanPage() {
 
   // Analysis Results & Errors
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [createdScanId, setCreatedScanId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
+
+  // Memory cleanup for MediaPipe Wasm (RFC 009 DeepSeek)
+  useEffect(() => {
+    return () => {
+      disposeFaceLandmarker()
+    }
+  }, [])
 
   // Rotating clinical tips during scanning
   useEffect(() => {
@@ -427,14 +436,17 @@ export default function FaceScanPage() {
             }
 
             // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
-            const { error: insertErr } = await supabase
+            const { data: insertedScan, error: insertErr } = await supabase
               .from('face_scans')
               .insert(scanRecord)
+              .select('id')
+              .maybeSingle()
 
             if (insertErr) {
               console.error('[FaceScanPage] face_scans insert error:', insertErr.message)
-            } else {
-              console.log('[FaceScanPage] face_scans history saved for user:', effectiveUserId)
+            } else if (insertedScan?.id) {
+              setCreatedScanId(insertedScan.id)
+              console.log('[FaceScanPage] face_scans history saved for user:', effectiveUserId, insertedScan.id)
             }
 
             // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
@@ -581,6 +593,7 @@ export default function FaceScanPage() {
     setImageBase64(null)
     setAnalysisResult(null)
     setErrorMsg(null)
+    setCreatedScanId(null)
   }
 
   // Unified Hero Actives list
@@ -725,22 +738,37 @@ export default function FaceScanPage() {
               </div>
             </div>
 
-            <div className="side-card">
-              <div className="card-section-label">PANDUAN FOTO PRESISI DERMATOLOGI</div>
-              <ul className="guide-tips-list">
-                <li>
-                  <b>✦</b> <strong>Jarak Ideal:</strong> Foto selfie berjarak 30-50 cm dengan fokus tajam di area wajah.
-                </li>
-                <li>
-                  <b>✦</b> <strong>Pencahayaan Alami:</strong> Hadap ke jendela atau lampu terang tanpa bayangan gelap.
-                </li>
-                <li>
-                  <b>✦</b> <strong>Ekspresi Netral:</strong> Wajah lurus tanpa masker atau filter kamera memperhalus (beauty mode).
-                </li>
-                <li>
-                  <b>✦</b> <strong>Aksesoris:</strong> Kacamata atau jilbab diperbolehkan asalkan dahi, hidung, dan pipi tampak jelas.
-                </li>
-              </ul>
+            <div className="side-card capture-guidance-card">
+              <div className="card-section-label">✨ 3 Hal Kecil Sebelum Jepret</div>
+              <p className="capture-guidance-sub">
+                Biar hasil scan-mu akurat & bisa dipakai membandingkan perkembangan kulitmu minggu depan 👇
+              </p>
+              <div className="capture-guidance-items">
+                <div className="cg-item">
+                  <div className="cg-icon">☀️</div>
+                  <div className="cg-text">
+                    <strong>1. Tempat terang yang sama tiap kali</strong>
+                    <p>Cahaya memengaruhi cara AI membaca warna & tekstur kulitmu. Jendela siang hari adalah pencahayaan terbaik.</p>
+                  </div>
+                </div>
+                <div className="cg-item">
+                  <div className="cg-icon">🧼</div>
+                  <div className="cg-text">
+                    <strong>2. Wajah bersih, tanpa sisa produk</strong>
+                    <p>Scan sekitar 1 jam setelah cuci muka. Sisa krim atau SPF bisa "menutupi" kondisi kulit aslimu.</p>
+                  </div>
+                </div>
+                <div className="cg-item">
+                  <div className="cg-icon">📐</div>
+                  <div className="cg-text">
+                    <strong>3. Sejajarkan wajah, ±jengkal dari kamera (±30 cm)</strong>
+                    <p>Biar dahi, pipi, dan dagu terbaca jelas semua.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="cg-footer-tip">
+                💡 <em>Kurang sempurna? Tetap boleh scan kok — tapi skor bisa ikut terpengaruh. Ada indikator kualitas foto yang menemanimu saat jepret.</em>
+              </div>
             </div>
           </div>
         </div>
@@ -953,13 +981,13 @@ export default function FaceScanPage() {
             </div>
           </div>
 
-          {/* Section 3: Rekomendasi Bahan Aktif Klinis (Hero Actives & Formulasi) */}
-          <div className="section-label-header">REKOMENDASI BAHAN AKTIF KLINIS (HERO ACTIVES)</div>
+          {/* Section 3: Rekomendasi Bahan Aktif Kosmetik (Hero Actives) */}
+          <div className="section-label-header">HERO ACTIVES — BAHAN YANG COCOK UNTUK KULITMU</div>
           <div className="card hero-actives-card">
             <div className="hero-actives-intro">
               <FlaskConical size={18} className="intro-flask-icon" />
               <span>
-                Bahan aktif yang ditargetkan secara presisi untuk menyeimbangkan produksi sebum T-Zone, merawat pori-pori, dan memperkuat skin barrier berdasarkan diagnosis foto wajahmu.
+                Kandungan bahan aktif kosmetik yang relevan untuk membantu merawat kondisi kulitmu berdasarkan hasil analisis foto wajah.
               </span>
             </div>
 
@@ -968,7 +996,6 @@ export default function FaceScanPage() {
                 const isEssential = item.priority === 'essential'
                 const cleanName = item.name.replace(/^Kandungan yang cocok:\s*/i, '').trim()
                 const searchKeyword = `serum ${cleanName}`
-                const askPrompt = `Halo SkinSistant! Dari hasil scan wajah, kulitku direkomendasikan bahan aktif "${cleanName}". Bagaimana urutan dan cara pakainya yang aman agar tidak iritasi?`
 
                 return (
                   <div key={idx} className="active-item-card">
@@ -976,13 +1003,17 @@ export default function FaceScanPage() {
                       <div className="aic-badge-row">
                         <span className="aic-rank">#{idx + 1}</span>
                         <span className={`aic-priority-pill ${isEssential ? 'essential' : 'recommended'}`}>
-                          {isEssential ? '✨ Target Utama (Essential)' : '🛡️ Penyeimbang (Recommended)'}
+                          {isEssential ? '✨ Prioritas Utama' : '🛡️ Prioritas Pendukung'}
                         </span>
                       </div>
                       <h4 className="aic-name">{cleanName}</h4>
                     </div>
 
                     <p className="aic-purpose">{item.purpose}</p>
+
+                    <div className="aic-micro-disclaimer">
+                      Bahan kosmetik, bukan obat — hasil bervariasi tiap orang.
+                    </div>
 
                     <div className="aic-actions-row">
                       <a
@@ -994,7 +1025,11 @@ export default function FaceScanPage() {
                         <ShoppingBag size={13} /> Cari Skincare di Marketplace ↗
                       </a>
                       <Link
-                        to={`/chatbot?initialPrompt=${encodeURIComponent(askPrompt)}`}
+                        to={
+                          createdScanId
+                            ? `/chatbot?scan_id=${createdScanId}&q=${encodeURIComponent(`Bagaimana cara dan urutan pemakaian ${cleanName} yang aman untuk kulitku?`)}`
+                            : `/chatbot?q=${encodeURIComponent(`Bagaimana cara pemakaian ${cleanName}?`)}`
+                        }
                         className="btn-ask-skinsistant"
                       >
                         <MessageSquare size={13} /> Tanya Cara Pakai
@@ -1013,7 +1048,7 @@ export default function FaceScanPage() {
               <span>Scan Wajah Ulang</span>
             </button>
             <Link
-              to="/chatbot?initialPrompt=Halo%20SkinSistant%2C%20saya%20baru%20saja%20selesai%20scan%20wajah.%20Bisa%20bantu%20jelaskan%20rekomendasi%20skincare%20rutin%20harian%20untuk%20kulitku%3F"
+              to={createdScanId ? `/chatbot?scan_id=${createdScanId}` : '/chatbot'}
               className="btn-consult-skinsistant"
             >
               <MessageSquare size={16} />
@@ -1048,7 +1083,7 @@ export default function FaceScanPage() {
         .page-title {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           margin: 0 0 4px 0;
           letter-spacing: -0.01em;
         }
@@ -1119,7 +1154,7 @@ export default function FaceScanPage() {
         }
 
         .dropzone-box:hover, .dropzone-box.dragging {
-          border-color: #0f6784;
+          border-color: var(--skincluv-teal, #0f6784);
           background: #f0fdfa;
         }
 
@@ -1128,7 +1163,7 @@ export default function FaceScanPage() {
           height: 56px;
           border-radius: 50%;
           background: #eaf4fa;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1184,7 +1219,7 @@ export default function FaceScanPage() {
 
         .btn-primary-action {
           width: 100%;
-          background: #0f6784;
+          background: var(--skincluv-teal, #0f6784);
           color: #ffffff;
           border: none;
           border-radius: 12px;
@@ -1201,7 +1236,7 @@ export default function FaceScanPage() {
         }
 
         .btn-primary-action:hover:not(:disabled) {
-          background: #0b4f5c;
+          background: var(--skincluv-teal-hover, #0b4f5c);
           transform: translateY(-1px);
         }
 
@@ -1226,7 +1261,7 @@ export default function FaceScanPage() {
         }
 
         .disclaimer-icon {
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           flex-shrink: 0;
           margin-top: 1px;
         }
@@ -1268,7 +1303,7 @@ export default function FaceScanPage() {
 
         .profile-val-text {
           font-weight: 600;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
         }
 
         .profile-info-row.stacked {
@@ -1287,7 +1322,7 @@ export default function FaceScanPage() {
           font-size: 0.6875rem;
           font-weight: 600;
           background: #eaf4fa;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           padding: 4px 10px;
           border-radius: 20px;
         }
@@ -1308,7 +1343,70 @@ export default function FaceScanPage() {
         }
 
         .guide-tips-list li b {
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
+        }
+
+        .capture-guidance-card {
+          border-color: #bae6fd;
+          background: #f8fafc;
+        }
+
+        .capture-guidance-sub {
+          font-size: 0.8125rem;
+          color: #475569;
+          margin: 0 0 12px 0;
+          line-height: 1.5;
+        }
+
+        .capture-guidance-items {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .cg-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 12px;
+        }
+
+        .cg-icon {
+          font-size: 1.1rem;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+
+        .cg-text {
+          flex: 1;
+        }
+
+        .cg-text strong {
+          display: block;
+          font-size: 0.8125rem;
+          color: #0f172a;
+          margin-bottom: 2px;
+        }
+
+        .cg-text p {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        .cg-footer-tip {
+          margin-top: 12px;
+          padding: 8px 12px;
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          color: #166534;
+          line-height: 1.45;
         }
 
         /* STAGE 2: NEURAL SCANNER HUD */
@@ -1473,7 +1571,7 @@ export default function FaceScanPage() {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #0f6784;
+          background: var(--skincluv-teal, #0f6784);
           animation: dotBounce 1.1s infinite ease-in-out;
         }
 
@@ -1488,7 +1586,7 @@ export default function FaceScanPage() {
         .shimmer-scan-text {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           animation: thinkShimmer 1.8s infinite ease-in-out;
         }
 
@@ -1513,7 +1611,7 @@ export default function FaceScanPage() {
           left: -40%;
           width: 40%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, #0f6784, #10b981, transparent);
+          background: linear-gradient(90deg, transparent, var(--skincluv-teal, #0f6784), #10b981, transparent);
           border-radius: 4px;
           animation: progressIndeterminate 1.6s infinite ease-in-out;
         }
@@ -1542,7 +1640,7 @@ export default function FaceScanPage() {
           gap: 6px;
           font-size: 0.75rem;
           font-weight: 700;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           text-transform: uppercase;
           letter-spacing: 0.04em;
         }
@@ -1797,7 +1895,7 @@ export default function FaceScanPage() {
         }
 
         .text-teal {
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
         }
 
         .biometric-chips-list {
@@ -1886,7 +1984,7 @@ export default function FaceScanPage() {
         }
 
         .area-icon-accent {
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
         }
 
         .area-title-text {
@@ -1925,7 +2023,7 @@ export default function FaceScanPage() {
           font-size: 0.6875rem;
           font-weight: 700;
           background: #eaf4fa;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           padding: 3px 8px;
           border-radius: 12px;
         }
@@ -1951,7 +2049,7 @@ export default function FaceScanPage() {
 
         .area-analogy-box {
           background: #f8fafc;
-          border-left: 3px solid #0f6784;
+          border-left: 3px solid var(--skincluv-teal, #0f6784);
           border-radius: 0 8px 8px 0;
           padding: 8px 12px;
         }
@@ -2051,7 +2149,7 @@ export default function FaceScanPage() {
           border-radius: 12px;
           padding: 12px 14px;
           font-size: 0.8125rem;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           line-height: 1.5;
         }
 
@@ -2097,7 +2195,7 @@ export default function FaceScanPage() {
         .aic-rank {
           font-size: 0.75rem;
           font-weight: 800;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           background: #eaf4fa;
           padding: 2px 8px;
           border-radius: 8px;
@@ -2136,6 +2234,14 @@ export default function FaceScanPage() {
           margin: 0;
         }
 
+        .aic-micro-disclaimer {
+          font-size: 0.6875rem;
+          color: #64748b;
+          font-style: italic;
+          margin: 4px 0 0 0;
+          line-height: 1.4;
+        }
+
         .aic-actions-row {
           display: flex;
           align-items: center;
@@ -2151,8 +2257,8 @@ export default function FaceScanPage() {
           align-items: center;
           gap: 6px;
           background: #ffffff;
-          border: 1px solid #0f6784;
-          color: #0f6784;
+          border: 1px solid var(--skincluv-teal, #0f6784);
+          color: var(--skincluv-teal, #0f6784);
           padding: 6px 12px;
           border-radius: 8px;
           font-size: 0.75rem;
@@ -2162,7 +2268,7 @@ export default function FaceScanPage() {
         }
 
         .btn-shopee-search:hover {
-          background: #0f6784;
+          background: var(--skincluv-teal, #0f6784);
           color: #ffffff;
         }
 
@@ -2199,7 +2305,7 @@ export default function FaceScanPage() {
           min-width: 180px;
           background: #ffffff;
           border: 1px solid #cbd5e1;
-          color: #0f6784;
+          color: var(--skincluv-teal, #0f6784);
           border-radius: 12px;
           padding: 12px;
           font-size: 0.875rem;
@@ -2219,7 +2325,7 @@ export default function FaceScanPage() {
         .btn-consult-skinsistant {
           flex: 2;
           min-width: 240px;
-          background: #0f6784;
+          background: var(--skincluv-teal, #0f6784);
           border: none;
           color: #ffffff;
           border-radius: 12px;
@@ -2236,7 +2342,7 @@ export default function FaceScanPage() {
         }
 
         .btn-consult-skinsistant:hover {
-          background: #0b4f5c;
+          background: var(--skincluv-teal-hover, #0b4f5c);
         }
 
         .face-scan-credit-notice {
@@ -2294,12 +2400,12 @@ export default function FaceScanPage() {
         }
 
         .notice-sub-btn.upgrade {
-          background: #0f6784;
+          background: var(--skincluv-teal, #0f6784);
           color: #ffffff;
         }
 
         .notice-sub-btn.upgrade:hover {
-          background: #0b4d63;
+          background: var(--skincluv-teal-hover, #0b4f5c);
         }
 
         @media (max-width: 640px) {
