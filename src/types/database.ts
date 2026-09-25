@@ -43,6 +43,10 @@ export interface Profile {
   full_name: string | null
   avatar_url: string | null
   chatbot_memory_consent?: boolean | null
+  chatbot_scan_master_consent?: boolean | null
+  chatbot_face_scan_consent?: boolean | null
+  chatbot_product_scan_consent?: boolean | null
+  chatbot_consent_updated_at?: string | null
   created_at: string
   updated_at: string
 }

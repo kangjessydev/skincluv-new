@@ -929,10 +929,21 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 )}
               </div>
 
-              {/* Reset Button */}
-              <button className="btn-reset-scan" onClick={handleResetFlow}>
-                Scan Produk Skincare Lain
-              </button>
+              {/* Action Buttons: Consult Skinsistant & Reset */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-5">
+                <Link
+                  to={`/chatbot?initialPrompt=${encodeURIComponent(
+                    `Halo Skinsistant! Saya baru saja mengecek produk "${scanResult?.product_name || 'skincare'}". Apakah produk ini cocok dikombinasikan dengan kondisi kulit dan rutinitas harian saya?`
+                  )}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold text-sm shadow-sm hover:from-violet-700 hover:to-indigo-700 transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
+                >
+                  <Sparkles size={16} />
+                  <span>Konsultasikan ke Skinsistant AI</span>
+                </Link>
+                <button className="btn-reset-scan flex-1" onClick={handleResetFlow}>
+                  Scan Produk Skincare Lain
+                </button>
+              </div>
             </div>
           )}
         </div>

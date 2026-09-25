@@ -178,21 +178,22 @@ Kimi menyetujui integrasi ini dengan menegakkan **Clinical Contract** yang ketat
 
 ## 7. Roadmap Implementasi Siap Eksekusi (Lead Engineer Plan)
 
-### Fase 1: Database & Skema Klinis (PostgreSQL Migrations)
-1. **Migration 057**: Tambah kolom master toggle consent di `user_profiles` (`chatbot_scan_master_consent`, `chatbot_face_scan_consent`, `chatbot_product_scan_consent`).
-2. **Migration 058**: Buat tabel `clinical_condition_rules` (seed 15 aturan awal konsensus dermatologi untuk `barrier_compromised`, `active_acne`, dsb.).
-3. **Migration 059**: Buat fungsi PostgreSQL `get_chatbot_user_context()` (`SECURITY DEFINER`, `SET search_path = ''`, zero-query jika consent OFF, output canonical DTO).
+### Fase 1: Database & Skema Klinis (PostgreSQL Migrations) ✅ COMPLETE
+1. [x] **Migration 057**: Tambah kolom master toggle consent di `public.profiles` (`chatbot_scan_master_consent`, `chatbot_face_scan_consent`, `chatbot_product_scan_consent`, `chatbot_consent_updated_at`) & RPC `set_chatbot_scan_consent`.
+2. [x] **Migration 058**: Buat tabel `clinical_condition_rules` (seed 15 aturan awal konsensus dermatologi untuk `barrier_compromised`, `active_acne`, dsb.).
+3. [x] **Migration 059**: Buat fungsi PostgreSQL `get_chatbot_user_context()` (`SECURITY DEFINER`, `SET search_path = ''`, zero-query jika consent OFF, output canonical DTO) & helper RPC `match_clinical_condition_rules`.
 
-### Fase 2: Backend & Logic Gatekeeper (`invoke-ai/index.ts`)
-1. Pasang **Relevance Gating** (klasifikasi cepat: apakah pesan user berkaitan dengan kulit/wajah atau produk/bahan kosmetik?).
-2. Panggil RPC `get_chatbot_user_context()` jika lolos relevance gating & consent ON.
-3. Jalankan **Deterministic Clinical Rule Engine**: cocokkan kondisi wajah user dengan kategori bahan produk yang ditanyakan via `clinical_condition_rules`.
-4. Susun *System Prompt Context* dalam batas **375 token** yang diisolasi tag `<USER_SCAN_DATA>` + *Clinical Contract* Kimi.
-5. Jalankan Qwen di Groq dengan penegakan role sebagai *explainer*.
+### Fase 2: Backend & Logic Gatekeeper (`invoke-ai/index.ts`) ✅ COMPLETE & DEPLOYED
+1. [x] Pasang **Relevance Gating** (klasifikasi cepat deterministik: cek kata kunci kulit/wajah atau produk/bahan kosmetik, zero-query untuk Q&A umum).
+2. [x] Panggil RPC `get_chatbot_user_context()` via authenticated client JWT (`auth.uid()` bound).
+3. [x] Jalankan **Deterministic Clinical Rule Engine**: cocokkan kondisi wajah user dengan kategori bahan produk via `match_clinical_condition_rules`.
+4. [x] Susun *System Prompt Context* dalam batas **375 token** (DeepSeek cap) yang diisolasi tag boundary `<USER_SCAN_DATA>` + *Clinical Contract* (Kimi) + Anti-Poisoning guardrail (ChatGPT).
+5. [x] Parse Action CTA `[ACTION:FACE_SCAN]` & `[ACTION:INGREDIENT_SCAN]` dan kembalikan enum tervalidasi pada response JSON.
 
-### Fase 3: Frontend & UX Interaktif (`ChatbotPage.tsx`)
-1. Implementasi **Master Switch & Sub-toggles** di dialog Pengaturan Memori & Privasi Chatbot.
-2. Tambahkan parser aman untuk mendeteksi marker `[ACTION:FACE_SCAN]` dan `[ACTION:INGREDIENT_SCAN]` menggunakan *strict enum whitelist*.
-3. Render tombol CTA interaktif yang elegan di bawah bubble chat yang mengarahkan user langsung ke `/face-scan` atau `/ingredient-scan`.
-4. Dukung alur *"Diskusikan dengan Skinsistant"* dari halaman hasil scan wajah/produk dengan membawa intent pertanyaan awal secara mulus.
+### Fase 3: Frontend & UX Interaktif (`ChatbotPage.tsx` & `IngredientScanPage.tsx`) ✅ COMPLETE
+1. [x] Implementasi **Master Switch & Sub-toggles** di dialog Pengaturan Memori & Privasi Chatbot (`ChatbotPage.tsx`).
+2. [x] Tambahkan parser aman `parseMessageAction` untuk mendeteksi `[ACTION:FACE_SCAN]` dan `[ACTION:INGREDIENT_SCAN]` dengan pembersihan teks visual otomatis.
+3. [x] Render tombol CTA interaktif elegan di bawah bubble chat yang mengarahkan user langsung ke `/face-scan` atau `/ingredient-scan`.
+4. [x] Tambahkan tombol CTA *"Konsultasikan ke Skinsistant AI"* di hasil scan produk (`IngredientScanPage.tsx`) melengkapi tombol yang sudah ada di scan wajah (`FaceScanPage.tsx`).
+5. [x] Verifikasi compile & build: Lolos 100% `tsc -b && vite build` tanpa error.
 

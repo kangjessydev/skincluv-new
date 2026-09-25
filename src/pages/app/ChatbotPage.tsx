@@ -19,6 +19,9 @@ import {
   ShieldCheck,
   Brain,
   X,
+  ScanFace,
+  ArrowRight,
+  FileText,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -48,6 +51,25 @@ interface Session {
   title: string | null
   created_at: string
   last_activity?: string
+}
+
+type ChatAction = 'FACE_SCAN' | 'INGREDIENT_SCAN' | null
+
+function parseMessageAction(text: string): { cleanText: string; action: ChatAction } {
+  if (!text) return { cleanText: '', action: null }
+  if (text.includes('[ACTION:FACE_SCAN]')) {
+    return {
+      cleanText: text.replace(/\[ACTION:FACE_SCAN\]/g, '').trim(),
+      action: 'FACE_SCAN',
+    }
+  }
+  if (text.includes('[ACTION:INGREDIENT_SCAN]')) {
+    return {
+      cleanText: text.replace(/\[ACTION:INGREDIENT_SCAN\]/g, '').trim(),
+      action: 'INGREDIENT_SCAN',
+    }
+  }
+  return { cleanText: text, action: null }
 }
 
 // Shortcut deterministik untuk sapaan/basa-basi generik — tidak perlu panggil AI,
@@ -95,6 +117,11 @@ export default function ChatbotPage() {
   const [memoryConsent, setMemoryConsent] = useState<boolean | null>(
     profile?.chatbot_memory_consent ?? null
   )
+  // Scan privacy consent state (RFC 006 Full AI Council Consensus)
+  const [scanMasterConsent, setScanMasterConsent] = useState<boolean | null>(null)
+  const [scanFaceConsent, setScanFaceConsent] = useState<boolean>(true)
+  const [scanProductConsent, setScanProductConsent] = useState<boolean>(true)
+
   // Sources dari web search (diisi jika AI memakai Tavily)
   const [lastSources, setLastSources] = useState<Array<{ title: string; url: string; snippet: string }>>([]) // eslint-disable-line
   const [showSources, setShowSources] = useState(false)
@@ -108,10 +135,10 @@ export default function ChatbotPage() {
     }
   }, [profile?.chatbot_memory_consent])
 
-  // Support prefilled prompt from URL search parameters (e.g. from FaceScan recommendations)
+  // Support prefilled prompt from URL search parameters (e.g. from FaceScan / IngredientScan recommendations)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const prompt = params.get('initialPrompt')
+    const prompt = params.get('initialPrompt') || params.get('q')
     if (prompt) {
       setInputText(prompt)
     }
@@ -138,18 +165,41 @@ export default function ChatbotPage() {
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('chatbot_memory_consent')
+          .select('chatbot_memory_consent, chatbot_scan_master_consent, chatbot_face_scan_consent, chatbot_product_scan_consent')
           .eq('id', user.id)
           .maybeSingle()
-        if (data && data.chatbot_memory_consent !== undefined) {
-          setMemoryConsent(data.chatbot_memory_consent)
+        if (data) {
+          if (data.chatbot_memory_consent !== undefined) setMemoryConsent(data.chatbot_memory_consent)
+          if (data.chatbot_scan_master_consent !== undefined) setScanMasterConsent(data.chatbot_scan_master_consent)
+          if (data.chatbot_face_scan_consent !== undefined) setScanFaceConsent(data.chatbot_face_scan_consent ?? true)
+          if (data.chatbot_product_scan_consent !== undefined) setScanProductConsent(data.chatbot_product_scan_consent ?? true)
         }
       } catch (err) {
-        console.warn('Failed to fetch memory consent:', err)
+        console.warn('Failed to fetch consent settings:', err)
       }
     }
     fetchConsent()
   }, [user?.id])
+
+  const handleSetScanConsent = async (master: boolean, face?: boolean, product?: boolean) => {
+    if (!user?.id) return
+    try {
+      const faceVal = face !== undefined ? face : scanFaceConsent
+      const prodVal = product !== undefined ? product : scanProductConsent
+
+      await supabase.rpc('set_chatbot_scan_consent', {
+        p_master: master,
+        p_face: faceVal,
+        p_product: prodVal,
+      })
+
+      setScanMasterConsent(master)
+      setScanFaceConsent(faceVal)
+      setScanProductConsent(prodVal)
+    } catch (err) {
+      console.error('Failed to update scan consent:', err)
+    }
+  }
 
   const handleSetMemoryConsent = async (consent: boolean) => {
     if (!user?.id) return
@@ -692,6 +742,51 @@ export default function ChatbotPage() {
                 </button>
               </div>
 
+              {/* Scan History Consent Section (RFC 006 Multi-Model Consensus) */}
+              <div className="mt-4 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} className="text-violet-600" />
+                    <span className="font-semibold text-sm text-slate-800">Riwayat Scan AI</span>
+                  </div>
+                  <button
+                    type="button"
+                    className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+                      scanMasterConsent ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                    }`}
+                    onClick={() => handleSetScanConsent(!scanMasterConsent)}
+                  >
+                    {scanMasterConsent ? 'Aktif' : 'Nonaktif'}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mb-2.5 leading-relaxed">
+                  Izinkan Skinsistant membaca hasil scan wajah dan riwayat produk untuk personalisasi rekomendasi. Sesuai prinsip minimisasi data UU PDP, riwayat scan hanya diakses jika relevan dengan pertanyaan Anda.
+                </p>
+
+                {scanMasterConsent && (
+                  <div className="space-y-2 pt-2.5 border-t border-slate-200">
+                    <label className="flex items-center justify-between text-xs text-slate-700 cursor-pointer select-none">
+                      <span className="font-medium">Rekam Jejak Scan Wajah Terakhir</span>
+                      <input
+                        type="checkbox"
+                        checked={scanFaceConsent}
+                        onChange={(e) => handleSetScanConsent(true, e.target.checked, scanProductConsent)}
+                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-500 h-4 w-4"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between text-xs text-slate-700 cursor-pointer select-none">
+                      <span className="font-medium">Rekam Jejak Cek Komposisi / Produk</span>
+                      <input
+                        type="checkbox"
+                        checked={scanProductConsent}
+                        onChange={(e) => handleSetScanConsent(true, scanFaceConsent, e.target.checked)}
+                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-500 h-4 w-4"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
               <div className="memories-section-header">
                 <h4>Fakta yang Diingat ({clinicalMemories.length})</h4>
                 {clinicalMemories.length > 0 && (
@@ -818,30 +913,62 @@ export default function ChatbotPage() {
           </div>
         )}
 
-        {messages.map((msg) => (
-          <div key={msg.id} className={`chat-row ${msg.sender}`}>
-            {msg.sender === 'bot' && (
-              <div className="chat-avatar bot-avatar">
-                <Sparkles size={15} />
-              </div>
-            )}
+        {messages.map((msg) => {
+          const { cleanText, action } = parseMessageAction(msg.text)
+          return (
+            <div key={msg.id} className={`chat-row ${msg.sender}`}>
+              {msg.sender === 'bot' && (
+                <div className="chat-avatar bot-avatar">
+                  <Sparkles size={15} />
+                </div>
+              )}
 
-            <div className="bubble-wrapper">
-              <div className="chat-bubble">
-                {msg.sender === 'bot' ? (
-                  <FormattedMarkdown content={msg.text} userName={userName} />
-                ) : (
-                  <p>{msg.text}</p>
+              <div className="bubble-wrapper">
+                <div className="chat-bubble">
+                  {msg.sender === 'bot' ? (
+                    <FormattedMarkdown content={cleanText} userName={userName} />
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
+                </div>
+
+                {/* RFC 006: In-Chat Action CTA Widget */}
+                {msg.sender === 'bot' && action && (
+                  <div className="mt-2.5">
+                    {action === 'FACE_SCAN' && (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/face-scan')}
+                        className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-700 hover:to-indigo-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <ScanFace size={15} />
+                        <span>Mulai Scan Wajah AI Sekarang</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    )}
+                    {action === 'INGREDIENT_SCAN' && (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/ingredient-scan')}
+                        className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <FileText size={15} />
+                        <span>Cek Komposisi / Produk</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    )}
+                  </div>
                 )}
-              </div>
-              <span className="chat-timestamp">{msg.created_at}</span>
-            </div>
 
-            {msg.sender === 'user' && (
-              <div className="chat-avatar user-avatar">{userInitials}</div>
-            )}
-          </div>
-        ))}
+                <span className="chat-timestamp">{msg.created_at}</span>
+              </div>
+
+              {msg.sender === 'user' && (
+                <div className="chat-avatar user-avatar">{userInitials}</div>
+              )}
+            </div>
+          )
+        })}
 
         {/* SOURCES ACCORDION — tampil di bawah pesan AI terakhir jika ada hasil search */}
         {messages.length > 0 && lastSources.length > 0 && !isSending && (

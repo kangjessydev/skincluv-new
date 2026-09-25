@@ -593,7 +593,11 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          chatbot_consent_updated_at: string | null
+          chatbot_face_scan_consent: boolean | null
           chatbot_memory_consent: boolean | null
+          chatbot_product_scan_consent: boolean | null
+          chatbot_scan_master_consent: boolean | null
           created_at: string
           full_name: string | null
           id: string
@@ -602,7 +606,11 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          chatbot_consent_updated_at?: string | null
+          chatbot_face_scan_consent?: boolean | null
           chatbot_memory_consent?: boolean | null
+          chatbot_product_scan_consent?: boolean | null
+          chatbot_scan_master_consent?: boolean | null
           created_at?: string
           full_name?: string | null
           id: string
@@ -611,7 +619,11 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          chatbot_consent_updated_at?: string | null
+          chatbot_face_scan_consent?: boolean | null
           chatbot_memory_consent?: boolean | null
+          chatbot_product_scan_consent?: boolean | null
+          chatbot_scan_master_consent?: boolean | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -1312,6 +1324,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_chatbot_user_context: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      match_clinical_condition_rules: {
+        Args: {
+          p_condition_flags: string[]
+          p_ingredient_categories: string[]
+        }
+        Returns: Json
+      }
+      set_chatbot_scan_consent: {
+        Args: {
+          p_master: boolean
+          p_face?: boolean
+          p_product?: boolean
+        }
+        Returns: Json
+      }
       admin_adjust_user_coins: {
         Args: {
           p_target_user_id: string
