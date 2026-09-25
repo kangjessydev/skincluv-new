@@ -42,6 +42,10 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 5. **Sanitasi Web Search (Tavily)**:
    - Query pencarian di `_shared/searchProvider.ts` wajib melalui pembersihan kata ganti orang pertama (`aku`, `saya`, `kulitku`, `wajahku`) dan disematkan anchor `skincare dermatologi` sebelum dikirim ke mesin pencari demi privasi data dan akurasi hasil pencarian.
 
+6. **Ground Truth Klinis Deterministik**:
+   - Tidak ada klaim risiko, bahaya kombinasi, atau kontraindikasi klinis yang lahir dari penalaran LLM murni (halusinasi bebas).
+   - Seluruh kontraindikasi kondisi kulit × bahan aktif wajib bersumber dari tabel database deterministik terverifikasi (`clinical_condition_rules` & `ingredient_interactions`). LLM chatbot (Qwen) hanya bertindak sebagai *explainer* dan penyampai naratif edukatif, bukan penentu risiko klinis.
+
 ---
 
 ## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)
