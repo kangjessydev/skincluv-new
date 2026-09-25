@@ -23,6 +23,9 @@ import {
   Crown,
   Trophy,
   Search,
+  RotateCcw,
+  LayoutGrid,
+  ListFilter,
 } from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
@@ -34,6 +37,13 @@ import { detectHumanFace } from '@/utils/faceLandmarkDetector'
 
 type ScanStage = 'upload' | 'scanning' | 'result'
 type BadgeFilter = 'all' | 'aman' | 'hati' | 'hindari'
+
+export interface PersonalContraindication {
+  ingredient: string
+  user_condition: string
+  warning: string
+  clinical_advice?: string
+}
 
 export interface LayeringCombo {
   pair: string
@@ -53,6 +63,8 @@ export interface IngredientItem {
   skinType?: string
   interaction?: string
   is_drug_or_banned?: boolean
+  is_hero_active?: boolean
+  category?: 'active' | 'emollient' | 'base' | string
   personal?: {
     ok: boolean
     text: string
@@ -81,11 +93,11 @@ export interface IngredientAnalysisResult {
     best_combos?: LayeringCombo[]
     danger_combos?: LayeringCombo[]
   }
+  personal_contraindications?: PersonalContraindication[]
+  hero_actives?: IngredientItem[]
   key_ingredients?: IngredientItem[]
   ingredients_breakdown?: IngredientItem[]
 }
-
-
 
 export default function IngredientScanPage() {
   const { profile, activeSkinProfile, coinBalance, subscription } = useAuthStore()
@@ -104,6 +116,7 @@ export default function IngredientScanPage() {
   const [stage, setStage] = useState<ScanStage>('upload')
   const [filterBadge, setFilterBadge] = useState<BadgeFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState<'chips' | 'cards'>('chips')
 
   // Photo & Preview States
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -244,6 +257,20 @@ export default function IngredientScanPage() {
       return
     }
 
+    // ChatGPT Boundary A: Frontend sanitization & canonicalization
+    const sanitizedCustomText = customText
+      ? customText
+          .normalize('NFKC')
+          .replace(/[\u200B-\u200D\uFEFF]/g, '')
+          .trim()
+          .slice(0, 3000)
+      : undefined
+
+    if (customText && !sanitizedCustomText) {
+      setErrorMsg('Teks komposisi yang dimasukkan kosong atau tidak valid.')
+      return
+    }
+
     if (isFreeTierOutOfCredits) {
       const confirmed = await askCoinConfirmation(ingredientCost, 'Analisis Komposisi Produk')
       if (!confirmed) return
@@ -256,8 +283,8 @@ export default function IngredientScanPage() {
 
     try {
       const input_context: Record<string, string> = {}
-      if (customText) {
-        input_context.ingredient_text = customText
+      if (sanitizedCustomText) {
+        input_context.ingredient_text = sanitizedCustomText
       } else if (imageBase64) {
         input_context.image_base64 = imageBase64
       }
@@ -267,8 +294,8 @@ export default function IngredientScanPage() {
         messages: [
           {
             role: 'user',
-            content: customText
-              ? `Teks komposisi skincare untuk dianalisis:\n"${customText}"\n\nAnalisis kecocokan untuk profil kulit Pengguna: Tipe ${userSkinType}, Masalah: ${userConcerns}. Lakukan evaluasi ilmiah per bahan.`
+            content: sanitizedCustomText
+              ? `Teks komposisi produk skincare telah dilampirkan via input_context. Lakukan analisis formula dermatologi ilmiah mendalam untuk profil kulit Pengguna: Tipe ${userSkinType}, Masalah: ${userConcerns}.`
               : `Foto kemasan produk skincare telah dilampirkan bersama permintaan ini.
 
 PETUNJUK OCR & ANALISIS WAJIB:
@@ -381,58 +408,90 @@ PETUNJUK OCR & ANALISIS WAJIB:
     setEditableText('')
   }
 
+  // Helper for Hero Actives & Safe Neutrals (Kimi & Claude)
+  const HERO_ACTIVES_KEYWORDS = useMemo(() => [
+    'niacinamide', 'retinol', 'retinal', 'salicylic acid', 'glycolic acid', 'lactic acid',
+    'ascorbic acid', 'vitamin c', 'ceramide', 'centella', 'madecassoside', 'asiaticoside',
+    'hyaluronic acid', 'sodium hyaluronate', 'panthenol', 'azelaic acid', 'zinc pca',
+    'snail secretion', 'bakuchiol', 'copper peptide', 'alpha arbutin', 'tranexamic acid',
+    'peptide', 'adenosine', 'resveratrol', 'green tea', 'tea tree'
+  ], [])
+
+  const ALWAYS_SAFE_NEUTRALS = useMemo(() => [
+    'dimethicone', 'cetyl alcohol', 'peg-8', 'water', 'aqua', 'glycerin', 'squalane', 'petrolatum', 'mineral oil'
+  ], [])
+
   // Normalization Helpers for Ingredient Breakdown
   const rawIngredientsList = scanResult?.ingredients_breakdown || scanResult?.key_ingredients || []
 
-  const displayIngredientsList: IngredientItem[] =
-    rawIngredientsList.length > 0
-      ? rawIngredientsList.map((item) => {
-          const badgeType =
-            item.badge === 'aman' || item.badge === 'safe'
-              ? 'aman'
-              : item.badge === 'hindari' || item.badge === 'avoid'
-              ? 'hindari'
-              : 'hati'
-          const badgeLabelText =
-            item.badgeLabel ||
-            (badgeType === 'aman' ? 'Aman' : badgeType === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')
+  const displayIngredientsList: IngredientItem[] = useMemo(() => {
+    if (!rawIngredientsList.length) return []
+    return rawIngredientsList.map((item) => {
+      const lowerName = (item.name || '').toLowerCase().trim()
+      const isNeutralSafe = ALWAYS_SAFE_NEUTRALS.some((s) => lowerName === s || lowerName.startsWith(s + ' '))
 
-          return {
-            name: item.name,
-            badge: badgeType,
-            badgeLabel: badgeLabelText,
-            function: item.function || item.notes || '',
-            comedogenic_score: item.comedogenic_score,
-            skinType: item.skinType || '',
-            interaction: item.interaction || '',
-            personal: item.personal || (
-              badgeType !== 'aman'
-                ? {
-                    ok: false,
-                    text: `Waspada — bahan ini perlu diperhatikan untuk tipe kulit ${userSkinType.toLowerCase()}.`,
-                  }
-                : undefined
-            ),
-            is_drug_or_banned: item.is_drug_or_banned,
-          }
-        })
-      : []
+      let badgeType =
+        item.badge === 'aman' || item.badge === 'safe'
+          ? 'aman'
+          : item.badge === 'hindari' || item.badge === 'avoid'
+          ? 'hindari'
+          : 'hati'
 
-  // Counts & Filter logic
-  const safeCount = displayIngredientsList.filter((i) => i.badge === 'aman').length
-  const cautionCount = displayIngredientsList.filter((i) => i.badge === 'hati').length
-  const avoidCount = displayIngredientsList.filter((i) => i.badge === 'hindari').length
+      if (isNeutralSafe) {
+        badgeType = 'aman'
+      }
+
+      const badgeLabelText =
+        isNeutralSafe
+          ? 'Aman'
+          : item.badgeLabel || (badgeType === 'aman' ? 'Aman' : badgeType === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')
+
+      const isHero =
+        item.is_hero_active ||
+        item.category === 'active' ||
+        item.category === 'Active' ||
+        HERO_ACTIVES_KEYWORDS.some((k) => lowerName.includes(k))
+
+      return {
+        name: item.name,
+        badge: badgeType,
+        badgeLabel: badgeLabelText,
+        function: item.function || item.notes || '',
+        comedogenic_score: isNeutralSafe && typeof item.comedogenic_score !== 'number' ? 0 : item.comedogenic_score,
+        skinType: item.skinType || '',
+        interaction: item.interaction || '',
+        personal: item.personal?.text ? item.personal : undefined,
+        is_drug_or_banned: item.is_drug_or_banned,
+        is_hero_active: isHero,
+      }
+    })
+  }, [rawIngredientsList, ALWAYS_SAFE_NEUTRALS, HERO_ACTIVES_KEYWORDS])
+
+  // Hero Actives List (Tier 1: Top Highlights - Always visible at top, per Claude)
+  const heroActivesList = useMemo(() => {
+    const matched = displayIngredientsList.filter((i) => i.is_hero_active)
+    if (matched.length > 0) return matched.slice(0, 5)
+    return displayIngredientsList.filter((i) => i.function && i.badge === 'aman').slice(0, 3)
+  }, [displayIngredientsList])
+
+  // Counts & Filter logic (Derived via useMemo per Claude)
+  const safeCount = useMemo(() => displayIngredientsList.filter((i) => i.badge === 'aman').length, [displayIngredientsList])
+  const cautionCount = useMemo(() => displayIngredientsList.filter((i) => i.badge === 'hati').length, [displayIngredientsList])
+  const avoidCount = useMemo(() => displayIngredientsList.filter((i) => i.badge === 'hindari').length, [displayIngredientsList])
   const totalCount = displayIngredientsList.length
 
-  const filteredIngredients = displayIngredientsList.filter((item) => {
-    const matchesBadge = filterBadge === 'all' || item.badge === filterBadge
-    const query = searchQuery.trim().toLowerCase()
-    const matchesSearch = !query ||
-      item.name.toLowerCase().includes(query) ||
-      (item.function && item.function.toLowerCase().includes(query)) ||
-      (item.skinType && item.skinType.toLowerCase().includes(query))
-    return matchesBadge && matchesSearch
-  })
+  const filteredIngredients = useMemo(() => {
+    return displayIngredientsList.filter((item) => {
+      const matchesBadge = filterBadge === 'all' || item.badge === filterBadge
+      const query = searchQuery.trim().toLowerCase()
+      const matchesSearch =
+        !query ||
+        item.name.toLowerCase().includes(query) ||
+        (item.function && item.function.toLowerCase().includes(query)) ||
+        (item.skinType && item.skinType.toLowerCase().includes(query))
+      return matchesBadge && matchesSearch
+    })
+  }, [displayIngredientsList, filterBadge, searchQuery])
 
   return (
     <div className="skincluv-ingredient-page">
@@ -627,9 +686,15 @@ PETUNJUK OCR & ANALISIS WAJIB:
               {/* Score Summary Box with Clinical AI Assessment */}
               <div className="result-summary-card">
                 <div className="summary-card-top-row">
+                  {previewUrl && (
+                    <div className="product-packaging-thumb-box">
+                      <img src={previewUrl} alt="Foto Kemasan Produk" className="product-packaging-thumb-img" />
+                      <span className="packaging-thumb-badge">Label Kemasan</span>
+                    </div>
+                  )}
                   <div className={`score-ring-avatar ${avoidCount > 0 ? 'score-danger' : cautionCount > 0 ? 'score-caution' : 'score-safe'}`}>
                     <div className="sr-number-row">
-                      <span className="sr-val">{scanResult?.safety_score || Math.round((safeCount / (totalCount || 1)) * 100)}</span>
+                      <span className="sr-val">{scanResult?.safety_score ?? Math.round((safeCount / (totalCount || 1)) * 100)}</span>
                       <span className="sr-scale">/100</span>
                     </div>
                     <span className="sr-unit">Keamanan</span>
@@ -705,6 +770,64 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 </div>
               )}
 
+              {/* TIER 1: HERO ACTIVES HIGHLIGHTS (Paling atas, selalu tampil mencolok - Konsensus Claude & Kimi) */}
+              {heroActivesList.length > 0 && (
+                <div className="hero-actives-card">
+                  <div className="hero-header">
+                    <div className="hero-header-left">
+                      <Sparkles size={16} className="text-amber-500 shrink-0" />
+                      <h4 className="hero-title">🌟 Bahan Kunci & Pahlawan (Hero Actives):</h4>
+                    </div>
+                    <span className="hero-count-pill">{heroActivesList.length} Bahan Unggulan</span>
+                  </div>
+                  <div className="hero-actives-grid">
+                    {heroActivesList.map((hero, hIdx) => (
+                      <div key={hIdx} className="hero-pill-item">
+                        <div className="hero-pill-top">
+                          <span className="hero-pill-name">{hero.name}</span>
+                          {typeof hero.comedogenic_score === 'number' && (
+                            <span className={`comedogenic-mini-badge score-${hero.comedogenic_score}`}>
+                              Pori: {hero.comedogenic_score}
+                            </span>
+                          )}
+                        </div>
+                        {hero.function ? (
+                          <p className="hero-pill-desc">{hero.function}</p>
+                        ) : (
+                          <p className="hero-pill-desc text-slate-400">Bahan aktif formula.</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* PERSONAL CONTRAINDICATIONS: Interaksi Bahan vs Kondisi Kulit Pengguna (RFC 007 Claude & Kimi) */}
+              {scanResult?.personal_contraindications && scanResult.personal_contraindications.length > 0 && (
+                <div className="personal-contraindications-card">
+                  <div className="pc-header text-amber-800">
+                    <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+                    <strong>Catatan Khusus untuk Profil Kulitmu ({userSkinType.toLowerCase()}):</strong>
+                  </div>
+                  <div className="pc-list">
+                    {scanResult.personal_contraindications.map((pc, pcIdx) => (
+                      <div key={pcIdx} className="pc-item">
+                        <div className="pc-title-row">
+                          <b>{pc.ingredient}</b>
+                          <span className="pc-condition-pill">{pc.user_condition}</span>
+                        </div>
+                        <p className="pc-warning">{pc.warning}</p>
+                        {pc.clinical_advice && (
+                          <div className="pc-advice">
+                            💡 <em>Saran: {pc.clinical_advice}</em>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* QUICK-CORRECTION OCR REVIEW BOX */}
               <div className="detected-text-box">
                 <div className="dt-header">
@@ -746,13 +869,13 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 )}
               </div>
 
-              {/* Layering Guide Box (Do & Don't Combos) */}
+              {/* Layering Guide Box (Do & Don't Combos Antar-Produk) */}
               {scanResult?.layering_guide && (
                 ((scanResult.layering_guide.best_combos && scanResult.layering_guide.best_combos.length > 0) ||
                  (scanResult.layering_guide.danger_combos && scanResult.layering_guide.danger_combos.length > 0)) && (
                   <div className="layering-guide-card">
                     <h4 className="layering-title">
-                      <Zap size={16} className="text-amber-500" /> Panduan Layering & Kombinasi Skincare
+                      <Zap size={16} className="text-amber-500" /> Panduan Layering & Kombinasi Produk Lain
                     </h4>
                     <div className="layering-grid">
                       {scanResult.layering_guide.best_combos && scanResult.layering_guide.best_combos.length > 0 && (
@@ -760,13 +883,17 @@ PETUNJUK OCR & ANALISIS WAJIB:
                           <div className="box-header text-emerald-700">
                             <ShieldCheck size={16} /> <strong>Best Combos (Aman & Efektif):</strong>
                           </div>
-                          <ul className="combos-list">
+                          <div className="combos-list">
                             {scanResult.layering_guide.best_combos.map((item, bIdx) => (
-                              <li key={bIdx}>
-                                <b>{item.pair}:</b> {item.benefit}
-                              </li>
+                              <div key={bIdx} className="combo-card-item best-combo-card">
+                                <div className="combo-card-title text-emerald-800">
+                                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                                  <b>{item.pair}</b>
+                                </div>
+                                <p className="combo-card-desc">{item.benefit}</p>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       )}
 
@@ -775,9 +902,9 @@ PETUNJUK OCR & ANALISIS WAJIB:
                           <div className="box-header text-rose-700">
                             <AlertTriangle size={16} /> <strong>Danger Combos (Hindari Bersamaan):</strong>
                           </div>
-                          <ul className="combos-list">
+                          <div className="combos-list">
                             {scanResult.layering_guide.danger_combos.map((item, dIdx) => (
-                              <li key={dIdx} className="danger-combo-item">
+                              <div key={dIdx} className="combo-card-item danger-combo-card">
                                 <div className="danger-combo-title-row">
                                   <b>{item.pair}</b>
                                   {item.severity === 'fatal' && (
@@ -787,15 +914,15 @@ PETUNJUK OCR & ANALISIS WAJIB:
                                     <span className="combo-severity-badge severity-caution">⚠️ PERHATIAN</span>
                                   )}
                                 </div>
-                                <div className="danger-combo-desc">{item.warning}</div>
+                                <p className="danger-combo-desc">{item.warning}</p>
                                 {item.clinical_action && (
                                   <div className="danger-combo-action">
                                     💡 <em>Solusi Klinis: {item.clinical_action}</em>
                                   </div>
                                 )}
-                              </li>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -803,12 +930,12 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 )
               )}
 
-              {/* Predictive Filter Bar & Search */}
+              {/* Predictive Filter Bar & Search with View Toggle (Chips vs Cards) */}
               <div className="filter-bar">
                 <div className="filter-top-row">
                   <div className="filter-label-group">
                     <Filter size={14} />
-                    <span>Filter Bahan:</span>
+                    <span>Filter ({totalCount} Bahan):</span>
                   </div>
                   <div className="filter-buttons-row">
                     <button
@@ -840,6 +967,28 @@ PETUNJUK OCR & ANALISIS WAJIB:
                       </button>
                     )}
                   </div>
+
+                  {/* Mode Tampilan Toggle (Chips vs Cards) */}
+                  <div className="view-mode-toggle-group">
+                    <button
+                      type="button"
+                      className={`view-toggle-btn ${viewMode === 'chips' ? 'active' : ''}`}
+                      onClick={() => setViewMode('chips')}
+                      title="Tampilan Ringkas (Chips)"
+                    >
+                      <LayoutGrid size={13} />
+                      <span>Ringkas</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+                      onClick={() => setViewMode('cards')}
+                      title="Tampilan Detail (Kartu)"
+                    >
+                      <ListFilter size={13} />
+                      <span>Detail</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="filter-search-row">
@@ -859,90 +1008,124 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 </div>
               </div>
 
-              {/* Ingredient Breakdown List */}
-              <div className="ingredients-cards-list">
-                {filteredIngredients.length === 0 ? (
-                  <div className="empty-search-state">
-                    <p>Tidak ada bahan yang cocok dengan pencarian "<strong>{searchQuery}</strong>".</p>
-                  </div>
-                ) : (
-                  filteredIngredients.map((ing, idx) => (
-                    <div
-                      key={idx}
-                      className="ingredient-card-item"
-                      style={{ animationDelay: `${idx * 0.05}s` }}
-                    >
-                      <div className="card-top-header">
-                        <div className="ing-title-group-col">
-                          <h4 className="ing-item-name">{ing.name}</h4>
-                          {ing.is_drug_or_banned && (
-                            <span className="bpom-drug-badge">
-                              ⚠️ Regulasi BPOM: Obat Keras / Zat Khusus
-                            </span>
-                          )}
-                        </div>
-                        <div className="ing-badges-cluster">
-                          {typeof ing.comedogenic_score === 'number' && (
-                            <span className={`comedogenic-mini-badge score-${ing.comedogenic_score}`}>
-                              Pori: {ing.comedogenic_score}
-                            </span>
-                          )}
-                          <span className={`ing-status-badge badge-${ing.badge}`}>
-                            {ing.badgeLabel || (ing.badge === 'aman' ? 'Aman' : ing.badge === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')}
-                          </span>
-                        </div>
-                      </div>
-
-                      {ing.function ? (
-                        <p className="ing-item-func">{ing.function}</p>
-                      ) : (
-                        <p className="ing-item-func ing-aux-func">Bahan pelarut atau penstabil formula.</p>
-                      )}
-
-                      {ing.skinType && (
-                        <div className="meta-info-row">
-                          <b className="meta-label">Cocok untuk:</b>
-                          <span className="meta-value">{ing.skinType}</span>
-                        </div>
-                      )}
-
-                      {ing.interaction && (
-                        <div className="meta-info-row">
-                          <b className="meta-label">Interaksi:</b>
-                          <span className="meta-value">{ing.interaction}</span>
-                        </div>
-                      )}
-
-                      {/* Personal Skin Flag */}
-                      {ing.personal?.text && (
-                        <div className={`personal-skin-flag ${ing.personal.ok ? 'flag-ok' : 'flag-warn'}`}>
-                          {ing.personal.ok ? (
-                            <CheckCircle2 size={16} className="shrink-0" />
-                          ) : (
-                            <AlertCircle size={16} className="shrink-0" />
-                          )}
-                          <span>{ing.personal.text}</span>
-                        </div>
-                      )}
+              {/* INGREDIENT LIST: DUAL MODE (CHIPS VS CARDS) */}
+              {viewMode === 'chips' ? (
+                /* CHIP VIEW: Ringkas, cepat dibaca, bebas lelah scroll (Konsensus Claude & Kimi) */
+                <div className="ingredients-chips-container">
+                  {filteredIngredients.length === 0 ? (
+                    <div className="empty-search-state">
+                      <p>Tidak ada bahan yang cocok dengan pencarian "<strong>{searchQuery}</strong>".</p>
                     </div>
-                  ))
-                )}
-              </div>
+                  ) : (
+                    <div className="ingredients-chips-grid">
+                      {filteredIngredients.map((ing, idx) => (
+                        <div
+                          key={idx}
+                          className={`ingredient-chip-item chip-${ing.badge}`}
+                          title={`${ing.name} — ${ing.badgeLabel}${ing.function ? `: ${ing.function}` : ''}`}
+                        >
+                          <span className={`chip-dot dot-${ing.badge}`} />
+                          <span className="chip-name">{ing.name}</span>
+                          {typeof ing.comedogenic_score === 'number' && ing.comedogenic_score > 0 && (
+                            <span className="chip-comedo" title={`Indeks Pori: ${ing.comedogenic_score}`}>
+                              {ing.comedogenic_score}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="chips-hint-text">
+                    💡 Menampilkan mode ringkas ({filteredIngredients.length} bahan). Klik tombol <b>Detail</b> di atas jika ingin membaca fungsi lengkap per bahan.
+                  </p>
+                </div>
+              ) : (
+                /* CARD VIEW: Detail lengkap narasi per bahan */
+                <div className="ingredients-cards-list">
+                  {filteredIngredients.length === 0 ? (
+                    <div className="empty-search-state">
+                      <p>Tidak ada bahan yang cocok dengan pencarian "<strong>{searchQuery}</strong>".</p>
+                    </div>
+                  ) : (
+                    filteredIngredients.map((ing, idx) => (
+                      <div
+                        key={idx}
+                        className="ingredient-card-item"
+                        style={{ animationDelay: `${idx * 0.03}s` }}
+                      >
+                        <div className="card-top-header">
+                          <div className="ing-title-group-col">
+                            <h4 className="ing-item-name">{ing.name}</h4>
+                            {ing.is_drug_or_banned && (
+                              <span className="bpom-drug-badge">
+                                ⚠️ Regulasi BPOM: Obat Keras / Zat Khusus
+                              </span>
+                            )}
+                          </div>
+                          <div className="ing-badges-cluster">
+                            {typeof ing.comedogenic_score === 'number' && (
+                              <span className={`comedogenic-mini-badge score-${ing.comedogenic_score}`}>
+                                Pori: {ing.comedogenic_score}
+                              </span>
+                            )}
+                            <span className={`ing-status-badge badge-${ing.badge}`}>
+                              {ing.badgeLabel || (ing.badge === 'aman' ? 'Aman' : ing.badge === 'hindari' ? 'Hindari' : 'Perlu diperhatikan')}
+                            </span>
+                          </div>
+                        </div>
 
-              {/* Action Buttons: Consult Skinsistant & Reset */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-5">
+                        {ing.function ? (
+                          <p className="ing-item-func">{ing.function}</p>
+                        ) : (
+                          <p className="ing-item-func ing-aux-func">Bahan pelarut atau penstabil formula.</p>
+                        )}
+
+                        {ing.skinType && (
+                          <div className="meta-info-row">
+                            <b className="meta-label">Cocok untuk:</b>
+                            <span className="meta-value">{ing.skinType}</span>
+                          </div>
+                        )}
+
+                        {ing.interaction && (
+                          <div className="meta-info-row">
+                            <b className="meta-label">Interaksi:</b>
+                            <span className="meta-value">{ing.interaction}</span>
+                          </div>
+                        )}
+
+                        {/* Personal Skin Flag */}
+                        {ing.personal?.text && (
+                          <div className={`personal-skin-flag ${ing.personal.ok ? 'flag-ok' : 'flag-warn'}`}>
+                            {ing.personal.ok ? (
+                              <CheckCircle2 size={16} className="shrink-0" />
+                            ) : (
+                              <AlertCircle size={16} className="shrink-0" />
+                            )}
+                            <span>{ing.personal.text}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons: Consult Skinsistant & Reset (Pure Scoped Vanilla CSS Matching FaceScanPage) */}
+              <div className="results-action-row">
+                <button className="btn-reset-scan" onClick={handleResetFlow}>
+                  <RotateCcw size={16} />
+                  <span>Scan Produk Lain</span>
+                </button>
                 <Link
                   to={`/chatbot?initialPrompt=${encodeURIComponent(
                     `Halo Skinsistant! Saya baru saja mengecek produk "${scanResult?.product_name || 'skincare'}". Apakah produk ini cocok dikombinasikan dengan kondisi kulit dan rutinitas harian saya?`
                   )}`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold text-sm shadow-sm hover:from-violet-700 hover:to-indigo-700 transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
+                  className="btn-consult-skinsistant"
                 >
                   <Sparkles size={16} />
                   <span>Konsultasikan ke Skinsistant AI</span>
                 </Link>
-                <button className="btn-reset-scan flex-1" onClick={handleResetFlow}>
-                  Scan Produk Skincare Lain
-                </button>
               </div>
             </div>
           )}
@@ -950,7 +1133,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
         {/* RIGHT COLUMN: Side Summary & Active Skin Profile Panel */}
         <div className="side-summary-col">
-          {/* Active Skin Profile Context Card */}
+          {/* Active Skin Profile Context Card (Un-hardcoded Dynamic Concerns) */}
           <div className="side-card profile-context-card">
             <div className="side-card-header">
               <div className="side-icon-box teal">
@@ -960,10 +1143,16 @@ PETUNJUK OCR & ANALISIS WAJIB:
             </div>
             <div className="profile-badge-group">
               <span className="profile-pill-primary">{userSkinType}</span>
-              <span className="profile-pill-secondary">RAWAN JERAWAT</span>
+              {activeSkinProfile?.skin_concerns && activeSkinProfile.skin_concerns.length > 0 ? (
+                activeSkinProfile.skin_concerns.slice(0, 2).map((c, i) => (
+                  <span key={i} className="profile-pill-secondary">{c.toUpperCase()}</span>
+                ))
+              ) : (
+                <span className="profile-pill-secondary">KOMBINASI SEHAT</span>
+              )}
             </div>
             <p className="profile-desc-text">
-              Analisis keamanan bahan kosmetik secara otomatis disesuaikan dengan keluhan T-zone & sensitivitas kulit Anda.
+              Analisis keamanan bahan kosmetik secara otomatis disesuaikan dengan keluhan {userConcerns.toLowerCase()} & sensitivitas kulit Anda.
             </p>
           </div>
 
@@ -1852,6 +2041,188 @@ PETUNJUK OCR & ANALISIS WAJIB:
           cursor: not-allowed;
         }
 
+        .product-packaging-thumb-box {
+          position: relative;
+          width: 76px;
+          height: 76px;
+          border-radius: 12px;
+          overflow: hidden;
+          border: 1px solid #cbd5e1;
+          flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+          background: #f1f5f9;
+        }
+
+        .product-packaging-thumb-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .packaging-thumb-badge {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(15, 23, 42, 0.75);
+          color: #ffffff;
+          font-size: 0.58rem;
+          font-weight: 700;
+          text-align: center;
+          padding: 2px 0;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+        }
+
+        /* HERO ACTIVES HIGHLIGHT CARD */
+        .hero-actives-card {
+          background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+          border: 1.5px solid #fde68a;
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.06);
+        }
+
+        .hero-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 12px;
+          flex-wrap: wrap;
+        }
+
+        .hero-header-left {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .hero-title {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #92400e;
+          margin: 0;
+        }
+
+        .hero-count-pill {
+          background: #ffffff;
+          border: 1px solid #fde68a;
+          color: #b45309;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 999px;
+        }
+
+        .hero-actives-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 10px;
+        }
+
+        .hero-pill-item {
+          background: #ffffff;
+          border: 1px solid #fef08a;
+          border-radius: 12px;
+          padding: 10px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .hero-pill-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+        }
+
+        .hero-pill-name {
+          font-size: 0.84375rem;
+          font-weight: 700;
+          color: #1e293b;
+        }
+
+        .hero-pill-desc {
+          font-size: 0.75rem;
+          color: #475569;
+          line-height: 1.4;
+          margin: 0;
+        }
+
+        /* PERSONAL CONTRAINDICATIONS CARD */
+        .personal-contraindications-card {
+          background: #fffbeb;
+          border: 1.5px solid #fed7aa;
+          border-radius: 16px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .pc-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.84375rem;
+        }
+
+        .pc-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .pc-item {
+          background: #ffffff;
+          border: 1px solid #fde68a;
+          border-radius: 10px;
+          padding: 10px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .pc-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .pc-title-row b {
+          font-size: 0.8125rem;
+          color: #0f172a;
+        }
+
+        .pc-condition-pill {
+          background: #fef3c7;
+          color: #92400e;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          padding: 2px 7px;
+          border-radius: 999px;
+        }
+
+        .pc-warning {
+          font-size: 0.78125rem;
+          color: #475569;
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        .pc-advice {
+          font-size: 0.75rem;
+          color: #0369a1;
+          background: #f0f9ff;
+          border: 1px solid #bae6fd;
+          border-radius: 6px;
+          padding: 5px 8px;
+        }
+
         /* LAYERING GUIDE */
         .layering-guide-card {
           background: #ffffff;
@@ -1879,8 +2250,11 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
         .layering-box {
           border-radius: 12px;
-          padding: 12px 14px;
+          padding: 14px;
           font-size: 0.8125rem;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
         }
 
         .best-box {
@@ -1897,78 +2271,46 @@ PETUNJUK OCR & ANALISIS WAJIB:
           display: flex;
           align-items: center;
           gap: 6px;
-          margin-bottom: 8px;
           font-size: 0.8125rem;
         }
 
         .combos-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          color: #334155;
-          line-height: 1.45;
-        }
-
-        .combos-list li {
-          position: relative;
-          padding-left: 14px;
-        }
-
-        .combos-list li::before {
-          content: '•';
-          position: absolute;
-          left: 2px;
-          color: #64748b;
-        }
-
-        .scan-alerts-group {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .bpom-alert-banner {
-          background: #fef2f2;
-          border: 1.5px solid #f87171;
-          border-radius: 12px;
-          padding: 12px 14px;
-          animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .bpom-alert-header {
-          display: flex;
-          align-items: center;
           gap: 8px;
-          color: #991b1b;
-          font-size: 0.875rem;
-          font-weight: 700;
-          margin-bottom: 4px;
         }
 
-        .bpom-alert-text {
-          margin: 0;
-          font-size: 0.8125rem;
-          color: #7f1d1d;
-          line-height: 1.45;
-        }
-
-        .danger-combo-item {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          padding-left: 0 !important;
+        .combo-card-item {
           background: #ffffff;
-          border: 1px solid #fecdd3;
           border-radius: 10px;
           padding: 10px 12px;
-          box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
 
-        .danger-combo-item::before {
-          display: none !important;
+        .best-combo-card {
+          border: 1px solid #dcfce7;
+          box-shadow: 0 1px 3px rgba(16, 185, 129, 0.05);
+        }
+
+        .combo-card-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.84375rem;
+        }
+
+        .combo-card-desc {
+          font-size: 0.78125rem;
+          color: #334155;
+          margin: 0;
+          line-height: 1.45;
+        }
+
+        .danger-combo-card {
+          border: 1px solid #fecdd3;
+          box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);
         }
 
         .danger-combo-title-row {
@@ -1996,7 +2338,6 @@ PETUNJUK OCR & ANALISIS WAJIB:
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          letter-spacing: 0.02em;
         }
 
         .severity-fatal {
@@ -2012,19 +2353,138 @@ PETUNJUK OCR & ANALISIS WAJIB:
         }
 
         .danger-combo-desc {
-          font-size: 0.8125rem;
+          font-size: 0.78125rem;
           color: #475569;
+          margin: 0;
           line-height: 1.45;
         }
 
         .danger-combo-action {
-          font-size: 0.78125rem;
+          font-size: 0.75rem;
           color: #0369a1;
           background: #f0f9ff;
           border: 1px solid #bae6fd;
-          border-radius: 8px;
-          padding: 6px 10px;
+          border-radius: 6px;
+          padding: 5px 8px;
           margin-top: 2px;
+          line-height: 1.4;
+        }
+
+        .view-mode-toggle-group {
+          display: flex;
+          align-items: center;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 2px;
+          margin-left: auto;
+        }
+
+        .view-toggle-btn {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          border: none;
+          background: transparent;
+          color: #64748b;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 5px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .view-toggle-btn.active {
+          background: #ffffff;
+          color: #0f6784;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        /* CHIP GRID VIEW FOR INGREDIENTS */
+        .ingredients-chips-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .ingredients-chips-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .ingredient-chip-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 999px;
+          padding: 6px 12px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #1e293b;
+          transition: all 0.15s ease;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .ingredient-chip-item:hover {
+          border-color: #cbd5e1;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .ingredient-chip-item.chip-aman {
+          border-color: #dcfce7;
+        }
+
+        .ingredient-chip-item.chip-hati {
+          border-color: #fef08a;
+          background: #fffdf5;
+        }
+
+        .ingredient-chip-item.chip-hindari {
+          border-color: #fecaca;
+          background: #fef2f2;
+        }
+
+        .chip-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .chip-dot.dot-aman {
+          background: #10b981;
+        }
+
+        .chip-dot.dot-hati {
+          background: #f59e0b;
+        }
+
+        .chip-dot.dot-hindari {
+          background: #ef4444;
+        }
+
+        .chip-name {
+          line-height: 1.2;
+        }
+
+        .chip-comedo {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          color: #d97706;
+          background: #fef3c7;
+          border-radius: 999px;
+          padding: 1px 6px;
+        }
+
+        .chips-hint-text {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin: 4px 0 0 0;
           line-height: 1.4;
         }
 
@@ -2350,21 +2810,65 @@ PETUNJUK OCR & ANALISIS WAJIB:
           border: 1px solid #ffcdd2;
         }
 
+        .results-action-row {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 20px;
+        }
+
+        @media (min-width: 640px) {
+          .results-action-row {
+            flex-direction: row;
+          }
+        }
+
         .btn-reset-scan {
-          width: 100%;
+          flex: 1;
           background: #ffffff;
           border: 1px solid #cbd5e1;
           color: #0f6784;
           border-radius: 12px;
-          padding: 12px;
+          padding: 13px 18px;
           font-size: 0.875rem;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.15s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.15s ease;
         }
 
         .btn-reset-scan:hover {
           background: #f8fafc;
+          border-color: #94a3b8;
+        }
+
+        .btn-consult-skinsistant {
+          flex: 2;
+          min-width: 240px;
+          background: #0f6784;
+          border: none;
+          color: #ffffff;
+          border-radius: 12px;
+          padding: 13px 20px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          text-decoration: none;
+          box-shadow: 0 2px 6px rgba(15, 103, 132, 0.2);
+          transition: all 0.15s ease;
+        }
+
+        .btn-consult-skinsistant:hover {
+          background: #0b4f5c;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(15, 103, 132, 0.25);
         }
 
         /* RIGHT COLUMN: SIDE SUMMARY PANEL */

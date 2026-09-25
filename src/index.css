@@ -22,6 +22,10 @@
   --color-primary-fixed:         #c9e6ff;
   --color-primary-fixed-dim:     #89ceff;
 
+  /* Brand Signature Deep Teal (Skincluv Anchor) */
+  --skincluv-teal:               #0f6784;
+  --skincluv-teal-hover:         #0b4f5c;
+
   /* Stich Secondary Palette (Pale Azure) */
   --color-secondary:             #50616b;
   --color-on-secondary:          #ffffff;
