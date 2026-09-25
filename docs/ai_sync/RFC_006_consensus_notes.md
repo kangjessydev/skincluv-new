@@ -90,7 +90,38 @@ Secara konsep *Golden Hybrid* disetujui, namun ChatGPT menolak memberikan approv
 ---
 
 ## 4. Reviewer: DeepSeek (Mathematical & Tokenomics Optimizer)
-**Status**: ⏳ Menunggu tanggapan pengguna / sesi konsultasi
+**Status**: ✅ APPROVED WITH OPTIMIZATION & MATH VERIFICATION
+
+### Inti Evaluasi:
+RFC 006 secara tokenomics dan unit economics dinyatakan **SEHAT**. Injeksi context tambahan 350–500 token hanya membebani biaya marginal **Rp 1,25 – Rp 1,78 per pesan** (pada asumsi kurs Rp 17.823/USD). Terhadap harga 1 kredit Skincluv (Rp 490 – Rp 2.400), margin kotor tetap di atas **>99%**. Namun, DeepSeek memberikan batas matematis ketat dan mengidentifikasi potensi *abuse vector* baru.
+
+### Poin Kritis & Temuan Matematis DeepSeek:
+1. **Model Delta Cost & Headroom**:
+   - Biaya input ekstra (350–500 token) = **$0.00007 – $0.00010** (Rp 1,25 – Rp 1,78).
+   - Pada sesi percakapan 10 turn, akumulasi biaya konteks sekitar **Rp 15,13/sesi**.
+   - *Abuse threshold*: Injeksi context baru membahayakan margin jika melebihi **~100.000 token/pesan**. Kita memiliki *safety headroom* hingga **~200x** dari desain saat ini.
+2. **Kapasitas Context Window & Risiko Truncation**:
+   - Kapasitas Qwen3.8-27B di Groq adalah **32.768 token**.
+   - Pada percakapan 7–10 turn, total token yang terpakai baru sekitar ~4.300 token (**hanya 15% dari total kapasitas**).
+   - Risiko truncation baru muncul jika percakapan mencapai **>64 turn**. Untuk sesi normal, risiko hilang konteks adalah **0%**.
+3. **Formula Anggaran Konteks Optimal (Cap di 375 Token, Bukan 500 Token)**:
+   - DeepSeek merekomendasikan batas ketat $B_{scan} = 375$ token:
+     - **Face Scan (Target: 200 token)**: tanggal, skor, tipe kulit, concern utama, kondisi 3 area singkat, 3 hero actives teratas. *Buang*: `raw_ai_response`, analogi, action plan bertele-tele.
+     - **Ingredient Scan (Target: 175 token / 3 produk)**: nama + brand ($\le$ 30 karakter), safety score, jumlah bahaya combo. *Buang*: full ingredient raw list & OCR.
+4. **Validasi Format: Bullet Teks vs JSON (15–25% Lebih Hemat)**:
+   - Format bullet dermatologis terstruktur terbukti secara matematis **15–25% lebih hemat token** daripada JSON karena meniadakan overhead syntax kurung, kutip, dan key yang berulang.
+5. **Prompt Caching di Groq (Prefix Alignment)**:
+   - Jika Groq mendukung *prompt caching* pada prefix, taruh injeksi konteks di awal/statis dari prompt.
+   - Cache-hit dapat menurunkan biaya input hingga **50–90%** pada turn berikutnya dalam sesi yang sama (menjadi Rp 0,15–0,75/turn).
+6. **Pencegahan Celah Abuse (Credit Farming pada Post-Scan Chat)**:
+   - Fitur CTA *"Diskusikan dengan Skinsistant"* **TETAP WAJIB MEMOTONG 1 KREDIT** seperti chat normal.
+   - Jika dibuat gratis (*free pass*), pengguna dapat mengeksploitasi scan 5 kredit untuk spamming chat AI tanpa batas yang membakar biaya token platform.
+7. **Efisiensi Token Action CTA: Special Token Menang Mutlak**:
+   - `[ACTION:FACE_SCAN]` = hanya butuh **~3 output token**.
+   - JSON metadata block = memakan **~25–40 output token** (harga output token Groq 2–3x lebih mahal dari input token).
+   - *Keputusan*: Gunakan token marker `[ACTION:FACE_SCAN]` dengan regex parser + strict enum whitelist di backend & frontend (seperti rekomendasi ChatGPT).
+8. **Residu Data pada Penarikan Consent (UU PDP)**:
+   - Jika user mencabut consent di tengah jalan, riwayat pesan chat lama yang sudah pernah mengutip scan wajah harus dibersihkan atau ditandai teredaksi (`[REDACTED_PER_CONSENT_REVOCATION]`).
 
 ---
 
@@ -99,10 +130,25 @@ Secara konsep *Golden Hybrid* disetujui, namun ChatGPT menolak memberikan approv
 
 ---
 
-## 6. Daftar Tugas P0 Produksi (Sintesis Konsensus)
-- [ ] **P0.1 Server-Side Context Isolation**: RPC PostgreSQL `get_chatbot_user_context()` dengan `auth.uid()`, `SECURITY DEFINER`, `SET search_path = ''`, tanpa parameter `p_user_id`.
+## 6. Komparasi Tiga Pilar Dewan AI (Claude, ChatGPT, DeepSeek)
+
+| Dimensi Arsitektur | Claude (Arsitektur) | ChatGPT (Keamanan) | DeepSeek (Matematika & Biaya) | Konsensus Final Antigravity |
+| :--- | :--- | :--- | :--- | :--- |
+| **Bentuk Injeksi** | Bullet teks natural | Canonical JSON boundary `<USER_SCAN_DATA>` | Bullet teks terstruktur (15–25% lebih hemat dari JSON) | **Bullet teks dermatologis ringkas** di dalam boundary `<USER_SCAN_DATA>`. |
+| **Budget Konteks** | Maks 500 token | Minimalkan seminimal mungkin | Cap ketat di **375 token** (Face 200 + Products 175) | **Cap 375 token** dengan prioritasi top-N sinyal klinis. |
+| **Gating Konteks** | Injeksi selalu jika ON | **Relevance Gating** (hanya jika relevan) | Relevance Gating memotong 70% biaya chat umum | **Relevance Gating Aktif** (Keyword/Intent deterministik). |
+| **Mekanisme CTA** | Marker `[ACTION:X]` | Structured Enum Whitelist | Marker hemat ~30 output token dibanding JSON | Marker `[ACTION:FACE_SCAN]` / `[ACTION:INGREDIENT_SCAN]` divalidasi via **Strict Enum Whitelist**. |
+| **Monetisasi Post-Scan**| Belum dispesifikasikan | Idempotency token deduction | **Wajib potong 1 kredit** (cegah abuse farming) | **Tetap potong 1 kredit** via atomic RPC `deduct_coins`. |
+| **Consent & Residu** | 2 Toggle profil | Master + Sub-toggle + Audit Version | Redaksi residu chat lama saat consent dicabut | **Master Toggle + Sub-toggles + Redaksi Residu Chat**. |
+
+---
+
+## 7. Daftar Tugas P0 Produksi (Sintesis Konsensus Tiga Model)
+- [ ] **P0.1 Server-Side Context Isolation**: RPC PostgreSQL `get_chatbot_user_context()` dengan `auth.uid()`, `SECURITY DEFINER`, `SET search_path = ''`.
 - [ ] **P0.2 Consent Hierarchy & Zero-Query**: Master toggle + sub-toggles di profil. Jika OFF, nol query dijalankan.
-- [ ] **P0.3 Relevance Gating**: Cek query pengguna; hanya panggil / sertakan context jika kata kunci kulit/wajah atau produk/bahan terdeteksi.
-- [ ] **P0.4 XML Data Boundary & Anti-Poisoning**: Bungkus context dalam `<USER_SCAN_DATA>` dengan aturan eksplisit data $\neq$ instruction.
-- [ ] **P0.5 Strict Enum CTA**: Validasi enum `FACE_SCAN` / `INGREDIENT_SCAN` dari response chatbot, rendering tombol aksi terisolasi di UI.
-- [ ] **P0.6 Clinical Provenance & Hierarchy**: Cantumkan umur scan (`ageHours`) dan kunci temuan Gemini sebagai fakta baku yang tidak boleh diubah Qwen.
+- [ ] **P0.3 Relevance Gating & 375-Token Cap**: Cek relevansi query; cap konteks maksimal 375 token (Face 200, Products 175).
+- [ ] **P0.4 XML Boundary & Imunitas Poisoning**: Format bullet diisolasi dalam `<USER_SCAN_DATA>` dengan aturan anti-prompt-injection.
+- [ ] **P0.5 Atomic Token & Anti-Abuse**: "Diskusikan dengan Skinsistant" tetap memotong 1 kredit via `deduct_coins` dengan `operation_id` idempotent.
+- [ ] **P0.6 Marker CTA dengan Strict Whitelist**: Parse `[ACTION:FACE_SCAN]` & `[ACTION:INGREDIENT_SCAN]` dengan whitelist enum ketat di frontend.
+- [ ] **P0.7 Clinical Hierarchy**: Fakta klinis Gemini adalah patokan baku; Qwen hanya berfungsi sebagai *explainer*.
+
