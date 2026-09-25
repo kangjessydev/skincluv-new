@@ -743,44 +743,42 @@ export default function ChatbotPage() {
               </div>
 
               {/* Scan History Consent Section (RFC 006 Multi-Model Consensus) */}
-              <div className="mt-4 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={16} className="text-violet-600" />
-                    <span className="font-semibold text-sm text-slate-800">Riwayat Scan AI</span>
+              <div className="scan-consent-card">
+                <div className="scan-consent-header">
+                  <div className="scan-consent-title">
+                    <Sparkles size={15} className="text-violet-icon" />
+                    <span>Riwayat Scan AI</span>
                   </div>
                   <button
                     type="button"
-                    className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
-                      scanMasterConsent ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                    }`}
+                    className={`consent-toggle-btn ${scanMasterConsent ? 'btn-enable' : 'btn-disable'}`}
                     onClick={() => handleSetScanConsent(!scanMasterConsent)}
                   >
                     {scanMasterConsent ? 'Aktif' : 'Nonaktif'}
                   </button>
                 </div>
-                <p className="text-xs text-slate-500 mb-2.5 leading-relaxed">
+                <p className="scan-consent-desc">
                   Izinkan Skinsistant membaca hasil scan wajah dan riwayat produk untuk personalisasi rekomendasi. Sesuai prinsip minimisasi data UU PDP, riwayat scan hanya diakses jika relevan dengan pertanyaan Anda.
                 </p>
 
                 {scanMasterConsent && (
-                  <div className="space-y-2 pt-2.5 border-t border-slate-200">
-                    <label className="flex items-center justify-between text-xs text-slate-700 cursor-pointer select-none">
-                      <span className="font-medium">Rekam Jejak Scan Wajah Terakhir</span>
+                  <div className="scan-sub-options">
+                    <label className="scan-sub-item">
+                      <span>Rekam Jejak Scan Wajah Terakhir</span>
                       <input
                         type="checkbox"
                         checked={scanFaceConsent}
                         onChange={(e) => handleSetScanConsent(true, e.target.checked, scanProductConsent)}
-                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-500 h-4 w-4"
+                        className="scan-checkbox"
                       />
                     </label>
-                    <label className="flex items-center justify-between text-xs text-slate-700 cursor-pointer select-none">
-                      <span className="font-medium">Rekam Jejak Cek Komposisi / Produk</span>
+                    <label className="scan-sub-item">
+                      <span>Rekam Jejak Cek Komposisi / Produk</span>
                       <input
                         type="checkbox"
                         checked={scanProductConsent}
                         onChange={(e) => handleSetScanConsent(true, scanFaceConsent, e.target.checked)}
-                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-500 h-4 w-4"
+                        className="scan-checkbox"
                       />
                     </label>
                   </div>
@@ -934,12 +932,12 @@ export default function ChatbotPage() {
 
                 {/* RFC 006: In-Chat Action CTA Widget */}
                 {msg.sender === 'bot' && action && (
-                  <div className="mt-2.5">
+                  <div className="chat-action-cta-wrapper">
                     {action === 'FACE_SCAN' && (
                       <button
                         type="button"
                         onClick={() => navigate('/face-scan')}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-700 hover:to-indigo-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="chat-action-cta-btn face-scan-cta"
                       >
                         <ScanFace size={15} />
                         <span>Mulai Scan Wajah AI Sekarang</span>
@@ -950,7 +948,7 @@ export default function ChatbotPage() {
                       <button
                         type="button"
                         onClick={() => navigate('/ingredient-scan')}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="chat-action-cta-btn ingredient-scan-cta"
                       >
                         <FileText size={15} />
                         <span>Cek Komposisi / Produk</span>
@@ -1968,6 +1966,113 @@ export default function ChatbotPage() {
 
         .consent-toggle-btn.btn-enable:hover {
           background: #bbf7d0;
+        }
+
+        /* Scan History Consent Card Styling (RFC 006) */
+        .scan-consent-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 12px 14px;
+          margin-bottom: 16px;
+        }
+
+        .scan-consent-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+        }
+
+        .scan-consent-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .scan-consent-title .text-violet-icon {
+          color: #7c3aed;
+        }
+
+        .scan-consent-desc {
+          font-size: 0.72rem;
+          color: #64748b;
+          line-height: 1.45;
+          margin: 0 0 10px 0;
+        }
+
+        .scan-sub-options {
+          border-top: 1px solid #e2e8f0;
+          padding-top: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+        }
+
+        .scan-sub-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #334155;
+          cursor: pointer;
+          user-select: none;
+        }
+
+        .scan-checkbox {
+          width: 17px;
+          height: 17px;
+          accent-color: #7c3aed;
+          cursor: pointer;
+        }
+
+        /* In-Chat Action CTA Buttons */
+        .chat-action-cta-wrapper {
+          margin-top: 8px;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .chat-action-cta-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 8px 14px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          color: #ffffff;
+          transition: all 0.18s ease;
+          text-decoration: none;
+        }
+
+        .chat-action-cta-btn.face-scan-cta {
+          background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+          box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+        }
+
+        .chat-action-cta-btn.face-scan-cta:hover {
+          background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+        }
+
+        .chat-action-cta-btn.ingredient-scan-cta {
+          background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+          box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+        }
+
+        .chat-action-cta-btn.ingredient-scan-cta:hover {
+          background: linear-gradient(135deg, #047857 0%, #0f766e 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
         }
 
         .memories-section-header {
