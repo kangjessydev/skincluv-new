@@ -865,12 +865,12 @@ export default function AdminTransactionsPage() {
 
             <form onSubmit={handleCreateManualPass}>
               <div className="modal-body">
-                <p className="text-xs text-gray-600 mb-3.5 leading-relaxed">
+                <p className="admin-modal-desc">
                   Gunakan formulir ini jika pelanggan membayar langsung kepada admin (transfer bank manual / cash) tanpa melalui halaman checkout Tripay.
                 </p>
 
-                <div className="form-group mb-3">
-                  <label className="form-label text-xs font-bold text-gray-700 block mb-1">
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
                     Cari & Pilih Pengguna:
                   </label>
                   <input
@@ -905,8 +905,8 @@ export default function AdminTransactionsPage() {
                   </select>
                 </div>
 
-                <div className="form-group mb-3">
-                  <label className="form-label text-xs font-bold text-gray-700 block mb-1.5">
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
                     Pilih Paket Akses 30 Hari:
                   </label>
                   <div className="plan-radio-group">
@@ -918,9 +918,9 @@ export default function AdminTransactionsPage() {
                         checked={createPassPlan === 'GLOW'}
                         onChange={() => setCreatePassPlan('GLOW')}
                       />
-                      <div>
-                        <span className="font-bold block text-xs text-emerald-800">GLOW Pass (Rp 25.000)</span>
-                        <span className="text-[11px] text-gray-500">100 Kuota AI Universal • 30 Hari</span>
+                      <div className="plan-radio-info">
+                        <span className="plan-radio-title glow">GLOW Pass (Rp 25.000)</span>
+                        <span className="plan-radio-subtitle">100 Kuota AI Universal • 30 Hari</span>
                       </div>
                     </label>
                     <label className={`plan-radio-label ${createPassPlan === 'PRO' ? 'selected' : ''}`}>
@@ -931,16 +931,16 @@ export default function AdminTransactionsPage() {
                         checked={createPassPlan === 'PRO'}
                         onChange={() => setCreatePassPlan('PRO')}
                       />
-                      <div>
-                        <span className="font-bold block text-xs text-indigo-800">PRO Pass (Rp 49.000)</span>
-                        <span className="text-[11px] text-gray-500">500 Kuota AI Universal • 30 Hari</span>
+                      <div className="plan-radio-info">
+                        <span className="plan-radio-title pro">PRO Pass (Rp 49.000)</span>
+                        <span className="plan-radio-subtitle">500 Kuota AI Universal • 30 Hari</span>
                       </div>
                     </label>
                   </div>
                 </div>
 
-                <div className="form-group mb-1">
-                  <label className="form-label text-xs font-bold text-gray-700 block mb-1">
+                <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                  <label className="admin-form-label">
                     Catatan Verifikasi Pembayaran (Wajib):
                   </label>
                   <textarea
@@ -1792,6 +1792,25 @@ export default function AdminTransactionsPage() {
           color: #991b1b;
         }
 
+        .admin-modal-desc {
+          font-size: 13px;
+          color: #64748b;
+          margin: 0 0 16px 0;
+          line-height: 1.5;
+        }
+
+        .admin-form-group {
+          margin-bottom: 14px;
+        }
+
+        .admin-form-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 700;
+          color: #334155;
+          margin-bottom: 6px;
+        }
+
         .plan-radio-group {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -1802,7 +1821,7 @@ export default function AdminTransactionsPage() {
           display: flex;
           align-items: flex-start;
           gap: 8px;
-          padding: 10px;
+          padding: 12px;
           border: 1px solid #e2e8f0;
           border-radius: 8px;
           cursor: pointer;
@@ -1813,6 +1832,41 @@ export default function AdminTransactionsPage() {
         .plan-radio-label.selected {
           border-color: #4f46e5;
           background: #eef2ff;
+        }
+
+        .plan-radio-label input[type="radio"] {
+          margin-top: 2px;
+          cursor: pointer;
+          accent-color: #4f46e5;
+          flex-shrink: 0;
+        }
+
+        .plan-radio-info {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .plan-radio-title {
+          display: block;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        .plan-radio-title.glow {
+          color: #065f46;
+        }
+
+        .plan-radio-title.pro {
+          color: #3730a3;
+        }
+
+        .plan-radio-subtitle {
+          display: block;
+          font-size: 11px;
+          color: #64748b;
+          line-height: 1.3;
         }
 
         .btn-confirm-action {
