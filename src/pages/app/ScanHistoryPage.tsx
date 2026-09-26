@@ -1215,7 +1215,7 @@ export default function ScanHistoryPage() {
         }
 
         .modal-body-scroll {
-          padding: 20px 24px;
+          padding: 20px 24px 28px;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
@@ -1224,19 +1224,20 @@ export default function ScanHistoryPage() {
 
         .modal-score-hero {
           background: linear-gradient(135deg, var(--skincluv-teal, #0f6784) 0%, var(--skincluv-teal-hover, #0b4f5c) 100%);
-          border-radius: 16px;
-          padding: 20px;
+          border-radius: 18px;
+          padding: 22px 24px;
           color: #ffffff;
           position: relative;
           overflow: hidden;
+          box-shadow: 0 8px 24px rgba(15, 103, 132, 0.2);
         }
 
         .hero-glow-accent {
           position: absolute;
           top: -40px;
           right: -40px;
-          width: 140px;
-          height: 140px;
+          width: 160px;
+          height: 160px;
           border-radius: 50%;
           background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
           pointer-events: none;
@@ -1257,44 +1258,78 @@ export default function ScanHistoryPage() {
           gap: 20px;
         }
 
-        .sr-number-row {
-          display: flex;
-          align-items: baseline;
-          gap: 2px;
-        }
-
         .score-meta-info {
           flex: 1;
+          min-width: 0;
         }
 
         .score-ring-avatar {
-          width: 76px;
-          height: 76px;
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.18);
+          min-width: 92px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.16);
           backdrop-filter: blur(8px);
+          border: 1.5px solid rgba(255, 255, 255, 0.25);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-sizing: border-box;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          transition: all 0.2s ease;
+        }
+
+        .score-ring-avatar.score-optimal {
+          border-color: rgba(52, 211, 153, 0.6);
+          background: radial-gradient(circle, rgba(52, 211, 153, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%);
+        }
+
+        .score-ring-avatar.score-caution {
+          border-color: rgba(251, 191, 36, 0.6);
+          background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%);
+        }
+
+        .score-ring-avatar.score-warning {
+          border-color: rgba(248, 113, 113, 0.6);
+          background: radial-gradient(circle, rgba(248, 113, 113, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%);
+        }
+
+        .sr-number-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 2px;
+          line-height: 1;
         }
 
         .sr-val {
-          font-size: 1.75rem;
+          font-size: 1.85rem;
           font-weight: 800;
+          letter-spacing: -0.02em;
+          line-height: 1;
+          color: #ffffff;
         }
 
         .sr-scale {
           font-size: 0.75rem;
           opacity: 0.8;
+          line-height: 1;
+          color: #e0f2fe;
+          margin-left: 2px;
         }
 
         .sr-unit {
           font-size: 0.625rem;
           text-transform: uppercase;
           font-weight: 700;
-          opacity: 0.85;
+          letter-spacing: 0.04em;
+          opacity: 0.95;
+          margin-top: 5px;
+          line-height: 1.2;
+          text-align: center;
+          white-space: nowrap;
+          color: #ffffff;
         }
 
         .hero-badges-row {
@@ -1620,6 +1655,24 @@ export default function ScanHistoryPage() {
         @media (max-width: 600px) {
           .modal-tips-grid {
             grid-template-columns: 1fr;
+          }
+          .modal-card-dialog {
+            margin: 8px;
+            max-height: 94vh;
+          }
+          .modal-body-scroll {
+            padding: 16px 16px 24px;
+            gap: 16px;
+          }
+          .modal-score-hero {
+            padding: 16px;
+          }
+          .score-hero-content {
+            gap: 14px;
+          }
+          .score-ring-avatar {
+            min-width: 82px;
+            padding: 10px 10px;
           }
         }
 
