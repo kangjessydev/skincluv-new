@@ -82,7 +82,7 @@ export default function DashboardPage() {
   const trendLabel = skinAssessment?.trend_label || 'Scan berkala untuk melihat tren'
 
   return (
-    <div className="dashboard-page-container">
+    <div className="skincluv-dashboard-grid">
       {/* 0. PASS EXPIRY REMINDER BANNER (RFC 010 H-3 / H-1) */}
       {showExpiryAlert && (
         <div className={`expiry-alert-banner ${daysRemaining === 1 ? 'alert-urgent' : 'alert-warning'}`}>
@@ -110,7 +110,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="skincluv-dashboard-grid">
       {/* 1. STATUS HERO BANNER (3-STATE COLD START UX) */}
       <div className={`status-hero ${!hasFaceScan ? 'hero-cold-start' : ''}`}>
         <div className="hero-pattern-dots" />
@@ -353,37 +352,72 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-      </div>
 
       {/* SCOPED VANILLA CSS STYLING MATCHING SKINCLUV MASTER TOKENS */}
       <style>{`
-        .dashboard-page-container {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          width: 100%;
-        }
-
         .expiry-alert-banner {
+          grid-column: 1 / -1;
           display: flex;
           align-items: center;
           gap: 12px;
           padding: 14px 18px;
-          border-radius: 16px;
+          border-radius: var(--radius-xl);
           box-sizing: border-box;
           animation: fadeIn 0.3s ease-out;
         }
 
         .alert-urgent {
-          background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
-          border: 1px solid rgba(239, 68, 68, 0.35);
-          color: #f87171;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+        }
+
+        .alert-urgent .expiry-alert-icon {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+
+        .alert-urgent .expiry-alert-title {
+          color: #991b1b;
+        }
+
+        .alert-urgent .expiry-alert-msg {
+          color: #7f1d1d;
+        }
+
+        .alert-urgent .btn-renew-banner {
+          background: #dc2626;
+          color: #ffffff;
+        }
+
+        .alert-urgent .btn-renew-banner:hover {
+          background: #b91c1c;
         }
 
         .alert-warning {
-          background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
-          border: 1px solid rgba(245, 158, 11, 0.35);
-          color: #fbbf24;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+        }
+
+        .alert-warning .expiry-alert-icon {
+          background: #fef3c7;
+          color: #d97706;
+        }
+
+        .alert-warning .expiry-alert-title {
+          color: #92400e;
+        }
+
+        .alert-warning .expiry-alert-msg {
+          color: #78350f;
+        }
+
+        .alert-warning .btn-renew-banner {
+          background: #d97706;
+          color: #ffffff;
+        }
+
+        .alert-warning .btn-renew-banner:hover {
+          background: #b45309;
         }
 
         .expiry-alert-icon {
@@ -394,7 +428,6 @@ export default function DashboardPage() {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          background: rgba(255, 255, 255, 0.1);
         }
 
         .expiry-alert-body {
@@ -406,14 +439,13 @@ export default function DashboardPage() {
           display: block;
           font-size: 0.875rem;
           font-weight: 700;
-          color: white;
           margin-bottom: 2px;
+          font-family: var(--font-heading);
         }
 
         .expiry-alert-msg {
           margin: 0;
           font-size: 0.75rem;
-          color: var(--color-text-secondary, #cbd5e1);
           line-height: 1.4;
         }
 
@@ -425,12 +457,10 @@ export default function DashboardPage() {
         }
 
         .btn-renew-banner {
-          background: #f59e0b;
-          color: #1e1b4b;
           border: none;
           font-weight: 700;
           font-size: 0.75rem;
-          padding: 7px 14px;
+          padding: 8px 14px;
           border-radius: 8px;
           cursor: pointer;
           white-space: nowrap;
@@ -438,23 +468,13 @@ export default function DashboardPage() {
         }
 
         .btn-renew-banner:hover {
-          background: #fbbf24;
           transform: translateY(-1px);
-        }
-
-        .alert-urgent .btn-renew-banner {
-          background: #ef4444;
-          color: white;
-        }
-
-        .alert-urgent .btn-renew-banner:hover {
-          background: #dc2626;
         }
 
         .btn-dismiss-banner {
           background: transparent;
           border: none;
-          color: var(--color-text-muted, #94a3b8);
+          color: var(--color-text-muted);
           cursor: pointer;
           padding: 6px;
           border-radius: 6px;
@@ -464,9 +484,10 @@ export default function DashboardPage() {
         }
 
         .btn-dismiss-banner:hover {
-          color: white;
-          background: rgba(255, 255, 255, 0.1);
+          color: var(--color-text-main);
+          background: rgba(0, 0, 0, 0.05);
         }
+
         .skincluv-dashboard-grid {
           display: grid;
           grid-template-columns: 1fr;

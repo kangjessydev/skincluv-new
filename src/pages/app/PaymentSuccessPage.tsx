@@ -144,6 +144,7 @@ export default function PaymentSuccessPage() {
           padding-bottom: 120px;
           display: flex;
           justify-content: center;
+          width: 100%;
         }
 
         .success-card {
@@ -151,10 +152,10 @@ export default function PaymentSuccessPage() {
           max-width: 540px;
           padding: var(--space-2xl);
           border-radius: var(--radius-2xl);
-          background: linear-gradient(180deg, rgba(168,85,247,0.15) 0%, rgba(15,13,25,0.9) 100%);
-          border: 1px solid rgba(168,85,247,0.3);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           text-align: center;
-          box-shadow: 0 16px 48px rgba(107, 33, 168, 0.25);
+          box-shadow: var(--shadow-lg);
         }
 
         .crown-badge-wrapper {
@@ -166,21 +167,26 @@ export default function PaymentSuccessPage() {
         }
 
         .crown-circle {
-          width: 88px;
-          height: 88px;
+          width: 84px;
+          height: 84px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #FBBF24, #D97706);
+          background: linear-gradient(135deg, #f59e0b, #d97706);
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);
+          box-shadow: 0 8px 30px rgba(217, 119, 6, 0.25);
           animation: pulseCrown 3s infinite ease-in-out;
         }
 
+        .crown-circle-glow {
+          background: linear-gradient(135deg, #0ea5e9, #0284c7);
+          box-shadow: 0 8px 30px rgba(14, 165, 233, 0.25);
+        }
+
         @keyframes pulseCrown {
-          0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4); }
-          50% { transform: scale(1.05); box-shadow: 0 12px 44px rgba(245, 158, 11, 0.6); }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
         }
 
         .sparkle-badge {
@@ -190,20 +196,19 @@ export default function PaymentSuccessPage() {
           gap: 6px;
           font-size: 0.8125rem;
           font-weight: 700;
-          color: #FBBF24;
-          background: rgba(245, 158, 11, 0.15);
+          color: var(--color-primary);
+          background: #e0f2fe;
           padding: 4px 14px;
-          border-radius: 20px;
-          border: 1px solid rgba(245, 158, 11, 0.3);
+          border-radius: var(--radius-full);
+          border: 1px solid #bae6fd;
         }
 
         .success-title {
           font-size: 1.5rem;
           font-weight: 800;
           margin-bottom: 8px;
-          background: linear-gradient(135deg, #ffffff 0%, #e9d5ff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: var(--color-primary);
+          font-family: var(--font-heading);
         }
 
         .success-subtitle {
@@ -214,11 +219,11 @@ export default function PaymentSuccessPage() {
         }
 
         .receipt-box {
-          background: rgba(0,0,0,0.3);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-lg);
-          padding: var(--space-md);
-          margin-bottom: var(--space-xl);
+          background: var(--color-surface-bg, #f8fafc);
+          border: 1px solid #e2e8f0;
+          border-radius: var(--radius-xl);
+          padding: var(--space-md) var(--space-lg);
+          margin-bottom: var(--space-lg);
           text-align: left;
           font-size: 0.875rem;
         }
@@ -228,73 +233,72 @@ export default function PaymentSuccessPage() {
           justify-content: space-between;
           align-items: center;
           padding: 8px 0;
-          border-bottom: 1px dashed rgba(255,255,255,0.08);
+          border-bottom: 1px dashed #e2e8f0;
         }
         .receipt-row:last-child { border-bottom: none; }
 
-        .receipt-label { color: var(--color-text-muted); }
-        .receipt-value { font-weight: 600; color: white; }
-        .receipt-value.code { font-family: monospace; font-size: 0.8125rem; color: var(--color-brand-300); }
-        .receipt-value.highlight { color: #FBBF24; }
+        .receipt-label { color: var(--color-text-muted); font-size: 0.8125rem; }
+        .receipt-value { font-weight: 700; color: var(--color-text-main); }
+        .receipt-value.code { font-family: monospace; font-size: 0.8125rem; color: var(--color-primary); }
+        .receipt-value.highlight { color: var(--color-primary); font-family: var(--font-heading); font-weight: 800; }
 
         .badge-success {
-          background: rgba(34, 197, 94, 0.15);
-          color: #22c55e;
-          border: 1px solid rgba(34, 197, 94, 0.3);
+          background: #dcfce7;
+          color: #15803d;
+          border: 1px solid #bbf7d0;
           padding: 2px 10px;
           border-radius: 12px;
           font-weight: 700;
           font-size: 0.75rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
 
         .benefits-card {
           text-align: left;
-          background: rgba(168,85,247,0.05);
-          border-radius: var(--radius-lg);
-          padding: var(--space-md);
-          margin-bottom: var(--space-xl);
+          background: #f0f9ff;
+          border: 1px solid #bae6fd;
+          border-radius: var(--radius-xl);
+          padding: var(--space-md) var(--space-lg);
+          margin-bottom: var(--space-lg);
         }
-        .benefits-card h3 { font-size: 0.875rem; color: var(--color-brand-300); margin-bottom: 12px; }
+        .benefits-card h3 { font-size: 0.875rem; color: var(--color-primary); margin-bottom: 12px; font-weight: 700; font-family: var(--font-heading); }
         .benefits-card ul { list-style: none; padding: 0; margin: 0; }
         .benefits-card li {
           display: flex;
           align-items: center;
           gap: 10px;
           font-size: 0.8125rem;
-          color: var(--color-text-secondary);
+          color: var(--color-text-main);
           margin-bottom: 8px;
         }
-        .check-icon { color: #22c55e; flex-shrink: 0; }
-
-        .crown-circle-glow {
-          background: linear-gradient(135deg, #a855f7, #6366f1);
-          box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
-        }
+        .check-icon { color: #10b981; flex-shrink: 0; }
 
         .bpom-disclaimer-box {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #fffbeb;
+          border: 1px solid #fef3c7;
           border-radius: var(--radius-lg);
           padding: 12px 14px;
-          margin-bottom: var(--space-xl);
+          margin-bottom: var(--space-lg);
           text-align: left;
         }
         .disclaimer-icon {
-          color: var(--color-brand-400);
+          color: #d97706;
           flex-shrink: 0;
           margin-top: 2px;
         }
         .bpom-disclaimer-box p {
           margin: 0;
           font-size: 0.75rem;
-          color: var(--color-text-muted);
+          color: #92400e;
           line-height: 1.45;
         }
         .bpom-disclaimer-box strong {
-          color: var(--color-text-secondary);
+          color: #78350f;
         }
 
         .action-grid { display: flex; flex-direction: column; gap: 12px; }

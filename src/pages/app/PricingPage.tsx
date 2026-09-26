@@ -182,9 +182,21 @@ export default function PricingPage() {
         }
 
         .plan-header h3 { font-size: 1.35rem; margin: 0 0 4px 0; color: var(--color-text-main); }
-        .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 16px; min-height: 38px; }
-        .plan-price { font-size: 2rem; font-weight: 800; color: var(--color-primary); margin-bottom: var(--space-lg); font-family: var(--font-heading); }
+        .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 12px; min-height: 38px; }
+        .plan-price { font-size: 2rem; font-weight: 800; color: var(--color-primary); margin-bottom: 6px; font-family: var(--font-heading); }
         .plan-price span { font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); }
+
+        .plan-tagline {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #0f6784;
+          background: #e0f2fe;
+          border: 1px solid #bae6fd;
+          padding: 4px 10px;
+          border-radius: var(--radius-full);
+          display: inline-block;
+          margin-bottom: var(--space-md);
+        }
 
         .plan-features { list-style: none; padding: 0; margin: 0 0 var(--space-xl) 0; display: flex; flex-direction: column; gap: 12px; }
         .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: var(--color-text-main); line-height: 1.4; }
@@ -193,6 +205,59 @@ export default function PricingPage() {
         .icon-sky { color: var(--color-primary-container); flex-shrink: 0; margin-top: 2px; }
         .btn-glow { gap: 8px; }
         .btn-block { width: 100%; justify-content: center; }
+
+        /* Trust & Transparency FAQ Section */
+        .pricing-trust-section {
+          margin-top: var(--space-2xl);
+          background: var(--color-surface-container-lowest);
+          border: 1px solid var(--color-secondary-container);
+          border-radius: var(--radius-2xl);
+          padding: var(--space-xl);
+          box-shadow: var(--shadow-sm);
+        }
+        .pricing-trust-section h3 {
+          font-size: 1.125rem;
+          color: var(--color-primary);
+          margin-bottom: var(--space-lg);
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .trust-qa-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: var(--space-md);
+        }
+        .trust-qa-card {
+          background: var(--color-surface-bg);
+          border: 1px solid #e2e8f0;
+          border-radius: var(--radius-lg);
+          padding: var(--space-md);
+        }
+        .trust-qa-card h4 {
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: var(--color-text-main);
+          margin: 0 0 6px 0;
+        }
+        .trust-qa-card p {
+          font-size: 0.8125rem;
+          color: var(--color-text-muted);
+          line-height: 1.5;
+          margin: 0;
+        }
+        .trust-qa-card strong {
+          color: var(--color-text-main);
+        }
+        .pricing-disclaimer {
+          text-align: center;
+          font-size: 0.75rem;
+          color: var(--color-text-muted);
+          margin: var(--space-lg) 0 0 0;
+          font-style: italic;
+        }
       `}</style>
     </div>
   )
