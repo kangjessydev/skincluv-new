@@ -32,38 +32,18 @@ Deno.serve(async (req: Request) => {
 
     if (!apiKey) return jsonError('Payment gateway not configured', 503)
 
-    const targetRef = reference || merchant_ref
-
-    // Query Tripay API for transaction detail
-    const tripayRes = await fetch(`${baseUrl}/transaction/detail?reference=${targetRef}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`
-      }
-    })
-
     const supabaseService = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    let tripayStatus = 'UNPAID'
-    let transactionData = null
-
-    if (tripayRes.ok) {
-      const resJson = await tripayRes.json()
-      if (resJson.success && resJson.data) {
-        transactionData = resJson.data
-        tripayStatus = transactionData.status // 'PAID', 'UNPAID', 'EXPIRED', 'FAILED'
-      }
-    }
-
-    // Check DB record
+    // 1. Look up DB record first by reference OR merchant_ref
     let query = supabaseService.from('tripay_invoices').select('*').eq('user_id', user.id)
-    if (reference) {
-      query = query.or(`reference.eq.${reference},merchant_ref.eq.${reference}`)
+    if (reference && merchant_ref) {
+      query = query.or(`reference.eq.${reference},merchant_ref.eq.${merchant_ref}`)
     } else {
-      query = query.eq('merchant_ref', merchant_ref)
+      const refToFind = reference || merchant_ref
+      query = query.or(`reference.eq.${refToFind},merchant_ref.eq.${refToFind}`)
     }
 
     const { data: invoice } = await query.maybeSingle()
@@ -72,8 +52,33 @@ Deno.serve(async (req: Request) => {
       return jsonError('Invoice not found in system', 404)
     }
 
-    // If Tripay reports PAID, but DB is still UNPAID, trigger settlement via atomic Stored Procedure!
-    // ChatGPT P0-1: All roads lead to one transaction (process_tripay_payment)
+    // 2. Query Tripay API for transaction detail (Tripay expects its own reference DEV-T...)
+    const tripayRef = invoice.reference || reference || merchant_ref
+    let tripayStatus = invoice.status || 'UNPAID'
+    let transactionData = null
+
+    if (tripayRef) {
+      try {
+        const tripayRes = await fetch(`${baseUrl}/transaction/detail?reference=${tripayRef}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        })
+
+        if (tripayRes.ok) {
+          const resJson = await tripayRes.json()
+          if (resJson.success && resJson.data) {
+            transactionData = resJson.data
+            tripayStatus = transactionData.status // 'PAID', 'UNPAID', 'EXPIRED', 'FAILED'
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('[tripay-check-status] Tripay API fetch notice:', fetchErr)
+      }
+    }
+
+    // 3. If Tripay reports PAID, but DB is still UNPAID, trigger settlement via atomic Stored Procedure!
     if (tripayStatus === 'PAID' && invoice.status !== 'PAID') {
       const amountReceived = Number(
         transactionData?.total_amount || 
@@ -92,10 +97,11 @@ Deno.serve(async (req: Request) => {
         console.warn('[tripay-check-status] Fallback settlement notice:', rpcErr || rpcResult)
       } else {
         console.log('[tripay-check-status] Fallback settlement processed:', rpcResult)
+        invoice.status = 'PAID'
       }
     }
 
-    const currentStatus = tripayStatus === 'PAID' ? 'PAID' : invoice.status
+    const currentStatus = (tripayStatus === 'PAID' || invoice.status === 'PAID') ? 'PAID' : invoice.status
 
     return new Response(
       JSON.stringify({

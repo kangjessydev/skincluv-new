@@ -13,35 +13,52 @@ export default function PaymentSuccessPage() {
   const [invoice, setInvoice] = useState<any>(null)
 
   useEffect(() => {
-    // Re-hydrate subscription data and fetch invoice in background
-    const refreshData = async () => {
+    // Re-hydrate subscription data and verify payment status with gateway
+    const syncAndRefresh = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        const { data: subData } = await supabase
-          .from('subscriptions')
-          .select('*, subscription_tiers(name, slug)')
-          .eq('user_id', session.user.id)
-          .eq('status', 'active')
+      if (!session?.user) return
+
+      // 1. Trigger tripay-check-status as fallback settlement
+      if (reference && reference !== 'INV-PRO') {
+        try {
+          const { data: checkRes } = await supabase.functions.invoke('tripay-check-status', {
+            body: { reference }
+          })
+          if (checkRes?.invoice) {
+            setInvoice(checkRes.invoice)
+          }
+        } catch (e) {
+          console.warn('[PaymentSuccessPage] check-status fallback notice:', e)
+        }
+      }
+
+      // 2. Query active subscription from database
+      const { data: subData } = await supabase
+        .from('subscriptions')
+        .select('*, subscription_tiers(name, slug)')
+        .eq('user_id', session.user.id)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      if (subData) {
+        setSubscription(subData as unknown as Subscription)
+      }
+
+      // 3. Fallback invoice fetch if check-status didn't set it
+      if (reference && reference !== 'INV-PRO') {
+        const { data: invData } = await supabase
+          .from('tripay_invoices')
+          .select('*')
+          .or(`reference.eq.${reference},merchant_ref.eq.${reference}`)
           .maybeSingle()
 
-        if (subData) {
-          setSubscription(subData as unknown as Subscription)
-        }
-
-        if (reference) {
-          const { data: invData } = await supabase
-            .from('tripay_invoices')
-            .select('*')
-            .or(`reference.eq.${reference},merchant_ref.eq.${reference}`)
-            .maybeSingle()
-
-          if (invData) {
-            setInvoice(invData)
-          }
+        if (invData) {
+          setInvoice(invData)
         }
       }
     }
-    refreshData()
+
+    syncAndRefresh()
   }, [reference, setSubscription])
 
   const isGlowPlan = 
