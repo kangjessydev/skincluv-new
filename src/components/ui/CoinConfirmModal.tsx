@@ -172,8 +172,9 @@ export default function CoinConfirmModal({
           box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.25);
           width: 100%;
           max-width: 440px;
+          max-height: 90vh;
+          overflow-y: auto;
           animation: slideUp 0.2s ease;
-          overflow: hidden;
         }
 
         .coin-modal-header {
@@ -284,6 +285,14 @@ export default function CoinConfirmModal({
           border-color: #0f6784;
           transform: translateY(-2px);
           box-shadow: 0 8px 16px rgba(15, 103, 132, 0.08);
+        }
+
+        .mission-card:hover {
+          border-color: #f59e0b;
+        }
+
+        .upgrade-card:hover {
+          border-color: #0284c7;
         }
 
         .option-icon-box {

@@ -100,7 +100,7 @@ export default function LandingPage() {
       <header className="landing-navbar">
         <div className="landing-nav-inner">
           <Link to="/" className="landing-brand">
-            <div className="brand-logo bg-gradient-to-br from-[#0f6784] to-sky-400 text-white rounded-xl p-2 flex items-center justify-center">
+            <div className="brand-logo">
               <Sparkles size={20} />
             </div>
             <span className="brand-title">
@@ -299,7 +299,19 @@ export default function LandingPage() {
           gap: 8px;
         }
 
-        .brand-logo { font-size: 24px; }
+        .brand-logo {
+          background: linear-gradient(135deg, #0f6784 0%, #38bdf8 100%);
+          color: #ffffff;
+          border-radius: var(--radius-xl);
+          padding: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .hero-content {
+          display: flex;
+          flex-direction: column;
+        }
         .brand-title {
           font-family: var(--font-heading);
           font-size: 1.25rem;

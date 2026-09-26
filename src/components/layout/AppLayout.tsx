@@ -416,6 +416,10 @@ export default function AppLayout() {
           color: var(--color-primary);
         }
 
+        .link-label {
+          white-space: nowrap;
+        }
+
         .sidebar-link.active {
           background: var(--color-primary);
           color: #ffffff;
@@ -608,6 +612,14 @@ export default function AppLayout() {
           transform: translateY(-1px);
         }
 
+        .pro-sparkle-icon {
+          color: #f59e0b;
+        }
+
+        .pro-crown-icon {
+          color: #d97706;
+        }
+
         .header-coin-badge {
           display: flex;
           align-items: center;
@@ -619,6 +631,10 @@ export default function AppLayout() {
           font-weight: 700;
           color: var(--color-text-main);
           text-decoration: none;
+        }
+
+        .coin-val {
+          font-weight: 700;
         }
 
         .profile-dropdown-wrapper {

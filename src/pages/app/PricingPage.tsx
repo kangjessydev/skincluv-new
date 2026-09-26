@@ -162,6 +162,9 @@ export default function PricingPage() {
           border-color: var(--color-primary);
           box-shadow: 0 0 0 2px var(--color-primary-container);
         }
+        .free-card {
+          background: #ffffff;
+        }
         .glow-card {
           border-color: #fef08a;
           background: linear-gradient(180deg, #ffffff 0%, #fefce8 100%);
@@ -169,6 +172,10 @@ export default function PricingPage() {
         .pro-card {
           border-color: var(--color-primary-container);
           background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+        }
+        .plan-footer {
+          margin-top: auto;
+          padding-top: var(--space-md);
         }
         .saving-badge {
           position: absolute; top: -12px; right: 24px; background: #eab308;

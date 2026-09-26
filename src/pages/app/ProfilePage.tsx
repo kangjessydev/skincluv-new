@@ -177,7 +177,7 @@ export default function ProfilePage() {
                 {isPro ? (
                   <span className="badge-pro"><Crown size={16} /> VIP PRO MEMBER</span>
                 ) : isGlow ? (
-                  <span className="badge-amber font-bold text-xs flex items-center gap-1.5 px-3 py-1 rounded-full"><Zap size={14} /> GLOW MEMBER</span>
+                  <span className="badge-amber"><Zap size={14} /> GLOW MEMBER</span>
                 ) : (
                   <span className="badge-free"><Zap size={14} /> FREE ACCOUNT</span>
                 )}
@@ -338,6 +338,16 @@ export default function ProfilePage() {
           }
         }
         
+        .profile-left-col {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .profile-right-col {
+          display: flex;
+          flex-direction: column;
+        }
+        
         .card {
           background: var(--color-surface-container-lowest);
           border: 1px solid var(--color-secondary-container);
@@ -358,10 +368,19 @@ export default function ProfilePage() {
         .btn-logout { color: var(--color-error); gap: 6px; }
 
         /* Membership Card */
+        .member-card {
+          position: relative;
+        }
         .member-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); }
+        .badge-wrapper { display: flex; align-items: center; }
         .badge-pro {
           font-size: 0.75rem; font-weight: 700; color: var(--color-tertiary-container); background: var(--color-tertiary-fixed);
           padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid rgba(222, 135, 18, 0.3);
+          display: inline-flex; align-items: center; gap: 6px;
+        }
+        .badge-amber {
+          font-size: 0.75rem; font-weight: 700; color: #b45309; background: #fef3c7;
+          padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid #fde68a;
           display: inline-flex; align-items: center; gap: 6px;
         }
         .badge-free {
@@ -374,6 +393,7 @@ export default function ProfilePage() {
         .usage-block { margin-top: 10px; }
         .usage-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8125rem; margin-bottom: 8px; }
         .usage-label { color: var(--color-text-muted); display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        .usage-text { font-size: 0.8125rem; }
         .usage-percent-badge { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; }
         .usage-percent-badge strong { color: #2563eb; font-weight: 700; }
         .usage-detail-fraction { color: var(--color-text-muted); font-size: 0.75rem; }

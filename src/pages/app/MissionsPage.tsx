@@ -542,6 +542,26 @@ export default function MissionsPage() {
           }
         }
 
+        .missions-left-col {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .missions-right-col {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .banner-bottom {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .missions-list-card {
+          margin-bottom: 0;
+        }
+
         .stich-bento-card {
           background: #ffffff;
           border: 1px solid #e2e8f0;

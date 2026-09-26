@@ -907,6 +907,18 @@ export default function ScanHistoryPage() {
         }
 
         /* TIMELINE & CARDS */
+        .loading-state {
+          padding: 48px;
+          text-align: center;
+          color: #64748b;
+          border-radius: 16px;
+          margin-bottom: 24px;
+        }
+
+        .history-timeline-section {
+          margin-top: 16px;
+        }
+
         .section-title {
           font-size: 1.125rem;
           font-weight: 800;
@@ -1219,12 +1231,40 @@ export default function ScanHistoryPage() {
           overflow: hidden;
         }
 
+        .hero-glow-accent {
+          position: absolute;
+          top: -40px;
+          right: -40px;
+          width: 140px;
+          height: 140px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+          pointer-events: none;
+        }
+
+        .dots-bg-pattern {
+          position: absolute;
+          inset: 0;
+          opacity: 0.08;
+          pointer-events: none;
+        }
+
         .score-hero-content {
           position: relative;
           z-index: 1;
           display: flex;
           align-items: center;
           gap: 20px;
+        }
+
+        .sr-number-row {
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+        }
+
+        .score-meta-info {
+          flex: 1;
         }
 
         .score-ring-avatar {
@@ -1477,6 +1517,10 @@ export default function ScanHistoryPage() {
         }
 
         /* AREAS STACK IN FACE MODAL */
+        .modal-areas-section {
+          margin-top: 8px;
+        }
+
         .modal-areas-stack {
           display: flex;
           flex-direction: column;
@@ -1488,6 +1532,20 @@ export default function ScanHistoryPage() {
           border: 1px solid #e2e8f0;
           border-radius: 12px;
           padding: 12px 14px;
+        }
+
+        .area-name {
+          font-weight: 700;
+        }
+
+        .area-badges-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .area-finding-box, .area-analogy-box, .area-action-box {
+          margin-top: 6px;
         }
 
         .area-card-header {
@@ -1549,6 +1607,10 @@ export default function ScanHistoryPage() {
         }
 
         /* TIPS GRID */
+        .modal-tips-section {
+          margin-top: 8px;
+        }
+
         .modal-tips-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);

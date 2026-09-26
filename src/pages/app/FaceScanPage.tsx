@@ -902,39 +902,39 @@ export default function FaceScanPage() {
         <div className="results-stack">
           {/* Provenance Cache Banner (Kimi Template RFC 011) */}
           {analysisResult.cached && (
-            <div className="card glass-card mb-6 p-4 border border-sky-200 bg-sky-50/70 rounded-2xl shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#006591] text-white flex items-center justify-center shrink-0 mt-0.5">
+            <div className="card glass-card cache-hit-provenance-card">
+              <div className="cache-hit-inner">
+                <div className="cache-hit-icon-wrap">
                   <Zap size={16} />
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-bold text-[#006591] m-0 flex items-center gap-1.5">
+                <div className="cache-hit-body">
+                  <h4 className="cache-hit-title">
                     ⚡ Hasil Tersimpan Ditampilkan — 0 Kuota Terpotong
                   </h4>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  <p className="cache-hit-desc">
                     Ini foto yang sama dengan scan kamu pada {analysisResult.cached_at ? new Date(analysisResult.cached_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'sebelumnya'}. 
                     Foto yang sama berarti kondisi kulit yang terbaca juga sama, sehingga hasil analisisnya identik. Kami tampilkan hasil tersimpanmu secara instan tanpa memotong kuota.
                   </p>
-                  <div className="flex flex-wrap items-center gap-3 mt-3 pt-2.5 border-t border-sky-100">
-                    <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                  <div className="cache-hit-footer">
+                    <span className="cache-hit-badge-success">
                       <CheckCircle2 size={13} /> Kuota kamu aman
                     </span>
-                    <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                    <span className="cache-hit-badge-success">
                       <CheckCircle2 size={13} /> Hasil identik
                     </span>
-                    <span className="text-xs font-semibold text-[#006591] flex items-center gap-1">
+                    <span className="cache-hit-badge-speed">
                       ⚡ Instan (&lt;1 detik)
                     </span>
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="cache-hit-actions">
                       <button
                         onClick={handleResetFlow}
-                        className="btn btn-secondary btn-sm text-xs py-1 px-3"
+                        className="btn btn-secondary btn-sm"
                       >
                         <Camera size={13} /> Scan Foto Baru
                       </button>
                       <button
                         onClick={handleForceReanalyze}
-                        className="btn btn-outline btn-sm text-xs py-1 px-3 text-[#006591] border-[#006591]"
+                        className="btn btn-outline btn-sm btn-force-reanalyze"
                         title="Analisis ulang foto ini dari awal dengan AI (5 Credits)"
                       >
                         <RotateCcw size={13} /> Analisis Ulang (5 Credits)
@@ -948,13 +948,13 @@ export default function FaceScanPage() {
 
           {/* Clinical Escalation Alert (BPOM Kimi Consensus: Score < 55) */}
           {getClinicalSeverityBand(analysisResult.overall_score ?? 80).band === 'consult_dermatologist' && (
-            <div className="card mb-6 p-4 border border-amber-300 bg-amber-50/80 rounded-2xl flex items-start gap-3 shadow-sm">
-              <AlertCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="card clinical-escalation-alert-card">
+              <AlertCircle size={20} className="clinical-escalation-icon" />
               <div>
-                <h4 className="text-xs font-bold text-amber-900 m-0 uppercase tracking-wider">
+                <h4 className="clinical-escalation-title">
                   Rekomendasi Rujukan Ahli Dermatologi
                 </h4>
-                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                <p className="clinical-escalation-desc">
                   Hasil evaluasi visual menunjukkan beberapa kondisi kulit yang lebih disarankan untuk ditinjau langsung oleh dokter spesialis kulit. AI Skincluv adalah alat bantu panduan kosmetik sehari-hari, bukan instrumen diagnosis medis resmi.
                 </p>
               </div>
@@ -2570,6 +2570,119 @@ export default function FaceScanPage() {
           .tips-category-grid {
             grid-template-columns: 1fr 1fr 1fr;
           }
+        }
+
+        /* RFC 011 Cache Banner & BPOM Escalation Alert */
+        .cache-hit-provenance-card {
+          margin-bottom: 24px;
+          padding: 16px;
+          border: 1px solid #bae6fd;
+          background: rgba(240, 249, 255, 0.7);
+          border-radius: var(--radius-2xl, 16px);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .cache-hit-inner {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .cache-hit-icon-wrap {
+          width: 32px;
+          height: 32px;
+          border-radius: 9999px;
+          background: #006591;
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .cache-hit-body {
+          flex: 1;
+        }
+        .cache-hit-title {
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: #006591;
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .cache-hit-desc {
+          font-size: 0.75rem;
+          color: #475569;
+          margin: 4px 0 0 0;
+          line-height: 1.5;
+        }
+        .cache-hit-footer {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 12px;
+          margin-top: 12px;
+          padding-top: 10px;
+          border-top: 1px solid #e0f2fe;
+        }
+        .cache-hit-badge-success {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #059669;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .cache-hit-badge-speed {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #006591;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .cache-hit-actions {
+          margin-left: auto;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .btn-force-reanalyze {
+          color: #006591;
+          border-color: #006591;
+        }
+        .btn-force-reanalyze:hover {
+          background: rgba(0, 101, 145, 0.08);
+        }
+        .clinical-escalation-alert-card {
+          margin-bottom: 24px;
+          padding: 16px;
+          border: 1px solid #fcd34d;
+          background: rgba(254, 243, 199, 0.8);
+          border-radius: var(--radius-2xl, 16px);
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .clinical-escalation-icon {
+          color: #d97706;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .clinical-escalation-title {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #78350f;
+          margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .clinical-escalation-desc {
+          font-size: 0.75rem;
+          color: #92400e;
+          margin: 4px 0 0 0;
+          line-height: 1.5;
         }
       `}</style>
     </div>

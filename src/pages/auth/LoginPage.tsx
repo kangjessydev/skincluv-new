@@ -111,7 +111,7 @@ export default function LoginPage() {
           className="btn-google"
         >
           {googleLoading ? (
-            <Loader2 size={18} className="animate-spin text-[#0B4F5C]" />
+            <Loader2 size={18} className="animate-spin text-primary" />
           ) : (
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z" />

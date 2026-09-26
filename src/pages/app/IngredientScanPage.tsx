@@ -1460,6 +1460,40 @@ PETUNJUK OCR & ANALISIS WAJIB:
           line-height: 1.45;
         }
 
+        /* ALERT NOTIFICATIONS GROUP & BPOM ALERT BANNER */
+        .scan-alerts-group {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+
+        .bpom-alert-banner {
+          background: #fff1f2;
+          border: 1px solid #fecdd3;
+          border-radius: 12px;
+          padding: 12px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .bpom-alert-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #9f1239;
+          font-size: 0.875rem;
+          font-weight: 700;
+        }
+
+        .bpom-alert-text {
+          font-size: 0.8125rem;
+          color: #be123c;
+          margin: 0;
+          line-height: 1.5;
+        }
+
         /* PRIMARY ACTION BUTTON */
         .btn-primary-action {
           width: 100%;
@@ -2522,6 +2556,13 @@ PETUNJUK OCR & ANALISIS WAJIB:
           border-radius: 4px;
         }
 
+        .summary-meta {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
         .summary-title {
           font-size: 1rem;
           font-weight: 700;
@@ -2887,6 +2928,14 @@ PETUNJUK OCR & ANALISIS WAJIB:
           flex-direction: column;
           gap: 12px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .profile-context-card {
+          border-left: 3px solid #0f6784;
+        }
+
+        .guide-card {
+          border-left: 3px solid #f59e0b;
         }
 
         .side-card-header {

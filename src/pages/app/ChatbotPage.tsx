@@ -696,7 +696,7 @@ export default function ChatbotPage() {
         <div className="memory-consent-banner">
           <div className="consent-content">
             <div className="consent-title-row">
-              <Sparkles size={16} className="text-[#0f6784]" />
+              <Sparkles size={16} className="text-primary" />
               <strong>Aktifkan Memori Skinsistant?</strong>
             </div>
             <p>
@@ -907,7 +907,7 @@ export default function ChatbotPage() {
         {messages.length === 0 && !isLoadingMessages && (
           <div className="chat-welcome-box">
             <div className="welcome-avatar-icon">
-              <Sparkles size={28} className="text-[#0f6784]" />
+              <Sparkles size={28} className="text-primary" />
             </div>
             <h2>Halo, {userName}! 👋</h2>
             <p>
@@ -931,7 +931,7 @@ export default function ChatbotPage() {
 
         {isLoadingMessages && (
           <div className="loading-chat-state">
-            <Loader2 size={24} className="animate-spin text-[#0f6784]" />
+            <Loader2 size={24} className="animate-spin text-primary" />
             <span>Memuat pesan percakapan...</span>
           </div>
         )}

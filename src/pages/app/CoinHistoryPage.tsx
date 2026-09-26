@@ -147,6 +147,7 @@ export default function CoinHistoryPage() {
           margin-bottom: var(--space-lg);
         }
 
+        .history-card { display: flex; flex-direction: column; }
         .balance-card { display: flex; justify-content: space-between; align-items: center; }
         .balance-left { display: flex; align-items: center; gap: 12px; }
         .coin-icon { font-size: 32px; }

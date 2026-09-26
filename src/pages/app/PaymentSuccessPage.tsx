@@ -201,6 +201,10 @@ export default function PaymentSuccessPage() {
           box-shadow: 0 8px 30px rgba(14, 165, 233, 0.25);
         }
 
+        .crown-icon-animated {
+          filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+        }
+
         @keyframes pulseCrown {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }

@@ -610,7 +610,13 @@ export default function CheckoutPage() {
         .qris-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .qr-image-wrapper { background: white; padding: 12px; border-radius: var(--radius-lg); box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
         .qr-code-img { width: 200px; height: 200px; display: block; }
+        .qr-placeholder {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 12px; padding: 32px; background: white; border-radius: var(--radius-lg);
+          border: 1px dashed #cbd5e1; color: var(--color-text-muted);
+        }
         .qris-guide { font-size: 0.8125rem; color: var(--color-text-muted); max-width: 360px; line-height: 1.4; }
+        .name { font-weight: 600; color: var(--color-text-main); font-size: 0.875rem; }
 
         .checkout-actions { display: flex; flex-direction: column; gap: 12px; text-align: center; }
         .btn-check-status { gap: 8px; }

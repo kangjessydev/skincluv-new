@@ -539,4 +539,65 @@ a:hover { color: var(--color-primary-container); }
 .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 
+/* Extended Spacing & Layout Utilities */
+.m-0 { margin: 0 !important; }
+.mb-6 { margin-bottom: 1.5rem; }
+.ml-auto { margin-left: auto; }
+.mt-md { margin-top: var(--space-md, 1rem); }
+.mt-lg { margin-top: var(--space-lg, 1.5rem); }
+.pt-2\.5 { padding-top: 0.625rem; }
+
+.w-8 { width: 2rem; }
+.h-8 { height: 2rem; }
+
+/* Extended Radii */
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-2xl { border-radius: 1rem; }
+.rounded-3xl { border-radius: 1.5rem; }
+
+/* Extended Colors & Brand Tokens */
+.text-brand, .text-primary { color: var(--color-primary, #0f6784); }
+.text-muted { color: var(--color-text-muted, #64748b); }
+.text-slate-400 { color: #94a3b8; }
+.text-slate-600 { color: #475569; }
+.text-gray-300 { color: #cbd5e1; }
+.text-teal-600 { color: #0d9488; }
+.text-sky-600, .text-sky { color: #0284c7; }
+.text-amber-300 { color: #fcd34d; }
+.text-emerald-500 { color: #10b981; }
+
+.text-\[\#0f6784\] { color: #0f6784; }
+.text-\[\#0B4F5C\] { color: #0B4F5C; }
+.text-\[\#006591\] { color: #006591; }
+.bg-\[\#006591\] { background-color: #006591; }
+.border-\[\#006591\] { border-color: #006591; }
+
+.border-sky-100 { border-color: #e0f2fe; }
+.border-sky-200 { border-color: #bae6fd; }
+.border-amber-300 { border-color: #fcd34d; }
+.bg-sky-50\/70 { background-color: rgba(240, 249, 255, 0.7); }
+.bg-amber-50\/80 { background-color: rgba(254, 243, 199, 0.8); }
+
+.fill-amber-500 { fill: #f59e0b; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.text-decoration-none, .no-underline { text-decoration: none; }
+.inline-icon { display: inline-block; vertical-align: middle; }
+
+/* Floating & Pulsing Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 

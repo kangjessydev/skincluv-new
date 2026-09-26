@@ -821,6 +821,12 @@ export default function DashboardPage() {
           text-overflow: ellipsis;
         }
 
+        .card-face-scan:hover { border-color: #a855f7; }
+        .card-ingredient-scan:hover { border-color: #10b981; }
+        .card-skinsistant:hover { border-color: #0ea5e9; }
+        .promo-meta { display: flex; flex-direction: column; gap: 4px; }
+        .side-action-sub { margin-top: 6px; }
+
         /* 3. RETENTION / PROGRESS STRIP */
         .retention-section {
           grid-area: retention;
