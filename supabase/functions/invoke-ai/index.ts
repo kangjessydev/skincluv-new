@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
 
     // ---- 2. Parse request body ----
     const body = await req.json()
-    const { feature_slug, messages, input_context, use_coins, session_id, message_count, idempotency_key } = body as {
+    const { feature_slug, messages, input_context, use_coins, session_id, message_count, idempotency_key, force_reanalysis } = body as {
       feature_slug: string
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       input_context?: Record<string, string>
@@ -75,6 +75,7 @@ Deno.serve(async (req: Request) => {
       session_id?: string       // ID sesi aktif (untuk session summary trigger)
       message_count?: number    // Jumlah pesan dalam sesi ini (frontend kirim)
       idempotency_key?: string  // Client-generated UUID untuk idempotensi finansial
+      force_reanalysis?: boolean // Paksa analisis ulang mengabaikan cache foto identik
     }
 
     if (!feature_slug || !messages?.length) {
@@ -162,6 +163,89 @@ Deno.serve(async (req: Request) => {
         .then(() => {})
     })
 
+    // Validasi idempotency key dari client (mencegah double-spending saat retry)
+    let operationRef = crypto.randomUUID()
+    if (typeof idempotency_key === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotency_key)) {
+      operationRef = idempotency_key
+    }
+
+    // ---- 4.5 Exact Canonical Image Deduplication & Cache Hit (RFC 011 Consensus) ----
+    // Invariant 7: For the same authenticated user, canonical image, and compatible analysis version,
+    // an exact duplicate request must never consume additional Credits or invoke the specialist AI.
+    let imageContentHash: string | null = null
+    const ANALYSIS_VERSION = 'face-v4'
+    const TTL_HOURS = 48
+
+    if (feature_slug === 'face_analysis') {
+      const rawImage = input_context?.image_base64
+      if (rawImage && typeof rawImage === 'string') {
+        imageContentHash = await computeSha256(rawImage)
+
+        if (!force_reanalysis) {
+          const cutoffTime = new Date(Date.now() - TTL_HOURS * 60 * 60 * 1000).toISOString()
+          const { data: cachedScan } = await supabaseService
+            .from('face_scans')
+            .select('id, overall_score, skin_status_title, skin_type, skin_concerns, analysis_notes, area_evaluations, product_recommendations, raw_ai_response, created_at')
+            .eq('user_id', user.id)
+            .eq('image_content_hash', imageContentHash)
+            .eq('analysis_version', ANALYSIS_VERSION)
+            .gte('created_at', cutoffTime)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          if (cachedScan) {
+            // Log cache hit (0 tokens, 0 cost)
+            await supabaseService.from('ai_request_logs').insert({
+              user_id: user.id,
+              feature_id: feature.id,
+              prompt_version_id: prompt.id,
+              model_config_id: model.id,
+              tokens_used: 0,
+              cost_usd: 0,
+              status: 'CACHE_HIT',
+              operation_reference: operationRef,
+            })
+
+            const cachedContent = cachedScan.raw_ai_response
+              ? JSON.stringify(cachedScan.raw_ai_response)
+              : JSON.stringify({
+                  overall_score: cachedScan.overall_score,
+                  skin_status_title: cachedScan.skin_status_title,
+                  skin_type: cachedScan.skin_type,
+                  skin_concerns: cachedScan.skin_concerns,
+                  analysis_notes: cachedScan.analysis_notes,
+                  area_evaluations: cachedScan.area_evaluations,
+                  product_recommendations: cachedScan.product_recommendations,
+                })
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                cached: true,
+                cached_at: cachedScan.created_at,
+                scan_id: cachedScan.id,
+                image_content_hash: imageContentHash,
+                analysis_version: ANALYSIS_VERSION,
+                deduct_mode: 'cache',
+                credits_deducted: 0,
+                content: cachedContent,
+                raw_ai_response: cachedScan.raw_ai_response,
+                overall_score: cachedScan.overall_score,
+                skin_status_title: cachedScan.skin_status_title,
+                skin_type: cachedScan.skin_type,
+                skin_concerns: cachedScan.skin_concerns,
+                analysis_notes: cachedScan.analysis_notes,
+                area_evaluations: cachedScan.area_evaluations,
+                product_recommendations: cachedScan.product_recommendations,
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            )
+          }
+        }
+      }
+    }
+
     // ---- 5. Quota / Coin Check & Atomic Deduction ----
     let deductMode: 'quota' | 'coin' | null = null
     let deductedFeatureId = feature.id // keep track for rollback
@@ -169,12 +253,6 @@ Deno.serve(async (req: Request) => {
     const creditCost = typeof dynamicCost === 'number' && dynamicCost >= 0
       ? dynamicCost
       : (CREDIT_COST_PER_FEATURE[feature_slug] ?? 3)
-
-    // Validasi idempotency key dari client (mencegah double-spending saat retry)
-    let operationRef = crypto.randomUUID()
-    if (typeof idempotency_key === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotency_key)) {
-      operationRef = idempotency_key
-    }
 
     // Only deduct quota/credits if feature has cost > 0 (e.g. face_validation is a free validation gate)
     if (creditCost > 0) {
@@ -1104,6 +1182,8 @@ END PRODUCT_TEXT`
         sources: searchSources,     // [] jika tidak ada search, atau array SearchSource
         deduct_mode: deductMode,
         tokens_used: aiResult!.tokensUsed,
+        image_content_hash: imageContentHash,
+        analysis_version: ANALYSIS_VERSION,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
@@ -1115,6 +1195,14 @@ END PRODUCT_TEXT`
 })
 
 // ---- Helpers ----
+
+async function computeSha256(dataStr: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(dataStr)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+}
 
 function jsonError(message: string, status: number): Response {
   return new Response(

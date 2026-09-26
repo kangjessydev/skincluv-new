@@ -14,14 +14,20 @@ export interface InvokeAIRequest {
   use_coins?: boolean
   session_id?: string     // ID sesi aktif chatbot (untuk session summary trigger)
   message_count?: number  // Jumlah pesan dalam sesi (untuk trigger summary di pesan ke-8, 13, 18, ...)
+  force_reanalysis?: boolean // RFC 011: Paksa analisis ulang mengabaikan cache foto identik
 }
 
 export interface InvokeAIResponse {
   success: boolean
   content: string
   sources?: Array<{ title: string; url: string; snippet: string; score?: number }>
-  deduct_mode: 'quota' | 'coin'
+  deduct_mode: 'quota' | 'coin' | 'cache'
   tokens_used: number
+  cached?: boolean
+  cached_at?: string
+  scan_id?: string
+  image_content_hash?: string
+  analysis_version?: string
 }
 
 // State yang di-expose untuk menampilkan CoinConfirmModal
@@ -96,6 +102,7 @@ export function useInvokeAI() {
         session_id: req.session_id,
         message_count: req.message_count,
         idempotency_key: clientOperationId,
+        force_reanalysis: req.force_reanalysis ?? false,
       }
 
       const callEdge = async (useCoins: boolean) => {
@@ -222,15 +229,34 @@ export function useInvokeAI() {
       // Jika caller expect JSON object (FaceScanPage, IngredientScanPage), parse otomatis
       try {
         const cleanedStr = contentStr.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+        let parsedObj: any
         try {
-          return JSON.parse(cleanedStr) as T
+          parsedObj = JSON.parse(cleanedStr)
         } catch {
           const jsonMatch = contentStr.match(/\{[\s\S]*\}/)
           if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]) as T
+            parsedObj = JSON.parse(jsonMatch[0])
+          } else {
+            throw new Error('Not JSON')
           }
-          throw new Error('Not JSON')
         }
+
+        // Attach top-level deduplication and caching provenance metadata (RFC 011)
+        if (parsedObj && typeof parsedObj === 'object') {
+          if (data.cached) {
+            parsedObj.cached = true
+            parsedObj.cached_at = data.cached_at
+            parsedObj.scan_id = data.scan_id
+          }
+          if (data.image_content_hash) {
+            parsedObj.image_content_hash = data.image_content_hash
+          }
+          if (data.analysis_version) {
+            parsedObj.analysis_version = data.analysis_version
+          }
+        }
+
+        return parsedObj as T
       } catch {
         // Jika content bukan JSON (Chatbot raw text), return data as is
         return data as unknown as T

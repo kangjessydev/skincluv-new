@@ -356,6 +356,9 @@ export type Database = {
           skin_status_title: string | null
           skin_type: string
           user_id: string
+          image_content_hash: string | null
+          analysis_version: string
+          is_repeat: boolean
         }
         Insert: {
           analysis_notes?: string | null
@@ -369,6 +372,9 @@ export type Database = {
           skin_status_title?: string | null
           skin_type: string
           user_id: string
+          image_content_hash?: string | null
+          analysis_version?: string
+          is_repeat?: boolean
         }
         Update: {
           analysis_notes?: string | null
@@ -382,6 +388,9 @@ export type Database = {
           skin_status_title?: string | null
           skin_type?: string
           user_id?: string
+          image_content_hash?: string | null
+          analysis_version?: string
+          is_repeat?: boolean
         }
         Relationships: [
           {

@@ -46,6 +46,16 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
    - Tidak ada klaim risiko, bahaya kombinasi, atau kontraindikasi klinis yang lahir dari penalaran LLM murni (halusinasi bebas).
    - Seluruh kontraindikasi kondisi kulit × bahan aktif wajib bersumber dari tabel database deterministik terverifikasi (`clinical_condition_rules` & `ingredient_interactions`). LLM chatbot (Qwen) hanya bertindak sebagai *explainer* dan penyampai naratif edukatif, bukan penentu risiko klinis.
 
+7. **Exact Image Idempotency (RFC 011)**:
+   - Untuk user yang sama, foto kanonikal yang sama (`image_content_hash`), dan versi analisis yang kompatibel (`analysis_version: 'face-v4'`), permintaan duplikat identik di `invoke-ai` tidak boleh memotong kuota/kredit tambahan atau memanggil Gemini AI lebih dari sekali dalam jendela TTL (48 jam).
+
+8. **No Perceptual False Clinical Equivalence (RFC 011)**:
+   - Foto yang hanya mirip secara visual (*perceptual similarity* / pHash) dilarang keras dianggap sebagai duplikat klinis identik secara otomatis. Hanya *exact canonical hash* (SHA-256) yang berhak atas cache hit otomatis.
+
+9. **Anti-Pencemaran Baseline Tren (RFC 011)**:
+   - Hasil scan yang berasal dari cache hit ditandai permanen dengan `is_repeat = true`.
+   - Baris dengan `is_repeat = true` wajib disaring keluar (`WHERE is_repeat = false`) dari perhitungan median baseline 28 hari dan riwayat grafik tren perkembangan kulit agar riwayat user tidak terdistorsi.
+
 ---
 
 ## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)

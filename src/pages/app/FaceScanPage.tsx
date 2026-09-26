@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Info,
   ExternalLink,
+  Zap,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -72,6 +73,11 @@ interface AnalysisResult {
   tips_avoid?: string[]
   tips_reduce?: string[]
   tips_do?: string[]
+  cached?: boolean
+  cached_at?: string
+  scan_id?: string
+  image_content_hash?: string
+  analysis_version?: string
 }
 
 const CONCERN_LABELS: Record<string, string> = {
@@ -103,6 +109,45 @@ const CLINICAL_FACIAL_TIPS = [
   'Skin barrier yang optimal mampu mengunci kadar air alami (TEWL rendah) dan melindungi kulit dari mikro-inflamasi polusi.',
 ]
 
+// Kimi & BPOM Approved Clinical Severity Bands (RFC 011)
+export function getClinicalSeverityBand(score: number): {
+  band: 'optimal' | 'mild_attention' | 'needs_attention' | 'consult_dermatologist'
+  label: string
+  descriptor: string
+  colorClass: string
+} {
+  if (score >= 85) {
+    return {
+      band: 'optimal',
+      label: 'Optimal',
+      descriptor: 'Kulitmu dalam kondisi baik — pertahankan rutinitasmu.',
+      colorClass: 'score-optimal',
+    }
+  }
+  if (score >= 70) {
+    return {
+      band: 'mild_attention',
+      label: 'Perhatian Ringan',
+      descriptor: 'Ada hal kecil yang bisa ditingkatkan di rutinitasmu.',
+      colorClass: 'score-optimal',
+    }
+  }
+  if (score >= 55) {
+    return {
+      band: 'needs_attention',
+      label: 'Perlu Perhatian',
+      descriptor: 'Beberapa area butuh perawatan rutin yang lebih konsisten.',
+      colorClass: 'score-caution',
+    }
+  }
+  return {
+    band: 'consult_dermatologist',
+    label: 'Konsultasi Ahli Kulit Dianjurkan',
+    descriptor: 'Hasil scan-mu menunjukkan kondisi yang sebaiknya ditinjau dokter spesialis kulit. Skincluv adalah alat bantu perawatan sehari-hari, bukan pengganti konsultasi medis.',
+    colorClass: 'score-warning',
+  }
+}
+
 // Smart Enrichment Adapter to ensure full 3-Stage UI data completeness
 const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean }): AnalysisResult => {
   const enriched = { ...res }
@@ -117,11 +162,9 @@ const enrichAnalysisResult = (res: AnalysisResult & { is_valid_face?: boolean })
     }
   }
 
+  const bandInfo = getClinicalSeverityBand(enriched.overall_score ?? 80)
   if (!enriched.skin_status_title) {
-    const score = enriched.overall_score
-    if (score >= 85) enriched.skin_status_title = 'Kondisi Kulit: Sangat Prima & Terawat'
-    else if (score >= 70) enriched.skin_status_title = 'Kondisi Kulit: Cukup Sehat & Butuh Hidrasi Seimbang'
-    else enriched.skin_status_title = 'Kondisi Kulit: Butuh Perhatian Khusus & Barrier Repair'
+    enriched.skin_status_title = `Kondisi Kulit: ${bandInfo.label}`
   }
 
   // Ensure 3-Area Granular Breakdown (Forehead, T-Zone & Cheeks, Chin & Perioral)
@@ -257,6 +300,7 @@ export default function FaceScanPage() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [createdScanId, setCreatedScanId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [forceReanalyze, setForceReanalyze] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
@@ -386,9 +430,11 @@ export default function FaceScanPage() {
           input_context: {
             image_base64: imageBase64 || '',
           },
+          force_reanalysis: forceReanalyze,
         })
 
         if (!isSubscribed) return
+        setForceReanalyze(false)
 
         if (!result) {
           const actualErr = getLastError()
@@ -423,30 +469,41 @@ export default function FaceScanPage() {
         if (effectiveUserId && enriched.skin_type) {
           try {
             const scoreInt = Math.min(100, Math.max(0, Math.round(Number(enriched.overall_score) || 80)))
-            const scanRecord = {
-              user_id: effectiveUserId,
-              overall_score: scoreInt,
-              skin_status_title: enriched.skin_status_title || 'Kondisi Kulit Terpantau',
-              skin_type: String(enriched.skin_type).toLowerCase(),
-              skin_concerns: enriched.skin_concerns || [],
-              analysis_notes: enriched.analysis_notes || '',
-              area_evaluations: (enriched.area_evaluations || []) as any,
-              product_recommendations: (enriched.product_recommendations || []) as any,
-              raw_ai_response: enriched as any,
-            }
 
-            // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
-            const { data: insertedScan, error: insertErr } = await supabase
-              .from('face_scans')
-              .insert(scanRecord)
-              .select('id')
-              .maybeSingle()
+            // Invariant 7 (RFC 011): Jika hasil berasal dari cache hit, reuse scan_id yang sudah ada!
+            // Jangan memasukkan baris duplikat ke face_scans agar baseline tren tidak tercemar.
+            if (enriched.cached && enriched.scan_id) {
+              setCreatedScanId(enriched.scan_id)
+              console.log('[FaceScanPage] Cache hit reused scan_id:', enriched.scan_id)
+            } else {
+              const scanRecord = {
+                user_id: effectiveUserId,
+                overall_score: scoreInt,
+                skin_status_title: enriched.skin_status_title || 'Kondisi Kulit Terpantau',
+                skin_type: String(enriched.skin_type).toLowerCase(),
+                skin_concerns: enriched.skin_concerns || [],
+                analysis_notes: enriched.analysis_notes || '',
+                area_evaluations: (enriched.area_evaluations || []) as any,
+                product_recommendations: (enriched.product_recommendations || []) as any,
+                raw_ai_response: enriched as any,
+                image_content_hash: (enriched as any).image_content_hash || null,
+                analysis_version: (enriched as any).analysis_version || 'face-v4',
+                is_repeat: false,
+              }
 
-            if (insertErr) {
-              console.error('[FaceScanPage] face_scans insert error:', insertErr.message)
-            } else if (insertedScan?.id) {
-              setCreatedScanId(insertedScan.id)
-              console.log('[FaceScanPage] face_scans history saved for user:', effectiveUserId, insertedScan.id)
+              // A. Simpan ke Riwayat Scan Multi-Sesi (face_scans)
+              const { data: insertedScan, error: insertErr } = await supabase
+                .from('face_scans')
+                .insert(scanRecord)
+                .select('id')
+                .maybeSingle()
+
+              if (insertErr) {
+                console.error('[FaceScanPage] face_scans insert error:', insertErr.message)
+              } else if (insertedScan?.id) {
+                setCreatedScanId(insertedScan.id)
+                console.log('[FaceScanPage] face_scans history saved for user:', effectiveUserId, insertedScan.id)
+              }
             }
 
             // B. Update Profil Kulit Aktif Pengguna (skin_profiles)
@@ -584,6 +641,18 @@ export default function FaceScanPage() {
       if (!confirmed) return
     }
     setErrorMsg(null)
+    setForceReanalyze(false)
+    setStage('scanning')
+  }
+
+  const handleForceReanalyze = async () => {
+    if (!imageBase64) return
+    if (isFreeTierOutOfCredits) {
+      const confirmed = await askCoinConfirmation(faceCost, 'Scan Ulang Wajah (5 Credits)')
+      if (!confirmed) return
+    }
+    setErrorMsg(null)
+    setForceReanalyze(true)
     setStage('scanning')
   }
 
@@ -594,6 +663,7 @@ export default function FaceScanPage() {
     setAnalysisResult(null)
     setErrorMsg(null)
     setCreatedScanId(null)
+    setForceReanalyze(false)
   }
 
   // Unified Hero Actives list
@@ -830,6 +900,67 @@ export default function FaceScanPage() {
       {/* STAGE 3: RESULTS OUTPUT & CLINICAL REPORT */}
       {stage === 'result' && analysisResult && (
         <div className="results-stack">
+          {/* Provenance Cache Banner (Kimi Template RFC 011) */}
+          {analysisResult.cached && (
+            <div className="card glass-card mb-6 p-4 border border-sky-200 bg-sky-50/70 rounded-2xl shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#006591] text-white flex items-center justify-center shrink-0 mt-0.5">
+                  <Zap size={16} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-[#006591] m-0 flex items-center gap-1.5">
+                    ⚡ Hasil Tersimpan Ditampilkan — 0 Kuota Terpotong
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Ini foto yang sama dengan scan kamu pada {analysisResult.cached_at ? new Date(analysisResult.cached_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'sebelumnya'}. 
+                    Foto yang sama berarti kondisi kulit yang terbaca juga sama, sehingga hasil analisisnya identik. Kami tampilkan hasil tersimpanmu secara instan tanpa memotong kuota.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3 mt-3 pt-2.5 border-t border-sky-100">
+                    <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 size={13} /> Kuota kamu aman
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 size={13} /> Hasil identik
+                    </span>
+                    <span className="text-xs font-semibold text-[#006591] flex items-center gap-1">
+                      ⚡ Instan (&lt;1 detik)
+                    </span>
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        onClick={handleResetFlow}
+                        className="btn btn-secondary btn-sm text-xs py-1 px-3"
+                      >
+                        <Camera size={13} /> Scan Foto Baru
+                      </button>
+                      <button
+                        onClick={handleForceReanalyze}
+                        className="btn btn-outline btn-sm text-xs py-1 px-3 text-[#006591] border-[#006591]"
+                        title="Analisis ulang foto ini dari awal dengan AI (5 Credits)"
+                      >
+                        <RotateCcw size={13} /> Analisis Ulang (5 Credits)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Clinical Escalation Alert (BPOM Kimi Consensus: Score < 55) */}
+          {getClinicalSeverityBand(analysisResult.overall_score ?? 80).band === 'consult_dermatologist' && (
+            <div className="card mb-6 p-4 border border-amber-300 bg-amber-50/80 rounded-2xl flex items-start gap-3 shadow-sm">
+              <AlertCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-xs font-bold text-amber-900 m-0 uppercase tracking-wider">
+                  Rekomendasi Rujukan Ahli Dermatologi
+                </h4>
+                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                  Hasil evaluasi visual menunjukkan beberapa kondisi kulit yang lebih disarankan untuk ditinjau langsung oleh dokter spesialis kulit. AI Skincluv adalah alat bantu panduan kosmetik sehari-hari, bukan instrumen diagnosis medis resmi.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Score Hero Banner */}
           <div className="score-hero-banner">
             <div className="dots-bg-pattern" />
@@ -837,14 +968,13 @@ export default function FaceScanPage() {
             
             <div className="score-hero-content">
               <div className={`score-ring-avatar ${
-                (analysisResult.overall_score ?? 80) >= 80 ? 'score-optimal' :
-                (analysisResult.overall_score ?? 80) >= 65 ? 'score-caution' : 'score-warning'
+                getClinicalSeverityBand(analysisResult.overall_score ?? 80).colorClass
               }`}>
                 <div className="sr-number-row">
                   <span className="sr-val">{analysisResult.overall_score ?? 80}</span>
                   <span className="sr-scale">/100</span>
                 </div>
-                <span className="sr-unit">Kesehatan Kulit</span>
+                <span className="sr-unit">{getClinicalSeverityBand(analysisResult.overall_score ?? 80).label}</span>
               </div>
 
               <div className="score-meta-info">
@@ -857,11 +987,11 @@ export default function FaceScanPage() {
                   </span>
                 </div>
                 <h3 className="hero-status-title">
-                  {analysisResult.skin_status_title ?? 'Kondisi Kulit: Terpantau Stabil'}
+                  {analysisResult.skin_status_title ?? `Kondisi Kulit: ${getClinicalSeverityBand(analysisResult.overall_score ?? 80).label}`}
                 </h3>
                 <p className="hero-status-desc">
                   {analysisResult.analysis_notes ||
-                    'Kondisi skin barrier kamu secara umum cukup baik! Terdapat beberapa area yang butuh perhatian hidrasi & kontrol sebum ekstra.'}
+                    getClinicalSeverityBand(analysisResult.overall_score ?? 80).descriptor}
                 </p>
               </div>
             </div>
