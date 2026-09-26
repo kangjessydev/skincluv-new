@@ -15,6 +15,10 @@ import {
   Copy,
   Check,
   Filter,
+  Zap,
+  ShieldCheck,
+  AlertTriangle,
+  Plus,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -24,8 +28,13 @@ interface InvoiceRecord {
   reference: string | null
   user_id: string
   amount_idr: number
+  total_amount_idr?: number | null
   plan: string
   status: 'PAID' | 'UNPAID' | 'FAILED' | 'REFUND' | string
+  settlement_type?: string | null
+  admin_notes?: string | null
+  settled_by?: string | null
+  paid_at?: string | null
   checkout_url: string | null
   pay_url: string | null
   qr_url: string | null
@@ -48,6 +57,22 @@ export default function AdminTransactionsPage() {
   const [copiedText, setCopiedText] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Resolution & Settlement State
+  const [isSyncingTripay, setIsSyncingTripay] = useState(false)
+  const [actionNotice, setActionNotice] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null)
+  const [showSettleConfirm, setShowSettleConfirm] = useState(false)
+  const [settleNotes, setSettleNotes] = useState('')
+  const [isSubmittingSettle, setIsSubmittingSettle] = useState(false)
+
+  // Manual Pass Modal State
+  const [showCreatePassModal, setShowCreatePassModal] = useState(false)
+  const [createPassUser, setCreatePassUser] = useState('')
+  const [createPassPlan, setCreatePassPlan] = useState<'GLOW' | 'PRO'>('GLOW')
+  const [createPassNotes, setCreatePassNotes] = useState('')
+  const [isCreatingPass, setIsCreatingPass] = useState(false)
+  const [availableUsers, setAvailableUsers] = useState<{ id: string; full_name: string | null; username: string | null }[]>([])
+  const [userSearchText, setUserSearchText] = useState('')
+
   const loadInvoices = useCallback(async () => {
     setIsLoading(true)
     setErrorMessage(null)
@@ -60,8 +85,13 @@ export default function AdminTransactionsPage() {
           reference,
           user_id,
           amount_idr,
+          total_amount_idr,
           plan,
           status,
+          settlement_type,
+          admin_notes,
+          settled_by,
+          paid_at,
           checkout_url,
           pay_url,
           qr_url,
@@ -84,6 +114,134 @@ export default function AdminTransactionsPage() {
       setIsLoading(false)
     }
   }, [])
+
+  const handleSyncTripay = async (inv: InvoiceRecord) => {
+    setIsSyncingTripay(true)
+    setActionNotice(null)
+    try {
+      const { data, error } = await supabase.functions.invoke('tripay-check-status', {
+        body: {
+          merchant_ref: inv.merchant_ref,
+          reference: inv.reference,
+        },
+      })
+
+      if (error) throw error
+
+      if (data?.status === 'PAID' || data?.is_paid) {
+        setActionNotice({
+          type: 'success',
+          text: 'Status terverifikasi PAID di Tripay! Pass 30 hari pengguna telah aktif dan database telah disinkronkan.',
+        })
+        await loadInvoices()
+        setSelectedInvoice((prev) => (prev ? { ...prev, status: 'PAID', settlement_type: 'GATEWAY_SYNC' } : null))
+      } else {
+        setActionNotice({
+          type: 'info',
+          text: `Tripay melaporkan status transaksi ini: "${data?.status || 'UNPAID'}". Belum ada dana pembayaran masuk dari pengguna di payment gateway.`,
+        })
+      }
+    } catch (err: any) {
+      console.error('[AdminTransactions] Error syncing Tripay status:', err)
+      setActionNotice({
+        type: 'error',
+        text: `Gagal sinkronisasi ke Tripay: ${err.message || 'Koneksi gagal'}`,
+      })
+    } finally {
+      setIsSyncingTripay(false)
+    }
+  }
+
+  const handleManualSettle = async (merchantRef: string) => {
+    if (!settleNotes.trim()) {
+      alert('Mohon isi catatan verifikasi bukti transfer.')
+      return
+    }
+
+    setIsSubmittingSettle(true)
+    try {
+      const { data, error } = await supabase.rpc('admin_manual_settle_invoice' as any, {
+        p_merchant_ref: merchantRef,
+        p_notes: settleNotes.trim(),
+      })
+
+      if (error) throw error
+      if (!data?.success) throw new Error(data?.message || 'Gagal melakukan manual settlement')
+
+      setActionNotice({
+        type: 'success',
+        text: `Invoice ${merchantRef} berhasil di-settle secara manual oleh admin! Paket pengguna langsung aktif.`,
+      })
+      setShowSettleConfirm(false)
+      setSettleNotes('')
+      await loadInvoices()
+      setSelectedInvoice((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'PAID',
+              settlement_type: 'ADMIN_MANUAL',
+              admin_notes: settleNotes.trim(),
+            }
+          : null
+      )
+    } catch (err: any) {
+      console.error('[AdminTransactions] Error manual settle:', err)
+      alert(`Gagal aktivasi manual: ${err.message}`)
+    } finally {
+      setIsSubmittingSettle(false)
+    }
+  }
+
+  const openCreatePassModal = async () => {
+    setShowCreatePassModal(true)
+    setActionNotice(null)
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, username')
+        .order('created_at', { ascending: false })
+        .limit(150)
+      if (data) setAvailableUsers(data)
+    } catch (err) {
+      console.error('[AdminTransactions] Failed loading users:', err)
+    }
+  }
+
+  const handleCreateManualPass = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createPassUser) {
+      alert('Pilih pengguna terlebih dahulu.')
+      return
+    }
+    if (!createPassNotes.trim()) {
+      alert('Mohon isi catatan atau nomor referensi transfer manual.')
+      return
+    }
+
+    setIsCreatingPass(true)
+    try {
+      const { data, error } = await supabase.rpc('admin_manual_create_and_settle_pass' as any, {
+        p_user_id: createPassUser,
+        p_plan: createPassPlan,
+        p_notes: createPassNotes.trim(),
+      })
+
+      if (error) throw error
+      if (!data?.success) throw new Error(data?.message || 'Gagal membuat pass')
+
+      alert(`Berhasil! Pass ${createPassPlan} 30 hari telah aktif untuk pengguna tersebut.`)
+      setShowCreatePassModal(false)
+      setCreatePassUser('')
+      setCreatePassNotes('')
+      await loadInvoices()
+    } catch (err: any) {
+      console.error('[AdminTransactions] Error creating manual pass:', err)
+      alert(`Gagal membuat pass manual: ${err.message}`)
+    } finally {
+      setIsCreatingPass(false)
+    }
+  }
 
   useEffect(() => {
     loadInvoices()
@@ -164,15 +322,25 @@ export default function AdminTransactionsPage() {
           <h1>Riwayat Transaksi & Pembayaran</h1>
           <p>Pantau seluruh invoice Tripay, status pembayaran pengguna, dan pendapatan langganan secara real-time.</p>
         </div>
-        <button
-          className="btn-refresh"
-          onClick={loadInvoices}
-          disabled={isLoading}
-          title="Segarkan Data"
-        >
-          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
+        <div className="header-actions">
+          <button
+            className="btn-create-pass"
+            onClick={openCreatePassModal}
+            title="Aktivasi Pass Manual untuk Pengguna"
+          >
+            <Plus size={16} />
+            <span>Aktivasi Pass Manual</span>
+          </button>
+          <button
+            className="btn-refresh"
+            onClick={loadInvoices}
+            disabled={isLoading}
+            title="Segarkan Data"
+          >
+            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {errorMessage && (
@@ -368,29 +536,48 @@ export default function AdminTransactionsPage() {
                         {formatIDR(inv.amount_idr)}
                       </td>
                       <td>
-                        <span
-                          className={`status-badge ${
-                            isPaid
-                              ? 'status-paid'
-                              : isUnpaid
-                              ? 'status-unpaid'
-                              : 'status-failed'
-                          }`}
-                        >
-                          {isPaid ? (
-                            <>
-                              <CheckCircle2 size={12} /> LUNAS
-                            </>
-                          ) : isUnpaid ? (
-                            <>
-                              <Clock size={12} /> MENUNGGU
-                            </>
-                          ) : (
-                            <>
-                              <XCircle size={12} /> GAGAL
-                            </>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`status-badge ${
+                              isPaid
+                                ? 'status-paid'
+                                : isUnpaid
+                                ? 'status-unpaid'
+                                : 'status-failed'
+                            }`}
+                          >
+                            {isPaid ? (
+                              <>
+                                <CheckCircle2 size={12} /> LUNAS
+                              </>
+                            ) : isUnpaid ? (
+                              <>
+                                <Clock size={12} /> MENUNGGU
+                              </>
+                            ) : (
+                              <>
+                                <XCircle size={12} /> GAGAL
+                              </>
+                            )}
+                          </span>
+                          {isPaid && inv.settlement_type && (
+                            <span
+                              className={`settlement-badge-pill ${
+                                inv.settlement_type === 'ADMIN_MANUAL'
+                                  ? 'manual'
+                                  : inv.settlement_type === 'GATEWAY_SYNC'
+                                  ? 'sync'
+                                  : 'webhook'
+                              }`}
+                            >
+                              {inv.settlement_type === 'ADMIN_MANUAL'
+                                ? 'Manual'
+                                : inv.settlement_type === 'GATEWAY_SYNC'
+                                ? 'Sync'
+                                : 'Webhook'}
+                            </span>
                           )}
-                        </span>
+                        </div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <button
@@ -429,23 +616,136 @@ export default function AdminTransactionsPage() {
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Status Invoice
                   </span>
-                  <span
-                    className={`status-badge ${
-                      selectedInvoice.status === 'PAID'
-                        ? 'status-paid'
-                        : selectedInvoice.status === 'UNPAID'
-                        ? 'status-unpaid'
-                        : 'status-failed'
-                    }`}
-                  >
-                    {selectedInvoice.status}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`status-badge ${
+                        selectedInvoice.status === 'PAID'
+                          ? 'status-paid'
+                          : selectedInvoice.status === 'UNPAID'
+                          ? 'status-unpaid'
+                          : 'status-failed'
+                      }`}
+                    >
+                      {selectedInvoice.status}
+                    </span>
+                    {selectedInvoice.status === 'PAID' && selectedInvoice.settlement_type && (
+                      <span className="settlement-badge-pill">
+                        {selectedInvoice.settlement_type === 'ADMIN_MANUAL'
+                          ? 'Manual Admin'
+                          : selectedInvoice.settlement_type === 'GATEWAY_SYNC'
+                          ? 'Sync Tripay'
+                          : 'Webhook'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="amount-display">
                   <span className="text-xs text-gray-500 block mb-1">Total Tagihan:</span>
-                  <span className="amount-hero">{formatIDR(selectedInvoice.amount_idr)}</span>
+                  <span className="amount-hero">
+                    {formatIDR(selectedInvoice.total_amount_idr || selectedInvoice.amount_idr)}
+                  </span>
                 </div>
               </div>
+
+              {/* Settlement / Resolution Box */}
+              {selectedInvoice.status === 'PAID' ? (
+                <div className="settlement-status-box paid">
+                  <div className="flex items-center gap-2 font-semibold text-emerald-800 text-xs mb-1">
+                    <ShieldCheck size={16} className="text-emerald-600" />
+                    <span>Transaksi Terverifikasi Lunas</span>
+                  </div>
+                  <div className="text-xs text-emerald-700">
+                    Metode Settle: <strong>{selectedInvoice.settlement_type || 'GATEWAY_WEBHOOK'}</strong>
+                    {selectedInvoice.paid_at && ` • ${new Date(selectedInvoice.paid_at).toLocaleString('id-ID')}`}
+                  </div>
+                  {selectedInvoice.admin_notes && (
+                    <div className="mt-2 text-xs bg-white/80 border border-emerald-200 p-2.5 rounded text-emerald-950 font-medium">
+                      <strong>Catatan Admin:</strong> {selectedInvoice.admin_notes}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="settlement-status-box pending">
+                  <div className="flex items-center gap-2 font-semibold text-amber-900 text-xs mb-1">
+                    <AlertTriangle size={16} className="text-amber-600" />
+                    <span>Resolusi Masalah Transaksi</span>
+                  </div>
+                  <p className="text-xs text-amber-800 mb-2 leading-relaxed">
+                    Gunakan aksi di bawah jika pelanggan mengalami kendala gateway, webhook tertunda, atau jika Anda telah menerima bukti transfer manual.
+                  </p>
+
+                  {actionNotice && (
+                    <div className={`action-notice-bar ${actionNotice.type}`}>
+                      {actionNotice.text}
+                    </div>
+                  )}
+
+                  <div className="resolution-actions-grid">
+                    <button
+                      className="btn-action-sync"
+                      onClick={() => handleSyncTripay(selectedInvoice)}
+                      disabled={isSyncingTripay || isSubmittingSettle}
+                    >
+                      <RefreshCw size={13} className={isSyncingTripay ? 'animate-spin' : ''} />
+                      <span>{isSyncingTripay ? 'Menghubungi Tripay...' : 'Sinkronkan ke Tripay'}</span>
+                    </button>
+
+                    <button
+                      className="btn-action-settle"
+                      onClick={() => {
+                        setShowSettleConfirm(!showSettleConfirm)
+                        setActionNotice(null)
+                      }}
+                      disabled={isSyncingTripay || isSubmittingSettle}
+                    >
+                      <Zap size={13} />
+                      <span>Aktivasi Manual</span>
+                    </button>
+                  </div>
+
+                  {showSettleConfirm && (
+                    <div className="settle-confirm-card">
+                      <span className="text-xs font-bold text-rose-900 block mb-1">
+                        Konfirmasi Settle Manual:
+                      </span>
+                      <p className="text-xs text-rose-700 mb-2 leading-relaxed">
+                        Tindakan ini akan mengaktifkan paket pass 30 hari <strong>{selectedInvoice.plan}</strong> dan mencatat transaksi sebagai LUNAS.
+                      </p>
+                      <label className="text-[11px] font-bold text-gray-700 block mb-1">
+                        Catatan Verifikasi / Referensi Transfer (Wajib):
+                      </label>
+                      <input
+                        type="text"
+                        className="admin-settle-input"
+                        placeholder="Contoh: Bukti transfer BCA a.n. Siti Rp 25.000 sudah diverifikasi"
+                        value={settleNotes}
+                        onChange={(e) => setSettleNotes(e.target.value)}
+                      />
+                      <div className="flex gap-2 justify-end mt-2.5">
+                        <button
+                          type="button"
+                          className="btn-cancel-action"
+                          onClick={() => {
+                            setShowSettleConfirm(false)
+                            setSettleNotes('')
+                          }}
+                          disabled={isSubmittingSettle}
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-confirm-action"
+                          onClick={() => handleManualSettle(selectedInvoice.merchant_ref)}
+                          disabled={isSubmittingSettle || !settleNotes.trim()}
+                        >
+                          {isSubmittingSettle ? 'Memproses...' : 'Ya, Aktifkan Pass'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="detail-meta-grid">
                 <div className="detail-item">
@@ -527,10 +827,145 @@ export default function AdminTransactionsPage() {
             </div>
 
             <div className="modal-footer">
-              <button className="btn-modal-close" onClick={() => setSelectedInvoice(null)}>
+              <button
+                className="btn-modal-close"
+                onClick={() => {
+                  setSelectedInvoice(null)
+                  setShowSettleConfirm(false)
+                  setSettleNotes('')
+                  setActionNotice(null)
+                }}
+              >
                 Tutup
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Aktivasi Pass Manual Direct */}
+      {showCreatePassModal && (
+        <div className="modal-overlay" onClick={() => setShowCreatePassModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <div className="modal-title-wrap">
+                <Zap size={18} className="text-amber-500" />
+                <h3>Aktivasi Pass Manual Langsung</h3>
+              </div>
+              <button className="modal-close" onClick={() => setShowCreatePassModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateManualPass}>
+              <div className="modal-body">
+                <p className="text-xs text-gray-600 mb-3.5 leading-relaxed">
+                  Gunakan formulir ini jika pelanggan membayar langsung kepada admin (transfer bank manual / cash) tanpa melalui halaman checkout Tripay.
+                </p>
+
+                <div className="form-group mb-3">
+                  <label className="form-label text-xs font-bold text-gray-700 block mb-1">
+                    Cari & Pilih Pengguna:
+                  </label>
+                  <input
+                    type="text"
+                    className="admin-search-input mb-1.5"
+                    placeholder="Ketik nama atau username untuk filter..."
+                    value={userSearchText}
+                    onChange={(e) => setUserSearchText(e.target.value)}
+                  />
+                  <select
+                    className="admin-select-input"
+                    value={createPassUser}
+                    onChange={(e) => setCreatePassUser(e.target.value)}
+                    required
+                  >
+                    <option value="">-- Pilih Akun Pengguna --</option>
+                    {availableUsers
+                      .filter((u) => {
+                        if (!userSearchText.trim()) return true
+                        const q = userSearchText.toLowerCase()
+                        return (
+                          (u.full_name?.toLowerCase().includes(q) ?? false) ||
+                          (u.username?.toLowerCase().includes(q) ?? false)
+                        )
+                      })
+                      .slice(0, 40)
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.full_name || 'Tanpa Nama'} (@{u.username || 'user'})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="form-group mb-3">
+                  <label className="form-label text-xs font-bold text-gray-700 block mb-1.5">
+                    Pilih Paket Akses 30 Hari:
+                  </label>
+                  <div className="plan-radio-group">
+                    <label className={`plan-radio-label ${createPassPlan === 'GLOW' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="pass_plan"
+                        value="GLOW"
+                        checked={createPassPlan === 'GLOW'}
+                        onChange={() => setCreatePassPlan('GLOW')}
+                      />
+                      <div>
+                        <span className="font-bold block text-xs text-emerald-800">GLOW Pass (Rp 25.000)</span>
+                        <span className="text-[11px] text-gray-500">100 Kuota AI Universal • 30 Hari</span>
+                      </div>
+                    </label>
+                    <label className={`plan-radio-label ${createPassPlan === 'PRO' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="pass_plan"
+                        value="PRO"
+                        checked={createPassPlan === 'PRO'}
+                        onChange={() => setCreatePassPlan('PRO')}
+                      />
+                      <div>
+                        <span className="font-bold block text-xs text-indigo-800">PRO Pass (Rp 49.000)</span>
+                        <span className="text-[11px] text-gray-500">500 Kuota AI Universal • 30 Hari</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-group mb-1">
+                  <label className="form-label text-xs font-bold text-gray-700 block mb-1">
+                    Catatan Verifikasi Pembayaran (Wajib):
+                  </label>
+                  <textarea
+                    className="admin-textarea-input"
+                    rows={3}
+                    placeholder="Contoh: Bukti transfer BCA Rp 25.000 dari Siti Rahmawati via WhatsApp sudah masuk mutasi bank."
+                    value={createPassNotes}
+                    onChange={(e) => setCreatePassNotes(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn-cancel-action"
+                  onClick={() => setShowCreatePassModal(false)}
+                  disabled={isCreatingPass}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-confirm-action"
+                  disabled={isCreatingPass || !createPassUser || !createPassNotes.trim()}
+                >
+                  {isCreatingPass ? 'Memproses Aktivasi...' : 'Aktifkan Pass Sekarang'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -1045,15 +1480,238 @@ export default function AdminTransactionsPage() {
           justify-content: flex-end;
         }
 
-        .btn-modal-close {
-          padding: 8px 16px;
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .btn-create-pass {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          background: #4f46e5;
+          border: 1px solid #4338ca;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #ffffff;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-create-pass:hover {
+          background: #4338ca;
+        }
+
+        .settlement-badge-pill {
+          display: inline-block;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 999px;
+          letter-spacing: 0.02em;
+        }
+
+        .settlement-badge-pill.manual {
+          background: #fef3c7;
+          color: #92400e;
+          border: 1px solid #fde68a;
+        }
+
+        .settlement-badge-pill.sync {
+          background: #e0f2fe;
+          color: #0369a1;
+          border: 1px solid #bae6fd;
+        }
+
+        .settlement-badge-pill.webhook {
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #e2e8f0;
+        }
+
+        .settlement-status-box {
+          border-radius: 10px;
+          padding: 14px;
+          margin-bottom: 16px;
+        }
+
+        .settlement-status-box.paid {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+        }
+
+        .settlement-status-box.pending {
+          background: #fffbeb;
+          border: 1px solid #fef08a;
+        }
+
+        .resolution-actions-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .btn-action-sync {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 8px 12px;
           background: #ffffff;
           border: 1px solid #cbd5e1;
           border-radius: 6px;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 600;
           color: #334155;
           cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-action-sync:hover:not(:disabled) {
+          background: #f8fafc;
+          border-color: #94a3b8;
+        }
+
+        .btn-action-settle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 8px 12px;
+          background: #f59e0b;
+          border: 1px solid #d97706;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #ffffff;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-action-settle:hover:not(:disabled) {
+          background: #d97706;
+        }
+
+        .settle-confirm-card {
+          margin-top: 12px;
+          padding: 12px;
+          background: #fff1f2;
+          border: 1px solid #fecdd3;
+          border-radius: 8px;
+        }
+
+        .admin-settle-input,
+        .admin-search-input,
+        .admin-select-input,
+        .admin-textarea-input {
+          width: 100%;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          padding: 8px 10px;
+          font-size: 12px;
+          color: #0f172a;
+          background: #ffffff;
+          outline: none;
+          box-sizing: border-box;
+          font-family: inherit;
+        }
+
+        .admin-settle-input:focus,
+        .admin-search-input:focus,
+        .admin-select-input:focus,
+        .admin-textarea-input:focus {
+          border-color: #4f46e5;
+          box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+        }
+
+        .action-notice-bar {
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 1.4;
+          margin-bottom: 10px;
+        }
+
+        .action-notice-bar.success {
+          background: #dcfce7;
+          border: 1px solid #86efac;
+          color: #14532d;
+        }
+
+        .action-notice-bar.info {
+          background: #e0f2fe;
+          border: 1px solid #7dd3fc;
+          color: #0369a1;
+        }
+
+        .action-notice-bar.error {
+          background: #fee2e2;
+          border: 1px solid #fca5a5;
+          color: #991b1b;
+        }
+
+        .plan-radio-group {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .plan-radio-label {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          padding: 10px;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          cursor: pointer;
+          background: #f8fafc;
+          transition: all 0.15s;
+        }
+
+        .plan-radio-label.selected {
+          border-color: #4f46e5;
+          background: #eef2ff;
+        }
+
+        .btn-confirm-action {
+          padding: 7px 14px;
+          background: #059669;
+          color: #ffffff;
+          border: none;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+
+        .btn-confirm-action:hover:not(:disabled) {
+          background: #047857;
+        }
+
+        .btn-confirm-action:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .btn-cancel-action {
+          padding: 7px 12px;
+          background: #ffffff;
+          color: #475569;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+
+        .btn-cancel-action:hover:not(:disabled) {
+          background: #f1f5f9;
         }
 
         @media (max-width: 768px) {

@@ -1114,6 +1114,7 @@ export type Database = {
       }
       tripay_invoices: {
         Row: {
+          admin_notes: string | null
           amount_idr: number
           checkout_url: string | null
           created_at: string
@@ -1125,12 +1126,15 @@ export type Database = {
           plan: string
           qr_url: string | null
           reference: string | null
+          settled_by: string | null
+          settlement_type: string | null
           status: string
           total_amount_idr: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           amount_idr: number
           checkout_url?: string | null
           created_at?: string
@@ -1142,12 +1146,15 @@ export type Database = {
           plan?: string
           qr_url?: string | null
           reference?: string | null
+          settled_by?: string | null
+          settlement_type?: string | null
           status?: string
           total_amount_idr?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           amount_idr?: number
           checkout_url?: string | null
           created_at?: string
@@ -1159,6 +1166,8 @@ export type Database = {
           plan?: string
           qr_url?: string | null
           reference?: string | null
+          settled_by?: string | null
+          settlement_type?: string | null
           status?: string
           total_amount_idr?: number | null
           updated_at?: string

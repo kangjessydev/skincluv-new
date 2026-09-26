@@ -37,8 +37,14 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    // Check if caller has admin role
+    const { data: isAdmin } = await supabaseUser.rpc('is_admin')
+
     // 1. Look up DB record first by reference OR merchant_ref
-    let query = supabaseService.from('tripay_invoices').select('*').eq('user_id', user.id)
+    let query = supabaseService.from('tripay_invoices').select('*')
+    if (!isAdmin) {
+      query = query.eq('user_id', user.id)
+    }
     if (reference && merchant_ref) {
       query = query.or(`reference.eq.${reference},merchant_ref.eq.${merchant_ref}`)
     } else {
@@ -98,6 +104,11 @@ Deno.serve(async (req: Request) => {
       } else {
         console.log('[tripay-check-status] Fallback settlement processed:', rpcResult)
         invoice.status = 'PAID'
+        invoice.settlement_type = 'GATEWAY_SYNC'
+        await supabaseService
+          .from('tripay_invoices')
+          .update({ settlement_type: 'GATEWAY_SYNC' })
+          .eq('id', invoice.id)
       }
     }
 
