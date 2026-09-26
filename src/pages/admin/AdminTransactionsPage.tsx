@@ -536,7 +536,7 @@ export default function AdminTransactionsPage() {
                         {formatIDR(inv.amount_idr)}
                       </td>
                       <td>
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="status-cell-wrapper">
                           <span
                             className={`status-badge ${
                               isPaid
@@ -612,11 +612,11 @@ export default function AdminTransactionsPage() {
 
             <div className="modal-body">
               <div className="modal-section-box">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <div className="modal-section-top">
+                  <span className="modal-section-label">
                     Status Invoice
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="modal-status-group">
                     <span
                       className={`status-badge ${
                         selectedInvoice.status === 'PAID'
@@ -629,7 +629,13 @@ export default function AdminTransactionsPage() {
                       {selectedInvoice.status}
                     </span>
                     {selectedInvoice.status === 'PAID' && selectedInvoice.settlement_type && (
-                      <span className="settlement-badge-pill">
+                      <span className={`settlement-badge-pill ${
+                        selectedInvoice.settlement_type === 'ADMIN_MANUAL'
+                          ? 'manual'
+                          : selectedInvoice.settlement_type === 'GATEWAY_SYNC'
+                          ? 'sync'
+                          : 'webhook'
+                      }`}>
                         {selectedInvoice.settlement_type === 'ADMIN_MANUAL'
                           ? 'Manual Admin'
                           : selectedInvoice.settlement_type === 'GATEWAY_SYNC'
@@ -639,8 +645,8 @@ export default function AdminTransactionsPage() {
                     )}
                   </div>
                 </div>
-                <div className="amount-display">
-                  <span className="text-xs text-gray-500 block mb-1">Total Tagihan:</span>
+                <div className="amount-display-container">
+                  <span className="amount-label">Total Tagihan:</span>
                   <span className="amount-hero">
                     {formatIDR(selectedInvoice.total_amount_idr || selectedInvoice.amount_idr)}
                   </span>
@@ -650,27 +656,27 @@ export default function AdminTransactionsPage() {
               {/* Settlement / Resolution Box */}
               {selectedInvoice.status === 'PAID' ? (
                 <div className="settlement-status-box paid">
-                  <div className="flex items-center gap-2 font-semibold text-emerald-800 text-xs mb-1">
-                    <ShieldCheck size={16} className="text-emerald-600" />
-                    <span>Transaksi Terverifikasi Lunas</span>
+                  <div className="verified-header">
+                    <ShieldCheck size={18} className="verified-icon" />
+                    <span className="verified-title">Transaksi Terverifikasi Lunas</span>
                   </div>
-                  <div className="text-xs text-emerald-700">
+                  <div className="verified-meta">
                     Metode Settle: <strong>{selectedInvoice.settlement_type || 'GATEWAY_WEBHOOK'}</strong>
                     {selectedInvoice.paid_at && ` • ${new Date(selectedInvoice.paid_at).toLocaleString('id-ID')}`}
                   </div>
                   {selectedInvoice.admin_notes && (
-                    <div className="mt-2 text-xs bg-white/80 border border-emerald-200 p-2.5 rounded text-emerald-950 font-medium">
+                    <div className="verified-admin-notes">
                       <strong>Catatan Admin:</strong> {selectedInvoice.admin_notes}
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="settlement-status-box pending">
-                  <div className="flex items-center gap-2 font-semibold text-amber-900 text-xs mb-1">
-                    <AlertTriangle size={16} className="text-amber-600" />
-                    <span>Resolusi Masalah Transaksi</span>
+                  <div className="resolution-header">
+                    <AlertTriangle size={18} className="resolution-icon" />
+                    <span className="resolution-title">Resolusi Masalah Transaksi</span>
                   </div>
-                  <p className="text-xs text-amber-800 mb-2 leading-relaxed">
+                  <p className="resolution-desc">
                     Gunakan aksi di bawah jika pelanggan mengalami kendala gateway, webhook tertunda, atau jika Anda telah menerima bukti transfer manual.
                   </p>
 
@@ -686,7 +692,7 @@ export default function AdminTransactionsPage() {
                       onClick={() => handleSyncTripay(selectedInvoice)}
                       disabled={isSyncingTripay || isSubmittingSettle}
                     >
-                      <RefreshCw size={13} className={isSyncingTripay ? 'animate-spin' : ''} />
+                      <RefreshCw size={14} className={isSyncingTripay ? 'animate-spin' : ''} />
                       <span>{isSyncingTripay ? 'Menghubungi Tripay...' : 'Sinkronkan ke Tripay'}</span>
                     </button>
 
@@ -698,20 +704,20 @@ export default function AdminTransactionsPage() {
                       }}
                       disabled={isSyncingTripay || isSubmittingSettle}
                     >
-                      <Zap size={13} />
+                      <Zap size={14} />
                       <span>Aktivasi Manual</span>
                     </button>
                   </div>
 
                   {showSettleConfirm && (
                     <div className="settle-confirm-card">
-                      <span className="text-xs font-bold text-rose-900 block mb-1">
+                      <span className="confirm-headline">
                         Konfirmasi Settle Manual:
                       </span>
-                      <p className="text-xs text-rose-700 mb-2 leading-relaxed">
+                      <p className="confirm-subtext">
                         Tindakan ini akan mengaktifkan paket pass 30 hari <strong>{selectedInvoice.plan}</strong> dan mencatat transaksi sebagai LUNAS.
                       </p>
-                      <label className="text-[11px] font-bold text-gray-700 block mb-1">
+                      <label className="confirm-input-label">
                         Catatan Verifikasi / Referensi Transfer (Wajib):
                       </label>
                       <input
@@ -721,7 +727,7 @@ export default function AdminTransactionsPage() {
                         value={settleNotes}
                         onChange={(e) => setSettleNotes(e.target.value)}
                       />
-                      <div className="flex gap-2 justify-end mt-2.5">
+                      <div className="confirm-btn-row">
                         <button
                           type="button"
                           className="btn-cancel-action"
@@ -1410,13 +1416,56 @@ export default function AdminTransactionsPage() {
           border: 1px solid #e2e8f0;
           border-radius: 10px;
           padding: 14px 16px;
-          margin-bottom: 18px;
+          margin-bottom: 16px;
+        }
+
+        .modal-section-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .modal-section-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .modal-status-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .amount-display-container {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .amount-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
         }
 
         .amount-hero {
-          font-size: 24px;
+          font-size: 26px;
           font-weight: 800;
           color: #0f172a;
+          line-height: 1.1;
+        }
+
+        .status-cell-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
         }
 
         .detail-meta-grid {
@@ -1543,9 +1592,68 @@ export default function AdminTransactionsPage() {
           border: 1px solid #bbf7d0;
         }
 
+        .verified-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 4px;
+        }
+
+        .verified-icon {
+          color: #059669;
+          flex-shrink: 0;
+        }
+
+        .verified-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #065f46;
+        }
+
+        .verified-meta {
+          font-size: 12px;
+          color: #047857;
+        }
+
+        .verified-admin-notes {
+          margin-top: 8px;
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.85);
+          border: 1px solid #a7f3d0;
+          border-radius: 6px;
+          font-size: 12px;
+          color: #064e3b;
+          line-height: 1.4;
+        }
+
         .settlement-status-box.pending {
           background: #fffbeb;
           border: 1px solid #fef08a;
+        }
+
+        .resolution-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 6px;
+        }
+
+        .resolution-icon {
+          color: #d97706;
+          flex-shrink: 0;
+        }
+
+        .resolution-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #78350f;
+        }
+
+        .resolution-desc {
+          font-size: 12px;
+          color: #92400e;
+          margin: 0 0 12px 0;
+          line-height: 1.5;
         }
 
         .resolution-actions-grid {
@@ -1597,10 +1705,40 @@ export default function AdminTransactionsPage() {
 
         .settle-confirm-card {
           margin-top: 12px;
-          padding: 12px;
+          padding: 14px;
           background: #fff1f2;
           border: 1px solid #fecdd3;
           border-radius: 8px;
+        }
+
+        .confirm-headline {
+          display: block;
+          font-size: 12px;
+          font-weight: 700;
+          color: #9f1239;
+          margin-bottom: 4px;
+        }
+
+        .confirm-subtext {
+          font-size: 12px;
+          color: #be123c;
+          margin: 0 0 10px 0;
+          line-height: 1.5;
+        }
+
+        .confirm-input-label {
+          display: block;
+          font-size: 11px;
+          font-weight: 700;
+          color: #374151;
+          margin-bottom: 5px;
+        }
+
+        .confirm-btn-row {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+          margin-top: 10px;
         }
 
         .admin-settle-input,
