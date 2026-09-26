@@ -1369,6 +1369,9 @@ export default function AdminTransactionsPage() {
           border-radius: 16px;
           width: 100%;
           max-width: 520px;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
           animation: modalPop 0.2s ease-out;
@@ -1385,6 +1388,7 @@ export default function AdminTransactionsPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-shrink: 0;
         }
 
         .modal-title-wrap {
@@ -1409,6 +1413,8 @@ export default function AdminTransactionsPage() {
 
         .modal-body {
           padding: 20px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         }
 
         .modal-section-box {
@@ -1814,24 +1820,30 @@ export default function AdminTransactionsPage() {
         .plan-radio-group {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          gap: 12px;
         }
 
         .plan-radio-label {
           display: flex;
           align-items: flex-start;
-          gap: 8px;
-          padding: 12px;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
+          gap: 10px;
+          padding: 12px 14px;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
           cursor: pointer;
           background: #f8fafc;
-          transition: all 0.15s;
+          transition: all 0.15s ease;
+        }
+
+        .plan-radio-label:hover {
+          border-color: #cbd5e1;
+          background: #ffffff;
         }
 
         .plan-radio-label.selected {
           border-color: #4f46e5;
           background: #eef2ff;
+          box-shadow: 0 0 0 1px #4f46e5;
         }
 
         .plan-radio-label input[type="radio"] {
@@ -1839,19 +1851,22 @@ export default function AdminTransactionsPage() {
           cursor: pointer;
           accent-color: #4f46e5;
           flex-shrink: 0;
+          width: 16px;
+          height: 16px;
         }
 
         .plan-radio-info {
           display: flex;
           flex-direction: column;
           gap: 3px;
+          flex: 1;
         }
 
         .plan-radio-title {
           display: block;
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 700;
-          line-height: 1.2;
+          line-height: 1.3;
         }
 
         .plan-radio-title.glow {
@@ -1867,15 +1882,16 @@ export default function AdminTransactionsPage() {
           font-size: 11px;
           color: #64748b;
           line-height: 1.3;
+          font-weight: 500;
         }
 
         .btn-confirm-action {
-          padding: 7px 14px;
+          padding: 8px 16px;
           background: #059669;
           color: #ffffff;
           border: none;
-          border-radius: 6px;
-          font-size: 12px;
+          border-radius: 8px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           transition: background 0.15s;
@@ -1891,12 +1907,12 @@ export default function AdminTransactionsPage() {
         }
 
         .btn-cancel-action {
-          padding: 7px 12px;
+          padding: 8px 14px;
           background: #ffffff;
           color: #475569;
           border: 1px solid #cbd5e1;
-          border-radius: 6px;
-          font-size: 12px;
+          border-radius: 8px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           transition: background 0.15s;
@@ -1904,6 +1920,31 @@ export default function AdminTransactionsPage() {
 
         .btn-cancel-action:hover:not(:disabled) {
           background: #f1f5f9;
+        }
+
+        .modal-actions-wrap {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px solid #f1f5f9;
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .btn-modal-close {
+          padding: 8px 18px;
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-modal-close:hover {
+          background: #e2e8f0;
+          color: #1e293b;
         }
 
         @media (max-width: 768px) {

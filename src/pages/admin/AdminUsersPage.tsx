@@ -1022,6 +1022,12 @@ export default function AdminUsersPage() {
           gap: 6px;
         }
 
+        .coin-number {
+          font-weight: 700;
+          color: #0f172a;
+          font-size: 13px;
+        }
+
         .role-badge {
           display: inline-flex;
           align-items: center;
@@ -1094,6 +1100,9 @@ export default function AdminUsersPage() {
           border-radius: 16px;
           width: 100%;
           max-width: 480px;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         }
@@ -1104,6 +1113,7 @@ export default function AdminUsersPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-shrink: 0;
         }
 
         .modal-title-wrap {
@@ -1128,6 +1138,8 @@ export default function AdminUsersPage() {
 
         .modal-body {
           padding: 20px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         }
 
         .user-target-banner {

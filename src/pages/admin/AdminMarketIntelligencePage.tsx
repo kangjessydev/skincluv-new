@@ -733,6 +733,14 @@ export default function AdminMarketIntelligencePage() {
           margin-bottom: 24px;
         }
 
+        .full-width {
+          width: 100%;
+        }
+
+        .demo-item {
+          width: 100%;
+        }
+
         .section-header {
           margin-bottom: 16px;
         }

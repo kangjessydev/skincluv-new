@@ -1205,6 +1205,20 @@ export default function AdminFinancialsPage() {
           background: #fee2e2;
         }
 
+        .table-row {
+          transition: background-color 0.15s ease;
+        }
+
+        .table-row:hover {
+          background-color: #f8fafc;
+        }
+
+        .reconciliation-card,
+        .simulator-card {
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
         /* Topup Modal */
         .topup-modal-overlay {
           position: fixed;
@@ -1223,6 +1237,9 @@ export default function AdminFinancialsPage() {
           border-radius: 14px;
           max-width: 460px;
           width: 100%;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
           border: 1px solid #e2e8f0;
           overflow: hidden;
@@ -1234,6 +1251,7 @@ export default function AdminFinancialsPage() {
           align-items: center;
           padding: 16px 20px;
           border-bottom: 1px solid #f1f5f9;
+          flex-shrink: 0;
         }
 
         .topup-modal-header h3 {
@@ -1262,6 +1280,8 @@ export default function AdminFinancialsPage() {
           display: flex;
           flex-direction: column;
           gap: 14px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         }
 
         .topup-form .form-group {
