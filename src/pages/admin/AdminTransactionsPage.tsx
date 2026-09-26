@@ -98,7 +98,7 @@ export default function AdminTransactionsPage() {
           expired_at,
           created_at,
           updated_at,
-          profiles (
+          profiles!user_id (
             full_name,
             username
           )
