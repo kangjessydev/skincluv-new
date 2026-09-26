@@ -234,7 +234,7 @@ export default function DashboardPage() {
           </div>
           <div className="retention-card">
             <div className="r-num">{userCredits}</div>
-            <div className="r-cap streak">Saldo AI Credits ⚡</div>
+            <div className="r-cap streak">Saldo AI Credits</div>
           </div>
         </div>
       </div>

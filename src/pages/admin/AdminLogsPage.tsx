@@ -351,7 +351,7 @@ export default function AdminLogsPage() {
             </div>
             {(metrics.totalInputTokens > 0 || metrics.totalOutputTokens > 0) && (
               <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                📥 {metrics.totalInputTokens.toLocaleString('id-ID')} in • 📤 {metrics.totalOutputTokens.toLocaleString('id-ID')} out
+                {metrics.totalInputTokens.toLocaleString('id-ID')} in • {metrics.totalOutputTokens.toLocaleString('id-ID')} out
               </div>
             )}
           </div>
@@ -594,9 +594,9 @@ export default function AdminLogsPage() {
                         </div>
                         {(log.input_tokens !== null || log.output_tokens !== null) && (
                           <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'center', gap: 5 }}>
-                            <span title="Input Tokens">📥 {log.input_tokens?.toLocaleString('id-ID') ?? 0}</span>
+                            <span title="Input Tokens">in: {log.input_tokens?.toLocaleString('id-ID') ?? 0}</span>
                             <span style={{ color: '#d1d5db' }}>|</span>
-                            <span title="Output Tokens">📤 {log.output_tokens?.toLocaleString('id-ID') ?? 0}</span>
+                            <span title="Output Tokens">out: {log.output_tokens?.toLocaleString('id-ID') ?? 0}</span>
                           </div>
                         )}
                         {log.cost_usd !== null && log.cost_usd !== undefined && log.cost_usd > 0 && (
@@ -780,7 +780,7 @@ export default function AdminLogsPage() {
                   </div>
                   {(selectedLog.input_tokens !== null || selectedLog.output_tokens !== null) && (
                     <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                      📥 {selectedLog.input_tokens?.toLocaleString('id-ID') ?? 0} in • 📤 {selectedLog.output_tokens?.toLocaleString('id-ID') ?? 0} out
+                      in: {selectedLog.input_tokens?.toLocaleString('id-ID') ?? 0} • out: {selectedLog.output_tokens?.toLocaleString('id-ID') ?? 0}
                     </div>
                   )}
                 </div>
@@ -813,9 +813,8 @@ export default function AdminLogsPage() {
                 </div>
 
                 <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Rating User (CSAT)</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
-                    {selectedLog.user_feedback === 1 ? '👍 Puas (Positif)' : selectedLog.user_feedback === -1 ? '👎 Kurang (Negatif)' : 'Belum Ada Rating'}
+                    {selectedLog.user_feedback === 1 ? 'Puas (Positif)' : selectedLog.user_feedback === -1 ? 'Kurang (Negatif)' : 'Belum Ada Rating'}
                   </div>
                 </div>
               </div>

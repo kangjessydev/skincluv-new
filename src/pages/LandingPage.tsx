@@ -149,9 +149,9 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="hero-trust">
-              <span>✓ Tanpa Kartu Kredit</span>
-              <span>✓ Credit Gratis Harian</span>
-              <span>✓ Hasil Instan</span>
+              <span><CheckCircle2 size={13} className="inline mr-1" /> Tanpa Kartu Kredit</span>
+              <span><CheckCircle2 size={13} className="inline mr-1" /> Credit Gratis Harian</span>
+              <span><CheckCircle2 size={13} className="inline mr-1" /> Hasil Instan</span>
             </div>
           </div>
 

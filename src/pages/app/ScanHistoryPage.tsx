@@ -437,7 +437,7 @@ export default function ScanHistoryPage() {
 
                         <div className="scan-tags-row">
                           <span className={`status-pill-badge ${isSafe ? 'safe' : 'caution'}`}>
-                            {isSafe ? '✓ Formula Aman' : '⚠️ Perlu Perhatian'}
+                            {isSafe ? 'Formula Aman' : 'Perlu Perhatian'}
                           </span>
                           {Array.isArray(ing.key_ingredients) && ing.key_ingredients.slice(0, 3).map((k, i) => (
                             <span key={i} className="concern-tag">
@@ -534,21 +534,21 @@ export default function ScanHistoryPage() {
 
                           {area.finding && (
                             <div className="area-finding-box">
-                              <span className="af-label">🔬 Diagnosis Klinis:</span>
+                              <span className="af-label">Diagnosis Klinis:</span>
                               <p className="af-text">{area.finding}</p>
                             </div>
                           )}
 
                           {area.analogy && (
                             <div className="area-analogy-box">
-                              <span className="aa-label">💡 Analogi Bestie:</span>
+                              <span className="aa-label">Penjelasan Sederhana:</span>
                               <p className="aa-text">{area.analogy}</p>
                             </div>
                           )}
 
                           {area.action_plan && (
                             <div className="area-action-box">
-                              <span className="ac-label">🎯 Rencana Aksi Sederhana:</span>
+                              <span className="ac-label">Rencana Tindakan:</span>
                               <p className="ac-text">{area.action_plan}</p>
                             </div>
                           )}
@@ -566,7 +566,7 @@ export default function ScanHistoryPage() {
                     <div className="modal-tips-grid">
                       {tipsAvoid.length > 0 && (
                         <div className="tip-box tip-avoid">
-                          <span className="tb-title text-red">✕ Hindari</span>
+                          <span className="tb-title text-red">Hindari</span>
                           <ul className="tb-list">
                             {tipsAvoid.map((t: string, i: number) => <li key={i}>{t}</li>)}
                           </ul>
@@ -574,7 +574,7 @@ export default function ScanHistoryPage() {
                       )}
                       {tipsReduce.length > 0 && (
                         <div className="tip-box tip-reduce">
-                          <span className="tb-title text-amber">− Kurangi</span>
+                          <span className="tb-title text-amber">Kurangi</span>
                           <ul className="tb-list">
                             {tipsReduce.map((t: string, i: number) => <li key={i}>{t}</li>)}
                           </ul>
@@ -582,7 +582,7 @@ export default function ScanHistoryPage() {
                       )}
                       {tipsDo.length > 0 && (
                         <div className="tip-box tip-do">
-                          <span className="tb-title text-green">✓ Rutin Lakukan</span>
+                          <span className="tb-title text-green">Rekomendasi Rutin</span>
                           <ul className="tb-list">
                             {tipsDo.map((t: string, i: number) => <li key={i}>{t}</li>)}
                           </ul>
@@ -1172,6 +1172,7 @@ export default function ScanHistoryPage() {
         }
 
         .modal-header {
+          flex-shrink: 0;
           padding: 18px 24px;
           border-bottom: 1px solid #f1f5f9;
           display: flex;
@@ -1215,6 +1216,8 @@ export default function ScanHistoryPage() {
         }
 
         .modal-body-scroll {
+          flex: 1 1 auto;
+          min-height: 0;
           padding: 20px 24px 28px;
           overflow-y: auto;
           display: flex;
@@ -1222,14 +1225,22 @@ export default function ScanHistoryPage() {
           gap: 20px;
         }
 
+        .modal-body-scroll > * {
+          flex-shrink: 0;
+        }
+
         .modal-score-hero {
+          flex-shrink: 0;
+          min-height: fit-content;
           background: linear-gradient(135deg, var(--skincluv-teal, #0f6784) 0%, var(--skincluv-teal-hover, #0b4f5c) 100%);
           border-radius: 18px;
-          padding: 22px 24px;
+          padding: 24px 26px;
           color: #ffffff;
           position: relative;
           overflow: hidden;
           box-shadow: 0 8px 24px rgba(15, 103, 132, 0.2);
+          box-sizing: border-box;
+          width: 100%;
         }
 
         .hero-glow-accent {

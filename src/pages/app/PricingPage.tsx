@@ -113,7 +113,7 @@ export default function PricingPage() {
 
       {/* Trust & Transparency FAQ Box (Kimi Review) */}
       <div className="pricing-trust-section">
-        <h3>🔒 Belanja Akses Nyaman & Bebas Cemas</h3>
+        <h3><ShieldCheck size={20} className="inline mr-2" />Transaksi Nyaman & Bebas Cemas</h3>
         <div className="trust-qa-grid">
           <div className="trust-qa-card">
             <h4>Q: Apakah saldo saya akan terpotong otomatis tiap bulan?</h4>

@@ -12,7 +12,7 @@ interface PaymentChannel {
 }
 
 const PAYMENT_CHANNELS: PaymentChannel[] = [
-  { code: 'QRIS', name: 'QRIS (GoPay, OVO, Dana, ShopeePay)', category: 'qris', iconLabel: '⚡ Instan' },
+  { code: 'QRIS', name: 'QRIS (GoPay, OVO, Dana, ShopeePay)', category: 'qris', iconLabel: 'Instan' },
   { code: 'BRIVA', name: 'BRI Virtual Account', category: 'va', iconLabel: 'Bank BRI' },
   { code: 'BCAVA', name: 'BCA Virtual Account', category: 'va', iconLabel: 'Bank BCA' },
   { code: 'MANDIRIVA', name: 'Mandiri Virtual Account', category: 'va', iconLabel: 'Mandiri' },

@@ -518,15 +518,15 @@ export default function AdminModelsPage() {
                         <div style={{ marginTop: 4 }}>
                           {c.parameters?.thinking_budget === 0 ? (
                             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
-                              ⚡ Thinking: 0 (Fast OCR)
+                              Thinking: 0 (Fast OCR)
                             </span>
                           ) : c.parameters?.thinking_budget !== undefined ? (
                             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
-                              🧠 Thinking: {c.parameters.thinking_budget}
+                              Thinking: {c.parameters.thinking_budget}
                             </span>
                           ) : (
                             <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}>
-                              🧠 Default Reasoning
+                              Default Reasoning
                             </span>
                           )}
                         </div>

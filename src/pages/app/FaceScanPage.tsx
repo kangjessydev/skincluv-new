@@ -20,6 +20,8 @@ import {
   Info,
   ExternalLink,
   Zap,
+  Sun,
+  Scan,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -809,35 +811,35 @@ export default function FaceScanPage() {
             </div>
 
             <div className="side-card capture-guidance-card">
-              <div className="card-section-label">✨ 3 Hal Kecil Sebelum Jepret</div>
+              <div className="card-section-label">Panduan Sebelum Pengambilan Foto</div>
               <p className="capture-guidance-sub">
-                Biar hasil scan-mu akurat & bisa dipakai membandingkan perkembangan kulitmu minggu depan 👇
+                Pastikan kondisi berikut terpenuhi agar hasil analisis akurat dan konsisten dalam membandingkan perkembangan kulit.
               </p>
               <div className="capture-guidance-items">
                 <div className="cg-item">
-                  <div className="cg-icon">☀️</div>
+                  <div className="cg-icon"><Sun size={18} /></div>
                   <div className="cg-text">
-                    <strong>1. Tempat terang yang sama tiap kali</strong>
-                    <p>Cahaya memengaruhi cara AI membaca warna & tekstur kulitmu. Jendela siang hari adalah pencahayaan terbaik.</p>
+                    <strong>1. Pencahayaan merata dan alami</strong>
+                    <p>Pencahayaan memengaruhi akurasi pembacaan warna dan tekstur kulit. Ruangan terang dengan cahaya alami adalah pilihan terbaik.</p>
                   </div>
                 </div>
                 <div className="cg-item">
-                  <div className="cg-icon">🧼</div>
+                  <div className="cg-icon"><Sparkles size={18} /></div>
                   <div className="cg-text">
-                    <strong>2. Wajah bersih, tanpa sisa produk</strong>
-                    <p>Scan sekitar 1 jam setelah cuci muka. Sisa krim atau SPF bisa "menutupi" kondisi kulit aslimu.</p>
+                    <strong>2. Wajah bersih tanpa riasan atau produk tebal</strong>
+                    <p>Disarankan mengambil foto sekitar 1 jam setelah mencuci wajah agar kondisi alami sebum dan pori terlihat jelas.</p>
                   </div>
                 </div>
                 <div className="cg-item">
-                  <div className="cg-icon">📐</div>
+                  <div className="cg-icon"><Scan size={18} /></div>
                   <div className="cg-text">
-                    <strong>3. Sejajarkan wajah, ±jengkal dari kamera (±30 cm)</strong>
-                    <p>Biar dahi, pipi, dan dagu terbaca jelas semua.</p>
+                    <strong>3. Posisikan wajah sejajar, jarak sekitar 30 cm</strong>
+                    <p>Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam bingkai panduan kamera.</p>
                   </div>
                 </div>
               </div>
               <div className="cg-footer-tip">
-                💡 <em>Kurang sempurna? Tetap boleh scan kok — tapi skor bisa ikut terpengaruh. Ada indikator kualitas foto yang menemanimu saat jepret.</em>
+                <em>Catatan: Kualitas pencahayaan atau sudut foto dapat memengaruhi akurasi skor. Indikator kualitas foto akan memandu Anda saat kamera aktif.</em>
               </div>
             </div>
           </div>
@@ -909,7 +911,7 @@ export default function FaceScanPage() {
                 </div>
                 <div className="cache-hit-body">
                   <h4 className="cache-hit-title">
-                    ⚡ Hasil Tersimpan Ditampilkan — 0 Kuota Terpotong
+                    <Zap size={16} className="inline mr-1" /> Hasil Tersimpan Ditampilkan — 0 Kuota Terpotong
                   </h4>
                   <p className="cache-hit-desc">
                     Ini foto yang sama dengan scan kamu pada {analysisResult.cached_at ? new Date(analysisResult.cached_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'sebelumnya'}. 
@@ -923,7 +925,7 @@ export default function FaceScanPage() {
                       <CheckCircle2 size={13} /> Hasil identik
                     </span>
                     <span className="cache-hit-badge-speed">
-                      ⚡ Instan (&lt;1 detik)
+                      <Zap size={12} /> Instan (&lt;1 detik)
                     </span>
                     <div className="cache-hit-actions">
                       <button
@@ -1057,17 +1059,17 @@ export default function FaceScanPage() {
                 </div>
 
                 <div className="area-finding-box">
-                  <span className="af-label">🔬 Diagnosis Klinis:</span>
+                  <span className="af-label">Diagnosis Klinis:</span>
                   <p className="af-text">{area.finding}</p>
                 </div>
 
                 <div className="area-analogy-box">
-                  <span className="aa-label">💡 Analogi Bestie:</span>
+                  <span className="aa-label">Penjelasan Sederhana:</span>
                   <p className="aa-text">{area.analogy}</p>
                 </div>
 
                 <div className="area-action-box">
-                  <span className="ac-label">🎯 Rencana Aksi Sederhana:</span>
+                  <span className="ac-label">Rencana Tindakan:</span>
                   <p className="ac-text">{area.action_plan}</p>
                 </div>
               </div>
@@ -1133,7 +1135,7 @@ export default function FaceScanPage() {
                       <div className="aic-badge-row">
                         <span className="aic-rank">#{idx + 1}</span>
                         <span className={`aic-priority-pill ${isEssential ? 'essential' : 'recommended'}`}>
-                          {isEssential ? '✨ Prioritas Utama' : '🛡️ Prioritas Pendukung'}
+                          {isEssential ? 'Prioritas Utama' : 'Prioritas Pendukung'}
                         </span>
                       </div>
                       <h4 className="aic-name">{cleanName}</h4>

@@ -221,11 +221,11 @@ export default function ProfilePage() {
               {/* Explainer Note: Kuota Bersama Fleksibel */}
               <div className="universal-quota-hint">
                 {isPro ? (
-                  <span>✨ <strong>VIP PRO</strong>: Termasuk Chatbot Dermatologist Expert, Web Search Klinis & Scan Wajah. Kuota 500x terasa unlimited.</span>
+                  <span><strong>VIP PRO</strong>: Termasuk Chatbot Dermatologist Expert, Web Search Klinis & Scan Wajah. Kuota 500x terasa unlimited.</span>
                 ) : isGlow ? (
-                  <span>💡 <strong>Satu Kuota Bersama</strong>: Bebas dipakai untuk Chatbot Standar, Scan Wajah, & Scan Komposisi. Sisa jatah scan otomatis bisa kamu pakai untuk chat!</span>
+                  <span><strong>Satu Kuota Bersama</strong>: Bebas dipakai untuk Chatbot Standar, Scan Wajah, & Scan Komposisi. Sisa jatah scan otomatis bisa kamu pakai untuk chat!</span>
                 ) : (
-                  <span>🎁 <strong>Akun Gratis</strong>: Akses scan dan chat menggunakan saldo AI Credits yang bisa kamu dapatkan gratis dari misi harian.</span>
+                  <span><strong>Akun Gratis</strong>: Akses scan dan chat menggunakan saldo AI Credits yang bisa kamu dapatkan gratis dari misi harian.</span>
                 )}
               </div>
             </div>

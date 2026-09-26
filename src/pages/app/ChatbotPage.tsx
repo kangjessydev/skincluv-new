@@ -22,6 +22,7 @@ import {
   ScanFace,
   ArrowRight,
   FileText,
+  CheckCircle2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -77,17 +78,17 @@ function parseMessageAction(text: string): { cleanText: string; action: ChatActi
 // PENTING: harus EXACT MATCH (bukan "starts with"/substring) supaya pesan yang
 // punya pertanyaan tambahan tetap diteruskan ke AI, bukan ke-intercept di sini.
 const TRIVIAL_GREETING_RESPONSES: Record<string, string> = {
-  'halo': 'Halo! Ada yang mau kamu tanyain soal kulit atau skincare hari ini? 😊',
-  'hai': 'Hai! Ada yang bisa aku bantu soal skincare kamu? 😊',
-  'hi': 'Hai! Ada yang bisa aku bantu soal skincare kamu? 😊',
-  'hallo': 'Halo! Ada yang mau kamu tanyain soal kulit atau skincare hari ini? 😊',
-  'permisi': 'Halo, silakan! Ada yang mau ditanyain soal skincare? 😊',
-  'makasih': 'Sama-sama! Semoga membantu ya ✨',
-  'terima kasih': 'Sama-sama! Semoga membantu ya ✨',
-  'thanks': 'Sama-sama! Semoga membantu ya ✨',
-  'ok': 'Oke! Ada lagi yang mau ditanyain? 😊',
-  'oke': 'Oke! Ada lagi yang mau ditanyain? 😊',
-  'siap': 'Siap! Ada lagi yang bisa aku bantu? 😊',
+  'halo': 'Halo! Ada yang ingin Anda tanyakan seputar kulit atau perawatan hari ini?',
+  'hai': 'Hai! Ada yang bisa saya bantu seputar perawatan kulit Anda?',
+  'hi': 'Hai! Ada yang bisa saya bantu seputar perawatan kulit Anda?',
+  'hallo': 'Halo! Ada yang ingin Anda tanyakan seputar kulit atau perawatan hari ini?',
+  'permisi': 'Halo, silakan! Ada yang ingin ditanyakan seputar kulit?',
+  'makasih': 'Sama-sama! Semoga informasinya bermanfaat.',
+  'terima kasih': 'Sama-sama! Semoga informasinya bermanfaat.',
+  'thanks': 'Sama-sama! Semoga informasinya bermanfaat.',
+  'ok': 'Baik, ada hal lain yang ingin Anda konsultasikan?',
+  'oke': 'Baik, ada hal lain yang ingin Anda konsultasikan?',
+  'siap': 'Siap! Ada hal lain yang bisa saya bantu?',
 }
 
 function getTrivialGreetingReply(text: string): string | null {
@@ -608,7 +609,7 @@ export default function ChatbotPage() {
       } else {
         setLastSources([])
         // Fallback bubble informatif jika invoke gagal atau credits habis — bukan hening/tidak ada respon
-        const noticeText = `⚠️ **Credits kamu tidak mencukupi** untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
+        const noticeText = `**Credits kamu tidak mencukupi** untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
         const tempBotMsg: Message = {
           id: `insufficient-${Date.now()}`,
           sender: 'bot',
@@ -625,7 +626,7 @@ export default function ChatbotPage() {
         {
           id: `error-${Date.now()}`,
           sender: 'bot',
-          text: '⚠️ Maaf, ada gangguan koneksi ke server AI. Credit-mu tidak berkurang. Coba kirim pesan lagi ya.',
+          text: 'Maaf, terjadi kendala koneksi ke server AI. Credit-mu tidak berkurang. Silakan coba kirim pesan lagi.',
           created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ])
@@ -745,8 +746,8 @@ export default function ChatbotPage() {
                   <strong>Prinsip Minimisasi Data &amp; Isolasi Pribadi:</strong> AI hanya mengingat hal penting (seperti alergi, sensitivitas bahan, atau preferensi skincare) yang Anda diskusikan agar konsultasi berikutnya selalu aman dan relevan. Memori ini 100% terisolasi untuk akun Anda dan tidak dapat dibaca admin ataupun pihak ketiga.
                 </p>
                 <div className="uupdp-rights">
-                  <span>✓ Hak Akses &amp; Hapus Data Pribadi</span>
-                  <span>✓ Isolasi Sandboxing Terenkripsi</span>
+                  <span><CheckCircle2 size={12} className="inline mr-1" /> Hak Akses &amp; Hapus Data Pribadi</span>
+                  <span><CheckCircle2 size={12} className="inline mr-1" /> Isolasi Sandboxing Terenkripsi</span>
                 </div>
               </div>
 
@@ -909,7 +910,7 @@ export default function ChatbotPage() {
             <div className="welcome-avatar-icon">
               <Sparkles size={28} className="text-primary" />
             </div>
-            <h2>Halo, {userName}! 👋</h2>
+            <h2>Halo, {userName}!</h2>
             <p>
               Saya <b>Skinsistant AI</b>, asisten konsultasi kulit pribadi Anda. Tanyakan apa saja mengenai masalah kulit, rutinitas skincare, atau analisis komposisi produk.
             </p>

@@ -129,7 +129,7 @@ export function SkinRegionCropper({
             {severity === 'high' ? 'Perhatian' : severity === 'medium' ? 'Sedang' : 'Ringan'}
           </span>
         </div>
-        <span className="region-location">📍 {location}</span>
+        <span className="region-location"><MapPin size={12} className="inline mr-1" />{location}</span>
         <p className="region-desc">{description}</p>
       </div>
 

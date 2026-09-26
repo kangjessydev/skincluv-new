@@ -634,7 +634,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 {previewUrl ? (
                   <img src={previewUrl} alt="Label Komposisi" className="scan-img-preview" />
                 ) : (
-                  <div className="mock-label-box">📋 Foto Label Komposisi Produk</div>
+                  <div className="mock-label-box">Foto Label Komposisi Produk</div>
                 )}
 
                 {/* HUD High-Tech Grid & Corner Brackets */}
@@ -776,7 +776,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   <div className="hero-header">
                     <div className="hero-header-left">
                       <Sparkles size={16} className="text-amber-500 shrink-0" />
-                      <h4 className="hero-title">🌟 Bahan Kunci & Pahlawan (Hero Actives):</h4>
+                      <h4 className="hero-title">Bahan Kunci & Pahlawan (Hero Actives):</h4>
                     </div>
                     <span className="hero-count-pill">{heroActivesList.length} Bahan Unggulan</span>
                   </div>
@@ -819,7 +819,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
                         <p className="pc-warning">{pc.warning}</p>
                         {pc.clinical_advice && (
                           <div className="pc-advice">
-                            💡 <em>Saran: {pc.clinical_advice}</em>
+                            <em>Saran: {pc.clinical_advice}</em>
                           </div>
                         )}
                       </div>
@@ -850,7 +850,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 ) : (
                   <div className="edit-box-wrapper">
                     <p className="edit-hint">
-                      💡 Perbaiki jika ada kata/huruf yang typo atau tambahkan bahan yang terpotong pada kemasan botol melengkung:
+                      Perbaiki jika ada kata/huruf yang kurang tepat atau tambahkan bahan yang terpotong pada kemasan melengkung:
                     </p>
                     <textarea
                       value={editableText}
@@ -908,16 +908,16 @@ PETUNJUK OCR & ANALISIS WAJIB:
                                 <div className="danger-combo-title-row">
                                   <b>{item.pair}</b>
                                   {item.severity === 'fatal' && (
-                                    <span className="combo-severity-badge severity-fatal">🔴 FATAL</span>
+                                    <span className="combo-severity-badge severity-fatal">FATAL</span>
                                   )}
                                   {item.severity === 'caution' && (
-                                    <span className="combo-severity-badge severity-caution">⚠️ PERHATIAN</span>
+                                    <span className="combo-severity-badge severity-caution">PERHATIAN</span>
                                   )}
                                 </div>
                                 <p className="danger-combo-desc">{item.warning}</p>
                                 {item.clinical_action && (
                                   <div className="danger-combo-action">
-                                    💡 <em>Solusi Klinis: {item.clinical_action}</em>
+                                    <em>Solusi Klinis: {item.clinical_action}</em>
                                   </div>
                                 )}
                               </div>
@@ -1036,7 +1036,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
                     </div>
                   )}
                   <p className="chips-hint-text">
-                    💡 Menampilkan mode ringkas ({filteredIngredients.length} bahan). Klik tombol <b>Detail</b> di atas jika ingin membaca fungsi lengkap per bahan.
+                    Menampilkan mode ringkas ({filteredIngredients.length} bahan). Klik tombol <b>Detail</b> di atas jika ingin membaca fungsi lengkap per bahan.
                   </p>
                 </div>
               ) : (
@@ -1058,7 +1058,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
                             <h4 className="ing-item-name">{ing.name}</h4>
                             {ing.is_drug_or_banned && (
                               <span className="bpom-drug-badge">
-                                ⚠️ Regulasi BPOM: Obat Keras / Zat Khusus
+                                Regulasi BPOM: Obat Keras / Zat Khusus
                               </span>
                             )}
                           </div>
