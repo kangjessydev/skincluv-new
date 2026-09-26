@@ -1070,6 +1070,39 @@ export type Database = {
           },
         ]
       }
+      tripay_callback_logs: {
+        Row: {
+          amount_received: number | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          merchant_ref: string
+          raw_payload: Json | null
+          status: string | null
+          tripay_reference: string | null
+        }
+        Insert: {
+          amount_received?: number | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          merchant_ref: string
+          raw_payload?: Json | null
+          status?: string | null
+          tripay_reference?: string | null
+        }
+        Update: {
+          amount_received?: number | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          merchant_ref?: string
+          raw_payload?: Json | null
+          status?: string | null
+          tripay_reference?: string | null
+        }
+        Relationships: []
+      }
       tripay_invoices: {
         Row: {
           amount_idr: number
@@ -1078,11 +1111,13 @@ export type Database = {
           expired_at: string | null
           id: string
           merchant_ref: string
+          paid_at: string | null
           pay_url: string | null
           plan: string
           qr_url: string | null
           reference: string | null
           status: string
+          total_amount_idr: number | null
           updated_at: string
           user_id: string
         }
@@ -1093,11 +1128,13 @@ export type Database = {
           expired_at?: string | null
           id?: string
           merchant_ref: string
+          paid_at?: string | null
           pay_url?: string | null
           plan?: string
           qr_url?: string | null
           reference?: string | null
           status?: string
+          total_amount_idr?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1108,11 +1145,13 @@ export type Database = {
           expired_at?: string | null
           id?: string
           merchant_ref?: string
+          paid_at?: string | null
           pay_url?: string | null
           plan?: string
           qr_url?: string | null
           reference?: string | null
           status?: string
+          total_amount_idr?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1321,9 +1360,49 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          payment_ref: string | null
+          price_idr: number
+          quota_reset_at: string
+          started_at: string
+          status: string
+          tier_features: Json
+          tier_id: string
+          tier_name: string
+          tier_slug: string
+          user_id: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      process_tripay_payment: {
+        Args: {
+          p_amount_received: number
+          p_merchant_ref: string
+          p_tripay_reference: string | null
+        }
+        Returns: Json
+      }
       get_user_dashboard_summary: {
         Args: Record<PropertyKey, never>
         Returns: Json

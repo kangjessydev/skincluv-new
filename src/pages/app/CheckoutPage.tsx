@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { Copy, Check, RefreshCw, QrCode, CreditCard, Store, Clock, ExternalLink, ArrowLeft, ShieldAlert, CheckCircle2, ChevronRight, Crown, ShoppingBag, Sparkles } from 'lucide-react'
+import { Copy, Check, RefreshCw, QrCode, CreditCard, Store, Clock, ExternalLink, ArrowLeft, ShieldAlert, CheckCircle2, ChevronRight, Crown, ShoppingBag, Sparkles, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -31,9 +31,9 @@ export default function CheckoutPage() {
   const planQuery = searchParams.get('plan')?.toLowerCase()
   const isGlow = planQuery === 'glow'
   const planSlug = isGlow ? 'GLOW' : 'PREMIUM'
-  const planTitle = isGlow ? 'Skincluv GLOW (1 Bulan)' : 'Skincluv PRO (1 Bulan)'
-  const planDesc = isGlow ? '100 Universal AI Usage / Bulan' : '500 Universal AI Usage & Chatbot Expert'
-  const planPriceFormatted = isGlow ? 'Rp 19.000' : 'Rp 49.000'
+  const planTitle = isGlow ? 'Skincluv GLOW (Akses 30 Hari)' : 'Skincluv PRO (Akses 30 Hari)'
+  const planDesc = isGlow ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage & Konsultasi Chatbot AI'
+  const planPriceFormatted = isGlow ? 'Rp 25.000' : 'Rp 49.000'
 
   // State for Review & Method Selector Mode (when reference is undefined)
   const [selectedMethod, setSelectedMethod] = useState<string>('BRIVA')
@@ -260,6 +260,16 @@ export default function CheckoutPage() {
                 *Biaya administrasi bank/e-Wallet akan dihitung resmi oleh Tripay di halaman berikutnya.
               </span>
             </div>
+            <div className="checkout-trust-box">
+              <div className="trust-header">
+                <ShieldCheck size={18} className="trust-shield-icon" />
+                <span className="trust-title">Pembayaran Aman & Transparan</span>
+              </div>
+              <p className="trust-text">
+                Ini <strong>bukan langganan bulanan</strong>. Ini <strong>Paket Akses 30 Hari</strong> — sekali bayar, kuota langsung aktif. Saldo <strong>TIDAK AKAN</strong> terpotong otomatis di akhir periode. Kamu yang pegang kendali penuh.
+              </p>
+            </div>
+
             {errorMessage && (
               <div className="checkout-error-banner">
                 <ShieldAlert size={18} className="error-icon" />
@@ -355,6 +365,41 @@ export default function CheckoutPage() {
           .total-row strong { font-size: 1.25rem; color: #FBBF24; }
           .note-row { margin-top: 4px; }
           .note-text { font-size: 0.75rem; color: var(--color-text-muted); font-style: italic; }
+
+          .checkout-trust-box {
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: var(--radius-lg);
+            text-align: left;
+          }
+          .trust-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+          }
+          .trust-shield-icon {
+            color: #34d399;
+            flex-shrink: 0;
+          }
+          .trust-title {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #34d399;
+            letter-spacing: 0.2px;
+          }
+          .trust-text {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            line-height: 1.45;
+          }
+          .trust-text strong {
+            color: white;
+          }
+
           .btn-pay-now { width: 100%; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4); }
         `}</style>
       </div>
@@ -420,11 +465,11 @@ export default function CheckoutPage() {
           </div>
           <div className="summary-row">
             <span>Produk:</span>
-            <strong>Skincluv PRO (1 Bulan)</strong>
+            <strong>{invoice.plan_name || (invoice.merchant_ref?.includes('GLOW') ? 'Skincluv GLOW (Akses 30 Hari)' : 'Skincluv PRO (Akses 30 Hari)')}</strong>
           </div>
           <div className="summary-row">
             <span>Total Tagihan:</span>
-            <strong className="amount">Rp {invoice.amount_idr?.toLocaleString('id-ID')}</strong>
+            <strong className="amount">Rp {(invoice.total_amount_idr || invoice.amount_idr)?.toLocaleString('id-ID')}</strong>
           </div>
         </div>
 

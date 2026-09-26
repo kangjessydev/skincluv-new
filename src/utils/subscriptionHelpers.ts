@@ -1,12 +1,27 @@
 // src/utils/subscriptionHelpers.ts
 // Centralized helper for subscription tier status checks
 
-export function isActivePremium(subscription: any): boolean {
-  if (!subscription) return false
-  if (subscription.status !== 'active') return false
+export function isSubscriptionExpired(subscription: any): boolean {
+  if (!subscription) return true
+  if (subscription.status !== 'active') return true
+  if (subscription.expires_at) {
+    return new Date(subscription.expires_at).getTime() <= Date.now()
+  }
+  return false
+}
 
-  const slug = subscription?.subscription_tiers?.slug
-  const name = subscription?.subscription_tiers?.name?.toLowerCase()
+export function getDaysRemaining(subscription: any): number {
+  if (!subscription?.expires_at) return 0
+  const diffMs = new Date(subscription.expires_at).getTime() - Date.now()
+  if (diffMs <= 0) return 0
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+}
+
+export function isActivePremium(subscription: any): boolean {
+  if (isSubscriptionExpired(subscription)) return false
+
+  const slug = subscription?.tier_slug || subscription?.subscription_tiers?.slug
+  const name = (subscription?.tier_name || subscription?.subscription_tiers?.name)?.toLowerCase()
 
   return (
     slug === 'premium' ||
@@ -17,11 +32,10 @@ export function isActivePremium(subscription: any): boolean {
 }
 
 export function isActiveGlow(subscription: any): boolean {
-  if (!subscription) return false
-  if (subscription.status !== 'active') return false
+  if (isSubscriptionExpired(subscription)) return false
 
-  const slug = subscription?.subscription_tiers?.slug
-  const name = subscription?.subscription_tiers?.name?.toLowerCase()
+  const slug = subscription?.tier_slug || subscription?.subscription_tiers?.slug
+  const name = (subscription?.tier_name || subscription?.subscription_tiers?.name)?.toLowerCase()
 
   return slug === 'glow' || name === 'glow'
 }

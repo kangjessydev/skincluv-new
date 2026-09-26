@@ -2,6 +2,7 @@
 // Skincluv Unified Data-Driven Dashboard (RFC 008 AI Council Consensus)
 // Integrated with get_user_dashboard_summary RPC, Zero-IDOR, Cold Start 3-State UX
 
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ScanFace,
@@ -16,9 +17,12 @@ import {
   CheckCircle2,
   Calendar,
   Layers,
+  AlertTriangle,
+  Clock,
+  X,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
-import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
+import { isActivePremium, isActiveGlow, getDaysRemaining, isSubscriptionExpired } from '@/utils/subscriptionHelpers'
 import { useDashboardData } from '@/hooks/useDashboardData'
 
 function formatRelativeDate(dateStr?: string | null): string {
@@ -44,9 +48,24 @@ export default function DashboardPage() {
   const { coinBalance, subscription } = useAuthStore()
   const { data, loading, error } = useDashboardData()
 
+  const [expiryBannerDismissed, setExpiryBannerDismissed] = useState(() => {
+    return typeof window !== 'undefined' && sessionStorage.getItem('skincluv_dismiss_expiry_banner') === 'true'
+  })
+
   const isPro = isActivePremium(subscription)
   const isGlow = isActiveGlow(subscription)
   const userCredits = coinBalance?.balance ?? 0
+
+  const isPaidActive = (isPro || isGlow) && !isSubscriptionExpired(subscription)
+  const daysRemaining = isPaidActive ? getDaysRemaining(subscription) : 0
+  const showExpiryAlert = isPaidActive && daysRemaining <= 3 && daysRemaining > 0 && !expiryBannerDismissed
+
+  const handleDismissExpiryBanner = () => {
+    setExpiryBannerDismissed(true)
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('skincluv_dismiss_expiry_banner', 'true')
+    }
+  }
 
   const skinAssessment = data?.skin_assessment
   const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
@@ -63,7 +82,35 @@ export default function DashboardPage() {
   const trendLabel = skinAssessment?.trend_label || 'Scan berkala untuk melihat tren'
 
   return (
-    <div className="skincluv-dashboard-grid">
+    <div className="dashboard-page-container">
+      {/* 0. PASS EXPIRY REMINDER BANNER (RFC 010 H-3 / H-1) */}
+      {showExpiryAlert && (
+        <div className={`expiry-alert-banner ${daysRemaining === 1 ? 'alert-urgent' : 'alert-warning'}`}>
+          <div className="expiry-alert-icon">
+            {daysRemaining === 1 ? <AlertTriangle size={18} /> : <Clock size={18} />}
+          </div>
+          <div className="expiry-alert-body">
+            <strong className="expiry-alert-title">
+              {daysRemaining === 1 ? 'Hari Terakhir Paket Akses Kamu!' : `Paket Akses Tersisa ${daysRemaining} Hari`}
+            </strong>
+            <p className="expiry-alert-msg">
+              {daysRemaining === 1
+                ? 'Besok akun kembali ke versi gratis dan kuota yang belum terpakai akan hangus. Perpanjang kapan saja — tanpa auto-debit.'
+                : `Paket Akses kamu berakhir ${subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'segera'}. Ingin lanjut tanpa putus? Perpanjang kapan saja — tanpa auto-debit.`}
+            </p>
+          </div>
+          <div className="expiry-alert-actions">
+            <button onClick={() => navigate('/pricing')} className="btn-renew-banner">
+              {daysRemaining === 1 ? 'Perpanjang Sekarang' : 'Perpanjang Akses'}
+            </button>
+            <button onClick={handleDismissExpiryBanner} className="btn-dismiss-banner" aria-label="Tutup pemberitahuan">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="skincluv-dashboard-grid">
       {/* 1. STATUS HERO BANNER (3-STATE COLD START UX) */}
       <div className={`status-hero ${!hasFaceScan ? 'hero-cold-start' : ''}`}>
         <div className="hero-pattern-dots" />
@@ -306,9 +353,120 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+      </div>
 
       {/* SCOPED VANILLA CSS STYLING MATCHING SKINCLUV MASTER TOKENS */}
       <style>{`
+        .dashboard-page-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          width: 100%;
+        }
+
+        .expiry-alert-banner {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 18px;
+          border-radius: 16px;
+          box-sizing: border-box;
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .alert-urgent {
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          color: #f87171;
+        }
+
+        .alert-warning {
+          background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
+          border: 1px solid rgba(245, 158, 11, 0.35);
+          color: #fbbf24;
+        }
+
+        .expiry-alert-icon {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .expiry-alert-body {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .expiry-alert-title {
+          display: block;
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: white;
+          margin-bottom: 2px;
+        }
+
+        .expiry-alert-msg {
+          margin: 0;
+          font-size: 0.75rem;
+          color: var(--color-text-secondary, #cbd5e1);
+          line-height: 1.4;
+        }
+
+        .expiry-alert-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+
+        .btn-renew-banner {
+          background: #f59e0b;
+          color: #1e1b4b;
+          border: none;
+          font-weight: 700;
+          font-size: 0.75rem;
+          padding: 7px 14px;
+          border-radius: 8px;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s;
+        }
+
+        .btn-renew-banner:hover {
+          background: #fbbf24;
+          transform: translateY(-1px);
+        }
+
+        .alert-urgent .btn-renew-banner {
+          background: #ef4444;
+          color: white;
+        }
+
+        .alert-urgent .btn-renew-banner:hover {
+          background: #dc2626;
+        }
+
+        .btn-dismiss-banner {
+          background: transparent;
+          border: none;
+          color: var(--color-text-muted, #94a3b8);
+          cursor: pointer;
+          padding: 6px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .btn-dismiss-banner:hover {
+          color: white;
+          background: rgba(255, 255, 255, 0.1);
+        }
         .skincluv-dashboard-grid {
           display: grid;
           grid-template-columns: 1fr;

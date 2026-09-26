@@ -34,11 +34,6 @@ Deno.serve(async (req: Request) => {
     const payload = JSON.parse(rawBody)
     const { merchant_ref, reference, status } = payload
 
-    if (status !== 'PAID') {
-      // Tripay sends UNPAID, FAILED, REFUND — we only care about PAID
-      return new Response(JSON.stringify({ success: true }), { status: 200 })
-    }
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -46,7 +41,22 @@ Deno.serve(async (req: Request) => {
 
     const amountReceived = Number(payload.total_amount ?? payload.amount_received ?? payload.amount ?? 0)
 
-    // ---- Atomic State Transition & Subscription Entitlement via Stored Procedure ----
+    // ---- Audit Trail Log (ChatGPT P1 Recommendation) ----
+    await supabase.from('tripay_callback_logs').insert({
+      merchant_ref: merchant_ref || 'UNKNOWN',
+      tripay_reference: reference ?? null,
+      status: status ?? null,
+      amount_received: amountReceived,
+      raw_payload: payload,
+      ip_address: req.headers.get('x-forwarded-for') ?? req.headers.get('cf-connecting-ip') ?? null,
+    })
+
+    if (status !== 'PAID') {
+      // Tripay sends UNPAID, FAILED, REFUND, EXPIRED — acknowledge reception
+      return new Response(JSON.stringify({ success: true, message: 'Status acknowledged' }), { status: 200 })
+    }
+
+    // ---- Atomic State Transition & Entitlement via Stored Procedure ----
     const { data: result, error: rpcErr } = await supabase.rpc('process_tripay_payment', {
       p_merchant_ref: merchant_ref,
       p_tripay_reference: reference ?? null,

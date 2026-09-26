@@ -89,10 +89,9 @@ Deno.serve(async (req: Request) => {
         .eq('slug', feature_slug)
         .single(),
       supabaseService
-        .from('subscriptions')
-        .select('id, tier_id, quota_reset_at, subscription_tiers(slug, name)')
+        .from('active_subscriptions')
+        .select('id, tier_id, quota_reset_at, tier_slug, tier_name')
         .eq('user_id', user.id)
-        .eq('status', 'active')
         .maybeSingle(),
     ])
 
@@ -102,7 +101,7 @@ Deno.serve(async (req: Request) => {
 
     const feature = featureRes.data
     const subscription = subscriptionRes.data
-    const isPro = (subscription as any)?.subscription_tiers?.slug === 'premium'
+    const isPro = (subscription as any)?.tier_slug === 'premium' || (subscription as any)?.subscription_tiers?.slug === 'premium'
 
     // Extended context window: 20 messages (10 turns) for PRO chatbot, 14 messages (7 turns) for standard chatbot, 6 for other features
     const historyLimit = isPro && feature_slug === 'chatbot' ? 20 : (feature_slug === 'chatbot' ? 14 : 6)

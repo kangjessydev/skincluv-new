@@ -1,18 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Crown, CheckCircle, Sparkles, ScanFace, MessageSquare, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Crown, CheckCircle, Sparkles, ScanFace, MessageSquare, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import type { Subscription } from '@/types/database'
+import { isActiveGlow } from '@/utils/subscriptionHelpers'
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams()
   const reference = searchParams.get('reference') || searchParams.get('tripay_merchant_ref') || 'INV-PRO'
-  const { setSubscription } = useAuthStore()
+  const { subscription, setSubscription } = useAuthStore()
+  const [invoice, setInvoice] = useState<any>(null)
 
   useEffect(() => {
-    // Re-hydrate subscription data in background
-    const refreshSub = async () => {
+    // Re-hydrate subscription data and fetch invoice in background
+    const refreshData = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         const { data: subData } = await supabase
@@ -25,26 +27,47 @@ export default function PaymentSuccessPage() {
         if (subData) {
           setSubscription(subData as unknown as Subscription)
         }
+
+        if (reference) {
+          const { data: invData } = await supabase
+            .from('tripay_invoices')
+            .select('*')
+            .or(`reference.eq.${reference},merchant_ref.eq.${reference}`)
+            .maybeSingle()
+
+          if (invData) {
+            setInvoice(invData)
+          }
+        }
       }
     }
-    refreshSub()
-  }, [setSubscription])
+    refreshData()
+  }, [reference, setSubscription])
+
+  const isGlowPlan = 
+    invoice?.merchant_ref?.includes('GLOW') || 
+    (!invoice && isActiveGlow(subscription))
+
+  const planName = isGlowPlan ? 'Skincluv GLOW (Akses 30 Hari)' : 'Skincluv PRO (Akses 30 Hari)'
+  const planPriceFormatted = invoice 
+    ? `Rp ${(invoice.total_amount_idr || invoice.amount_idr)?.toLocaleString('id-ID')}` 
+    : (isGlowPlan ? 'Rp 25.000' : 'Rp 49.000')
 
   return (
     <div className="payment-success-page animate-fade-in">
       <div className="success-card glass-card">
         <div className="crown-badge-wrapper">
-          <div className="crown-circle">
-            <Crown size={48} className="crown-icon-animated" />
+          <div className={`crown-circle ${isGlowPlan ? 'crown-circle-glow' : ''}`}>
+            {isGlowPlan ? <Sparkles size={44} className="crown-icon-animated" /> : <Crown size={48} className="crown-icon-animated" />}
           </div>
           <div className="sparkle-badge">
-            <Sparkles size={16} /> Status PRO Aktif
+            <Sparkles size={16} /> Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
           </div>
         </div>
 
-        <h1 className="success-title">Selamat! Kamu Resmi Menjadi Member PRO</h1>
+        <h1 className="success-title">Selamat! Kamu Resmi Memiliki Akses {isGlowPlan ? 'GLOW' : 'PRO'}</h1>
         <p className="success-subtitle">
-          Nikmati akses analisis kulit cerdas & komunikasi tanpa batas bersama AI Skincluv.
+          Nikmati akses analisis kulit cerdas & komunikasi tanpa batas bersama AI Skincluv selama 30 hari ke depan.
         </p>
 
         {/* Invoice Summary Box */}
@@ -55,11 +78,11 @@ export default function PaymentSuccessPage() {
           </div>
           <div className="receipt-row">
             <span className="receipt-label">Paket:</span>
-            <span className="receipt-value highlight">Skincluv PRO (1 Bulan)</span>
+            <span className="receipt-value highlight">{planName}</span>
           </div>
           <div className="receipt-row">
             <span className="receipt-label">Total Pembayaran:</span>
-            <span className="receipt-value">Rp 49.000</span>
+            <span className="receipt-value">{planPriceFormatted}</span>
           </div>
           <div className="receipt-row">
             <span className="receipt-label">Status Pembayaran:</span>
@@ -71,17 +94,37 @@ export default function PaymentSuccessPage() {
 
         {/* Benefits Checklist */}
         <div className="benefits-card">
-          <h3>Fitur PRO yang Sudah Terbuka:</h3>
+          <h3>Fitur {isGlowPlan ? 'GLOW' : 'PRO'} yang Sudah Terbuka:</h3>
           <ul>
-            <li><CheckCircle size={18} className="check-icon" /> 3.000 Universal AI Usage / Bulan</li>
-            <li><CheckCircle size={18} className="check-icon" /> Analisis Wajah & Rekomendasi Medis Mendalam</li>
-            <li><CheckCircle size={18} className="check-icon" /> Peringatan Bahan Berbahaya/Alergi Otomatis</li>
-            <li><CheckCircle size={18} className="check-icon" /> Tanya Jawab AI Gaya Gen Z Professional 24/7</li>
+            <li>
+              <CheckCircle size={18} className="check-icon" /> 
+              {isGlowPlan ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage / 30 Hari'}
+            </li>
+            <li>
+              <CheckCircle size={18} className="check-icon" /> 
+              Analisis Wajah AI & Rekomendasi Perawatan Kulit yang Dipersonalisasi
+            </li>
+            <li>
+              <CheckCircle size={18} className="check-icon" /> 
+              Peringatan Bahan Berbahaya & Kontraindikasi Skincare
+            </li>
+            <li>
+              <CheckCircle size={18} className="check-icon" /> 
+              Tanya Jawab AI Konsultan Skincare 24/7
+            </li>
           </ul>
         </div>
 
+        {/* BPOM Compliance Disclaimer */}
+        <div className="bpom-disclaimer-box">
+          <AlertCircle size={15} className="disclaimer-icon" />
+          <p>
+            <strong>Catatan Kepatuhan:</strong> Skincluv adalah alat bantu perawatan kulit berbasis AI — bukan pengganti diagnosis medis, resep obat, atau konsultasi dokter spesialis kulit.
+          </p>
+        </div>
+
         {/* Action Buttons */}
-        <div className="action-grid">
+        <div className="action-grid mt-lg">
           <Link to="/face-scan" className="btn btn-primary btn-block">
             <ScanFace size={18} /> Coba Scan Wajah Sekarang
           </Link>
@@ -222,6 +265,37 @@ export default function PaymentSuccessPage() {
           margin-bottom: 8px;
         }
         .check-icon { color: #22c55e; flex-shrink: 0; }
+
+        .crown-circle-glow {
+          background: linear-gradient(135deg, #a855f7, #6366f1);
+          box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
+        }
+
+        .bpom-disclaimer-box {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: var(--radius-lg);
+          padding: 12px 14px;
+          margin-bottom: var(--space-xl);
+          text-align: left;
+        }
+        .disclaimer-icon {
+          color: var(--color-brand-400);
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .bpom-disclaimer-box p {
+          margin: 0;
+          font-size: 0.75rem;
+          color: var(--color-text-muted);
+          line-height: 1.45;
+        }
+        .bpom-disclaimer-box strong {
+          color: var(--color-text-secondary);
+        }
 
         .action-grid { display: flex; flex-direction: column; gap: 12px; }
         .secondary-actions { display: flex; gap: 12px; }

@@ -115,11 +115,14 @@ Deno.serve(async (req: Request) => {
       ? new Date(transaction.expired_time * 1000).toISOString()
       : (transaction.expired_at ?? null)
 
+    const totalAmount = Number(transaction.amount_total || transaction.total_amount || transaction.amount || amountIdr)
+
     await supabaseService.from('tripay_invoices').upsert({
       merchant_ref: merchantRef,
       reference: transaction.reference,
       user_id: user.id,
       amount_idr: amountIdr,
+      total_amount_idr: totalAmount,
       plan: normalizedPlan,
       status: 'UNPAID',
       checkout_url: transaction.checkout_url ?? null,
@@ -135,7 +138,8 @@ Deno.serve(async (req: Request) => {
         reference: transaction.reference,
         merchant_ref: merchantRef,
         pay_code: transaction.pay_code,
-        amount: amountIdr
+        amount: amountIdr,
+        total_amount: totalAmount
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )

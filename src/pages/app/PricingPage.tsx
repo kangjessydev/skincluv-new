@@ -17,9 +17,9 @@ export default function PricingPage() {
         <button className="btn-back-link" onClick={() => navigate(-1)}>
           <ArrowLeft size={16} /> Kembali
         </button>
-        <span className="section-badge"><Sparkles size={14} /> TOKO LANGGANAN</span>
-        <h1>Pilih Paket Skincluv</h1>
-        <p className="page-subtitle">Pilih paket terbaik untuk perawatan kulit harian tanpa rasa cemas kehabisan kuota.</p>
+        <span className="section-badge"><Sparkles size={14} /> PAKET AKSES 30 HARI</span>
+        <h1>Pilih Paket Akses Skincluv</h1>
+        <p className="page-subtitle">Pilih paket terbaik untuk perawatan kulit harian tanpa rasa cemas. Sekali bayar, tanpa auto-debit.</p>
       </div>
 
       <div className="pricing-grid">
@@ -28,7 +28,8 @@ export default function PricingPage() {
           <div className="plan-header">
             <h3>Free / Starter</h3>
             <p>Mulai gratis menggunakan Credits dari misi harian</p>
-            <div className="plan-price">Rp 0 <span>/ bulan</span></div>
+            <div className="plan-price">Rp 0 <span>/ 30 hari</span></div>
+            <div className="plan-tagline">Selalu gratis • Tanpa syarat kartu</div>
           </div>
           <ul className="plan-features">
             <li><CheckCircle2 size={16} className="icon-check" /> <strong>0 Kuota Bawaan</strong> (Akses via Credits)</li>
@@ -49,13 +50,14 @@ export default function PricingPage() {
           <div className="plan-header">
             <h3>Skincluv GLOW</h3>
             <p>Paling pas untuk pelajar & pemula perawatan rutin</p>
-            <div className="plan-price">Rp 25.000 <span>/ bulan</span></div>
+            <div className="plan-price">Rp 25.000 <span>/ 30 hari</span></div>
+            <div className="plan-tagline">Sekali bayar. Selesai. Tanpa auto-debit.</div>
           </div>
           <ul className="plan-features">
-            <li><Zap size={16} className="icon-amber" /> <strong>100 Universal AI Uses</strong> / Bulan</li>
+            <li><Zap size={16} className="icon-amber" /> <strong>100 Universal AI Uses</strong> / 30 Hari</li>
             <li><CheckCircle2 size={16} className="icon-check" /> <strong>Satu Kuota Bersama</strong>: Bebas Dipakai Scan Maupun Chat</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Chatbot Konsultasi Standar</strong> (Cepat & Ramah)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Scan Wajah & Analisis Komposisi Skincare</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Chatbot Konsultasi Ramah</strong> (Cepat & Edukatif)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Analisis Kondisi Wajah & Komposisi Skincare</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Riwayat Scan Tersimpan Multi-Sesi</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Cadangan AI Credits Misi Tetap Utuh</li>
           </ul>
@@ -64,9 +66,13 @@ export default function PricingPage() {
               <button className="btn btn-secondary btn-block" disabled>
                 <ShieldCheck size={18} /> Paket GLOW Aktif
               </button>
+            ) : isPro ? (
+              <button className="btn btn-outline btn-block" disabled title="Kamu sedang aktif di paket PRO yang lebih tinggi">
+                Sudah Aktif di Paket PRO
+              </button>
             ) : (
               <button className="btn btn-secondary btn-block" onClick={() => navigate('/checkout?plan=glow')}>
-                Pilih Paket GLOW
+                Beli GLOW Pass (Rp 25.000)
               </button>
             )}
           </div>
@@ -78,17 +84,18 @@ export default function PricingPage() {
           <div className="plan-header">
             <h3>Skincluv PRO</h3>
             <p>Pengalaman AI Terlengkap, Lebih Pintar & Terasa Unlimited</p>
-            <div className="plan-price">Rp 49.000 <span>/ bulan</span></div>
+            <div className="plan-price">Rp 49.000 <span>/ 30 hari</span></div>
+            <div className="plan-tagline">Sekali bayar. Selesai. Tanpa auto-debit.</div>
           </div>
           <ul className="plan-features">
-            <li><Zap size={16} className="icon-sky" /> <strong>500 Universal AI Uses</strong> / Bulan (Terasa Unlimited)</li>
-            <li><Zap size={16} className="icon-sky" /> <strong>Chatbot Dermatologist Expert</strong> (Lebih Pintar & Analisis Mendalam)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Pencarian Web Klinis Real-Time</strong> (Tavily Grounding)</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>500 Universal AI Uses</strong> / 30 Hari (Terasa Unlimited)</li>
+            <li><Zap size={16} className="icon-sky" /> <strong>Chatbot Skincare Expert</strong> (Analisis Lebih Dalam & Presisi)</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Pencarian Web Terverifikasi</strong> (Tavily Grounding)</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Analisis Layering Bahan Aktif Pagi & Malam</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Peringatan Disrupsi Skin Barrier & pH Level</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Evaluasi Kompatibilitas Skin Barrier & pH Formula</li>
             <li><CheckCircle2 size={16} className="icon-check" /> Deep Memory (Ingatan Lintas Sesi Percakapan)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Prioritas Respon AI Paling Cepat & Presisi</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Badge Eksklusif PRO di Profil & Komunitas</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Prioritas Respon AI Cepat & Responsif</li>
+            <li><CheckCircle2 size={16} className="icon-check" /> Badge Eksklusif PRO di Profil</li>
           </ul>
           <div className="plan-footer">
             {isPro ? (
@@ -97,11 +104,33 @@ export default function PricingPage() {
               </button>
             ) : (
               <button className="btn btn-primary btn-block btn-glow" onClick={() => navigate('/checkout?plan=pro')}>
-                <Crown size={18} /> Upgrade ke PRO Sekarang
+                <Crown size={18} /> Beli PRO Pass (Rp 49.000)
               </button>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Trust & Transparency FAQ Box (Kimi Review) */}
+      <div className="pricing-trust-section">
+        <h3>🔒 Belanja Akses Nyaman & Bebas Cemas</h3>
+        <div className="trust-qa-grid">
+          <div className="trust-qa-card">
+            <h4>Q: Apakah saldo saya akan terpotong otomatis tiap bulan?</h4>
+            <p>
+              <strong>Tidak, tidak akan — titik.</strong> Skincluv memakai sistem <strong>Prepaid Pass</strong>: kamu bayar sekali untuk 30 hari akses via Tripay (QRIS / Virtual Account / Minimarket). Kami tidak menyimpan rekening dan tidak bisa menarik dana otomatis. Perpanjangan hanya terjadi jika kamu membeli lagi atas keputusanmu sendiri.
+            </p>
+          </div>
+          <div className="trust-qa-card">
+            <h4>Q: Kalau 30 hari habis, akun saya bagaimana?</h4>
+            <p>
+              Tenang, tidak ada yang hilang! Akunmu otomatis kembali ke <strong>Free Tier</strong> (bisa lanjut scan gratis dengan Credits dari misi harian). Semua riwayat foto scan dan catatan profil kulitmu tetap tersimpan aman.
+            </p>
+          </div>
+        </div>
+        <p className="pricing-disclaimer">
+          Skincluv adalah alat bantu edukasi & perawatan kulit berbasis AI — bukan pengganti konsultasi dokter kulit.
+        </p>
       </div>
 
       <style>{`

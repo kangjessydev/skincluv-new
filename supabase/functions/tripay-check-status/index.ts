@@ -72,53 +72,26 @@ Deno.serve(async (req: Request) => {
       return jsonError('Invoice not found in system', 404)
     }
 
-    // If Tripay reports PAID, but DB is still UNPAID, trigger auto-activation!
+    // If Tripay reports PAID, but DB is still UNPAID, trigger settlement via atomic Stored Procedure!
+    // ChatGPT P0-1: All roads lead to one transaction (process_tripay_payment)
     if (tripayStatus === 'PAID' && invoice.status !== 'PAID') {
-      await supabaseService
-        .from('tripay_invoices')
-        .update({ status: 'PAID' })
-        .eq('id', invoice.id)
+      const amountReceived = Number(
+        transactionData?.total_amount || 
+        transactionData?.amount || 
+        invoice.total_amount_idr || 
+        invoice.amount_idr
+      )
 
-      // Activate subscription
-      const { data: tier } = await supabaseService
-        .from('subscription_tiers')
-        .select('id')
-        .eq('slug', invoice.plan.toLowerCase())
-        .single()
+      const { data: rpcResult, error: rpcErr } = await supabaseService.rpc('process_tripay_payment', {
+        p_merchant_ref: invoice.merchant_ref,
+        p_tripay_reference: transactionData?.reference || invoice.reference || null,
+        p_amount_received: amountReceived,
+      })
 
-      if (tier) {
-        const now = new Date()
-        const periodEnd = new Date(now)
-        periodEnd.setMonth(periodEnd.getMonth() + 1)
-
-        // Update existing subscription for user_id to Premium tier ID
-        const { data: existingSub } = await supabaseService
-          .from('subscriptions')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle()
-
-        if (existingSub) {
-          await supabaseService
-            .from('subscriptions')
-            .update({
-              tier_id: tier.id,
-              status: 'active',
-              started_at: now.toISOString(),
-              expires_at: periodEnd.toISOString(),
-              quota_reset_at: periodEnd.toISOString()
-            })
-            .eq('id', existingSub.id)
-        } else {
-          await supabaseService.from('subscriptions').insert({
-            user_id: user.id,
-            tier_id: tier.id,
-            status: 'active',
-            started_at: now.toISOString(),
-            expires_at: periodEnd.toISOString(),
-            quota_reset_at: periodEnd.toISOString()
-          })
-        }
+      if (rpcErr || !rpcResult?.success) {
+        console.warn('[tripay-check-status] Fallback settlement notice:', rpcErr || rpcResult)
+      } else {
+        console.log('[tripay-check-status] Fallback settlement processed:', rpcResult)
       }
     }
 
