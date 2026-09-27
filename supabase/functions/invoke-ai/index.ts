@@ -610,6 +610,7 @@ Deno.serve(async (req: Request) => {
                   const hfs = historicalScanContext.face_scans[0]
                   scanDataContent += `- Face Scan: Tanggal ${hfs.local_date} (Jam ${hfs.capture_hour}:00 WIB)\n`
                   scanDataContent += `- Skor: ${hfs.overall_score ?? '-'}/100 | Tipe: ${hfs.skin_type ?? '-'}\n`
+                  if (hfs.skin_status_title) scanDataContent += `- Kondisi: ${hfs.skin_status_title}\n`
                   if (hfs.skin_concerns?.length > 0) scanDataContent += `- Keluhan: ${hfs.skin_concerns.join(', ')}\n`
                   if (hfs.is_repeat) scanDataContent += `- Catatan: Foto ini berstatus duplikat identik (is_repeat = true).\n`
                 }
@@ -617,15 +618,28 @@ Deno.serve(async (req: Request) => {
                   const his = historicalScanContext.ingredient_scans[0]
                   scanDataContent += `- Produk: ${his.product_name} (${his.brand || '-'}) — Safety: ${his.safety_score}/100 [Tanggal: ${his.local_date}]\n`
                 }
-                scanDataContent += `Catatan: Jika kamu membahas scan historis ini, sertakan tag [INTENT:SHOW_HISTORICAL_FACE_SCAN] di akhir jawaban.\n\n`
+                scanDataContent += `Catatan: Karena kamu membahas scan historis ini, sertakan tag [INTENT:SHOW_HISTORICAL_FACE_SCAN] di baris terpisah tepat di akhir jawaban.\n\n`
               } else {
-                const nearBefore = historicalScanContext.nearest_before ? `Tanggal ${historicalScanContext.nearest_before.local_date} (Skor ${historicalScanContext.nearest_before.overall_score})` : 'Belum ada'
-                const nearAfter = historicalScanContext.nearest_after ? `Tanggal ${historicalScanContext.nearest_after.local_date} (Skor ${historicalScanContext.nearest_after.overall_score})` : 'Belum ada'
-                scanDataContent += `[STATUS REKAM JEJAK HISTORIS: TIDAK DITEMUKAN SCAN PADA ${requestedDatePeriod.start}]\n`
-                scanDataContent += `- Fakta Terverifikasi: Pengguna TIDAK MEMILIKI rekam jejak scan pada tanggal/periode ini.\n`
-                scanDataContent += `- Scan Terdekat Sebelum: ${nearBefore}\n`
-                scanDataContent += `- Scan Terdekat Sesudah: ${nearAfter}\n`
-                scanDataContent += `Instruksi Keras: Sampaikan secara ramah bahwa tidak ada scan pada tanggal tersebut, dan tawarkan informasi tanggal terdekat di atas. DILARANG MENGARANG SKOR ATAU DATA FIKTIF!\n\n`
+                // Pengaman ganda: Cek apakah tanggal ada di timeline_index
+                const tlBackup = Array.isArray(scanContext.timeline_index)
+                  ? scanContext.timeline_index.find((t: any) => t.date === requestedDatePeriod.start)
+                  : null
+
+                if (tlBackup) {
+                  scanDataContent += `[DATA OBSERVASI REKAM JEJAK HISTORIS (${requestedDatePeriod.start})]\n`
+                  scanDataContent += `- Face Scan: Tanggal ${tlBackup.date} (Jam ${tlBackup.capture_hour ?? 12}:00 WIB)\n`
+                  scanDataContent += `- Skor: ${tlBackup.score ?? '-'}/100 | Status: ${tlBackup.status || 'Normal'}\n`
+                  if (tlBackup.is_repeat) scanDataContent += `- Catatan: Foto ini berstatus duplikat identik (is_repeat = true).\n`
+                  scanDataContent += `Catatan: Karena kamu membahas scan historis ini, sertakan tag [INTENT:SHOW_HISTORICAL_FACE_SCAN] di baris terpisah tepat di akhir jawaban.\n\n`
+                } else {
+                  const nearBefore = historicalScanContext.nearest_before ? `Tanggal ${historicalScanContext.nearest_before.local_date} (Skor ${historicalScanContext.nearest_before.overall_score})` : 'Belum ada'
+                  const nearAfter = historicalScanContext.nearest_after ? `Tanggal ${historicalScanContext.nearest_after.local_date} (Skor ${historicalScanContext.nearest_after.overall_score})` : 'Belum ada'
+                  scanDataContent += `[STATUS REKAM JEJAK HISTORIS: TIDAK DITEMUKAN SCAN PADA ${requestedDatePeriod.start}]\n`
+                  scanDataContent += `- Pengguna tidak memiliki data scan pada tanggal ini.\n`
+                  scanDataContent += `- Scan Terdekat Sebelum: ${nearBefore}\n`
+                  scanDataContent += `- Scan Terdekat Sesudah: ${nearAfter}\n`
+                  scanDataContent += `Instruksi Keras: Sampaikan secara ramah dan sopan dalam bahasa Indonesia bahwa tidak ada scan pada tanggal tersebut, dan tawarkan informasi tanggal terdekat di atas. JANGAN menyertakan tag [INTENT:SHOW_HISTORICAL_FACE_SCAN].\n\n`
+                }
               }
             }
 
@@ -755,7 +769,11 @@ Deno.serve(async (req: Request) => {
 7. UI ATTACHMENTS (RFC 012 & RFC 013):
    - Jika kamu membahas scan wajah historis tertentu, sertakan: [INTENT:SHOW_HISTORICAL_FACE_SCAN]
    - Jika kamu membahas scan wajah terakhir, sertakan: [INTENT:SHOW_LATEST_FACE_SCAN]
-   - Jika kamu membahas produk skincare yang pernah di-scan, sertakan: [INTENT:SHOW_LATEST_INGREDIENT_SCAN]`
+   - Jika kamu membahas produk skincare yang pernah di-scan, sertakan: [INTENT:SHOW_LATEST_INGREDIENT_SCAN]
+8. ATURAN BAHASA & INTEGRITAS RESPON (MUTLAK):
+   - WAJIB SELALU MENJAWAB DALAM BAHASA INDONESIA yang ramah, hangat, dan natural layaknya asisten dermatologi terpercaya.
+   - DILARANG KERAS berbicara atau menjawab dalam bahasa Inggris.
+   - DILARANG KERAS membocorkan proses penalaran internal, nama blok data sistem (seperti "STATUS REKAM JEJAK HISTORIS"), atau kata "discrepancy" kepada pengguna. Langsung jawab intinya kepada pengguna.`
             }
 
             // E. Injeksi Buku Panduan Resmi Fitur Skincluv (RFC 013 Kimi & ChatGPT)
@@ -1350,9 +1368,21 @@ END PRODUCT_TEXT`
         finalContent.includes('[INTENT:SHOW_HISTORICAL_FACE_SCAN]') ||
         finalContent.includes('[INTENT:SHOW_LATEST_FACE_SCAN]')
       ) {
-        const targetFaceId = (requestedDatePeriod && historicalScanContext?.face_scans?.[0]?.id)
-          ? historicalScanContext.face_scans[0].id
-          : cachedChatbotScanContext?.face_scan?.id
+        let targetFaceId: string | undefined = undefined
+
+        if (finalContent.includes('[INTENT:SHOW_HISTORICAL_FACE_SCAN]') || requestedDatePeriod) {
+          // Priority 1: Dari query periode yang cocok
+          if (historicalScanContext?.face_scans?.[0]?.id) {
+            targetFaceId = historicalScanContext.face_scans[0].id
+          } else if (requestedDatePeriod && Array.isArray(cachedChatbotScanContext?.timeline_index)) {
+            // Priority 2: Dari timeline index yang bertanggal sama
+            const tlMatch = cachedChatbotScanContext.timeline_index.find((t: any) => t.date === requestedDatePeriod.start)
+            if (tlMatch?.id) targetFaceId = tlMatch.id
+          }
+        } else if (finalContent.includes('[INTENT:SHOW_LATEST_FACE_SCAN]')) {
+          targetFaceId = cachedChatbotScanContext?.face_scan?.id
+        }
+
         if (targetFaceId) {
           detectedAttachments.push({
             type: 'face_scan_summary',
@@ -1367,9 +1397,16 @@ END PRODUCT_TEXT`
         finalContent.includes('[INTENT:SHOW_HISTORICAL_INGREDIENT_SCAN]') ||
         finalContent.includes('[INTENT:SHOW_LATEST_INGREDIENT_SCAN]')
       ) {
-        const targetIngId = (requestedDatePeriod && historicalScanContext?.ingredient_scans?.[0]?.id)
-          ? historicalScanContext.ingredient_scans[0].id
-          : cachedChatbotScanContext?.ingredient_scans?.[0]?.id
+        let targetIngId: string | undefined = undefined
+
+        if (finalContent.includes('[INTENT:SHOW_HISTORICAL_INGREDIENT_SCAN]') || requestedDatePeriod) {
+          if (historicalScanContext?.ingredient_scans?.[0]?.id) {
+            targetIngId = historicalScanContext.ingredient_scans[0].id
+          }
+        } else if (finalContent.includes('[INTENT:SHOW_LATEST_INGREDIENT_SCAN]')) {
+          targetIngId = cachedChatbotScanContext?.ingredient_scans?.[0]?.id
+        }
+
         if (targetIngId) {
           detectedAttachments.push({
             type: 'ingredient_scan_summary',
