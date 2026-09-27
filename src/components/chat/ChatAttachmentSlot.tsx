@@ -129,12 +129,15 @@ function InChatFaceCard({ scanId, onOpenDetail }: InChatFaceCardProps) {
     year: 'numeric',
   })
 
+  const isRecent = Math.abs(Date.now() - new Date(scan.created_at).getTime()) < 24 * 3600 * 1000
+  const cardTitle = isRecent ? 'Analisis Wajah Terkini' : 'Hasil Rekam Wajah'
+
   return (
     <div className="in-chat-card">
       <div className="in-chat-card-header">
         <div className="card-title-group">
           <ScanFace size={14} className="card-title-icon-face" />
-          <span>Analisis Wajah Terakhir</span>
+          <span>{cardTitle}</span>
         </div>
         <span className="card-date-badge">{formattedDate}</span>
       </div>
