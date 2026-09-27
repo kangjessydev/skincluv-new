@@ -582,41 +582,74 @@ export default function AdminHandbookPage() {
           justifyContent: 'space-between',
         }}
       >
-        <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 260, maxWidth: 440 }}>
-          <div
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            background: '#ffffff',
+            border: '1px solid #d1d5db',
+            borderRadius: 8,
+            padding: '0 12px',
+            height: 38,
+            flex: 1,
+            minWidth: 260,
+            maxWidth: 440,
+            boxSizing: 'border-box',
+          }}
+        >
+          <Search size={16} color="#9ca3af" />
+          <input
+            type="text"
+            placeholder="Cari fitur, slug, definisi, atau apa yang bukan..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             style={{
-              position: 'relative',
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              fontSize: 13,
               width: '100%',
-              display: 'flex',
-              alignItems: 'center',
+              color: '#111827',
+              height: '100%',
             }}
-          >
-            <Search
-              size={16}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
               style={{
-                position: 'absolute',
-                left: 12,
-                color: 'var(--color-text-muted)',
-                pointerEvents: 'none',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                color: '#9ca3af',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
               }}
-            />
-            <input
-              type="text"
-              placeholder="Cari fitur, slug, definisi, atau apa yang bukan..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field"
-              style={{ paddingLeft: 36, width: '100%', height: 38 }}
-            />
-          </div>
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="input-field"
-            style={{ height: 38, fontSize: '0.8125rem' }}
+            style={{
+              height: 38,
+              padding: '0 14px',
+              borderRadius: 8,
+              border: '1px solid #d1d5db',
+              background: '#ffffff',
+              fontSize: 13,
+              fontWeight: 500,
+              color: '#374151',
+              cursor: 'pointer',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
           >
             <option value="all">Semua Kategori</option>
             {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
@@ -629,8 +662,19 @@ export default function AdminHandbookPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="input-field"
-            style={{ height: 38, fontSize: '0.8125rem' }}
+            style={{
+              height: 38,
+              padding: '0 14px',
+              borderRadius: 8,
+              border: '1px solid #d1d5db',
+              background: '#ffffff',
+              fontSize: 13,
+              fontWeight: 500,
+              color: '#374151',
+              cursor: 'pointer',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
           >
             <option value="all">Semua Status</option>
             <option value="published">Hanya Aktif</option>
