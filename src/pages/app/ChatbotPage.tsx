@@ -54,23 +54,20 @@ interface Session {
   last_activity?: string
 }
 
-type ChatAction = 'FACE_SCAN' | 'INGREDIENT_SCAN' | null
+type ChatAction = 'FACE_SCAN' | 'INGREDIENT_SCAN'
 
-function parseMessageAction(text: string): { cleanText: string; action: ChatAction } {
-  if (!text) return { cleanText: '', action: null }
+function parseMessageAction(text: string): { cleanText: string; actions: ChatAction[] } {
+  if (!text) return { cleanText: '', actions: [] }
+  const actions: ChatAction[] = []
   if (text.includes('[ACTION:FACE_SCAN]')) {
-    return {
-      cleanText: text.replace(/\[ACTION:FACE_SCAN\]/g, '').trim(),
-      action: 'FACE_SCAN',
-    }
+    actions.push('FACE_SCAN')
   }
   if (text.includes('[ACTION:INGREDIENT_SCAN]')) {
-    return {
-      cleanText: text.replace(/\[ACTION:INGREDIENT_SCAN\]/g, '').trim(),
-      action: 'INGREDIENT_SCAN',
-    }
+    actions.push('INGREDIENT_SCAN')
   }
-  return { cleanText: text, action: null }
+  // Strip all [ACTION:...] tags cleanly regardless of casing or position
+  const cleanText = text.replace(/\[ACTION:[A-Z_]+\]/gi, '').trim()
+  return { cleanText, actions }
 }
 
 // Shortcut deterministik untuk sapaan/basa-basi generik — tidak perlu panggil AI,
@@ -938,7 +935,7 @@ export default function ChatbotPage() {
         )}
 
         {messages.map((msg) => {
-          const { cleanText, action } = parseMessageAction(msg.text)
+          const { cleanText, actions } = parseMessageAction(msg.text)
           return (
             <div key={msg.id} className={`chat-row ${msg.sender}`}>
               {msg.sender === 'bot' && (
@@ -957,9 +954,9 @@ export default function ChatbotPage() {
                 </div>
 
                 {/* RFC 006: In-Chat Action CTA Widget */}
-                {msg.sender === 'bot' && action && (
+                {msg.sender === 'bot' && actions.length > 0 && (
                   <div className="chat-action-cta-wrapper">
-                    {action === 'FACE_SCAN' && (
+                    {actions.includes('FACE_SCAN') && (
                       <button
                         type="button"
                         onClick={() => navigate('/face-scan')}
@@ -970,7 +967,7 @@ export default function ChatbotPage() {
                         <ArrowRight size={13} />
                       </button>
                     )}
-                    {action === 'INGREDIENT_SCAN' && (
+                    {actions.includes('INGREDIENT_SCAN') && (
                       <button
                         type="button"
                         onClick={() => navigate('/ingredient-scan')}

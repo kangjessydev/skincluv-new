@@ -562,7 +562,9 @@ Deno.serve(async (req: Request) => {
                 const keyIngs = Array.isArray(prod.key_ingredients) && prod.key_ingredients.length > 0
                   ? ` | Bahan utama: ${prod.key_ingredients.slice(0, 3).join(', ')}`
                   : ''
-                scanDataContent += `${idx + 1}. ${prodName}${brand} — Safety: ${safety}${keyIngs}\n`
+                const dateTag = prod.scanned_at ? ` [Tanggal: ${String(prod.scanned_at).split('T')[0]}]` : ''
+                const orderLabel = idx === 0 ? ' [STATUS: PRODUK TERAKHIR DI-SCAN]' : ''
+                scanDataContent += `${idx + 1}. ${prodName}${brand}${dateTag}${orderLabel} — Safety: ${safety}${keyIngs}\n`
 
                 // Deteksi kategori bahan dari nama atau key ingredients
                 const prodText = `${prodName} ${prod.key_ingredients?.join(' ') || ''}`.toLowerCase()
@@ -1164,21 +1166,25 @@ END PRODUCT_TEXT`
     }
 
     // Parse Action CTA jika ada dari respon chatbot (RFC 006 Strict Enum Whitelist)
-    let detectedAction: 'FACE_SCAN' | 'INGREDIENT_SCAN' | null = null
+    const detectedActions: Array<'FACE_SCAN' | 'INGREDIENT_SCAN'> = []
+    let cleanFinalContent = finalContent
     if (feature_slug === 'chatbot' && finalContent) {
       if (finalContent.includes('[ACTION:FACE_SCAN]')) {
-        detectedAction = 'FACE_SCAN'
-      } else if (finalContent.includes('[ACTION:INGREDIENT_SCAN]')) {
-        detectedAction = 'INGREDIENT_SCAN'
+        detectedActions.push('FACE_SCAN')
       }
+      if (finalContent.includes('[ACTION:INGREDIENT_SCAN]')) {
+        detectedActions.push('INGREDIENT_SCAN')
+      }
+      cleanFinalContent = finalContent.replace(/\[ACTION:[A-Z_]+\]/gi, '').trim()
     }
 
     // ---- Return response ----
     return new Response(
       JSON.stringify({
         success: true,
-        content: finalContent,
-        action: detectedAction,
+        content: cleanFinalContent,
+        action: detectedActions[0] || null,
+        actions: detectedActions,
         sources: searchSources,     // [] jika tidak ada search, atau array SearchSource
         deduct_mode: deductMode,
         tokens_used: aiResult!.tokensUsed,
