@@ -39,6 +39,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      skincluv_handbook: {
+        Row: {
+          id: string
+          slug: string
+          canonical_name: string
+          aliases: string[] | null
+          category: string
+          description: string
+          what_it_is_not: string
+          workflow: string | null
+          is_published: boolean
+          last_reviewed: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          canonical_name: string
+          aliases?: string[] | null
+          category: string
+          description: string
+          what_it_is_not: string
+          workflow?: string | null
+          is_published?: boolean
+          last_reviewed?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          canonical_name?: string
+          aliases?: string[] | null
+          category?: string
+          description?: string
+          what_it_is_not?: string
+          workflow?: string | null
+          is_published?: boolean
+          last_reviewed?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       ai_features: {
         Row: {
           credit_cost: number

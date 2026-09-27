@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ShieldCheck,
+  BookMarked,
 } from 'lucide-react'
 import './admin-responsive.css'
 
@@ -41,6 +42,7 @@ const configNavItems = [
 ]
 
 const aiHubNavItems = [
+  { to: '/admin/knowledge/handbook', icon: BookMarked, label: 'Buku Panduan Fitur' },
   { to: '/admin/knowledge/ingredients', icon: BookOpen, label: 'Kamus Bahan AI' },
   { to: '/admin/knowledge/formulas', icon: Sparkles, label: 'Formula & Cache' },
   { to: '/admin/training/datasets', icon: FileCode, label: 'Dataset & Fine-Tuning' },

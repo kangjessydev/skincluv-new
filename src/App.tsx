@@ -37,12 +37,15 @@ const AdminPricingPage = lazy(() => import('@/pages/admin/AdminPricingPage'))
 const AdminProductsPage = lazy(() => import('@/pages/admin/AdminProductsPage'))
 const AdminLogsPage = lazy(() => import('@/pages/admin/AdminLogsPage'))
 const AdminKnowledgeBasePage = lazy(() => import('@/pages/admin/AdminKnowledgeBasePage'))
+const AdminHandbookPage = lazy(() => import('@/pages/admin/AdminHandbookPage'))
 const AdminProductFormulasPage = lazy(() => import('@/pages/admin/AdminProductFormulasPage'))
 const AdminTrainingDatasetsPage = lazy(() => import('@/pages/admin/AdminTrainingDatasetsPage'))
 const AdminTransactionsPage = lazy(() => import('@/pages/admin/AdminTransactionsPage'))
 const AdminFinancialsPage = lazy(() => import('@/pages/admin/AdminFinancialsPage'))
 const AdminUsersPage = lazy(() => import('@/pages/admin/AdminUsersPage'))
 const AdminMarketIntelligencePage = lazy(() => import('@/pages/admin/AdminMarketIntelligencePage'))
+const TermsPage = lazy(() => import('@/pages/public/TermsPage'))
+const PrivacyPolicyPage = lazy(() => import('@/pages/public/PrivacyPolicyPage'))
 
 export default function App() {
   useAuthInit()
@@ -61,6 +64,10 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
         </Route>
+
+        {/* Public legal pages */}
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
         {/* Public landing page (when unauthenticated) */}
         {!user && <Route path="/" element={<LandingPage />} />}
@@ -104,6 +111,7 @@ export default function App() {
             <Route path="/admin/products" element={<AdminProductsPage />} />
 
             {/* AI Knowledge Hub */}
+            <Route path="/admin/knowledge/handbook" element={<AdminHandbookPage />} />
             <Route path="/admin/knowledge/ingredients" element={<AdminKnowledgeBasePage />} />
             <Route path="/admin/knowledge/formulas" element={<AdminProductFormulasPage />} />
             <Route path="/admin/training/datasets" element={<AdminTrainingDatasetsPage />} />
