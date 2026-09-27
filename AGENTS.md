@@ -68,6 +68,12 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 13. **Strict Biometric Data Minimization & Defensible Claims (RFC 012)**:
     - Chat bubble dilarang menampilkan foto wajah asli user (hanya representasi grafis/score ring SVG). Card dilarang mencantumkan klaim "Status Klinis BPOM" palsu atau kata mutlak terlarang seperti "Formula Aman" (PerBPOM No. 3/2022); gunakan label assessment kualitatif yang defensible (misal: *Skin Assessment: Optimal/Baik*, *Skor Keamanan Formula: Sangat Baik/Baik/Perlu Perhatian*) serta mikro-disclaimer dokter.
 
+14. **Clinical Temporal Comparison & MCID Guardrails (RFC 013)**:
+    - Perbandingan dua scan lintas tanggal wajib mengacu pada ambang MCID (*Minimal Clinically Important Difference*): selisih < 5 poin wajib divonis "Stabil (noise pengukuran pencahayaan/sudut foto)". Selisih < 7 hari dinyatakan terlalu dini untuk perubahan fisiologis nyata (siklus kulit 28 hari). Jika `is_repeat = true` pada salah satu scan, perbandingan perbaikan kulit dinyatakan tidak valid secara klinis.
+
+15. **Product Handbook Hierarchy of Authority (RFC 013)**:
+    - Pengetahuan produk dan fitur Skincluv bersumber dari tabel handbook terverifikasi dengan aturan *what_it_is_not* (penangkal halusinasi scope). Aturan hierarki mutlak: Database / Logika Transaksi (`subscription_tiers`, `ai_features`) > Handbook (Prosa & Scope) > LLM (Naratif). Biaya kredit dan harga paket tidak boleh di-hardcode secara statis di handbook.
+
 ---
 
 ## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)
