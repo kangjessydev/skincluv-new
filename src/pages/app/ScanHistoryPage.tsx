@@ -24,6 +24,8 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import type { FaceScan, IngredientScan } from '@/types/database'
+import FaceScanDetailModal from '@/components/scans/FaceScanDetailModal'
+import IngredientScanDetailModal from '@/components/scans/IngredientScanDetailModal'
 
 export default function ScanHistoryPage() {
   const navigate = useNavigate()
@@ -151,59 +153,6 @@ export default function ScanHistoryPage() {
     ? Math.round(ingredientScans.reduce((acc, s) => acc + (s.safety_score || 0), 0) / totalIngScans)
     : 0
 
-  // Helper extraction for Face Modal
-  let rawResponse: Record<string, any> = {}
-  try {
-    if (typeof selectedScan?.raw_ai_response === 'string') {
-      rawResponse = JSON.parse(selectedScan.raw_ai_response)
-    } else if (selectedScan?.raw_ai_response && typeof selectedScan.raw_ai_response === 'object') {
-      rawResponse = selectedScan.raw_ai_response as Record<string, any>
-    }
-  } catch (e) {
-    rawResponse = {}
-  }
-
-  const parsedAreas = Array.isArray(selectedScan?.area_evaluations) && selectedScan.area_evaluations.length > 0
-    ? selectedScan.area_evaluations
-    : Array.isArray(rawResponse.area_evaluations)
-    ? rawResponse.area_evaluations
-    : []
-
-  const tipsAvoid = Array.isArray(rawResponse?.personal_tips?.avoid) ? rawResponse.personal_tips.avoid : []
-  const tipsReduce = Array.isArray(rawResponse?.personal_tips?.reduce) ? rawResponse.personal_tips.reduce : []
-  const tipsDo = Array.isArray(rawResponse?.personal_tips?.do) ? rawResponse.personal_tips.do : []
-
-  // Helper extraction for Ingredient Modal
-  let ingRawResponse: Record<string, any> = {}
-  try {
-    if (typeof selectedIngredientScan?.raw_ai_response === 'string') {
-      ingRawResponse = JSON.parse(selectedIngredientScan.raw_ai_response)
-    } else if (selectedIngredientScan?.raw_ai_response && typeof selectedIngredientScan.raw_ai_response === 'object') {
-      ingRawResponse = selectedIngredientScan.raw_ai_response as Record<string, any>
-    }
-  } catch {
-    ingRawResponse = {}
-  }
-
-  const ingBreakdown = Array.isArray(selectedIngredientScan?.ingredients_breakdown)
-    ? (selectedIngredientScan.ingredients_breakdown as any[])
-    : Array.isArray(ingRawResponse?.ingredients_breakdown)
-    ? ingRawResponse.ingredients_breakdown
-    : []
-
-  const heroIngredients = Array.isArray(ingRawResponse?.hero_actives)
-    ? ingRawResponse.hero_actives
-    : Array.isArray(selectedIngredientScan?.key_ingredients)
-    ? selectedIngredientScan.key_ingredients
-    : []
-
-  const dangerCombos = Array.isArray(ingRawResponse?.layering_guide?.danger_combos)
-    ? ingRawResponse.layering_guide.danger_combos
-    : []
-
-  const personalNotes = Array.isArray(ingRawResponse?.personal_contraindications)
-    ? ingRawResponse.personal_contraindications
-    : []
 
   return (
     <div className="skincluv-scan-history-page">
@@ -462,308 +411,24 @@ export default function ScanHistoryPage() {
       )}
 
       {/* MODAL 1: FACE SCAN CLINICAL DETAIL */}
-      {selectedScan &&
-        createPortal(
-          <div className="modal-backdrop-blur" onClick={() => setSelectedScan(null)}>
-            <div className="modal-card-dialog" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <div>
-                  <div className="modal-date-tag">
-                    <Calendar size={13} /> {new Date(selectedScan.created_at).toLocaleDateString('id-ID', {
-                      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    })}
-                  </div>
-                  <h3 className="modal-title">{selectedScan.skin_status_title || 'Laporan Diagnosis Kulit'}</h3>
-                </div>
-                <button className="btn-close-modal" onClick={() => setSelectedScan(null)} aria-label="Tutup">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="modal-body-scroll">
-                <div className="modal-score-hero">
-                  <div className="hero-glow-accent" />
-                  <div className="dots-bg-pattern" />
-
-                  <div className="score-hero-content">
-                    <div className={`score-ring-avatar ${
-                      (selectedScan.overall_score || 80) >= 80 ? 'score-optimal' :
-                      (selectedScan.overall_score || 80) >= 65 ? 'score-caution' : 'score-warning'
-                    }`}>
-                      <div className="sr-number-row">
-                        <span className="sr-val">{selectedScan.overall_score || 80}</span>
-                        <span className="sr-scale">/100</span>
-                      </div>
-                      <span className="sr-unit">Kesehatan Kulit</span>
-                    </div>
-
-                    <div className="score-meta-info">
-                      <div className="hero-badges-row">
-                        <span className="hero-skin-type-badge">
-                          <Sparkles size={12} /> TIPE KULIT: {String(selectedScan.skin_type || 'NORMAL').toUpperCase()}
-                        </span>
-                        <span className="hero-confidence-badge">
-                          <ShieldCheck size={12} /> REKAM MEDIS KLINIS
-                        </span>
-                      </div>
-                      <p className="hero-notes-text">{selectedScan.analysis_notes}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {parsedAreas.length > 0 && (
-                  <div className="modal-areas-section">
-                    <h4 className="modal-section-title">
-                      <Layers size={16} /> Evaluasi Kondisi Kulit Per Area (Granular)
-                    </h4>
-                    <div className="modal-areas-stack">
-                      {parsedAreas.map((area: any, aIdx: number) => (
-                        <div key={aIdx} className="area-detail-card">
-                          <div className="area-card-header">
-                            <div className="area-title-group">
-                              <Target size={15} className="area-icon-accent" />
-                              <span className="area-name">{area.area_name || area.name || `Area ${aIdx + 1}`}</span>
-                            </div>
-                            <div className="area-badges-group">
-                              <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
-                                {area.status || 'Optimal'}
-                              </span>
-                              <span className="area-score-badge">Skor: {area.score || 80}/100</span>
-                            </div>
-                          </div>
-
-                          {area.finding && (
-                            <div className="area-finding-box">
-                              <span className="af-label">Diagnosis Klinis:</span>
-                              <p className="af-text">{area.finding}</p>
-                            </div>
-                          )}
-
-                          {area.analogy && (
-                            <div className="area-analogy-box">
-                              <span className="aa-label">Penjelasan Sederhana:</span>
-                              <p className="aa-text">{area.analogy}</p>
-                            </div>
-                          )}
-
-                          {area.action_plan && (
-                            <div className="area-action-box">
-                              <span className="ac-label">Rencana Tindakan:</span>
-                              <p className="ac-text">{area.action_plan}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
-                  <div className="modal-tips-section">
-                    <h4 className="modal-section-title">
-                      <CheckCircle2 size={16} /> Tips Personal Untuk Kulitmu
-                    </h4>
-                    <div className="modal-tips-grid">
-                      {tipsAvoid.length > 0 && (
-                        <div className="tip-box tip-avoid">
-                          <span className="tb-title text-red">Hindari</span>
-                          <ul className="tb-list">
-                            {tipsAvoid.map((t: string, i: number) => <li key={i}>{t}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {tipsReduce.length > 0 && (
-                        <div className="tip-box tip-reduce">
-                          <span className="tb-title text-amber">Kurangi</span>
-                          <ul className="tb-list">
-                            {tipsReduce.map((t: string, i: number) => <li key={i}>{t}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {tipsDo.length > 0 && (
-                        <div className="tip-box tip-do">
-                          <span className="tb-title text-green">Rekomendasi Rutin</span>
-                          <ul className="tb-list">
-                            {tipsDo.map((t: string, i: number) => <li key={i}>{t}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="modal-footer-action">
-                  <button
-                    className="btn-consult-skinsistant-modal"
-                    onClick={() => {
-                      setSelectedScan(null)
-                      navigate('/chatbot')
-                    }}
-                  >
-                    <MessageSquare size={16} /> Konsultasikan Hasil Ini dengan Skinsistant AI
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <FaceScanDetailModal
+        scan={selectedScan}
+        onClose={() => setSelectedScan(null)}
+        onConsult={() => {
+          setSelectedScan(null)
+          navigate('/chatbot')
+        }}
+      />
 
       {/* MODAL 2: INGREDIENT SCAN DETAIL */}
-      {selectedIngredientScan &&
-        createPortal(
-          <div className="modal-backdrop-blur" onClick={() => setSelectedIngredientScan(null)}>
-            <div className="modal-card-dialog" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <div>
-                  <div className="modal-date-tag">
-                    <Calendar size={13} /> {new Date(selectedIngredientScan.created_at).toLocaleDateString('id-ID', {
-                      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    })}
-                  </div>
-                  <h3 className="modal-title">{selectedIngredientScan.product_name}</h3>
-                </div>
-                <button className="btn-close-modal" onClick={() => setSelectedIngredientScan(null)} aria-label="Tutup">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="modal-body-scroll">
-                {/* Score Hero Banner */}
-                <div className="modal-score-hero">
-                  <div className="hero-glow-accent" />
-                  <div className="dots-bg-pattern" />
-
-                  <div className="score-hero-content">
-                    <div className={`score-ring-avatar ${
-                      (selectedIngredientScan.safety_score ?? 80) >= 65 ? 'score-optimal' : 'score-warning'
-                    }`}>
-                      <div className="sr-number-row">
-                        <span className="sr-val">{selectedIngredientScan.safety_score ?? 80}</span>
-                        <span className="sr-scale">/100</span>
-                      </div>
-                      <span className="sr-unit">Safety Score</span>
-                    </div>
-
-                    <div className="score-meta-info">
-                      <div className="hero-badges-row">
-                        <span className="hero-skin-type-badge">
-                          <FlaskConical size={12} /> {selectedIngredientScan.brand ? `BRAND: ${selectedIngredientScan.brand.toUpperCase()}` : 'PRODUK SKINCARE'}
-                        </span>
-                        <span className="hero-confidence-badge">
-                          {selectedIngredientScan.is_safe ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
-                          {selectedIngredientScan.is_safe ? 'FORMULA AMAN' : 'PERLU PERHATIAN'}
-                        </span>
-                      </div>
-                      <p className="hero-notes-text">
-                        {ingRawResponse?.summary || 'Analisis keamanan formula bahan aktif dan kompatibilitas kulit.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hero Actives */}
-                {heroIngredients.length > 0 && (
-                  <div className="modal-areas-section">
-                    <h4 className="modal-section-title">
-                      <Sparkles size={16} /> Hero Actives & Bahan Kunci
-                    </h4>
-                    <div className="hero-actives-chips-grid">
-                      {heroIngredients.map((item: any, idx: number) => {
-                        const name = typeof item === 'string' ? item : item.name
-                        const func = typeof item === 'object' ? item.function : null
-                        return (
-                          <div key={idx} className="hero-active-chip-box">
-                            <span className="hac-name">{name}</span>
-                            {func && <span className="hac-function">{func}</span>}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Danger Combos if any */}
-                {dangerCombos.length > 0 && (
-                  <div className="modal-areas-section">
-                    <h4 className="modal-section-title text-red">
-                      <AlertTriangle size={16} /> Peringatan Kombinasi Pemakaian (Layering)
-                    </h4>
-                    <div className="danger-combos-stack">
-                      {dangerCombos.map((dc: any, idx: number) => (
-                        <div key={idx} className="danger-combo-history-card">
-                          <div className="dc-pair-title">
-                            {Array.isArray(dc.pair) ? dc.pair.join(' + ') : 'Inkompatibilitas Bahan'}
-                          </div>
-                          <p className="dc-warning-text">{dc.warning || dc.reason}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Personal Contraindications if any */}
-                {personalNotes.length > 0 && (
-                  <div className="modal-areas-section">
-                    <h4 className="modal-section-title text-amber">
-                      <Tag size={16} /> Catatan Khusus untuk Kondisi Kulitmu
-                    </h4>
-                    <div className="personal-contraindications-stack">
-                      {personalNotes.map((pc: any, idx: number) => (
-                        <div key={idx} className="personal-contra-history-card">
-                          <div className="pc-head">
-                            <span className="pc-ing-name">{pc.ingredient}</span>
-                            <span className="pc-condition-tag">Untuk: {pc.user_condition}</span>
-                          </div>
-                          <p className="pc-warning-text">{pc.warning}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Ingredients Breakdown */}
-                {ingBreakdown.length > 0 && (
-                  <div className="modal-areas-section">
-                    <h4 className="modal-section-title">
-                      <Layers size={16} /> Komposisi Bahan Lengkap ({ingBreakdown.length} Bahan)
-                    </h4>
-                    <div className="ingredients-breakdown-mini-list">
-                      {ingBreakdown.map((item: any, idx: number) => {
-                        const badge = String(item.badge || 'safe').toLowerCase()
-                        return (
-                          <div key={idx} className="ing-mini-row">
-                            <span className={`ing-badge-dot ${badge}`} />
-                            <div className="ing-mini-meta">
-                              <span className="ing-mini-name">{item.name}</span>
-                              {item.function && <span className="ing-mini-fn">{item.function}</span>}
-                            </div>
-                            <span className={`ing-mini-badge ${badge}`}>
-                              {badge === 'safe' || badge === 'aman' ? 'Aman' : badge === 'caution' || badge === 'perhatian' ? 'Perhatian' : 'Hindari'}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="modal-footer-action">
-                  <button
-                    className="btn-consult-skinsistant-modal"
-                    onClick={() => {
-                      setSelectedIngredientScan(null)
-                      navigate('/chatbot')
-                    }}
-                  >
-                    <MessageSquare size={16} /> Tanya Skinsistant tentang Produk Ini
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <IngredientScanDetailModal
+        scan={selectedIngredientScan}
+        onClose={() => setSelectedIngredientScan(null)}
+        onConsult={() => {
+          setSelectedIngredientScan(null)
+          navigate('/chatbot')
+        }}
+      />
 
       {/* STYLES */}
       <style>{`

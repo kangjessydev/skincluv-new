@@ -30,6 +30,10 @@ import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelpers'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import FormattedMarkdown from '@/components/ui/FormattedMarkdown'
+import ChatAttachmentSlot, { type ChatAttachmentDescriptor } from '@/components/chat/ChatAttachmentSlot'
+import FaceScanDetailModal from '@/components/scans/FaceScanDetailModal'
+import IngredientScanDetailModal from '@/components/scans/IngredientScanDetailModal'
+import type { FaceScan, IngredientScan } from '@/types/database'
 
 interface ClinicalMemory {
   id: string
@@ -45,6 +49,10 @@ interface Message {
   sender: 'user' | 'bot'
   text: string
   created_at: string
+  metadata?: {
+    schema_version?: number
+    attachments?: ChatAttachmentDescriptor[]
+  }
 }
 
 interface Session {
@@ -126,6 +134,10 @@ export default function ChatbotPage() {
   // Consent banner: muncul sekali per sesi browser setelah BANNER_BUBBLE_THRESHOLD bubble
   const BANNER_BUBBLE_THRESHOLD = 8
   const [showConsentBanner, setShowConsentBanner] = useState(false)
+
+  // RFC 012: In-Chat Visual Cards Modal Preview State
+  const [activeFaceModalScan, setActiveFaceModalScan] = useState<FaceScan | null>(null)
+  const [activeIngredientModalScan, setActiveIngredientModalScan] = useState<IngredientScan | null>(null)
 
   useEffect(() => {
     if (profile?.chatbot_memory_consent !== undefined) {
@@ -383,7 +395,7 @@ export default function ChatbotPage() {
 
       const { data, error } = await supabase
         .from('chat_messages')
-        .select('id, role, content, created_at')
+        .select('id, role, content, metadata, created_at')
         .eq('session_id', sid)
         .order('created_at', { ascending: true })
 
@@ -391,11 +403,12 @@ export default function ChatbotPage() {
 
       if (data) {
         setMessages(
-          data.map((m) => ({
+          data.map((m: any) => ({
             id: m.id,
             sender: m.role === 'user' ? 'user' : 'bot',
             text: m.content,
             created_at: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            metadata: m.metadata && typeof m.metadata === 'object' ? m.metadata : undefined,
           }))
         )
       }
@@ -573,12 +586,14 @@ export default function ChatbotPage() {
 
       if (res) {
         const botReply = res.content || res.reply || res.data?.reply || res.data?.answer || res.data?.text || 'Maaf, saya tidak dapat memproses tanggapan saat ini.'
+        const botMetadata = (res as any).metadata || (res as any).data?.metadata || { schema_version: 1, attachments: [] }
 
         const tempBotMsg: Message = {
           id: `bot-${Date.now()}`,
           sender: 'bot',
           text: botReply,
           created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          metadata: botMetadata,
         }
 
         setMessages((prev) => [...prev, tempBotMsg])
@@ -597,6 +612,7 @@ export default function ChatbotPage() {
           session_id: activeSessionId,
           role: 'assistant',
           content: botReply,
+          metadata: botMetadata,
         })
 
         // Segarkan memori klinis jika AI mendeteksi fakta baru di latar belakang
@@ -953,6 +969,15 @@ export default function ChatbotPage() {
                   )}
                 </div>
 
+                {/* RFC 012: In-Chat Visual Cards (Mini Scan Result Hub) */}
+                {msg.sender === 'bot' && msg.metadata?.attachments && msg.metadata.attachments.length > 0 && (
+                  <ChatAttachmentSlot
+                    attachments={msg.metadata.attachments}
+                    onOpenFaceScan={(scan) => setActiveFaceModalScan(scan)}
+                    onOpenIngredientScan={(scan) => setActiveIngredientModalScan(scan)}
+                  />
+                )}
+
                 {/* RFC 006: In-Chat Action CTA Widget */}
                 {msg.sender === 'bot' && actions.length > 0 && (
                   <div className="chat-action-cta-wrapper">
@@ -1126,6 +1151,17 @@ export default function ChatbotPage() {
           <span>Skinsistant memberikan saran perawatan kosmetik & edukasi, bukan diagnosa medis klinis.</span>
         </p>
       </div>
+
+      {/* RFC 012: In-Chat Face Scan & Ingredient Scan Detail Modals */}
+      <FaceScanDetailModal
+        scan={activeFaceModalScan}
+        onClose={() => setActiveFaceModalScan(null)}
+      />
+
+      <IngredientScanDetailModal
+        scan={activeIngredientModalScan}
+        onClose={() => setActiveIngredientModalScan(null)}
+      />
 
       {/* PURE VANILLA CSS STYLING MATCHING SKINCLUV DESIGN SYSTEM */}
       <style>{`

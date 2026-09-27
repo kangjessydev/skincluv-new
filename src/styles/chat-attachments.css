@@ -1,0 +1,302 @@
+/* src/styles/chat-attachments.css
+ * RFC 012: In-Chat Visual Cards (Mini Scan Result Hub)
+ * Glassmorphic, Zero-Emoji, Biometrically Minimizing UI
+ */
+
+.chat-attachments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.in-chat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.in-chat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.in-chat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+}
+
+.card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-title-icon-face {
+  color: #7c3aed;
+}
+
+.card-title-icon-ingredient {
+  color: #059669;
+}
+
+.card-date-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+/* FACE SCAN MINI CARD BODY */
+.face-mini-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.face-score-ring {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 3px solid;
+  position: relative;
+  background: #f8fafc;
+}
+
+.face-score-ring.score-optimal {
+  border-color: #10b981;
+  color: #047857;
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.face-score-ring.score-caution {
+  border-color: #f59e0b;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.face-score-ring.score-warning {
+  border-color: #ef4444;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.fs-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.fs-max {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  opacity: 0.8;
+  margin-top: 1px;
+}
+
+.face-meta-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skin-type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.skin-assessment-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.skin-assessment-desc {
+  font-size: 0.6875rem;
+  color: #64748b;
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* INGREDIENT SCAN MINI CARD BODY */
+.ingredient-mini-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ing-product-brand {
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ing-product-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.ing-assessment-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.ing-score-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ing-score-badge.safe {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ing-score-badge.caution {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.ing-chips-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.ing-chip {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* CARD ACTION FOOTER */
+.in-chat-card-footer {
+  padding-top: 6px;
+  border-top: 1px solid #f8fafc;
+}
+
+.in-chat-card-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.in-chat-card-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+/* UNAVAILABLE / FALLBACK CARD (INVARIANT 12) */
+.in-chat-card.unavailable {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  opacity: 0.85;
+}
+
+.unavailable-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.unavailable-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.unavailable-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.unavailable-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.unavailable-desc {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* LOADING SHIMMER SKELETON */
+.in-chat-card.loading {
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #64748b;
+}

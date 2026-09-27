@@ -489,10 +489,12 @@ Deno.serve(async (req: Request) => {
       const isProductRelevant = productKeywords.some((kw) => messageText.includes(kw))
 
       // Hanya ambil context jika relevan (Zero-Query untuk percakapan umum)
+      let cachedChatbotScanContext: any = null
       if (isFaceRelevant || isProductRelevant) {
         try {
           const { data: scanContext, error: scanErr } = await supabaseUser.rpc('get_chatbot_user_context')
           if (!scanErr && scanContext && scanContext.master_consented) {
+            cachedChatbotScanContext = scanContext
             let scanDataContent = ''
             const conditionFlags: string[] = []
             const ingredientCategories: string[] = []
@@ -615,7 +617,10 @@ Deno.serve(async (req: Request) => {
 5. ACTION CTA: Jika kamu menyarankan pengguna untuk scan wajah (misal untuk diagnosis baru atau scan >14 hari) atau cek komposisi produk baru, sertakan salah satu kode aksi di baris terpisah tepat di akhir jawaban:
    - [ACTION:FACE_SCAN] : Arahkan ke fitur Scan Wajah AI.
    - [ACTION:INGREDIENT_SCAN] : Arahkan ke fitur Cek Komposisi / Produk.
-   HANYA gunakan salah satu kode di atas jika benar-benar relevan.`
+   HANYA gunakan salah satu kode di atas jika benar-benar relevan.
+6. UI ATTACHMENTS (RFC 012):
+   - Jika kamu membahas, merujuk, atau menjawab tentang rekam jejak scan wajah user di <USER_SCAN_DATA>, sertakan tag intent di baris terpisah: [INTENT:SHOW_LATEST_FACE_SCAN]
+   - Jika kamu membahas, merujuk, atau menjawab tentang rekam jejak scan produk di <USER_SCAN_DATA>, sertakan tag intent di baris terpisah: [INTENT:SHOW_LATEST_INGREDIENT_SCAN]`
             }
           }
         } catch (scanErr) {
@@ -1165,8 +1170,9 @@ END PRODUCT_TEXT`
       }
     }
 
-    // Parse Action CTA jika ada dari respon chatbot (RFC 006 Strict Enum Whitelist)
+    // Parse Action CTA & UI Attachment Intents (RFC 006 & RFC 012)
     const detectedActions: Array<'FACE_SCAN' | 'INGREDIENT_SCAN'> = []
+    const detectedAttachments: Array<{ type: string; resource_id: string; resource_version: number }> = []
     let cleanFinalContent = finalContent
     if (feature_slug === 'chatbot' && finalContent) {
       if (finalContent.includes('[ACTION:FACE_SCAN]')) {
@@ -1175,7 +1181,33 @@ END PRODUCT_TEXT`
       if (finalContent.includes('[ACTION:INGREDIENT_SCAN]')) {
         detectedActions.push('INGREDIENT_SCAN')
       }
-      cleanFinalContent = finalContent.replace(/\[ACTION:[A-Z_]+\]/gi, '').trim()
+
+      // RFC 012 Invariant 10: Server-side authority resolves UI Intent to authorized resource_id
+      if (finalContent.includes('[INTENT:SHOW_LATEST_FACE_SCAN]') && cachedChatbotScanContext?.face_scan?.id) {
+        detectedAttachments.push({
+          type: 'face_scan_summary',
+          resource_id: cachedChatbotScanContext.face_scan.id,
+          resource_version: 1,
+        })
+      }
+      if (finalContent.includes('[INTENT:SHOW_LATEST_INGREDIENT_SCAN]') && cachedChatbotScanContext?.ingredient_scans?.[0]?.id) {
+        detectedAttachments.push({
+          type: 'ingredient_scan_summary',
+          resource_id: cachedChatbotScanContext.ingredient_scans[0].id,
+          resource_version: 1,
+        })
+      }
+
+      // Clean all action and intent tags from user-facing content
+      cleanFinalContent = finalContent
+        .replace(/\[ACTION:[A-Z_]+\]/gi, '')
+        .replace(/\[INTENT:[A-Z_]+\]/gi, '')
+        .trim()
+    }
+
+    const metadataPayload = {
+      schema_version: 1,
+      attachments: detectedAttachments,
     }
 
     // ---- Return response ----
@@ -1185,6 +1217,7 @@ END PRODUCT_TEXT`
         content: cleanFinalContent,
         action: detectedActions[0] || null,
         actions: detectedActions,
+        metadata: metadataPayload,
         sources: searchSources,     // [] jika tidak ada search, atau array SearchSource
         deduct_mode: deductMode,
         tokens_used: aiResult!.tokensUsed,

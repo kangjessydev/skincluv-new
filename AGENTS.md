@@ -56,6 +56,18 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
    - Hasil scan yang berasal dari cache hit ditandai permanen dengan `is_repeat = true`.
    - Baris dengan `is_repeat = true` wajib disaring keluar (`WHERE is_repeat = false`) dari perhitungan median baseline 28 hari dan riwayat grafik tren perkembangan kulit agar riwayat user tidak terdistorsi.
 
+10. **LLM UI Intent vs Server Resource Authority (RFC 012)**:
+    - LLM hanya berhak meminta intent UI (`SHOW_LATEST_FACE_SCAN`, `SHOW_LATEST_INGREDIENT_SCAN`), tetapi DILARANG KERAS menentukan UUID resource, otorisasi data, atau mengarang data klinis pada card visual. Backend server di Edge Function yang berwenang mengaitkan resource berdasarkan `auth.uid()`.
+
+11. **Reference-Only Metadata Persistence (RFC 012)**:
+    - Kolom `chat_messages.metadata` hanya menyimpan reference ID resource (`{ "type": "face_scan_summary", "resource_id": "uuid", "resource_version": 1 }`), BUKAN salinan data klinis atau gambar biometrik.
+
+12. **Right to be Forgotten Clean Invalidation (RFC 012)**:
+    - Jika user menghapus rekam jejak scan tertentu dari akunnya, visual card terkait di riwayat obrolan masa lalu wajib me-resolve ke 404/null dan berstatus *unavailable* (tidak menampilkan data klinis basi/bocoran).
+
+13. **Strict Biometric Data Minimization & Defensible Claims (RFC 012)**:
+    - Chat bubble dilarang menampilkan foto wajah asli user (hanya representasi grafis/score ring SVG). Card dilarang mencantumkan klaim "Status Klinis BPOM" palsu; gunakan label assessment yang netral dan defensible (misal: *Skin Assessment: Good/Optimal*).
+
 ---
 
 ## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)
