@@ -113,8 +113,8 @@ export default function IngredientScanDetailModal({ scan, onClose, onConsult }: 
                     {scan.brand ? `BRAND: ${scan.brand.toUpperCase()}` : 'PRODUK SKINCARE'}
                   </span>
                   <span className="hero-confidence-badge">
-                    {scan.is_safe ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
-                    {scan.is_safe ? 'FORMULA AMAN' : 'PERLU PERHATIAN'}
+                    {(scan.safety_score ?? 80) >= 70 ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
+                    {(scan.safety_score ?? 80) >= 85 ? 'FORMULA SANGAT BAIK' : (scan.safety_score ?? 80) >= 70 ? 'FORMULA BAIK' : 'PERLU PERHATIAN'}
                   </span>
                 </div>
                 <p className="hero-notes-text">
@@ -198,7 +198,7 @@ export default function IngredientScanDetailModal({ scan, onClose, onConsult }: 
                       </div>
                       <span className={`ing-mini-badge ${badge}`}>
                         {badge === 'safe' || badge === 'aman'
-                          ? 'Aman'
+                          ? 'Sangat Baik'
                           : badge === 'caution' || badge === 'perhatian'
                           ? 'Perhatian'
                           : 'Hindari'}
@@ -217,6 +217,10 @@ export default function IngredientScanDetailModal({ scan, onClose, onConsult }: 
               </button>
             </div>
           )}
+
+          <div className="in-chat-card-disclaimer" style={{ marginTop: '8px' }}>
+            <span>Analisis AI — bukan pengganti konsultasi dokter spesialis kulit</span>
+          </div>
         </div>
       </div>
     </div>,

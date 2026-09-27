@@ -386,7 +386,7 @@ export default function ScanHistoryPage() {
 
                         <div className="scan-tags-row">
                           <span className={`status-pill-badge ${isSafe ? 'safe' : 'caution'}`}>
-                            {isSafe ? 'Formula Aman' : 'Perlu Perhatian'}
+                            {isSafe ? 'Formula Sangat Baik' : 'Perlu Perhatian'}
                           </span>
                           {Array.isArray(ing.key_ingredients) && ing.key_ingredients.slice(0, 3).map((k, i) => (
                             <span key={i} className="concern-tag">

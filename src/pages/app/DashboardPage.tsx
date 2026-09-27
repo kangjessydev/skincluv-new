@@ -226,7 +226,7 @@ export default function DashboardPage() {
           </div>
           <div className="retention-card">
             <div className="r-num">{productSummary.total_products_scanned}</div>
-            <div className="r-cap">Produk di Rak ({productSummary.safe_products_count} Formula Aman)</div>
+            <div className="r-cap">Produk di Rak ({productSummary.safe_products_count} Formula Terverifikasi)</div>
           </div>
           <div className="retention-card">
             <div className="r-num">{missions.completed} / {missions.total}</div>

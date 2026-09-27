@@ -8,6 +8,7 @@ import {
   FileText,
   ShieldAlert,
   ShieldCheck,
+  AlertTriangle,
   ArrowRight,
   Sparkles,
   Loader2,
@@ -169,6 +170,11 @@ function InChatFaceCard({ scanId, onOpenDetail }: InChatFaceCardProps) {
           </button>
         </div>
       )}
+
+      {/* Kimi Audit & PerBPOM 3/2022: Mandatory 1-line clinical micro-disclaimer */}
+      <div className="in-chat-card-disclaimer">
+        <span>Analisis AI — bukan pengganti konsultasi dokter</span>
+      </div>
     </div>
   )
 }
@@ -260,10 +266,27 @@ function InChatIngredientCard({ scanId, onOpenDetail }: InChatIngredientCardProp
     )
   }
 
+  // Extract danger combos from raw_ai_response (Kimi: danger_combos TIDAK BOLEH DISEMBUNYIKAN)
+  let rawAi: any = {}
+  try {
+    if (typeof scan.raw_ai_response === 'string') rawAi = JSON.parse(scan.raw_ai_response)
+    else if (scan.raw_ai_response && typeof scan.raw_ai_response === 'object') rawAi = scan.raw_ai_response
+  } catch {
+    rawAi = {}
+  }
+  const dangerCombos = Array.isArray(rawAi?.layering_guide?.danger_combos) ? rawAi.layering_guide.danger_combos : []
+
+  // PerBPOM 3/2022 & Kimi Consensus: use qualitative bands, avoid absolute words like "Aman"
   const score = scan.safety_score ?? (scan.is_safe ? 85 : 45)
-  const isOptimal = score >= 65 && scan.is_safe
-  const badgeClass = isOptimal ? 'safe' : 'caution'
-  const assessmentLabel = isOptimal ? 'Formula Assessment: Aman' : 'Formula Assessment: Perhatian'
+  const isVeryGood = score >= 85 && scan.is_safe
+  const isGood = score >= 70 && scan.is_safe
+  const badgeClass = isVeryGood ? 'safe' : isGood ? 'good' : 'caution'
+  const assessmentBandLabel = isVeryGood
+    ? 'Sangat Baik'
+    : isGood
+    ? 'Baik'
+    : 'Perlu Perhatian'
+
   const formattedDate = new Date(scan.created_at).toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'short',
@@ -273,6 +296,10 @@ function InChatIngredientCard({ scanId, onOpenDetail }: InChatIngredientCardProp
   const previewIngredients = Array.isArray(scan.key_ingredients) && scan.key_ingredients.length > 0
     ? scan.key_ingredients.slice(0, 3)
     : []
+
+  const totalIngredientsCount = Array.isArray(scan.ingredients_breakdown)
+    ? scan.ingredients_breakdown.length
+    : previewIngredients.length
 
   return (
     <div className="in-chat-card">
@@ -292,10 +319,22 @@ function InChatIngredientCard({ scanId, onOpenDetail }: InChatIngredientCardProp
 
         <div className="ing-assessment-row">
           <span className={`ing-score-badge ${badgeClass}`}>
-            {isOptimal ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
-            {assessmentLabel} ({score}/100)
+            {isVeryGood || isGood ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
+            Skor Keamanan Formula: {assessmentBandLabel} ({score}/100)
           </span>
         </div>
+
+        <p className="ing-provenance-caption">
+          Berdasarkan profil {totalIngredientsCount > 0 ? `${totalIngredientsCount} bahan` : 'bahan'} terverifikasi
+        </p>
+
+        {/* Kimi Audit: Peringatan kombinasi pemakaian jika ada danger combos */}
+        {dangerCombos.length > 0 && (
+          <div className="ing-danger-alert-pill">
+            <AlertTriangle size={12} className="alert-pill-icon" />
+            <span>Terdapat kombinasi pemakaian yang perlu diperhatikan</span>
+          </div>
+        )}
 
         {previewIngredients.length > 0 && (
           <div className="ing-chips-preview">
@@ -320,6 +359,11 @@ function InChatIngredientCard({ scanId, onOpenDetail }: InChatIngredientCardProp
           </button>
         </div>
       )}
+
+      {/* Kimi Audit & PerBPOM 3/2022: Mandatory 1-line clinical micro-disclaimer */}
+      <div className="in-chat-card-disclaimer">
+        <span>Analisis AI — bukan pengganti konsultasi dokter</span>
+      </div>
     </div>
   )
 }

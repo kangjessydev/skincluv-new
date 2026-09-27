@@ -619,8 +619,14 @@ Deno.serve(async (req: Request) => {
    - [ACTION:INGREDIENT_SCAN] : Arahkan ke fitur Cek Komposisi / Produk.
    HANYA gunakan salah satu kode di atas jika benar-benar relevan.
 6. UI ATTACHMENTS (RFC 012):
-   - Jika kamu membahas, merujuk, atau menjawab tentang rekam jejak scan wajah user di <USER_SCAN_DATA>, sertakan tag intent di baris terpisah: [INTENT:SHOW_LATEST_FACE_SCAN]
-   - Jika kamu membahas, merujuk, atau menjawab tentang rekam jejak scan produk di <USER_SCAN_DATA>, sertakan tag intent di baris terpisah: [INTENT:SHOW_LATEST_INGREDIENT_SCAN]`
+   - Jika kamu membahas, merujuk, atau menjawab tentang rekam jejak scan wajah user di <USER_SCAN_DATA>, sertakan tag intent di baris terpisah tepat di akhir jawaban: [INTENT:SHOW_LATEST_FACE_SCAN]
+   - Jika kamu membahas, merujuk, atau menjawab tentang rekam jejak scan produk di <USER_SCAN_DATA>, sertakan tag intent di baris terpisah tepat di akhir jawaban: [INTENT:SHOW_LATEST_INGREDIENT_SCAN]
+   Contoh 1:
+   User: "kapan scan wajah terakhirku?"
+   Assistant: "Berdasarkan hasil analisis scan wajah terakhirmu pada tanggal ...\n\n[INTENT:SHOW_LATEST_FACE_SCAN]"
+   Contoh 2:
+   User: "produk apa yang terakhir aku cek?"
+   Assistant: "Produk terakhir yang kamu verifikasi komposisinya adalah ...\n\n[INTENT:SHOW_LATEST_INGREDIENT_SCAN]"`
             }
           }
         } catch (scanErr) {

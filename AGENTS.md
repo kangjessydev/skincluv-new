@@ -66,7 +66,7 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
     - Jika user menghapus rekam jejak scan tertentu dari akunnya, visual card terkait di riwayat obrolan masa lalu wajib me-resolve ke 404/null dan berstatus *unavailable* (tidak menampilkan data klinis basi/bocoran).
 
 13. **Strict Biometric Data Minimization & Defensible Claims (RFC 012)**:
-    - Chat bubble dilarang menampilkan foto wajah asli user (hanya representasi grafis/score ring SVG). Card dilarang mencantumkan klaim "Status Klinis BPOM" palsu; gunakan label assessment yang netral dan defensible (misal: *Skin Assessment: Good/Optimal*).
+    - Chat bubble dilarang menampilkan foto wajah asli user (hanya representasi grafis/score ring SVG). Card dilarang mencantumkan klaim "Status Klinis BPOM" palsu atau kata mutlak terlarang seperti "Formula Aman" (PerBPOM No. 3/2022); gunakan label assessment kualitatif yang defensible (misal: *Skin Assessment: Optimal/Baik*, *Skor Keamanan Formula: Sangat Baik/Baik/Perlu Perhatian*) serta mikro-disclaimer dokter.
 
 ---
 

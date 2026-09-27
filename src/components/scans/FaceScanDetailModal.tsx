@@ -206,6 +206,10 @@ export default function FaceScanDetailModal({ scan, onClose, onConsult }: FaceSc
               </button>
             </div>
           )}
+
+          <div className="in-chat-card-disclaimer" style={{ marginTop: '8px' }}>
+            <span>Analisis AI — bukan pengganti konsultasi dokter spesialis kulit</span>
+          </div>
         </div>
       </div>
     </div>,

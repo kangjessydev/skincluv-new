@@ -2,7 +2,7 @@
 
 **Topik**: Rich In-Chat Visual Cards (Mini Scan Result Hub di Skinsistant Chatbot)  
 **Tanggal**: 2026-09-27  
-**Status**: Consensused & Ready for Implementation (Reviewed by Claude & ChatGPT)  
+**Status**: Consensused & Fully Implemented (Reviewed by Claude, ChatGPT, DeepSeek, & Kimi)  
 **Codebase**: Linked Supabase Live DB + React 19 Vite SPA + Deno Edge Functions  
 
 ---
@@ -12,7 +12,7 @@
 1. **Pilihan Arsitektur**:
    - Menolak keras membiarkan LLM mengeluarkan raw UUID (menghindari celah IDOR).
    - Membatasi instruksi LLM hanya pada keyword/intent ter-scope.
-2. **🔴 Temuan Bug Korektnes Kritis (Floating Relative Reference)**:
+2. **Temuan Bug Korektnes Kritis (Floating Relative Reference)**:
    - Tag relatif seperti `latest` atau `1` yang disimpan mentah di teks chat akan mengalami *time-drift*: saat percakapan lama dibuka 2 minggu kemudian, `latest` akan salah me-resolve ke scan hari ini (bukan scan saat percakapan terjadi).
    - Solusi: Backend wajib membekukan (*freeze*) referensi resource pada saat pesan di-generate.
 3. **Privasi Biometrik Foto Wajah**:
@@ -60,48 +60,82 @@
 
 ---
 
-## 3. Matriks Konsensus Final (AI Council Consensus)
+## 3. Masukan & Temuan dari DeepSeek (Math & Tokenomics Optimizer)
 
-| Aspek Arsitektur | Claude | ChatGPT | Keputusan Final Dewan AI |
-| :--- | :--- | :--- | :--- |
-| **Model Persistence** | Opsi A (dengan freeze) | Opsi B (Hybrid Reference) | ✅ **Opsi B Hybrid: Kolom `metadata jsonb` di `chat_messages`** |
-| **Kontrol LLM** | Intent/Keyword saja | UI Intent Enum saja | ✅ **LLM hanya menghasilkan intent UI**. Backend menentukan resource |
-| **Isi Metadata** | Frozen values | Reference-only (`resource_id`) | ✅ **Reference-only**. Bebas duplikasi biometrik/klinis |
-| **Penanganan Deletion** | Konsisten masa lalu | Invalidate to "Unavailable" | ✅ **Jika scan dihapus, Card tampil "Tidak tersedia"** |
-| **Foto Wajah Asli** | Ditolak keras | Ditolak keras (UU PDP) | ✅ **Dilarang di chat bubble**. Pakai SVG ring avatar |
-| **Klaim Regulasi** | Sesuai aturan | Hapus "Status Klinis BPOM" | ✅ **Ganti jadi "Skin Assessment / Formula Assessment"** |
-| **Posisi di UI** | Mengalir di markdown | Dedicated Attachment Slot | ✅ **Attachment Slot di bawah bubble chat** |
+1. **Analisis Matematis Token Budget**:
+   - Menolak keras interpretasi I-2 (LLM generate data terstruktur) karena membuang 100–200 output token dan melanggar Invarian #6.
+   - Mengonfirmasi bahwa model I-1 / I-3 (LLM output intent marker ~7 token) adalah pilihan paling efisien secara tokenomics.
+2. **Analisis Storage & Egress**:
+   - Menghitung storage overhead kolom `metadata jsonb` sebesar ~250 byte per pesan. Untuk 1 juta pesan = ~250 MB (sangat ekonomis untuk PostgreSQL).
+   - Menyetujui skema hybrid di mana `chat_messages.metadata jsonb` menyimpan reference descriptor untuk resilience jangka panjang.
+3. **Mitigasi Instruction Following Degradation (<1.5% Drop)**:
+   - Merekomendasikan pemindahan instruksi intent ke posisi **paling akhir** dalam system prompt (memanfaatkan *recency effect*).
+   - Menyertakan **2-shot concise examples** konkret agar model mematuhi format intent tanpa merusak kepatuhan pada aturan keselamatan klinis lainnya.
+4. **Zero-Trust IDOR Confirmation**:
+   - Menegaskan bahwa frontend tidak boleh mempercayai ID dari LLM, dan query resource wajib dibatasi secara deterministik dengan `WHERE user_id = auth.uid()`.
 
 ---
 
-## 4. Empat Invarian Baru untuk `AGENTS.md`
+## 4. Masukan & Temuan dari Kimi (Clinical Skincare & Regulatory Researcher)
 
-1. **Invarian 10 (LLM Intent vs Server Resource Authority)**:
-   > LLM hanya berhak meminta intent UI (`SHOW_LATEST_FACE_SCAN`, `SHOW_LATEST_INGREDIENT_SCAN`), tetapi dilarang keras menentukan UUID resource, otorisasi data, atau mengarang data klinis pada card visual. Backend server yang berwenang mengaitkan resource berdasarkan `auth.uid()`.
+### 🔴 Temuan Kritis: Pelanggaran PerBPOM No. 3/2022 pada Draft
+
+1. **Larangan Kata "Aman" & "100/100 Formula Aman"**:
+   - Kata **"Aman"** tanpa kualifikasi objektif berada dalam daftar kata terlarang klaim kosmetika PerBPOM No. 3/2022.
+   - Angka "100/100" yang berdiri sendiri terkesan sebagai garansi absolut (klaim berlebihan).
+   - **Solusi Kepatuhan**:
+     - Gunakan kualifikasi band skor keamanan formula:
+       - `85–100`: **Sangat Baik**
+       - `70–84`: **Baik**
+       - `< 70`: **Perlu Perhatian**
+     - Cantumkan basis data observasi: *"Berdasarkan profil X bahan terverifikasi • [Tanggal]"*.
+     - Bersihkan kata "Formula Aman" dari seluruh halaman (termasuk `DashboardPage.tsx` dan `ScanHistoryPage.tsx`).
+2. **Larangan Penyembunyian `danger_combos` (Layering Risks)**:
+   - Sinyal bahaya kombinasi bahan (`danger_combos`) **dilarang disembunyikan** dari Mini Card demi estetika visual.
+   - Wajib menyertakan indikator peringatan minimal: icon `<AlertTriangle />` + *"Terdapat kombinasi pemakaian yang perlu diperhatikan"*.
+3. **Wajib Tanggal Provenance & Micro-Disclaimer**:
+   - Setiap visual card wajib menyertakan tanggal scan untuk mencegah kebingungan data klinis basi.
+   - Setiap card wajib menyertakan mikro-disclaimer 1 baris:
+     *"Analisis AI — bukan pengganti konsultasi dokter"*.
+4. **Larangan Mutlak Foto Wajah Asli di Chat**:
+   - 100% sepakat dengan seluruh dewan AI: wajib menggunakan representasi visual grafis (score ring SVG), bukan foto biometrik asli wajah (kepatuhan UU PDP No. 27/2022 Pasal 20).
+
+---
+
+## 5. Matriks Konsensus Final Dewan AI (Consensus Matrix)
+
+| Aspek Arsitektur | Claude | ChatGPT | DeepSeek | Kimi | Keputusan Final Dewan AI |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Model Persistence** | Opsi A (dengan freeze) | Opsi B (Hybrid Reference) | Hybrid (Metadata JSONB) | DB Reference | ✅ **Opsi B Hybrid (`chat_messages.metadata jsonb`)** |
+| **Kontrol LLM** | Intent/Keyword saja | UI Intent Enum saja | Marker ~7 token | Intent saja (bukan isi) | ✅ **LLM hanya menghasilkan intent UI**. Backend menentukan resource |
+| **Isi Metadata** | Frozen values | Reference-only (`resource_id`) | Reference Descriptor | Provenance ID + date | ✅ **Reference-only (`resource_id`)**. Bebas duplikasi data biometrik |
+| **Penanganan Deletion** | Konsisten masa lalu | Invalidate to "Unavailable" | Error fallback | Clean Invalidation | ✅ **Jika scan dihapus, Card tampil "Tidak tersedia"** |
+| **Foto Wajah Asli** | Ditolak keras | Ditolak keras (UU PDP) | Tidak perlu | Dilarang (UU PDP) | ✅ **Dilarang di chat bubble**. Pakai SVG ring avatar |
+| **Klaim Regulasi** | Sesuai aturan | Hapus "Status Klinis BPOM" | Data terverifikasi | Hapus "Aman", pakai band | ✅ **Skor band kualitatif + mikro-disclaimer** |
+| **Posisi di UI** | Mengalir di markdown | Dedicated Attachment Slot | Inline / Slot | Attachment Slot | ✅ **Attachment Slot di bawah bubble chat** |
+| **Layering Warning** | Di detail | Sesuai DB | Sesuai DB | Wajib tampil di card | ✅ **Pill peringatan bahaya layering aktif di card** |
+
+---
+
+## 6. Empat Invarian Baru untuk `AGENTS.md`
+
+1. **Invarian 10 (LLM UI Intent vs Server Resource Authority)**:
+   > LLM hanya berhak meminta intent UI (`SHOW_LATEST_FACE_SCAN`, `SHOW_LATEST_INGREDIENT_SCAN`), tetapi DILARANG KERAS menentukan UUID resource, otorisasi data, atau mengarang data klinis pada card visual. Backend server di Edge Function yang berwenang mengaitkan resource berdasarkan `auth.uid()`.
 2. **Invarian 11 (Reference-Only Metadata Persistence)**:
    > Kolom `chat_messages.metadata` hanya menyimpan reference ID resource (`{ "type": "face_scan_summary", "resource_id": "uuid", "resource_version": 1 }`), BUKAN salinan data klinis atau gambar biometrik.
 3. **Invarian 12 (Right to be Forgotten Clean Invalidation)**:
-   > Jika user menghapus rekam jejak scan tertentu, visual card terkait di riwayat obrolan masa lalu wajib berstatus *unavailable* (tidak menampilkan data klinis basi/bocoran).
-4. **Invarian 13 (Biometric Minimization & Defensible Claims)**:
-   > Chat bubble dilarang menampilkan foto wajah asli user (hanya representasi grafis/score ring). Card dilarang mencantumkan klaim "Status Klinis BPOM" palsu; gunakan label assessment yang netral dan defensible (misal: *Skin Assessment: Good/Optimal*).
+   > Jika user menghapus rekam jejak scan tertentu dari akunnya, visual card terkait di riwayat obrolan masa lalu wajib me-resolve ke 404/null dan berstatus *unavailable* (tidak menampilkan data klinis basi/bocoran).
+4. **Invarian 13 (Strict Biometric Data Minimization & Defensible Claims)**:
+   > Chat bubble dilarang menampilkan foto wajah asli user (hanya representasi grafis/score ring SVG). Card dilarang mencantumkan klaim "Status Klinis BPOM" palsu atau kata mutlak "Formula Aman"; gunakan label assessment kualitatif yang defensible (*Skin Assessment: Optimal/Baik* dan *Skor Keamanan Formula: Sangat Baik/Baik/Perlu Perhatian*) serta mikro-disclaimer dokter.
 
 ---
 
-## 5. Rencana Aksi Implementasi
+## 7. Status Eksekusi & Kesiapan Produksi
 
-### Tahap 1: Database Migration (Migration 066)
-- Tambahkan kolom `metadata jsonb DEFAULT '{}'::jsonb` pada `public.chat_messages`.
-
-### Tahap 2: Edge Function `invoke-ai` Intent Resolver
-- Di system prompt chatbot, tambahkan instruksi singkat intent enum:
-  - `[INTENT:SHOW_LATEST_FACE_SCAN]`
-  - `[INTENT:SHOW_LATEST_INGREDIENT_SCAN]`
-- Edge Function membersihkan tag intent dari teks, mengecek `scanContext`, lalu menyematkan `metadata: { schema_version: 1, attachments: [...] }` pada payload response JSON.
-
-### Tahap 3: Frontend Component & Attachment Slot (`ChatbotPage.tsx`)
-- Simpan `metadata` ke Supabase `chat_messages` saat menyimpan pesan bot.
-- Buat komponen `<ChatAttachmentSlot attachments={msg.metadata.attachments} />`:
-  - Fetch data authoritative via React Query / hook dengan `WHERE user_id = auth.uid()`.
-  - Jika row ditemukan: render Mini Face Scan Card / Mini Ingredient Card.
-  - Jika row null (sudah dihapus): render Fallback Card *"Hasil scan ini sudah tidak tersedia"*.
-  - Tombol *"Lihat Hasil Lengkap"* membuka modal detail yang sama dengan ScanHistoryPage.
+1. **Database Migration**: Migration `066` (`chat_messages.metadata`) terpasang aktif di live database Supabase.
+2. **Edge Function `invoke-ai`**: Telah dideploy dengan two-shot few-shot examples di posisi akhir prompt, server-side intent resolution, dan auto tag stripper.
+3. **Komponen UI**:
+   - `ChatAttachmentSlot.tsx` terpasang dengan card Analisis Wajah, Evaluasi Komposisi Produk, danger combo indicator, dan micro-disclaimer.
+   - `FaceScanDetailModal.tsx` & `IngredientScanDetailModal.tsx` modular dan reusable.
+   - Seluruh teks "Formula Aman" telah dibersihkan dari `DashboardPage`, `ScanHistoryPage`, dan modal detail.
+4. **Build & Typecheck**: Lolos kompilasi TypeScript dan Vite build tanpa error.
