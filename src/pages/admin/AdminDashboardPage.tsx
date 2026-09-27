@@ -14,6 +14,7 @@ import {
   TrendingUp,
   BarChart3,
   Users,
+  BookMarked,
 } from 'lucide-react'
 
 export default function AdminDashboardPage() {
@@ -509,6 +510,49 @@ export default function AdminDashboardPage() {
           gap: 20,
         }}
       >
+        <Link
+          to="/admin/knowledge/handbook"
+          style={{
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #e5e7eb',
+            padding: 24,
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'all 0.15s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: '#e0e7ff',
+                color: '#4f46e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <BookMarked size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+              Buku Panduan Fitur (Handbook)
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+              Ontologi resmi produk internal untuk mencegah Skinsistant halusinasi fitur dan batasan layanan (RFC 013).
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4f46e5', marginTop: 20 }}>
+            Kelola Panduan Fitur <ArrowRight size={14} />
+          </div>
+        </Link>
+
         <Link
           to="/admin/knowledge/ingredients"
           style={{

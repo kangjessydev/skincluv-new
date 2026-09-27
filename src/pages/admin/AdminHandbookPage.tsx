@@ -15,6 +15,7 @@ import {
   Layers,
   Sparkles,
   Info,
+  Trash2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -169,6 +170,31 @@ export default function AdminHandbookPage() {
     } catch (err: any) {
       console.error('[AdminHandbook] Toggle error:', err)
       setFeedback({ type: 'error', message: err.message || 'Gagal mengubah status.' })
+    }
+  }
+
+  const handleDeleteEntry = async (entry: HandbookEntry) => {
+    if (!window.confirm(`Hapus permanen entri "${entry.canonical_name}" dari buku panduan?`)) {
+      return
+    }
+    setIsLoading(true)
+    try {
+      const { error } = await supabase
+        .from('skincluv_handbook')
+        .delete()
+        .eq('id', entry.id)
+
+      if (error) throw error
+      setEntries((prev) => prev.filter((e) => e.id !== entry.id))
+      setFeedback({
+        type: 'success',
+        message: `Entri "${entry.canonical_name}" berhasil dihapus.`,
+      })
+    } catch (err: any) {
+      console.error('[AdminHandbook] Delete error:', err)
+      setFeedback({ type: 'error', message: err.message || 'Gagal menghapus entri.' })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -425,31 +451,148 @@ export default function AdminHandbookPage() {
           marginBottom: 'var(--space-lg)',
         }}
       >
-        <div className="admin-stat-card">
-          <div className="stat-label">Total Entri Panduan</div>
-          <div className="stat-val">{metrics.total}</div>
-          <div className="stat-sub">Buku saku Skinsistant</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="stat-label">Entri Aktif (Injeksi AI)</div>
-          <div className="stat-val" style={{ color: 'var(--color-success)' }}>
-            {metrics.published}
+        <div
+          style={{
+            background: 'var(--color-surface-container-lowest, #ffffff)',
+            border: '1px solid var(--color-secondary-container, #e5e7eb)',
+            borderRadius: 'var(--radius-xl, 12px)',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              background: '#e0e7ff',
+              color: '#4f46e5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <BookMarked size={20} />
           </div>
-          <div className="stat-sub">Aktif dalam system prompt</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="stat-label">Entri Draft</div>
-          <div className="stat-val" style={{ color: 'var(--color-text-muted)' }}>
-            {metrics.drafts}
+          <div>
+            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
+              Total Entri
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
+              {metrics.total}
+            </div>
           </div>
-          <div className="stat-sub">Tidak dibaca oleh bot</div>
         </div>
-        <div className="admin-stat-card">
-          <div className="stat-label">Kategori Cakupan</div>
-          <div className="stat-val" style={{ color: 'var(--color-primary)' }}>
-            {metrics.categories}
+
+        <div
+          style={{
+            background: 'var(--color-surface-container-lowest, #ffffff)',
+            border: '1px solid var(--color-secondary-container, #e5e7eb)',
+            borderRadius: 'var(--radius-xl, 12px)',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              background: '#ecfdf5',
+              color: '#059669',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <CheckCircle2 size={20} />
           </div>
-          <div className="stat-sub">Domain ontologi produk</div>
+          <div>
+            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
+              Entri Aktif (AI)
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#059669' }}>
+              {metrics.published}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'var(--color-surface-container-lowest, #ffffff)',
+            border: '1px solid var(--color-secondary-container, #e5e7eb)',
+            borderRadius: 'var(--radius-xl, 12px)',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              background: '#f3f4f6',
+              color: '#6b7280',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <EyeOff size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
+              Entri Draft
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#6b7280' }}>
+              {metrics.drafts}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'var(--color-surface-container-lowest, #ffffff)',
+            border: '1px solid var(--color-secondary-container, #e5e7eb)',
+            borderRadius: 'var(--radius-xl, 12px)',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              background: '#e0f2fe',
+              color: '#0284c7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Layers size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
+              Kategori
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#0284c7' }}>
+              {metrics.categories}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -665,6 +808,15 @@ export default function AdminHandbookPage() {
                       <Edit2 size={14} />
                       <span>Edit</span>
                     </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleDeleteEntry(entry)}
+                      title="Hapus entri ini"
+                      style={{ height: 32, padding: '0 8px', fontSize: '0.75rem', color: 'var(--color-error, #dc2626)' }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
 
@@ -727,12 +879,37 @@ export default function AdminHandbookPage() {
         </div>
       )}
 
-      {/* Modal Edit / Tambah */}
+      {/* Modal Edit / Tambah (Fixed Overlay Popup) */}
       {isEditing && (
-        <div className="modal-backdrop">
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 16,
+          }}
+          onClick={() => setIsEditing(false)}
+        >
           <div
-            className="modal-container"
-            style={{ maxWidth: 640, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}
+            style={{
+              background: '#ffffff',
+              borderRadius: 16,
+              maxWidth: 640,
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '24px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
