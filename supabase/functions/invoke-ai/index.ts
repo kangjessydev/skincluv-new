@@ -383,6 +383,7 @@ Deno.serve(async (req: Request) => {
     let systemPrompt = interpolatePrompt(prompt.system_prompt, promptContext)
 
     const hasMemoryConsent = userProfile?.chatbot_memory_consent === true
+    let cachedChatbotScanContext: any = null
 
     // Injeksi Memori Klinis Pasien (HANYA jika user sudah memberikan consent untuk chatbot atau untuk keselamatan alergi scan wajah)
     if (feature_slug === 'chatbot' && hasMemoryConsent && memoriesRes.data && memoriesRes.data.length > 0) {
@@ -489,7 +490,6 @@ Deno.serve(async (req: Request) => {
       const isProductRelevant = productKeywords.some((kw) => messageText.includes(kw))
 
       // Hanya ambil context jika relevan (Zero-Query untuk percakapan umum)
-      let cachedChatbotScanContext: any = null
       if (isFaceRelevant || isProductRelevant) {
         try {
           const { data: scanContext, error: scanErr } = await supabaseUser.rpc('get_chatbot_user_context')
@@ -1189,6 +1189,20 @@ END PRODUCT_TEXT`
       }
 
       // RFC 012 Invariant 10: Server-side authority resolves UI Intent to authorized resource_id
+      if (
+        (finalContent.includes('[INTENT:SHOW_LATEST_FACE_SCAN]') || finalContent.includes('[INTENT:SHOW_LATEST_INGREDIENT_SCAN]')) &&
+        !cachedChatbotScanContext
+      ) {
+        try {
+          const { data: onDemandContext } = await supabaseUser.rpc('get_chatbot_user_context')
+          if (onDemandContext && onDemandContext.master_consented) {
+            cachedChatbotScanContext = onDemandContext
+          }
+        } catch (onDemandErr) {
+          console.warn('[invoke-ai] On-demand scan context retrieval warning:', onDemandErr)
+        }
+      }
+
       if (finalContent.includes('[INTENT:SHOW_LATEST_FACE_SCAN]') && cachedChatbotScanContext?.face_scan?.id) {
         detectedAttachments.push({
           type: 'face_scan_summary',

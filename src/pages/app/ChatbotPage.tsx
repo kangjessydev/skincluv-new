@@ -106,7 +106,7 @@ export default function ChatbotPage() {
   const navigate = useNavigate()
 
   const { user, profile, setProfile, coinBalance, subscription } = useAuthStore()
-  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation } = useInvokeAI()
+  const { invoke, pendingCoinConfirm, confirmCoinUsage, cancelCoinUsage, askCoinConfirmation, getLastError } = useInvokeAI()
   const currentCoins = coinBalance?.balance ?? 0
   const chatbotCost = getFeatureCreditCost('chatbot')
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < chatbotCost
@@ -621,15 +621,25 @@ export default function ChatbotPage() {
         }, 1500)
       } else {
         setLastSources([])
-        // Fallback bubble informatif jika invoke gagal atau credits habis — bukan hening/tidak ada respon
-        const noticeText = `**Credits kamu tidak mencukupi** untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
-        const tempBotMsg: Message = {
-          id: `insufficient-${Date.now()}`,
-          sender: 'bot',
-          text: noticeText,
-          created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        const lastErr = getLastError()
+        if (lastErr === 'INSUFFICIENT_CREDITS') {
+          const noticeText = `Credits kamu tidak mencukupi untuk konsultasi ini (butuh ${chatbotCost} Credit). Kamu bisa mengumpulkan Credits gratis dengan menyelesaikan [Misi Harian](/missions) atau [Tingkatkan Akun](/pricing) ke Paket Glow / PRO untuk kuota bulanan.`
+          const tempBotMsg: Message = {
+            id: `insufficient-${Date.now()}`,
+            sender: 'bot',
+            text: noticeText,
+            created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }
+          setMessages((prev) => [...prev, tempBotMsg])
+        } else {
+          const tempBotMsg: Message = {
+            id: `error-${Date.now()}`,
+            sender: 'bot',
+            text: 'Maaf, terjadi kendala teknis pada server saat memproses jawaban. Credit kamu tidak berkurang. Silakan coba kirim pesan lagi.',
+            created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }
+          setMessages((prev) => [...prev, tempBotMsg])
         }
-        setMessages((prev) => [...prev, tempBotMsg])
       }
     } catch (err) {
       console.error('AI invoke error:', err)
