@@ -13,12 +13,18 @@ import {
   AlertTriangle,
   Trash2,
   X,
+  CreditCard,
+  Building,
+  Layers,
+  Clock,
+  ArrowRight,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface AiLogRecord {
   id: string
   feature_id: string
+  provider_id: string | null
   tokens_used: number | null
   input_tokens: number | null
   output_tokens: number | null
@@ -30,20 +36,48 @@ interface AiLogRecord {
     slug: string
     credit_cost?: number
   } | null
-  model_configs?: {
-    model_name: string
-    provider: string
+}
+
+interface AiProvider {
+  id: string
+  name: string
+  billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+  currency: string
+  icon_slug?: string | null
+  is_active: boolean
+  website_url?: string | null
+}
+
+interface ProviderDepositRecord {
+  id: string
+  provider_id: string
+  amount_paid_idr: number
+  credited_amount_usd: number
+  credited_tokens: number
+  effective_rate_idr: number | null
+  invoice_number: string | null
+  payment_method: string | null
+  deposited_at: string
+  notes?: string | null
+  created_at: string
+  ai_providers?: {
+    name: string
+    billing_type: string
   } | null
 }
 
-interface ProviderTopupRecord {
-  id: string
-  provider: 'gemini' | 'groq' | 'claude' | 'other'
-  amount_idr: number
-  amount_usd: number
-  topped_up_at: string
-  notes?: string | null
-  created_at: string
+interface ProviderBalanceRecord {
+  provider_id: string
+  provider_name: string
+  billing_type: string
+  currency: string
+  total_paid_idr: number
+  total_credited_usd: number
+  total_credited_tokens: number
+  total_cost_usd: number
+  total_tokens_used: number
+  remaining_balance: number | null
+  average_effective_rate_idr: number | null
 }
 
 interface InvoiceRecord {
@@ -61,36 +95,53 @@ interface AiFeatureMaster {
   is_active?: boolean
 }
 
-const USD_TO_IDR = 16000 // Kurs konversi standar
+const USD_TO_IDR = 16000 // Kurs acuan standar untuk estimasi
 
 export default function AdminFinancialsPage() {
   const [logs, setLogs] = useState<AiLogRecord[]>([])
   const [invoices, setInvoices] = useState<InvoiceRecord[]>([])
   const [features, setFeatures] = useState<AiFeatureMaster[]>([])
-  const [topups, setTopups] = useState<ProviderTopupRecord[]>([])
+  const [providers, setProviders] = useState<AiProvider[]>([])
+  const [deposits, setDeposits] = useState<ProviderDepositRecord[]>([])
+  const [balances, setBalances] = useState<ProviderBalanceRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [discountPercent, setDiscountPercent] = useState<number>(30)
 
-  // Modal & Form State untuk Top-Up Provider
+  // Filter & Toast Feedback State
+  const [depositFilter, setDepositFilter] = useState<string>('all')
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // Modal & Form State untuk Deposit Provider Multi-Provider
   const [showTopupModal, setShowTopupModal] = useState(false)
   const [isSavingTopup, setIsSavingTopup] = useState(false)
   const [topupForm, setTopupForm] = useState({
-    provider: 'gemini' as 'gemini' | 'groq' | 'claude' | 'other',
-    amount_idr: '',
-    amount_usd: '',
+    provider_id: 'google',
+    amount_paid_idr: '',
+    credited_amount_usd: '',
+    credited_tokens: '',
+    invoice_number: '',
+    payment_method: 'Kartu Kredit Bisnis',
+    deposited_at: new Date().toISOString().slice(0, 16),
     notes: '',
-    topped_up_at: new Date().toISOString().slice(0, 16),
   })
+
+  // Auto-dismiss floating feedback toast
+  useEffect(() => {
+    if (!feedback) return
+    const timer = setTimeout(() => setFeedback(null), 4000)
+    return () => clearTimeout(timer)
+  }, [feedback])
 
   const loadFinancialData = useCallback(async () => {
     setIsLoading(true)
     try {
-      const [logsRes, invRes, featuresRes, topupsRes] = await Promise.all([
+      const [logsRes, invRes, featuresRes, providersRes, depositsRes, balancesRes] = await Promise.all([
         supabase
           .from('ai_request_logs')
           .select(`
             id,
             feature_id,
+            provider_id,
             tokens_used,
             input_tokens,
             output_tokens,
@@ -114,23 +165,50 @@ export default function AdminFinancialsPage() {
           .eq('is_active', true)
           .order('slug'),
         supabase
-          .from('provider_topups')
-          .select('id, provider, amount_idr, amount_usd, topped_up_at, notes, created_at')
-          .order('topped_up_at', { ascending: false }),
+          .from('ai_providers')
+          .select('id, name, billing_type, currency, icon_slug, is_active, website_url')
+          .order('name'),
+        supabase
+          .from('provider_deposits')
+          .select(`
+            id,
+            provider_id,
+            amount_paid_idr,
+            credited_amount_usd,
+            credited_tokens,
+            effective_rate_idr,
+            invoice_number,
+            payment_method,
+            deposited_at,
+            notes,
+            created_at,
+            ai_providers (
+              name,
+              billing_type
+            )
+          `)
+          .order('deposited_at', { ascending: false }),
+        supabase
+          .from('provider_balances')
+          .select('*'),
       ])
 
       if (logsRes.error) throw logsRes.error
       if (invRes.error) throw invRes.error
       if (featuresRes.error) throw featuresRes.error
-      // provider_topups query error handled gracefully if table was just created
-      if (topupsRes.error) console.warn('[AdminFinancials] Provider topups warning:', topupsRes.error)
+      if (providersRes.error) throw providersRes.error
+      if (depositsRes.error) throw depositsRes.error
+      if (balancesRes.error) throw balancesRes.error
 
       setLogs((logsRes.data as any) || [])
       setInvoices((invRes.data as any) || [])
       setFeatures((featuresRes.data as any) || [])
-      setTopups((topupsRes.data as any) || [])
-    } catch (err) {
+      setProviders((providersRes.data as any) || [])
+      setDeposits((depositsRes.data as any) || [])
+      setBalances((balancesRes.data as any) || [])
+    } catch (err: any) {
       console.error('[AdminFinancials] Error loading data:', err)
+      setFeedback({ type: 'error', message: `Gagal memuat data finansial: ${err.message}` })
     } finally {
       setIsLoading(false)
     }
@@ -166,7 +244,7 @@ export default function AdminFinancialsPage() {
     }
   }, [invoices, logs])
 
-  // Analisis per Fitur AI — Rentang Empiris MIN, MAX, AVG & Rasio Input/Output
+  // Analisis per Fitur AI
   const featureBreakdown = useMemo(() => {
     const map = new Map<
       string,
@@ -184,7 +262,6 @@ export default function AdminFinancialsPage() {
       }
     >()
 
-    // 1. Inisialisasi seluruh fitur aktif dari tabel ai_features
     features.forEach((f) => {
       map.set(f.id, {
         name: f.name,
@@ -200,7 +277,6 @@ export default function AdminFinancialsPage() {
       })
     })
 
-    // 2. Akumulasikan konsumsi token & biaya dari ai_request_logs
     logs.forEach((log) => {
       const featId = log.feature_id
       if (map.has(featId)) {
@@ -222,86 +298,242 @@ export default function AdminFinancialsPage() {
     }))
   }, [features, logs])
 
-  // Hitung Rekonsiliasi Saldo Deposit Provider (Fase B)
-  const topupReconciliation = useMemo(() => {
-    const totalTopupIDR = topups.reduce((acc, t) => acc + (Number(t.amount_idr) || 0), 0)
-    const totalTopupUSD = topups.reduce((acc, t) => acc + (Number(t.amount_usd) || 0), 0)
-    const totalCostIDR = financials.totalCostIDR
-    const totalCostUSD = financials.totalCostUSD
-    const remainingIDR = totalTopupIDR - totalCostIDR
-    const remainingUSD = totalTopupUSD - totalCostUSD
-    const percentRemaining =
-      totalTopupIDR > 0 ? ((remainingIDR / totalTopupIDR) * 100).toFixed(1) : '0'
+  // Engine Analisis Multi-Provider & Runway AI (Fase 4 RFC 014)
+  const providerAnalytics = useMemo(() => {
+    const now = Date.now()
+    const sevenDaysAgo = now - 7 * 86400000
+    const thirtyDaysAgo = now - 30 * 86400000
 
-    // Akumulasi per provider
-    const providerStats: Record<string, { topupIDR: number; count: number }> = {
-      gemini: { topupIDR: 0, count: 0 },
-      groq: { topupIDR: 0, count: 0 },
-      claude: { topupIDR: 0, count: 0 },
-      other: { topupIDR: 0, count: 0 },
-    }
+    let totalDepositPaidIDR = 0
+    let totalCreditedUSD = 0
+    let totalUsedUSD = 0
+    let totalRemainingUSD = 0
 
-    topups.forEach((t) => {
-      const p = t.provider in providerStats ? t.provider : 'other'
-      providerStats[p].topupIDR += Number(t.amount_idr) || 0
-      providerStats[p].count += 1
+    // Evaluasi setiap provider yang terdaftar
+    const cards = providers.map((provider) => {
+      const bal = balances.find((b) => b.provider_id === provider.id)
+      const paidIdr = bal ? Number(bal.total_paid_idr) : 0
+      const creditedUsd = bal ? Number(bal.total_credited_usd) : 0
+      const creditedTokens = bal ? Number(bal.total_credited_tokens) : 0
+      const usedUsd = bal ? Number(bal.total_cost_usd) : 0
+      const usedTokens = bal ? Number(bal.total_tokens_used) : 0
+      const remainingBalance =
+        bal?.remaining_balance !== null && bal?.remaining_balance !== undefined
+          ? Number(bal.remaining_balance)
+          : creditedUsd - usedUsd
+      const avgRate =
+        bal?.average_effective_rate_idr && Number(bal.average_effective_rate_idr) > 0
+          ? Number(bal.average_effective_rate_idr)
+          : USD_TO_IDR
+
+      totalDepositPaidIDR += paidIdr
+      totalCreditedUSD += creditedUsd
+      totalUsedUSD += usedUsd
+      totalRemainingUSD += remainingBalance
+
+      // Saring logs khusus provider ini
+      const providerLogs = logs.filter((l) => l.provider_id === provider.id)
+      const totalCalls = providerLogs.length
+
+      // Hitung burn rate 7 hari terakhir
+      const logs7d = providerLogs.filter((l) => new Date(l.created_at).getTime() >= sevenDaysAgo)
+      const burn7dUsd = logs7d.reduce((sum, l) => sum + (l.cost_usd || 0), 0)
+      const burn7dTokens = logs7d.reduce((sum, l) => sum + (l.tokens_used || 0), 0)
+      const dailyBurnUsd = burn7dUsd / 7
+      const dailyBurnTokens = burn7dTokens / 7
+
+      // Hitung burn rate 30 hari terakhir
+      const logs30d = providerLogs.filter((l) => new Date(l.created_at).getTime() >= thirtyDaysAgo)
+      const burn30dUsd = logs30d.reduce((sum, l) => sum + (l.cost_usd || 0), 0)
+
+      // Penentuan status Runway
+      let runwayDays: number | null = null
+      let runwayStatus: 'healthy' | 'warning' | 'critical' | 'exhausted' | 'idle' = 'idle'
+      let runwayLabel = 'Belum Ada Pemakaian 7 Hari'
+
+      if (provider.billing_type === 'prepaid_usd') {
+        if (remainingBalance <= 0 && usedUsd > 0) {
+          runwayDays = 0
+          runwayStatus = 'exhausted'
+          runwayLabel = 'Saldo Minus / Habis'
+        } else if (remainingBalance <= 0 && creditedUsd === 0) {
+          runwayDays = 0
+          runwayStatus = 'exhausted'
+          runwayLabel = 'Belum Ada Deposit'
+        } else if (dailyBurnUsd > 0) {
+          runwayDays = Math.floor(remainingBalance / dailyBurnUsd)
+          if (runwayDays <= 7) {
+            runwayStatus = 'critical'
+            runwayLabel = `Kritis (~${runwayDays} hari)`
+          } else if (runwayDays <= 21) {
+            runwayStatus = 'warning'
+            runwayLabel = `Perhatian (~${runwayDays} hari)`
+          } else {
+            runwayStatus = 'healthy'
+            runwayLabel = `Aman (~${runwayDays} hari)`
+          }
+        } else if (creditedUsd > 0) {
+          runwayStatus = 'healthy'
+          runwayLabel = 'Aman (Burn $0 / Hari)'
+        }
+      } else if (provider.billing_type === 'prepaid_tokens') {
+        const remainingTokens = creditedTokens - usedTokens
+        if (remainingTokens <= 0) {
+          runwayDays = 0
+          runwayStatus = 'exhausted'
+          runwayLabel = 'Token Habis'
+        } else if (dailyBurnTokens > 0) {
+          runwayDays = Math.floor(remainingTokens / dailyBurnTokens)
+          if (runwayDays <= 7) {
+            runwayStatus = 'critical'
+            runwayLabel = `Kritis (~${runwayDays} hari)`
+          } else if (runwayDays <= 21) {
+            runwayStatus = 'warning'
+            runwayLabel = `Perhatian (~${runwayDays} hari)`
+          } else {
+            runwayStatus = 'healthy'
+            runwayLabel = `Aman (~${runwayDays} hari)`
+          }
+        }
+      } else {
+        runwayStatus = 'idle'
+        runwayLabel = 'Postpaid (Billing Bulanan)'
+      }
+
+      const remainingIdr = remainingBalance * avgRate
+      const percentUsed =
+        creditedUsd > 0 ? Math.min(100, Math.round((usedUsd / creditedUsd) * 100)) : 0
+
+      return {
+        provider,
+        paidIdr,
+        creditedUsd,
+        creditedTokens,
+        usedUsd,
+        usedTokens,
+        remainingBalance,
+        remainingIdr,
+        avgRate,
+        totalCalls,
+        dailyBurnUsd,
+        burn7dUsd,
+        burn30dUsd,
+        runwayDays,
+        runwayStatus,
+        runwayLabel,
+        percentUsed,
+      }
     })
 
     return {
-      totalTopupIDR,
-      totalTopupUSD,
-      remainingIDR,
-      remainingUSD,
-      percentRemaining,
-      providerStats,
+      cards,
+      totalDepositPaidIDR,
+      totalCreditedUSD,
+      totalUsedUSD,
+      totalRemainingUSD,
+      totalRemainingIDR: totalRemainingUSD * USD_TO_IDR,
     }
-  }, [topups, financials])
+  }, [providers, balances, logs])
 
+  // Live Exchange Rate Calculator di Modal Deposit
+  const modalLiveEffectiveRate = useMemo(() => {
+    const idr = parseFloat(topupForm.amount_paid_idr) || 0
+    const usd = parseFloat(topupForm.credited_amount_usd) || 0
+    if (idr > 0 && usd > 0) {
+      return Math.round(idr / usd)
+    }
+    return null
+  }, [topupForm.amount_paid_idr, topupForm.credited_amount_usd])
+
+  // Handler auto-sugesti USD saat input IDR
   const handleAmountIdrChange = (val: string) => {
-    const num = parseFloat(val) || 0
-    const usd = num > 0 ? (num / USD_TO_IDR).toFixed(2) : ''
+    const idr = parseFloat(val) || 0
+    const currentUsd = parseFloat(topupForm.credited_amount_usd) || 0
     setTopupForm((prev) => ({
       ...prev,
-      amount_idr: val,
-      amount_usd: usd,
+      amount_paid_idr: val,
+      credited_amount_usd:
+        currentUsd === 0 || prev.amount_paid_idr === ''
+          ? idr > 0
+            ? (idr / USD_TO_IDR).toFixed(2)
+            : ''
+          : prev.credited_amount_usd,
     }))
   }
 
+  // Handler Simpan Deposit
   const handleSaveTopup = async (e: React.FormEvent) => {
     e.preventDefault()
-    const idr = parseFloat(topupForm.amount_idr)
-    const usd = parseFloat(topupForm.amount_usd) || idr / USD_TO_IDR
-    if (!idr || idr <= 0) return
+    const idr = parseFloat(topupForm.amount_paid_idr)
+    const usd = parseFloat(topupForm.credited_amount_usd) || 0
+    const tokens = parseInt(topupForm.credited_tokens) || 0
+
+    if (!idr || idr <= 0) {
+      setFeedback({ type: 'error', message: 'Nominal pembayaran IDR wajib lebih besar dari 0' })
+      return
+    }
+
+    if (usd <= 0 && tokens <= 0) {
+      setFeedback({
+        type: 'error',
+        message: 'Masukkan minimal salah satu dari Saldo USD atau Kuota Token yang didapat',
+      })
+      return
+    }
 
     setIsSavingTopup(true)
     try {
-      const { error } = await supabase.from('provider_topups').insert({
-        provider: topupForm.provider,
-        amount_idr: idr,
-        amount_usd: usd,
+      const { error } = await supabase.from('provider_deposits').insert({
+        provider_id: topupForm.provider_id,
+        amount_paid_idr: idr,
+        credited_amount_usd: usd,
+        credited_tokens: tokens,
+        invoice_number: topupForm.invoice_number.trim() || null,
+        payment_method: topupForm.payment_method.trim() || null,
         notes: topupForm.notes.trim() || null,
-        topped_up_at: new Date(topupForm.topped_up_at).toISOString(),
+        deposited_at: new Date(topupForm.deposited_at).toISOString(),
       })
-      if (error) throw error
+
+      if (error) {
+        if (error.code === '23505' && error.message?.includes('invoice_number')) {
+          throw new Error(
+            `Nomor invoice "${topupForm.invoice_number}" sudah pernah dicatat sebelumnya. Gunakan nomor invoice yang unik.`
+          )
+        }
+        throw error
+      }
+
       setShowTopupModal(false)
+      setFeedback({ type: 'success', message: 'Deposit provider berhasil disimpan ke pembukuan' })
       loadFinancialData()
     } catch (err: any) {
-      alert(`Gagal mencatat top-up: ${err.message}`)
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Gagal menyimpan deposit provider AI',
+      })
     } finally {
       setIsSavingTopup(false)
     }
   }
 
+  // Handler Hapus Deposit
   const handleDeleteTopup = async (id: string) => {
-    if (!window.confirm('Hapus catatan top-up provider ini?')) return
+    if (!window.confirm('Hapus catatan deposit provider ini dari pembukuan?')) return
     try {
-      const { error } = await supabase.from('provider_topups').delete().eq('id', id)
+      const { error } = await supabase.from('provider_deposits').delete().eq('id', id)
       if (error) throw error
+      setFeedback({ type: 'success', message: 'Catatan deposit berhasil dihapus' })
       loadFinancialData()
     } catch (err: any) {
-      alert(`Gagal menghapus top-up: ${err.message}`)
+      setFeedback({ type: 'error', message: `Gagal menghapus deposit: ${err.message}` })
     }
   }
+
+  // Filter Riwayat Deposit
+  const filteredDeposits = useMemo(() => {
+    if (depositFilter === 'all') return deposits
+    return deposits.filter((d) => d.provider_id === depositFilter)
+  }, [deposits, depositFilter])
 
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -314,7 +546,7 @@ export default function AdminFinancialsPage() {
   // Simulator Diskon
   const simPricePro = 69000
   const discountedPricePro = Math.round(simPricePro * (1 - discountPercent / 100))
-  const estimatedTokenCostPerUserPro = 350 // rata-rata Rp 350 per bulan
+  const estimatedTokenCostPerUserPro = 350
   const simProfitPerUser = discountedPricePro - estimatedTokenCostPerUserPro
   const simMarginPercent = ((simProfitPerUser / discountedPricePro) * 100).toFixed(1)
 
@@ -326,9 +558,9 @@ export default function AdminFinancialsPage() {
           <div className="badge-category">
             <TrendingUp size={14} /> ANALITIK BISNIS & UNIT ECONOMICS
           </div>
-          <h1>AI Unit Economics & Profit Margin</h1>
+          <h1>AI Unit Economics & Multi-Provider Accounting</h1>
           <p>
-            Bandingkan pendapatan penjualan langganan dengan biaya riil token API (Google Gemini / Groq) untuk mengukur profitabilitas.
+            Bandingkan pendapatan penjualan langganan dengan biaya modal token API riil, lacak deposit kas ke Google/Groq/DeepSeek, dan pantau daya tahan runway.
           </p>
         </div>
         <button
@@ -395,6 +627,354 @@ export default function AdminFinancialsPage() {
         </div>
       </div>
 
+      {/* Section: Rekonsiliasi & Runway Saldo Multi-Provider AI */}
+      <div className="section-card multi-provider-section">
+        <div className="section-header flex-header">
+          <div>
+            <div className="flex items-center gap-2">
+              <Wallet size={18} className="text-emerald-600" />
+              <h3>Rekonsiliasi Saldo &amp; Runway Multi-Provider AI</h3>
+            </div>
+            <p>
+              Lacak uang riil (IDR) yang disetor ke setiap provider AI, saldo kredit (USD/Token) yang diperoleh, laju bakar 7 hari, dan estimasi daya tahan runway sebelum layanan habis.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn-add-topup"
+            onClick={() => {
+              setTopupForm({
+                provider_id: providers[0]?.id || 'google',
+                amount_paid_idr: '',
+                credited_amount_usd: '',
+                credited_tokens: '',
+                invoice_number: '',
+                payment_method: 'Kartu Kredit Bisnis',
+                deposited_at: new Date().toISOString().slice(0, 16),
+                notes: '',
+              })
+              setShowTopupModal(true)
+            }}
+          >
+            <Plus size={15} /> Catat Deposit Provider
+          </button>
+        </div>
+
+        {/* Macro Summary Strip for Multi-Provider */}
+        <div className="provider-macro-grid">
+          <div className="provider-macro-item">
+            <span className="macro-label">Total Modal Disetor (IDR)</span>
+            <span className="macro-value text-emerald-700">
+              {formatIDR(providerAnalytics.totalDepositPaidIDR)}
+            </span>
+            <span className="macro-sub">Dari {deposits.length} catatan deposit tersimpan</span>
+          </div>
+
+          <div className="provider-macro-item">
+            <span className="macro-label">Total Saldo Masuk (USD)</span>
+            <span className="macro-value text-slate-800">
+              ${providerAnalytics.totalCreditedUSD.toFixed(2)}
+            </span>
+            <span className="macro-sub">Akumulasi kredit USD di console provider</span>
+          </div>
+
+          <div className="provider-macro-item">
+            <span className="macro-label">Total Pemakaian Riil (USD)</span>
+            <span className="macro-value text-red-600">
+              ${providerAnalytics.totalUsedUSD.toFixed(4)}
+            </span>
+            <span className="macro-sub">
+              ~{formatIDR(providerAnalytics.totalUsedUSD * USD_TO_IDR)} (riil COGS server)
+            </span>
+          </div>
+
+          <div className="provider-macro-item">
+            <span className="macro-label">Sisa Saldo Tersedia</span>
+            <span
+              className={`macro-value ${
+                providerAnalytics.totalRemainingUSD >= 0 ? 'text-indigo-700' : 'text-amber-600'
+              }`}
+            >
+              ${providerAnalytics.totalRemainingUSD.toFixed(2)}
+            </span>
+            <span className="macro-sub">
+              ~{formatIDR(providerAnalytics.totalRemainingIDR)} (gabungan semua provider)
+            </span>
+          </div>
+        </div>
+
+        {/* Alert jika ada provider dengan saldo kritis atau minus */}
+        {providerAnalytics.cards.some(
+          (c) =>
+            (c.runwayStatus === 'critical' || c.runwayStatus === 'exhausted') &&
+            c.usedUsd > 0 &&
+            c.remainingBalance <= 0
+        ) && (
+          <div className="topup-alert-warning">
+            <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+            <span>
+              <strong>Perhatian Kritis:</strong> Ditemukan provider dengan saldo minus atau habis yang sedang memiliki pemakaian aktif. Segera lakukan pengisian deposit kas untuk mencegah pemutusan API oleh provider.
+            </span>
+          </div>
+        )}
+
+        {/* Multi-Provider Cards Grid */}
+        <div className="provider-cards-grid">
+          {providerAnalytics.cards.map((card) => {
+            const isCritical = card.runwayStatus === 'critical' || card.runwayStatus === 'exhausted'
+            const isHealthy = card.runwayStatus === 'healthy'
+            const isWarning = card.runwayStatus === 'warning'
+
+            return (
+              <div
+                key={card.provider.id}
+                className={`provider-balance-card ${
+                  isCritical && card.usedUsd > 0 ? 'border-critical' : ''
+                }`}
+              >
+                {/* Card Header */}
+                <div className="provider-card-header">
+                  <div>
+                    <h4 className="provider-title">{card.provider.name}</h4>
+                    <span className="provider-id-tag font-mono">{card.provider.id}</span>
+                  </div>
+                  <span className={`billing-badge ${card.provider.billing_type}`}>
+                    {card.provider.billing_type === 'prepaid_usd' && 'Prepaid USD'}
+                    {card.provider.billing_type === 'prepaid_tokens' && 'Token Pack'}
+                    {card.provider.billing_type === 'postpaid_credit' && 'Postpaid'}
+                  </span>
+                </div>
+
+                {/* Balance Display */}
+                <div className="provider-balance-row">
+                  <div>
+                    <span className="balance-caption">Sisa Saldo Tersedia</span>
+                    <div
+                      className={`balance-amount ${
+                        card.remainingBalance >= 0 ? 'text-slate-900' : 'text-red-600'
+                      }`}
+                    >
+                      ${card.remainingBalance.toFixed(2)}
+                    </div>
+                    <span className="balance-subtext">
+                      ~{formatIDR(card.remainingIdr)} (kurs Rp {Math.round(card.avgRate).toLocaleString('id-ID')})
+                    </span>
+                  </div>
+
+                  <div className="runway-badge-wrap">
+                    <span
+                      className={`runway-badge ${
+                        isCritical
+                          ? 'status-critical'
+                          : isWarning
+                          ? 'status-warning'
+                          : isHealthy
+                          ? 'status-healthy'
+                          : 'status-idle'
+                      }`}
+                    >
+                      <Clock size={12} />
+                      {card.runwayLabel}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar Konsumsi vs Deposit */}
+                <div className="consumption-progress-wrap">
+                  <div className="progress-labels">
+                    <span>
+                      Deposit: ${card.creditedUsd.toFixed(2)} ({formatIDR(card.paidIdr)})
+                    </span>
+                    <span>Terpakai: ${card.usedUsd.toFixed(4)}</span>
+                  </div>
+                  <div className="progress-bar-bg">
+                    <div
+                      className={`progress-bar-fill ${
+                        isCritical ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`}
+                      style={{ width: `${card.percentUsed}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Detail Metrics Row */}
+                <div className="provider-metrics-grid">
+                  <div className="p-metric">
+                    <span className="p-metric-label">Burn Rate 7 Hari</span>
+                    <span className="p-metric-val font-mono">
+                      ${card.dailyBurnUsd.toFixed(4)} / hari
+                    </span>
+                  </div>
+
+                  <div className="p-metric">
+                    <span className="p-metric-label">Total Panggilan AI</span>
+                    <span className="p-metric-val">{card.totalCalls.toLocaleString()} calls</span>
+                  </div>
+
+                  <div className="p-metric">
+                    <span className="p-metric-label">Estimasi 30 Hari</span>
+                    <span className="p-metric-val font-mono">
+                      ${card.burn30dUsd.toFixed(3)}
+                    </span>
+                  </div>
+
+                  <div className="p-metric">
+                    <span className="p-metric-label">Kurs Rata-Rata</span>
+                    <span className="p-metric-val font-mono">
+                      Rp {Math.round(card.avgRate).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Token breakdown jika ada */}
+                {(card.creditedTokens > 0 || card.usedTokens > 0) && (
+                  <div className="provider-token-strip">
+                    <span>
+                      Token Terpakai: <strong>{card.usedTokens.toLocaleString()}</strong>
+                    </span>
+                    {card.creditedTokens > 0 && (
+                      <span>
+                        / Deposit: {card.creditedTokens.toLocaleString()} tokens
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Section: Riwayat Deposit Transaksi Pembayaran */}
+        <div className="deposit-history-container">
+          <div className="deposit-history-header">
+            <div>
+              <h4>Riwayat Deposit Provider AI</h4>
+              <p>Daftar transaksi pembayaran riil ke penyedia layanan AI beserta kurs efektif.</p>
+            </div>
+
+            {/* Filter Tabs Provider */}
+            <div className="deposit-filter-tabs">
+              <button
+                type="button"
+                className={`filter-tab ${depositFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setDepositFilter('all')}
+              >
+                Semua ({deposits.length})
+              </button>
+              {providers.map((p) => {
+                const count = deposits.filter((d) => d.provider_id === p.id).length
+                if (count === 0 && !['google', 'groq', 'deepseek'].includes(p.id)) return null
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`filter-tab ${depositFilter === p.id ? 'active' : ''}`}
+                    onClick={() => setDepositFilter(p.id)}
+                  >
+                    {p.name.split(' ')[0]} ({count})
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>TANGGAL DEPOSIT</th>
+                  <th>PROVIDER</th>
+                  <th>PEMBAYARAN (IDR)</th>
+                  <th>SALDO DITERIMA (USD / TOKEN)</th>
+                  <th>KURS EFEKTIF RIIL</th>
+                  <th>INVOICE &amp; METODE</th>
+                  <th>CATATAN</th>
+                  <th>AKSI</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDeposits.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-6 text-gray-400">
+                      {depositFilter === 'all'
+                        ? 'Belum ada riwayat deposit provider yang dicatat. Klik tombol "Catat Deposit Provider" untuk menambah pencatatan pertama.'
+                        : `Belum ada riwayat deposit untuk provider ini.`}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDeposits.map((d) => {
+                    const effectiveRate = d.effective_rate_idr
+                      ? Number(d.effective_rate_idr)
+                      : d.credited_amount_usd > 0
+                      ? Math.round(Number(d.amount_paid_idr) / Number(d.credited_amount_usd))
+                      : null
+
+                    return (
+                      <tr key={d.id} className="table-row">
+                        <td className="font-semibold text-gray-800">
+                          {new Date(d.deposited_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                        <td>
+                          <span className={`provider-tag tag-${d.provider_id}`}>
+                            {d.ai_providers?.name || d.provider_id.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="font-bold text-gray-900">
+                          {formatIDR(Number(d.amount_paid_idr))}
+                        </td>
+                        <td>
+                          <div className="font-mono font-semibold text-gray-900">
+                            ${Number(d.credited_amount_usd).toFixed(2)} USD
+                          </div>
+                          {Number(d.credited_tokens) > 0 && (
+                            <div className="text-xs text-indigo-600 font-mono">
+                              +{Number(d.credited_tokens).toLocaleString()} tokens
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {effectiveRate ? (
+                            <span className="effective-rate-pill font-mono">
+                              Rp {Math.round(effectiveRate).toLocaleString('id-ID')} / $
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="text-xs font-semibold text-gray-800">
+                            {d.invoice_number || '-'}
+                          </div>
+                          <div className="text-xs text-gray-500">{d.payment_method || '-'}</div>
+                        </td>
+                        <td className="text-gray-600 text-xs max-w-xs truncate">
+                          {d.notes || '-'}
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => handleDeleteTopup(d.id)}
+                            className="delete-topup-btn"
+                            title="Hapus catatan deposit"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       {/* Section: Analisis per Fitur AI */}
       <div className="section-card">
         <div className="section-header">
@@ -429,7 +1009,8 @@ export default function AdminFinancialsPage() {
                   const avgTokens = f.calls > 0 ? Math.round(f.totalTokens / f.calls) : 0
                   const avgInput = f.calls > 0 ? Math.round(f.totalInputTokens / f.calls) : 0
                   const avgOutput = f.calls > 0 ? Math.round(f.totalOutputTokens / f.calls) : 0
-                  const avgCostIDR = f.calls > 0 ? ((f.totalCostUSD * USD_TO_IDR) / f.calls).toFixed(1) : '0'
+                  const avgCostIDR =
+                    f.calls > 0 ? ((f.totalCostUSD * USD_TO_IDR) / f.calls).toFixed(1) : '0'
 
                   return (
                     <tr key={f.slug} className="table-row">
@@ -441,7 +1022,9 @@ export default function AdminFinancialsPage() {
                       </td>
                       <td className="font-semibold">{f.calls.toLocaleString()} kali</td>
                       <td>
-                        <div className="font-semibold text-gray-900">{avgTokens.toLocaleString()} tokens</div>
+                        <div className="font-semibold text-gray-900">
+                          {avgTokens.toLocaleString()} tokens
+                        </div>
                         {f.calls > 0 && (
                           <div className="text-xs text-gray-500 font-mono mt-0.5">
                             Rentang: {f.minTokens.toLocaleString()} - {f.maxTokens.toLocaleString()}
@@ -452,9 +1035,7 @@ export default function AdminFinancialsPage() {
                       </td>
                       <td className="font-bold text-gray-900">Rp {avgCostIDR}</td>
                       <td>
-                        <span className="credit-tag">
-                          {f.creditCost} Credits
-                        </span>
+                        <span className="credit-tag">{f.creditCost} Credits</span>
                       </td>
                       <td>
                         <span className="badge-safe">
@@ -464,136 +1045,6 @@ export default function AdminFinancialsPage() {
                     </tr>
                   )
                 })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Section: Rekonsiliasi Deposit Saldo Provider AI (Topup vs Real Cost) */}
-      <div className="section-card reconciliation-card">
-        <div className="section-header flex-header">
-          <div>
-            <div className="flex items-center gap-2">
-              <Wallet size={18} className="text-emerald-600" />
-              <h3>Rekonsiliasi Deposit Provider AI (Top-Up vs Riil COGS)</h3>
-            </div>
-            <p>
-              Pantau saldo deposit yang Anda bayarkan ke billing provider (Google Cloud / Groq / Anthropic) dibandingkan dengan konsumsi riil AI.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="btn-add-topup"
-            onClick={() => {
-              setTopupForm({
-                provider: 'gemini',
-                amount_idr: '',
-                amount_usd: '',
-                notes: '',
-                topped_up_at: new Date().toISOString().slice(0, 16),
-              })
-              setShowTopupModal(true)
-            }}
-          >
-            <Plus size={15} /> Catat Top-Up Saldo
-          </button>
-        </div>
-
-        {/* Topup KPI Summary */}
-        <div className="topup-kpi-grid">
-          <div className="topup-kpi-item">
-            <span className="topup-kpi-label">Total Deposit Diisi</span>
-            <span className="topup-kpi-value text-emerald-700">
-              {formatIDR(topupReconciliation.totalTopupIDR)}
-            </span>
-            <span className="topup-kpi-sub">
-              ${topupReconciliation.totalTopupUSD.toFixed(2)} dari {topups.length} transaksi
-            </span>
-          </div>
-
-          <div className="topup-kpi-item">
-            <span className="topup-kpi-label">Total AI Terpakai (COGS)</span>
-            <span className="topup-kpi-value text-red-600">
-              {formatIDR(financials.totalCostIDR)}
-            </span>
-            <span className="topup-kpi-sub">
-              ${financials.totalCostUSD.toFixed(4)} ({financials.totalTokens.toLocaleString()} tokens)
-            </span>
-          </div>
-
-          <div className="topup-kpi-item">
-            <span className="topup-kpi-label">Estimasi Sisa Saldo Tersedia</span>
-            <span className={`topup-kpi-value ${topupReconciliation.remainingIDR >= 0 ? 'text-indigo-700' : 'text-amber-600'}`}>
-              {formatIDR(topupReconciliation.remainingIDR)}
-            </span>
-            <span className="topup-kpi-sub">
-              ${topupReconciliation.remainingUSD.toFixed(2)} ({topupReconciliation.percentRemaining}% tersisa)
-            </span>
-          </div>
-        </div>
-
-        {/* Warning strip jika saldo menipis */}
-        {topupReconciliation.totalTopupIDR > 0 && topupReconciliation.remainingIDR < topupReconciliation.totalTopupIDR * 0.2 && (
-          <div className="topup-alert-warning">
-            <AlertTriangle size={16} className="shrink-0 text-amber-600" />
-            <span>
-              <strong>Perhatian:</strong> Sisa saldo deposit provider Anda di bawah 20% ({topupReconciliation.percentRemaining}%). Disarankan untuk segera melakukan top-up billing di Google Cloud / Groq untuk mencegah gangguan layanan AI.
-            </span>
-          </div>
-        )}
-
-        {/* Tabel Riwayat Topup */}
-        <div className="table-responsive" style={{ marginTop: 16 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>TANGGAL TOP-UP</th>
-                <th>PROVIDER</th>
-                <th>NOMINAL (IDR)</th>
-                <th>NOMINAL (USD)</th>
-                <th>CATATAN / INVOICE</th>
-                <th>AKSI</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topups.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-6 text-gray-400">
-                    Belum ada riwayat top-up provider yang dicatat. Klik <strong>Catat Top-Up Saldo</strong> di atas untuk merekam deposit pertama Anda.
-                  </td>
-                </tr>
-              ) : (
-                topups.map((t) => (
-                  <tr key={t.id} className="table-row">
-                    <td className="font-semibold text-gray-800">
-                      {new Date(t.topped_up_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </td>
-                    <td>
-                      <span className={`provider-tag tag-${t.provider}`}>
-                        {t.provider.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="font-bold text-gray-900">{formatIDR(Number(t.amount_idr))}</td>
-                    <td className="font-mono text-gray-700">${Number(t.amount_usd).toFixed(2)}</td>
-                    <td className="text-gray-600 text-xs">{t.notes || '-'}</td>
-                    <td>
-                      <button
-                        onClick={() => handleDeleteTopup(t.id)}
-                        className="delete-topup-btn"
-                        title="Hapus catatan top-up"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
               )}
             </tbody>
           </table>
@@ -687,14 +1138,14 @@ export default function AdminFinancialsPage() {
         </div>
       </div>
 
-      {/* MODAL CATAT TOP-UP PROVIDER */}
+      {/* MODAL CATAT DEPOSIT MULTI-PROVIDER AI */}
       {showTopupModal && (
         <div className="topup-modal-overlay" onClick={() => setShowTopupModal(false)}>
           <div className="topup-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="topup-modal-header">
               <div className="flex items-center gap-2">
                 <Wallet size={18} className="text-emerald-600" />
-                <h3>Catat Deposit Top-Up Provider AI</h3>
+                <h3>Catat Deposit Provider AI</h3>
               </div>
               <button
                 type="button"
@@ -706,68 +1157,158 @@ export default function AdminFinancialsPage() {
             </div>
 
             <form onSubmit={handleSaveTopup} className="topup-form">
+              {/* Pilihan Provider Dinamis */}
               <div className="form-group">
-                <label>Provider AI / Cloud</label>
+                <label>Provider AI / Cloud *</label>
                 <select
-                  value={topupForm.provider}
+                  value={topupForm.provider_id}
                   onChange={(e) =>
                     setTopupForm((prev) => ({
                       ...prev,
-                      provider: e.target.value as any,
+                      provider_id: e.target.value,
                     }))
                   }
                   required
                 >
-                  <option value="gemini">Google Gemini (Google Cloud Vertex / AI Studio)</option>
-                  <option value="groq">Groq Cloud (Llama / Qwen)</option>
-                  <option value="claude">Anthropic Claude</option>
-                  <option value="other">Provider Lain</option>
+                  {providers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.billing_type === 'prepaid_usd' ? 'Prepaid USD' : p.billing_type === 'prepaid_tokens' ? 'Token Pack' : 'Postpaid'})
+                    </option>
+                  ))}
                 </select>
               </div>
 
+              {/* Dual Entry: Pembayaran IDR */}
               <div className="form-group">
-                <label>Nominal Top-Up (Rupiah - IDR)</label>
+                <div className="flex justify-between items-center">
+                  <label>Nominal Pembayaran Riil (IDR) *</label>
+                  <span className="text-xs text-gray-500">Uang keluar rekening / CC</span>
+                </div>
                 <input
                   type="number"
                   placeholder="Contoh: 500000"
-                  value={topupForm.amount_idr}
+                  value={topupForm.amount_paid_idr}
                   onChange={(e) => handleAmountIdrChange(e.target.value)}
                   min="1"
                   required
                 />
+                <div className="quick-amount-tags">
+                  {[100000, 250000, 500000, 1000000, 2000000].map((nominal) => (
+                    <button
+                      key={nominal}
+                      type="button"
+                      className="amount-tag-btn"
+                      onClick={() => handleAmountIdrChange(nominal.toString())}
+                    >
+                      +{nominal >= 1000000 ? `${nominal / 1000000}jt` : `${nominal / 1000}rb`}
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {/* Dual Entry: Saldo USD */}
               <div className="form-group">
-                <label>Estimasi Ekuivalen USD (Kurs Rp 16.000)</label>
+                <div className="flex justify-between items-center">
+                  <label>Saldo Masuk Provider (USD) *</label>
+                  <span className="text-xs text-gray-500">Kredit tertera di billing console</span>
+                </div>
                 <input
                   type="number"
-                  step="0.01"
+                  step="0.0001"
                   placeholder="Contoh: 31.25"
-                  value={topupForm.amount_usd}
+                  value={topupForm.credited_amount_usd}
                   onChange={(e) =>
-                    setTopupForm((prev) => ({ ...prev, amount_usd: e.target.value }))
+                    setTopupForm((prev) => ({ ...prev, credited_amount_usd: e.target.value }))
                   }
                   required
                 />
               </div>
 
+              {/* Live Effective Exchange Rate Banner */}
+              {modalLiveEffectiveRate && (
+                <div className="live-rate-banner">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-800 text-xs">
+                      Kurs Efektif Transaksi:
+                    </span>
+                    <span className="font-mono font-bold text-indigo-700 text-sm">
+                      Rp {modalLiveEffectiveRate.toLocaleString('id-ID')} / USD
+                    </span>
+                  </div>
+                  <span className="text-slate-500 text-xs block mt-1">
+                    {modalLiveEffectiveRate > USD_TO_IDR
+                      ? `Selisih +${(
+                          ((modalLiveEffectiveRate - USD_TO_IDR) / USD_TO_IDR) *
+                          100
+                        ).toFixed(1)}% vs kurs acuan (mencakup PPN 11% & selisih valas bank).`
+                      : 'Sesuai kurs acuan standar.'}
+                  </span>
+                </div>
+              )}
+
+              {/* Token Tambahan (Opsional) */}
               <div className="form-group">
-                <label>Waktu Transaksi Top-Up</label>
+                <label>Kuota Token Tambahan (Opsional - untuk token pack)</label>
+                <input
+                  type="number"
+                  placeholder="Contoh: 10000000 (10 juta token)"
+                  value={topupForm.credited_tokens}
+                  onChange={(e) =>
+                    setTopupForm((prev) => ({ ...prev, credited_tokens: e.target.value }))
+                  }
+                />
+              </div>
+
+              {/* Invoice & Payment Method */}
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label>No. Invoice / Referensi (Unik)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: INV-GCP-2026-09"
+                    value={topupForm.invoice_number}
+                    onChange={(e) =>
+                      setTopupForm((prev) => ({ ...prev, invoice_number: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Metode Pembayaran</label>
+                  <select
+                    value={topupForm.payment_method}
+                    onChange={(e) =>
+                      setTopupForm((prev) => ({ ...prev, payment_method: e.target.value }))
+                    }
+                  >
+                    <option value="Kartu Kredit Bisnis">Kartu Kredit Bisnis (Visa / Mastercard)</option>
+                    <option value="Transfer Bank / VA">Transfer Bank (BCA / Mandiri)</option>
+                    <option value="Jenius / Debit Visa">Jenius / Bank Jago (Debit Visa)</option>
+                    <option value="PayPal">PayPal</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tanggal Transaksi */}
+              <div className="form-group">
+                <label>Waktu Transaksi Deposit *</label>
                 <input
                   type="datetime-local"
-                  value={topupForm.topped_up_at}
+                  value={topupForm.deposited_at}
                   onChange={(e) =>
-                    setTopupForm((prev) => ({ ...prev, topped_up_at: e.target.value }))
+                    setTopupForm((prev) => ({ ...prev, deposited_at: e.target.value }))
                   }
                   required
                 />
               </div>
 
+              {/* Catatan */}
               <div className="form-group">
-                <label>Catatan / Nomor Invoice (Opsional)</label>
+                <label>Catatan Tambahan (Opsional)</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Billing GCP Mei 2024 / Ref CC-9821"
+                  placeholder="Contoh: Alokasi Qwen 2.5 72B / Promo kupon diskon"
                   value={topupForm.notes}
                   onChange={(e) =>
                     setTopupForm((prev) => ({ ...prev, notes: e.target.value }))
@@ -793,6 +1334,60 @@ export default function AdminFinancialsPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {feedback && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 10000,
+            maxWidth: 380,
+            padding: '12px 16px',
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            background: '#ffffff',
+            color: '#111827',
+            border: `1px solid ${feedback.type === 'success' ? '#86efac' : '#fca5a5'}`,
+            boxShadow:
+              '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+              color: feedback.type === 'success' ? '#059669' : '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+          </div>
+          <span style={{ flex: 1, fontSize: '0.8125rem', lineHeight: 1.4, fontWeight: 500 }}>
+            {feedback.message}
+          </span>
+          <button
+            onClick={() => setFeedback(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              padding: 4,
+            }}
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
 
@@ -996,35 +1591,437 @@ export default function AdminFinancialsPage() {
           border-radius: 999px;
         }
 
+        /* Multi Provider Styles */
+        .flex-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .btn-add-topup {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          background: #059669;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-add-topup:hover {
+          background: #047857;
+        }
+
+        .provider-macro-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+          margin-bottom: 20px;
+        }
+
+        .provider-macro-item {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .macro-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        .macro-value {
+          font-size: 20px;
+          font-weight: 800;
+          margin: 4px 0 2px 0;
+          letter-spacing: -0.02em;
+        }
+
+        .macro-sub {
+          font-size: 11px;
+          color: #94a3b8;
+        }
+
+        .provider-cards-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .provider-balance-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .provider-balance-card:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .provider-balance-card.border-critical {
+          border-color: #fca5a5;
+          background: #fffafa;
+        }
+
+        .provider-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .provider-title {
+          font-size: 15px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .provider-id-tag {
+          font-size: 11px;
+          color: #64748b;
+          background: #f1f5f9;
+          padding: 2px 6px;
+          border-radius: 4px;
+          display: inline-block;
+          margin-top: 2px;
+        }
+
+        .billing-badge {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 999px;
+          letter-spacing: 0.03em;
+        }
+
+        .billing-badge.prepaid_usd {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        .billing-badge.prepaid_tokens {
+          background: #fef3c7;
+          color: #b45309;
+        }
+
+        .billing-badge.postpaid_credit {
+          background: #f3e8ff;
+          color: #7e22ce;
+        }
+
+        .provider-balance-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          padding-bottom: 8px;
+          border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .balance-caption {
+          font-size: 11px;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+        }
+
+        .balance-amount {
+          font-size: 24px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+          margin-top: 2px;
+        }
+
+        .balance-subtext {
+          font-size: 11px;
+          color: #64748b;
+          display: block;
+          margin-top: 2px;
+        }
+
+        .runway-badge-wrap {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+        }
+
+        .runway-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 8px;
+          letter-spacing: 0.02em;
+        }
+
+        .runway-badge.status-healthy {
+          background: #ecfdf5;
+          color: #059669;
+          border: 1px solid #a7f3d0;
+        }
+
+        .runway-badge.status-warning {
+          background: #fffbeb;
+          color: #b45309;
+          border: 1px solid #fde68a;
+        }
+
+        .runway-badge.status-critical {
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+
+        .runway-badge.status-idle {
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #e2e8f0;
+        }
+
+        .consumption-progress-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .progress-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11px;
+          color: #64748b;
+        }
+
+        .progress-bar-bg {
+          width: 100%;
+          height: 6px;
+          background: #f1f5f9;
+          border-radius: 999px;
+          overflow: hidden;
+        }
+
+        .progress-bar-fill {
+          height: 100%;
+          border-radius: 999px;
+          transition: width 0.3s ease;
+        }
+
+        .provider-metrics-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 10px 12px;
+        }
+
+        .p-metric {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .p-metric-label {
+          font-size: 10px;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+        }
+
+        .p-metric-val {
+          font-size: 12px;
+          font-weight: 700;
+          color: #0f172a;
+          margin-top: 2px;
+        }
+
+        .provider-token-strip {
+          font-size: 11px;
+          color: #4f46e5;
+          background: #eef2ff;
+          border-radius: 6px;
+          padding: 6px 10px;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        /* Deposit History Container */
+        .deposit-history-container {
+          border-top: 1px solid #e2e8f0;
+          padding-top: 20px;
+          margin-top: 10px;
+        }
+
+        .deposit-history-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 14px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .deposit-history-header h4 {
+          font-size: 15px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 2px 0;
+        }
+
+        .deposit-history-header p {
+          font-size: 12px;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .deposit-filter-tabs {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .filter-tab {
+          padding: 5px 10px;
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .filter-tab.active {
+          background: #4f46e5;
+          color: #ffffff;
+          border-color: #4f46e5;
+        }
+
+        .effective-rate-pill {
+          font-size: 11px;
+          font-weight: 700;
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+          padding: 2px 8px;
+          border-radius: 6px;
+        }
+
+        .topup-alert-warning {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 8px;
+          padding: 10px 14px;
+          font-size: 12px;
+          color: #92400e;
+          margin-bottom: 18px;
+        }
+
+        .provider-tag {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 6px;
+          letter-spacing: 0.03em;
+        }
+
+        .provider-tag.tag-google {
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+        }
+
+        .provider-tag.tag-groq {
+          background: #fff7ed;
+          color: #c2410c;
+          border: 1px solid #fed7aa;
+        }
+
+        .provider-tag.tag-deepseek {
+          background: #ecfdf5;
+          color: #047857;
+          border: 1px solid #a7f3d0;
+        }
+
+        .provider-tag.tag-anthropic {
+          background: #faf5ff;
+          color: #7e22ce;
+          border: 1px solid #e9d5ff;
+        }
+
+        .provider-tag.tag-openai {
+          background: #f1f5f9;
+          color: #0f172a;
+          border: 1px solid #cbd5e1;
+        }
+
+        .provider-tag.tag-openrouter {
+          background: #fdf2f8;
+          color: #be185d;
+          border: 1px solid #fbcfe8;
+        }
+
+        .provider-tag.tag-tavily {
+          background: #f0fdf4;
+          color: #15803d;
+          border: 1px solid #bbf7d0;
+        }
+
+        .delete-topup-btn {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+        }
+
+        .delete-topup-btn:hover {
+          color: #ef4444;
+          background: #fee2e2;
+        }
+
+        .table-row {
+          transition: background-color 0.15s ease;
+        }
+
+        .table-row:hover {
+          background-color: #f8fafc;
+        }
+
         /* Simulator Card */
         .simulator-grid {
           display: grid;
           grid-template-columns: 1fr 1.2fr;
           gap: 24px;
           align-items: start;
-        }
-
-        @media (max-width: 768px) {
-          .admin-financials-page {
-            padding: 16px 12px;
-          }
-          .admin-fin-header {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-          }
-          .btn-refresh {
-            align-self: flex-start;
-          }
-          .kpi-grid {
-            grid-template-columns: 1fr;
-          }
-          .simulator-grid {
-            grid-template-columns: 1fr;
-          }
-          .section-card {
-            padding: 14px;
-          }
         }
 
         .sim-controls {
@@ -1080,145 +2077,6 @@ export default function AdminFinancialsPage() {
           color: #065f46;
         }
 
-        /* Topup Reconciliation Styles */
-        .flex-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .btn-add-topup {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          background: #059669;
-          color: #ffffff;
-          border: none;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-
-        .btn-add-topup:hover {
-          background: #047857;
-        }
-
-        .topup-kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 14px;
-          margin-bottom: 16px;
-        }
-
-        .topup-kpi-item {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 14px 16px;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .topup-kpi-label {
-          font-size: 11px;
-          font-weight: 700;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.03em;
-        }
-
-        .topup-kpi-value {
-          font-size: 20px;
-          font-weight: 800;
-          margin: 4px 0 2px 0;
-          letter-spacing: -0.02em;
-        }
-
-        .topup-kpi-sub {
-          font-size: 11px;
-          color: #94a3b8;
-        }
-
-        .topup-alert-warning {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: #fffbeb;
-          border: 1px solid #fde68a;
-          border-radius: 8px;
-          padding: 10px 14px;
-          font-size: 12px;
-          color: #92400e;
-          margin-bottom: 16px;
-        }
-
-        .provider-tag {
-          font-size: 10px;
-          font-weight: 700;
-          padding: 3px 8px;
-          border-radius: 6px;
-          letter-spacing: 0.03em;
-        }
-
-        .provider-tag.tag-gemini {
-          background: #eff6ff;
-          color: #1d4ed8;
-          border: 1px solid #bfdbfe;
-        }
-
-        .provider-tag.tag-groq {
-          background: #fff7ed;
-          color: #c2410c;
-          border: 1px solid #fed7aa;
-        }
-
-        .provider-tag.tag-claude {
-          background: #faf5ff;
-          color: #7e22ce;
-          border: 1px solid #e9d5ff;
-        }
-
-        .provider-tag.tag-other {
-          background: #f1f5f9;
-          color: #475569;
-          border: 1px solid #cbd5e1;
-        }
-
-        .delete-topup-btn {
-          background: none;
-          border: none;
-          color: #94a3b8;
-          cursor: pointer;
-          padding: 4px;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.15s;
-        }
-
-        .delete-topup-btn:hover {
-          color: #ef4444;
-          background: #fee2e2;
-        }
-
-        .table-row {
-          transition: background-color 0.15s ease;
-        }
-
-        .table-row:hover {
-          background-color: #f8fafc;
-        }
-
-        .reconciliation-card,
-        .simulator-card {
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        }
-
         /* Topup Modal */
         .topup-modal-overlay {
           position: fixed;
@@ -1235,7 +2093,7 @@ export default function AdminFinancialsPage() {
         .topup-modal-card {
           background: #ffffff;
           border-radius: 14px;
-          max-width: 460px;
+          max-width: 500px;
           width: 100%;
           max-height: 90vh;
           display: flex;
@@ -1310,6 +2168,43 @@ export default function AdminFinancialsPage() {
           border-color: #4f46e5;
         }
 
+        .form-row-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .quick-amount-tags {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+          margin-top: 4px;
+        }
+
+        .amount-tag-btn {
+          padding: 4px 8px;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .amount-tag-btn:hover {
+          background: #e2e8f0;
+          color: #1e293b;
+        }
+
+        .live-rate-banner {
+          background: #f8fafc;
+          border: 1px solid #c7d2fe;
+          border-radius: 8px;
+          padding: 10px 12px;
+        }
+
         .modal-actions {
           display: flex;
           justify-content: flex-end;
@@ -1342,6 +2237,35 @@ export default function AdminFinancialsPage() {
 
         .btn-submit:hover:not(:disabled) {
           background: #047857;
+        }
+
+        @media (max-width: 768px) {
+          .admin-financials-page {
+            padding: 16px 12px;
+          }
+          .admin-fin-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .btn-refresh {
+            align-self: flex-start;
+          }
+          .kpi-grid {
+            grid-template-columns: 1fr;
+          }
+          .provider-cards-grid {
+            grid-template-columns: 1fr;
+          }
+          .simulator-grid {
+            grid-template-columns: 1fr;
+          }
+          .section-card {
+            padding: 14px;
+          }
+          .form-row-2 {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>

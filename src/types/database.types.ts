@@ -122,6 +122,7 @@ export type Database = {
           model_config_id: string
           output_summary: string | null
           prompt_version_id: string
+          provider_id: string | null
           raw_output: Json
           status: string
           tokens_used: number | null
@@ -138,6 +139,7 @@ export type Database = {
           model_config_id: string
           output_summary?: string | null
           prompt_version_id: string
+          provider_id?: string | null
           raw_output?: Json
           status: string
           tokens_used?: number | null
@@ -154,6 +156,7 @@ export type Database = {
           model_config_id?: string
           output_summary?: string | null
           prompt_version_id?: string
+          provider_id?: string | null
           raw_output?: Json
           status?: string
           tokens_used?: number | null
@@ -782,6 +785,92 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_providers: {
+        Row: {
+          billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          created_at: string
+          currency: string
+          icon_slug: string | null
+          id: string
+          is_active: boolean
+          name: string
+          website_url: string | null
+        }
+        Insert: {
+          billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          created_at?: string
+          currency?: string
+          icon_slug?: string | null
+          id: string
+          is_active?: boolean
+          name: string
+          website_url?: string | null
+        }
+        Update: {
+          billing_type?: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          created_at?: string
+          currency?: string
+          icon_slug?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      provider_deposits: {
+        Row: {
+          amount_paid_idr: number
+          credited_amount_usd: number
+          credited_tokens: number
+          effective_rate_idr: number | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          payment_method: string | null
+          provider_id: string
+          deposited_at: string
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          amount_paid_idr: number
+          credited_amount_usd?: number
+          credited_tokens?: number
+          effective_rate_idr?: number | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          provider_id: string
+          deposited_at?: string
+          created_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          amount_paid_idr?: number
+          credited_amount_usd?: number
+          credited_tokens?: number
+          effective_rate_idr?: number | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          provider_id?: string
+          deposited_at?: string
+          created_at?: string
+          created_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_deposits_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -1455,6 +1544,22 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      provider_balances: {
+        Row: {
+          average_effective_rate_idr: number | null
+          billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          currency: string
+          provider_id: string
+          provider_name: string
+          remaining_balance: number | null
+          total_cost_usd: number
+          total_credited_tokens: number
+          total_credited_usd: number
+          total_paid_idr: number
+          total_tokens_used: number
+        }
+        Relationships: []
       }
     }
     Functions: {
