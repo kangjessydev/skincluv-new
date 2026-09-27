@@ -68,6 +68,13 @@ export default function AdminHandbookPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [showPromptPreview, setShowPromptPreview] = useState(false)
+  const [entryToDelete, setEntryToDelete] = useState<HandbookEntry | null>(null)
+
+  useEffect(() => {
+    if (!feedback) return
+    const timer = setTimeout(() => setFeedback(null), 4000)
+    return () => clearTimeout(timer)
+  }, [feedback])
 
   const loadEntries = useCallback(async () => {
     setIsLoading(true)
@@ -173,23 +180,22 @@ export default function AdminHandbookPage() {
     }
   }
 
-  const handleDeleteEntry = async (entry: HandbookEntry) => {
-    if (!window.confirm(`Hapus permanen entri "${entry.canonical_name}" dari buku panduan?`)) {
-      return
-    }
+  const confirmDelete = async () => {
+    if (!entryToDelete) return
     setIsLoading(true)
     try {
       const { error } = await supabase
         .from('skincluv_handbook')
         .delete()
-        .eq('id', entry.id)
+        .eq('id', entryToDelete.id)
 
       if (error) throw error
-      setEntries((prev) => prev.filter((e) => e.id !== entry.id))
+      setEntries((prev) => prev.filter((e) => e.id !== entryToDelete.id))
       setFeedback({
         type: 'success',
-        message: `Entri "${entry.canonical_name}" berhasil dihapus.`,
+        message: `Entri "${entryToDelete.canonical_name}" berhasil dihapus.`,
       })
+      setEntryToDelete(null)
     } catch (err: any) {
       console.error('[AdminHandbook] Delete error:', err)
       setFeedback({ type: 'error', message: err.message || 'Gagal menghapus entri.' })
@@ -255,21 +261,26 @@ export default function AdminHandbookPage() {
     }
   }
 
+  const CATEGORY_CONFIG: Record<
+    string,
+    { label: string; bg: string; text: string; border: string }
+  > = {
+    feature: { label: 'Fitur Inti', bg: '#e0f2fe', text: '#0284c7', border: '#bae6fd' },
+    billing: { label: 'Tagihan & Kredit', bg: '#fef3c7', text: '#d97706', border: '#fde68a' },
+    subscription: { label: 'Paket Langganan', bg: '#fef9c3', text: '#a16207', border: '#fef08a' },
+    gamification: { label: 'Gamifikasi & Misi', bg: '#f3e8ff', text: '#9333ea', border: '#e9d5ff' },
+    policy: { label: 'Kebijakan & Privasi', bg: '#e0e7ff', text: '#4338ca', border: '#c7d2fe' },
+    profile: { label: 'Profil Pengguna', bg: '#fce7f3', text: '#be185d', border: '#fbcfe8' },
+    architecture: { label: 'Arsitektur & Akun', bg: '#ede9fe', text: '#6d28d9', border: '#ddd6fe' },
+    clinical: { label: 'Klinis & Medis', bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' },
+  }
+
   const getCategoryBadge = (category: string) => {
-    switch (category) {
-      case 'feature':
-        return { bg: '#e0f2fe', text: '#0284c7', label: 'Fitur Inti' }
-      case 'subscription':
-        return { bg: '#fef3c7', text: '#d97706', label: 'Langganan' }
-      case 'gamification':
-        return { bg: '#f3e8ff', text: '#9333ea', label: 'Gamifikasi & Misi' }
-      case 'architecture':
-        return { bg: '#e0e7ff', text: '#4f46e5', label: 'Arsitektur' }
-      case 'clinical':
-        return { bg: '#dcfce7', text: '#16a34a', label: 'Klinis & Medis' }
-      default:
-        return { bg: '#f3f4f6', text: '#4b5563', label: category }
+    const config = CATEGORY_CONFIG[category]
+    if (config) {
+      return { bg: config.bg, text: config.text, border: config.border, label: config.label }
     }
+    return { bg: '#f3f4f6', text: '#4b5563', border: '#e5e7eb', label: category }
   }
 
   // Preview Prompt yang diinjeksi ke LLM (Skinsistant)
@@ -350,42 +361,6 @@ export default function AdminHandbookPage() {
           </button>
         </div>
       </div>
-
-      {/* Feedback Alert */}
-      {feedback && (
-        <div
-          style={{
-            padding: '10px 14px',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: 'var(--space-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: '0.875rem',
-            background:
-              feedback.type === 'success' ? 'var(--color-success-soft)' : 'var(--color-error-soft)',
-            color: feedback.type === 'success' ? 'var(--color-success)' : 'var(--color-error)',
-            border: `1px solid ${
-              feedback.type === 'success' ? '#bbf7d0' : '#fecaca'
-            }`,
-          }}
-        >
-          {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-          <span style={{ flex: 1 }}>{feedback.message}</span>
-          <button
-            onClick={() => setFeedback(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'inherit',
-              padding: 0,
-            }}
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
 
       {/* Prompt Simulator Drawer */}
       {showPromptPreview && (
@@ -644,11 +619,11 @@ export default function AdminHandbookPage() {
             style={{ height: 38, fontSize: '0.8125rem' }}
           >
             <option value="all">Semua Kategori</option>
-            <option value="feature">Fitur Inti</option>
-            <option value="subscription">Paket Langganan</option>
-            <option value="gamification">Gamifikasi &amp; Misi</option>
-            <option value="architecture">Arsitektur &amp; Akun</option>
-            <option value="clinical">Klinis &amp; Regulasi</option>
+            {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
+              <option key={key} value={key}>
+                {cfg.label}
+              </option>
+            ))}
           </select>
 
           <select
@@ -745,6 +720,7 @@ export default function AdminHandbookPage() {
                         borderRadius: 'var(--radius-full)',
                         background: badge.bg,
                         color: badge.text,
+                        border: `1px solid ${badge.border || '#e5e7eb'}`,
                       }}
                     >
                       {badge.label}
@@ -756,11 +732,22 @@ export default function AdminHandbookPage() {
                           fontWeight: 700,
                           padding: '2px 8px',
                           borderRadius: 'var(--radius-full)',
-                          background: 'var(--color-success-soft)',
-                          color: 'var(--color-success)',
-                          border: '1px solid #bbf7d0',
+                          background: '#ecfdf5',
+                          color: '#047857',
+                          border: '1px solid #a7f3d0',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
                         }}
                       >
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: '#10b981',
+                          }}
+                        />
                         Aktif di AI
                       </span>
                     ) : (
@@ -770,10 +757,22 @@ export default function AdminHandbookPage() {
                           fontWeight: 700,
                           padding: '2px 8px',
                           borderRadius: 'var(--radius-full)',
-                          background: 'var(--color-surface-container-high)',
-                          color: 'var(--color-text-muted)',
+                          background: '#f8fafc',
+                          color: '#64748b',
+                          border: '1px solid #e2e8f0',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
                         }}
                       >
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: '#94a3b8',
+                          }}
+                        />
                         Draft (Nonaktif)
                       </span>
                     )}
@@ -782,10 +781,23 @@ export default function AdminHandbookPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <button
                       type="button"
-                      className="btn btn-secondary btn-sm"
                       onClick={() => handleTogglePublish(entry)}
-                      title={entry.is_published ? 'Nonaktifkan entri ini' : 'Aktifkan entri ini'}
-                      style={{ height: 32, padding: '0 10px', fontSize: '0.75rem' }}
+                      title={entry.is_published ? 'Nonaktifkan entri ini dari injeksi AI' : 'Aktifkan entri ini ke injeksi AI'}
+                      style={{
+                        height: 32,
+                        padding: '0 10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        transition: 'all 0.15s ease',
+                        background: entry.is_published ? '#fff7ed' : '#ecfdf5',
+                        color: entry.is_published ? '#c2410c' : '#047857',
+                        border: `1px solid ${entry.is_published ? '#fed7aa' : '#a7f3d0'}`,
+                      }}
                     >
                       {entry.is_published ? (
                         <>
@@ -801,19 +813,46 @@ export default function AdminHandbookPage() {
                     </button>
                     <button
                       type="button"
-                      className="btn btn-secondary btn-sm"
                       onClick={() => startEdit(entry)}
-                      style={{ height: 32, padding: '0 10px', fontSize: '0.75rem' }}
+                      title="Edit rincian entri"
+                      style={{
+                        height: 32,
+                        padding: '0 10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        transition: 'all 0.15s ease',
+                        background: '#ffffff',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                      }}
                     >
                       <Edit2 size={14} />
                       <span>Edit</span>
                     </button>
                     <button
                       type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => handleDeleteEntry(entry)}
+                      onClick={() => setEntryToDelete(entry)}
                       title="Hapus entri ini"
-                      style={{ height: 32, padding: '0 8px', fontSize: '0.75rem', color: 'var(--color-error, #dc2626)' }}
+                      style={{
+                        height: 32,
+                        padding: '0 8px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s ease',
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        border: '1px solid #fecaca',
+                      }}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -1001,11 +1040,11 @@ export default function AdminHandbookPage() {
                     className="input-field"
                     style={{ width: '100%', height: 38 }}
                   >
-                    <option value="feature">Fitur Inti (feature)</option>
-                    <option value="subscription">Paket Langganan (subscription)</option>
-                    <option value="gamification">Gamifikasi &amp; Misi (gamification)</option>
-                    <option value="architecture">Arsitektur &amp; Akun (architecture)</option>
-                    <option value="clinical">Klinis &amp; Regulasi (clinical)</option>
+                    {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
+                      <option key={key} value={key}>
+                        {cfg.label} ({key})
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1139,6 +1178,168 @@ export default function AdminHandbookPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {/* Modal Konfirmasi Hapus In-App (Tanpa window.confirm) */}
+      {entryToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.55)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 16,
+          }}
+          onClick={() => setEntryToDelete(null)}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 16,
+              maxWidth: 440,
+              width: '100%',
+              padding: '24px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#111827' }}>
+                  Hapus Entri Panduan
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#6b7280' }}>
+                  Konfirmasi penghapusan data
+                </p>
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.5 }}>
+              Apakah Anda yakin ingin menghapus permanen entri{' '}
+              <strong>&quot;{entryToDelete.canonical_name}&quot;</strong> (<code>{entryToDelete.slug}</code>)?
+              Entri ini tidak akan diinjeksi lagi ke Skinsistant AI.
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 10,
+                marginTop: 8,
+                paddingTop: 14,
+                borderTop: '1px solid #f3f4f6',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setEntryToDelete(null)}
+                disabled={isLoading}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isLoading}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <Trash2 size={15} />
+                <span>{isLoading ? 'Menghapus...' : 'Hapus Permanen'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification (Tidak merusak layout halaman) */}
+      {feedback && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 10000,
+            maxWidth: 380,
+            padding: '12px 16px',
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            background: '#ffffff',
+            color: '#111827',
+            border: `1px solid ${feedback.type === 'success' ? '#86efac' : '#fca5a5'}`,
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+              color: feedback.type === 'success' ? '#059669' : '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+          </div>
+          <span style={{ flex: 1, fontSize: '0.8125rem', lineHeight: 1.4, fontWeight: 500 }}>
+            {feedback.message}
+          </span>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#9ca3af',
+              padding: 4,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
     </div>

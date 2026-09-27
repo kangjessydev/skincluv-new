@@ -197,7 +197,7 @@ export default function AdminLayout() {
           <ArrowLeft size={15} /> Kembali ke App
         </Link>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflowY: 'auto' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 28 }}>
           <NavLink
             to="/admin"
             end
