@@ -139,6 +139,25 @@ export default function ChatbotPage() {
   const [activeFaceModalScan, setActiveFaceModalScan] = useState<FaceScan | null>(null)
   const [activeIngredientModalScan, setActiveIngredientModalScan] = useState<IngredientScan | null>(null)
 
+  // Auto-resize textarea ref & height management
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`
+    }
+  }, [inputText])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      if (inputText.trim() && !isSending) {
+        handleSendMessage()
+      }
+    }
+  }
+
   useEffect(() => {
     if (profile?.chatbot_memory_consent !== undefined) {
       setMemoryConsent(profile.chatbot_memory_consent ?? null)
@@ -534,6 +553,9 @@ export default function ChatbotPage() {
 
     setMessages((prev) => [...prev, tempUserMsg])
     setInputText('')
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+    }
     setIsSending(true)
 
     // Save user message to Supabase & update session title / last_activity
@@ -971,13 +993,48 @@ export default function ChatbotPage() {
               )}
 
               <div className="bubble-wrapper">
-                <div className="chat-bubble">
-                  {msg.sender === 'bot' ? (
-                    <FormattedMarkdown content={cleanText} userName={userName} />
-                  ) : (
-                    <p>{msg.text}</p>
-                  )}
-                </div>
+                {msg.id.startsWith('insufficient-') ? (
+                  <div className="in-chat-insufficient-card">
+                    <div className="insufficient-card-header">
+                      <div className="insufficient-icon-badge">
+                        <Coins size={16} />
+                      </div>
+                      <div>
+                        <h4>Credits Tidak Mencukupi</h4>
+                        <span className="insufficient-cost-tag">Butuh {chatbotCost} Credit</span>
+                      </div>
+                    </div>
+                    <p className="insufficient-card-desc">
+                      Saldo kamu saat ini tidak mencukupi untuk konsultasi ini. Selesaikan misi harian untuk mendapatkan Credits gratis atau tingkatkan ke paket bulanan.
+                    </p>
+                    <div className="insufficient-card-actions">
+                      <button
+                        type="button"
+                        className="insufficient-act-btn mission-btn"
+                        onClick={() => navigate('/missions')}
+                      >
+                        <Trophy size={14} />
+                        <span>Misi Harian (+Gratis)</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="insufficient-act-btn upgrade-btn"
+                        onClick={() => navigate('/pricing')}
+                      >
+                        <Crown size={14} />
+                        <span>Tingkatkan Akun</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="chat-bubble">
+                    {msg.sender === 'bot' ? (
+                      <FormattedMarkdown content={cleanText} userName={userName} />
+                    ) : (
+                      <p>{msg.text}</p>
+                    )}
+                  </div>
+                )}
 
                 {/* RFC 012: In-Chat Visual Cards (Mini Scan Result Hub) */}
                 {msg.sender === 'bot' && msg.metadata?.attachments && msg.metadata.attachments.length > 0 && (
@@ -1131,16 +1188,19 @@ export default function ChatbotPage() {
             <Paperclip size={18} />
           </button>
 
-          <input
-            type="text"
+          <textarea
+            ref={textareaRef}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
             placeholder={
               isFreeTierOutOfCredits
                 ? 'Credits kamu 0. Kerjakan misi atau upgrade akun untuk chat...'
-                : 'Tanyakan sesuatu pada Skinsistant AI...'
+                : 'Tanyakan sesuatu pada Skinsistant AI... (Shift + Enter untuk baris baru)'
             }
             disabled={isSending}
+            aria-label="Ketik pesan untuk Skinsistant"
           />
 
           <button
@@ -1617,30 +1677,135 @@ export default function ChatbotPage() {
 
         .input-wrap {
           display: flex;
-          align-items: center;
+          align-items: flex-end;
           gap: 8px;
           background: #f8fafc;
           border: 1px solid #cbd5e1;
-          border-radius: 24px;
-          padding: 4px 6px 4px 14px;
-          transition: border-color 0.2s ease;
+          border-radius: 20px;
+          padding: 6px 8px 6px 14px;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .input-wrap:focus-within {
           border-color: #0f6784;
+          box-shadow: 0 0 0 2px rgba(15, 103, 132, 0.12);
         }
 
-        .input-wrap input {
+        .input-wrap textarea {
           flex: 1;
           border: none;
           background: transparent;
           font-size: 0.875rem;
+          font-family: inherit;
           outline: none;
           color: #0f172a;
+          resize: none;
+          max-height: 140px;
+          min-height: 24px;
+          line-height: 1.5;
+          padding: 4px 0;
+          overflow-y: auto;
         }
 
-        .input-wrap input::placeholder {
+        .input-wrap textarea::placeholder {
           color: #94a3b8;
+        }
+
+        /* In-Chat Insufficient Credits Paywall Card */
+        .in-chat-insufficient-card {
+          background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+          border: 1px solid #fde68a;
+          border-radius: 16px;
+          padding: 16px;
+          max-width: 440px;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);
+          animation: fadeIn 0.2s ease;
+        }
+
+        .insufficient-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 8px;
+        }
+
+        .insufficient-icon-badge {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #f59e0b;
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .insufficient-card-header h4 {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #92400e;
+          margin: 0;
+        }
+
+        .insufficient-cost-tag {
+          font-size: 0.72rem;
+          font-weight: 600;
+          color: #b45309;
+          background: rgba(245, 158, 11, 0.15);
+          padding: 2px 8px;
+          border-radius: 10px;
+          display: inline-block;
+          margin-top: 2px;
+        }
+
+        .insufficient-card-desc {
+          font-size: 0.825rem;
+          color: #78350f;
+          line-height: 1.45;
+          margin: 0 0 14px 0;
+        }
+
+        .insufficient-card-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .insufficient-act-btn {
+          flex: 1;
+          min-width: 140px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 8px 12px;
+          border-radius: 10px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          border: none;
+        }
+
+        .insufficient-act-btn.mission-btn {
+          background: #ffffff;
+          color: #0f6784;
+          border: 1px solid #cbd5e1;
+        }
+
+        .insufficient-act-btn.mission-btn:hover {
+          background: #f1f5f9;
+          border-color: #0f6784;
+        }
+
+        .insufficient-act-btn.upgrade-btn {
+          background: #0f6784;
+          color: #ffffff;
+        }
+
+        .insufficient-act-btn.upgrade-btn:hover {
+          background: #0d546c;
         }
 
         .attach-btn {
