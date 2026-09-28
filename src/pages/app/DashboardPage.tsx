@@ -140,7 +140,7 @@ export default function DashboardPage() {
             <p className="hero-description">
               {skinAssessment?.analysis_notes
                 ? skinAssessment.analysis_notes
-                : `Diagnosis dermatologis AI menunjukkan tipe kulit ${skinAssessment?.skin_type || 'normal'}. Lanjutkan perawatan rutin harianmu.`}
+                : `Analisis kulit berbasis AI menunjukkan tipe kulit ${skinAssessment?.skin_type || 'normal'}. Lanjutkan perawatan rutin harianmu.`}
             </p>
 
             <div className="hero-footer-row">
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                 <Calendar size={12} /> Terakhir diperiksa: {formatRelativeDate(skinAssessment?.latest_scanned_at)}
               </span>
               <button onClick={() => navigate('/scan-history')} className="hero-action-link">
-                Lihat Detail Diagnosis <ArrowRight size={13} />
+                Lihat Detail Analisis <ArrowRight size={13} />
               </button>
             </div>
           </>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
             </div>
             <h2 className="hero-onboarding-title">Kenali Kondisi & Kebutuhan Kulit Wajahmu</h2>
             <p className="hero-onboarding-sub">
-              Dapatkan diagnosis 16 parameter klinis, rekomendasi bahan aktif terverifikasi dermatologi, dan skor kesehatan kulit dalam 10 detik.
+              Pemetaan 16 parameter kondisi kulit dari satu foto, rekomendasi bahan aktif terverifikasi dermatologi, dan skor kesehatan kulit dalam 10 detik.
             </p>
             <div className="hero-onboarding-actions">
               <button onClick={() => navigate('/face-scan')} className="btn-hero-primary">
@@ -191,7 +191,7 @@ export default function DashboardPage() {
           </div>
           <div className="action-meta">
             <h3 className="action-title">Face Scan AI</h3>
-            <p className="action-sub">Analisis 16 parameter klinis wajah</p>
+            <p className="action-sub">Pemetaan 16 parameter kondisi wajah</p>
           </div>
         </div>
 

@@ -69,7 +69,7 @@ export default function FaceScanDetailModal({ scan, onClose, onConsult }: FaceSc
                 minute: '2-digit',
               })}
             </div>
-            <h3 className="modal-title">{scan.skin_status_title || 'Laporan Diagnosis Kulit'}</h3>
+            <h3 className="modal-title">{scan.skin_status_title || 'Laporan Analisis Kulit'}</h3>
           </div>
           <button className="btn-close-modal" onClick={onClose} aria-label="Tutup">
             <X size={20} />
@@ -135,7 +135,7 @@ export default function FaceScanDetailModal({ scan, onClose, onConsult }: FaceSc
 
                     {area.finding && (
                       <div className="area-finding-box">
-                        <span className="af-label">Diagnosis Klinis:</span>
+                        <span className="af-label">Hasil Analisis:</span>
                         <p className="af-text">{area.finding}</p>
                       </div>
                     )}

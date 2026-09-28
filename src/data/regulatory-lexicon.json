@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Skincluv Regulatory Lexicon",
+  "version": "1.0.0",
+  "regulatory_framework": [
+    "UU Kesehatan No. 17 Tahun 2023",
+    "Permenkes No. 20 Tahun 2019 (Telemedicine Antar Faskes)",
+    "Permenkes No. 62 Tahun 2017 (Izin Edar Alat Kesehatan / SaMD)",
+    "PerBPOM No. 3 Tahun 2022 (Persyaratan Teknis Klaim Kosmetika)"
+  ],
+  "prohibited_user_facing_medical_registers": [
+    {
+      "term": "Diagnosis",
+      "severity": "CRITICAL",
+      "reason": "Memicu klasifikasi lintas-jalur ke alat kesehatan diagnostik (Permenkes 62/2017).",
+      "recommended_replacement": "Analisis / Pemetaan / Skin Assessment"
+    },
+    {
+      "term": "Dermatologis",
+      "severity": "HIGH",
+      "reason": "Mengindikasikan penilaian profesi dokter spesialis (Sp.DVE/Sp.KK).",
+      "recommended_replacement": "Berbasis AI / Analisis Kulit"
+    },
+    {
+      "term": "Klinis",
+      "severity": "HIGH",
+      "reason": "Mengindikasikan fasilitas pelayanan kesehatan atau uji klinis medis.",
+      "recommended_replacement": "Kondisi Kulit / Parameter Observasi"
+    },
+    {
+      "term": "Terapi",
+      "severity": "CRITICAL",
+      "reason": "Klaim tindakan pengobatan medis yang dilarang untuk kosmetik.",
+      "recommended_replacement": "Perawatan Rutin / Skincare Routine"
+    },
+    {
+      "term": "Resep",
+      "severity": "CRITICAL",
+      "reason": "Kewenangan eksklusif dokter faskes berizin.",
+      "recommended_replacement": "Rekomendasi Bahan / Panduan Produk"
+    },
+    {
+      "term": "Mengobati",
+      "severity": "CRITICAL",
+      "reason": "Klaim penyembuhan penyakit yang dilarang pada kosmetik.",
+      "recommended_replacement": "Membantu Menenangkan / Merawat"
+    },
+    {
+      "term": "Menyembuhkan",
+      "severity": "CRITICAL",
+      "reason": "Klaim kuratif mutlak dilarang oleh PerBPOM No. 3/2022.",
+      "recommended_replacement": "Mendukung Perbaikan Tekstur Kulit"
+    }
+  ],
+  "prohibited_marketing_superlatives": [
+    "Ampuh",
+    "Paling",
+    "Ter-",
+    "100%",
+    "Bebas Efek Samping",
+    "Pasti Aman",
+    "Terdaftar BPOM"
+  ],
+  "canonical_user_facing_terms": {
+    "currency": "Credits / AI Credits",
+    "virtual_assistant": "Skinsistant AI",
+    "face_analysis": "Analisis Kulit AI",
+    "ingredient_analysis": "Analisis Komposisi Produk",
+    "parameters": "Pemetaan 16 Parameter Kondisi Kulit",
+    "access_pass": "Paket Akses",
+    "billing": "Riwayat Tagihan"
+  }
+}

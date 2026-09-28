@@ -79,7 +79,7 @@ export default function ScanHistoryPage() {
             id: profileScan.id,
             user_id: profileScan.user_id,
             overall_score: raw.overall_score || 85,
-            skin_status_title: raw.skin_status_title || 'Diagnosis Kondisi Kulit Terpantau',
+            skin_status_title: raw.skin_status_title || 'Analisis Kondisi Kulit Terpantau',
             skin_type: profileScan.skin_type || raw.skin_type || 'normal',
             skin_concerns: profileScan.skin_concerns || raw.skin_concerns || [],
             analysis_notes: profileScan.analysis_notes || raw.analysis_notes || '',
@@ -313,7 +313,7 @@ export default function ScanHistoryPage() {
                         <div className="scan-date-badge">
                           <Calendar size={13} /> {formattedDate} • {formattedTime} {idx === 0 && <span className="latest-pill">Terbaru</span>}
                         </div>
-                        <h4 className="scan-title">{scan.skin_status_title || 'Diagnosis Kondisi Kulit'}</h4>
+                        <h4 className="scan-title">{scan.skin_status_title || 'Analisis Kondisi Kulit'}</h4>
                         <p className="scan-desc-preview">{scan.analysis_notes || 'Hasil pemetaan kondisi kulit menyeluruh.'}</p>
 
                         <div className="scan-tags-row">

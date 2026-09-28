@@ -1059,7 +1059,7 @@ export default function FaceScanPage() {
                 </div>
 
                 <div className="area-finding-box">
-                  <span className="af-label">Diagnosis Klinis:</span>
+                  <span className="af-label">Hasil Analisis:</span>
                   <p className="af-text">{area.finding}</p>
                 </div>
 
