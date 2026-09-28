@@ -43,7 +43,6 @@ interface AiProvider {
   name: string
   billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
   currency: string
-  icon_slug?: string | null
   is_active: boolean
   website_url?: string | null
 }
@@ -166,7 +165,7 @@ export default function AdminFinancialsPage() {
           .order('slug'),
         supabase
           .from('ai_providers')
-          .select('id, name, billing_type, currency, icon_slug, is_active, website_url')
+          .select('id, name, billing_type, currency, is_active, website_url')
           .order('name'),
         supabase
           .from('provider_deposits')

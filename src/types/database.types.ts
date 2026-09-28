@@ -794,7 +794,6 @@ export type Database = {
           billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
           created_at: string
           currency: string
-          icon_slug: string | null
           id: string
           is_active: boolean
           name: string
@@ -804,7 +803,6 @@ export type Database = {
           billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
           created_at?: string
           currency?: string
-          icon_slug?: string | null
           id: string
           is_active?: boolean
           name: string
@@ -814,7 +812,6 @@ export type Database = {
           billing_type?: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
           created_at?: string
           currency?: string
-          icon_slug?: string | null
           id?: string
           is_active?: boolean
           name?: string
