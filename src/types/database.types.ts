@@ -792,6 +792,7 @@ export type Database = {
       ai_providers: {
         Row: {
           billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          category: 'llm' | 'search' | 'email' | 'infra' | 'marketing' | 'other'
           created_at: string
           currency: string
           id: string
@@ -801,6 +802,7 @@ export type Database = {
         }
         Insert: {
           billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          category?: 'llm' | 'search' | 'email' | 'infra' | 'marketing' | 'other'
           created_at?: string
           currency?: string
           id: string
@@ -810,6 +812,7 @@ export type Database = {
         }
         Update: {
           billing_type?: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
+          category?: 'llm' | 'search' | 'email' | 'infra' | 'marketing' | 'other'
           created_at?: string
           currency?: string
           id?: string

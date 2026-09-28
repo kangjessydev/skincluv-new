@@ -18,6 +18,8 @@ import {
   Layers,
   Clock,
   ArrowRight,
+  Pencil,
+  Tag,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -41,6 +43,7 @@ interface AiLogRecord {
 interface AiProvider {
   id: string
   name: string
+  category: 'llm' | 'search' | 'email' | 'infra' | 'marketing' | 'other'
   billing_type: 'postpaid_credit' | 'prepaid_usd' | 'prepaid_tokens'
   currency: string
   is_active: boolean
@@ -62,6 +65,7 @@ interface ProviderDepositRecord {
   ai_providers?: {
     name: string
     billing_type: string
+    category: string
   } | null
 }
 
@@ -110,8 +114,9 @@ export default function AdminFinancialsPage() {
   const [depositFilter, setDepositFilter] = useState<string>('all')
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
-  // Modal & Form State untuk Deposit Provider Multi-Provider
+  // Modal & Form State untuk Deposit Provider (Tambah & Edit)
   const [showTopupModal, setShowTopupModal] = useState(false)
+  const [editingDepositId, setEditingDepositId] = useState<string | null>(null)
   const [isSavingTopup, setIsSavingTopup] = useState(false)
   const [topupForm, setTopupForm] = useState({
     provider_id: 'google',
@@ -122,6 +127,17 @@ export default function AdminFinancialsPage() {
     payment_method: 'Kartu Kredit Bisnis',
     deposited_at: new Date().toISOString().slice(0, 16),
     notes: '',
+  })
+
+  // Modal & Form State untuk Daftarkan Vendor Baru (Accounting / Non-Runtime)
+  const [showVendorModal, setShowVendorModal] = useState(false)
+  const [isSavingVendor, setIsSavingVendor] = useState(false)
+  const [vendorForm, setVendorForm] = useState({
+    id: '',
+    name: '',
+    category: 'marketing' as 'llm' | 'search' | 'email' | 'infra' | 'marketing' | 'other',
+    billing_type: 'prepaid_usd' as 'prepaid_usd' | 'prepaid_tokens' | 'postpaid_credit',
+    website_url: '',
   })
 
   // Auto-dismiss floating feedback toast
@@ -165,7 +181,7 @@ export default function AdminFinancialsPage() {
           .order('slug'),
         supabase
           .from('ai_providers')
-          .select('id, name, billing_type, currency, is_active, website_url')
+          .select('id, name, billing_type, category, currency, is_active, website_url')
           .order('name'),
         supabase
           .from('provider_deposits')
@@ -183,7 +199,8 @@ export default function AdminFinancialsPage() {
             created_at,
             ai_providers (
               name,
-              billing_type
+              billing_type,
+              category
             )
           `)
           .order('deposited_at', { ascending: false }),
@@ -297,7 +314,7 @@ export default function AdminFinancialsPage() {
     }))
   }, [features, logs])
 
-  // Engine Analisis Multi-Provider & Runway AI (Fase 4 RFC 014)
+  // Engine Analisis Multi-Provider & Runway AI
   const providerAnalytics = useMemo(() => {
     const now = Date.now()
     const sevenDaysAgo = now - 7 * 86400000
@@ -308,7 +325,6 @@ export default function AdminFinancialsPage() {
     let totalUsedUSD = 0
     let totalRemainingUSD = 0
 
-    // Evaluasi setiap provider yang terdaftar
     const cards = providers.map((provider) => {
       const bal = balances.find((b) => b.provider_id === provider.id)
       const paidIdr = bal ? Number(bal.total_paid_idr) : 0
@@ -330,22 +346,18 @@ export default function AdminFinancialsPage() {
       totalUsedUSD += usedUsd
       totalRemainingUSD += remainingBalance
 
-      // Saring logs khusus provider ini
       const providerLogs = logs.filter((l) => l.provider_id === provider.id)
       const totalCalls = providerLogs.length
 
-      // Hitung burn rate 7 hari terakhir
       const logs7d = providerLogs.filter((l) => new Date(l.created_at).getTime() >= sevenDaysAgo)
       const burn7dUsd = logs7d.reduce((sum, l) => sum + (l.cost_usd || 0), 0)
       const burn7dTokens = logs7d.reduce((sum, l) => sum + (l.tokens_used || 0), 0)
       const dailyBurnUsd = burn7dUsd / 7
       const dailyBurnTokens = burn7dTokens / 7
 
-      // Hitung burn rate 30 hari terakhir
       const logs30d = providerLogs.filter((l) => new Date(l.created_at).getTime() >= thirtyDaysAgo)
       const burn30dUsd = logs30d.reduce((sum, l) => sum + (l.cost_usd || 0), 0)
 
-      // Penentuan status Runway
       let runwayDays: number | null = null
       let runwayStatus: 'healthy' | 'warning' | 'critical' | 'exhausted' | 'idle' = 'idle'
       let runwayLabel = 'Belum Ada Pemakaian 7 Hari'
@@ -444,6 +456,11 @@ export default function AdminFinancialsPage() {
     return null
   }, [topupForm.amount_paid_idr, topupForm.credited_amount_usd])
 
+  // Selected provider helper
+  const selectedProvider = useMemo(() => {
+    return providers.find((p) => p.id === topupForm.provider_id)
+  }, [providers, topupForm.provider_id])
+
   // Handler auto-sugesti USD saat input IDR
   const handleAmountIdrChange = (val: string) => {
     const idr = parseFloat(val) || 0
@@ -460,7 +477,39 @@ export default function AdminFinancialsPage() {
     }))
   }
 
-  // Handler Simpan Deposit
+  // Buka Modal Tambah Baru
+  const handleOpenCreateDeposit = () => {
+    setEditingDepositId(null)
+    setTopupForm({
+      provider_id: providers[0]?.id || 'google',
+      amount_paid_idr: '',
+      credited_amount_usd: '',
+      credited_tokens: '',
+      invoice_number: '',
+      payment_method: 'Kartu Kredit Bisnis',
+      deposited_at: new Date().toISOString().slice(0, 16),
+      notes: '',
+    })
+    setShowTopupModal(true)
+  }
+
+  // Buka Modal Edit Transaksi
+  const handleOpenEditDeposit = (deposit: ProviderDepositRecord) => {
+    setEditingDepositId(deposit.id)
+    setTopupForm({
+      provider_id: deposit.provider_id,
+      amount_paid_idr: deposit.amount_paid_idr ? deposit.amount_paid_idr.toString() : '',
+      credited_amount_usd: deposit.credited_amount_usd ? deposit.credited_amount_usd.toString() : '',
+      credited_tokens: deposit.credited_tokens ? deposit.credited_tokens.toString() : '',
+      invoice_number: deposit.invoice_number || '',
+      payment_method: deposit.payment_method || 'Kartu Kredit Bisnis',
+      deposited_at: new Date(deposit.deposited_at).toISOString().slice(0, 16),
+      notes: deposit.notes || '',
+    })
+    setShowTopupModal(true)
+  }
+
+  // Handler Simpan Deposit (Insert atau Update)
   const handleSaveTopup = async (e: React.FormEvent) => {
     e.preventDefault()
     const idr = parseFloat(topupForm.amount_paid_idr)
@@ -482,28 +531,56 @@ export default function AdminFinancialsPage() {
 
     setIsSavingTopup(true)
     try {
-      const { error } = await supabase.from('provider_deposits').insert({
-        provider_id: topupForm.provider_id,
-        amount_paid_idr: idr,
-        credited_amount_usd: usd,
-        credited_tokens: tokens,
-        invoice_number: topupForm.invoice_number.trim() || null,
-        payment_method: topupForm.payment_method.trim() || null,
-        notes: topupForm.notes.trim() || null,
-        deposited_at: new Date(topupForm.deposited_at).toISOString(),
-      })
+      if (editingDepositId) {
+        const { error } = await supabase
+          .from('provider_deposits')
+          .update({
+            provider_id: topupForm.provider_id,
+            amount_paid_idr: idr,
+            credited_amount_usd: usd,
+            credited_tokens: tokens,
+            invoice_number: topupForm.invoice_number.trim() || null,
+            payment_method: topupForm.payment_method.trim() || null,
+            notes: topupForm.notes.trim() || null,
+            deposited_at: new Date(topupForm.deposited_at).toISOString(),
+          })
+          .eq('id', editingDepositId)
 
-      if (error) {
-        if (error.code === '23505' && error.message?.includes('invoice_number')) {
-          throw new Error(
-            `Nomor invoice "${topupForm.invoice_number}" sudah pernah dicatat sebelumnya. Gunakan nomor invoice yang unik.`
-          )
+        if (error) {
+          if (error.code === '23505' && error.message?.includes('invoice_number')) {
+            throw new Error(
+              `Nomor invoice "${topupForm.invoice_number}" sudah pernah dicatat sebelumnya. Gunakan nomor invoice yang unik.`
+            )
+          }
+          throw error
         }
-        throw error
+
+        setFeedback({ type: 'success', message: 'Catatan deposit berhasil diperbarui' })
+      } else {
+        const { error } = await supabase.from('provider_deposits').insert({
+          provider_id: topupForm.provider_id,
+          amount_paid_idr: idr,
+          credited_amount_usd: usd,
+          credited_tokens: tokens,
+          invoice_number: topupForm.invoice_number.trim() || null,
+          payment_method: topupForm.payment_method.trim() || null,
+          notes: topupForm.notes.trim() || null,
+          deposited_at: new Date(topupForm.deposited_at).toISOString(),
+        })
+
+        if (error) {
+          if (error.code === '23505' && error.message?.includes('invoice_number')) {
+            throw new Error(
+              `Nomor invoice "${topupForm.invoice_number}" sudah pernah dicatat sebelumnya. Gunakan nomor invoice yang unik.`
+            )
+          }
+          throw error
+        }
+
+        setFeedback({ type: 'success', message: 'Deposit provider berhasil disimpan ke pembukuan' })
       }
 
       setShowTopupModal(false)
-      setFeedback({ type: 'success', message: 'Deposit provider berhasil disimpan ke pembukuan' })
       loadFinancialData()
     } catch (err: any) {
       setFeedback({
@@ -525,6 +602,57 @@ export default function AdminFinancialsPage() {
       loadFinancialData()
     } catch (err: any) {
       setFeedback({ type: 'error', message: `Gagal menghapus deposit: ${err.message}` })
+    }
+  }
+
+  // Handler Daftarkan Vendor Baru (Kategori Accounting / Non-Runtime)
+  const handleSaveVendor = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const slug = vendorForm.id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')
+    if (!slug) {
+      setFeedback({
+        type: 'error',
+        message: 'Identifier Vendor (slug) wajib diisi huruf kecil tanpa spasi (contoh: midjourney, resend)',
+      })
+      return
+    }
+    if (!vendorForm.name.trim()) {
+      setFeedback({ type: 'error', message: 'Nama Vendor wajib diisi' })
+      return
+    }
+
+    setIsSavingVendor(true)
+    try {
+      const { error } = await supabase.from('ai_providers').insert({
+        id: slug,
+        name: vendorForm.name.trim(),
+        category: vendorForm.category,
+        billing_type: vendorForm.billing_type,
+        currency: 'USD',
+        website_url: vendorForm.website_url.trim() || null,
+        is_active: true,
+      })
+
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error(`Vendor dengan identifier "${slug}" sudah terdaftar.`)
+        }
+        throw error
+      }
+
+      setShowVendorModal(false)
+      setFeedback({
+        type: 'success',
+        message: `Vendor "${vendorForm.name}" berhasil didaftarkan ke registri pembukuan`,
+      })
+      loadFinancialData()
+    } catch (err: any) {
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Gagal mendaftarkan vendor baru',
+      })
+    } finally {
+      setIsSavingVendor(false)
     }
   }
 
@@ -638,25 +766,32 @@ export default function AdminFinancialsPage() {
               Lacak uang riil (IDR) yang disetor ke setiap provider AI, saldo kredit (USD/Token) yang diperoleh, laju bakar 7 hari, dan estimasi daya tahan runway sebelum layanan habis.
             </p>
           </div>
-          <button
-            type="button"
-            className="btn-add-topup"
-            onClick={() => {
-              setTopupForm({
-                provider_id: providers[0]?.id || 'google',
-                amount_paid_idr: '',
-                credited_amount_usd: '',
-                credited_tokens: '',
-                invoice_number: '',
-                payment_method: 'Kartu Kredit Bisnis',
-                deposited_at: new Date().toISOString().slice(0, 16),
-                notes: '',
-              })
-              setShowTopupModal(true)
-            }}
-          >
-            <Plus size={15} /> Catat Deposit Provider
-          </button>
+          <div className="header-action-group">
+            <button
+              type="button"
+              className="btn-add-vendor"
+              onClick={() => {
+                setVendorForm({
+                  id: '',
+                  name: '',
+                  category: 'marketing',
+                  billing_type: 'prepaid_usd',
+                  website_url: '',
+                })
+                setShowVendorModal(true)
+              }}
+              title="Daftarkan vendor operasional non-runtime (Midjourney, Resend, Supabase)"
+            >
+              <Building size={14} /> Daftarkan Vendor Baru
+            </button>
+            <button
+              type="button"
+              className="btn-add-topup"
+              onClick={handleOpenCreateDeposit}
+            >
+              <Plus size={15} /> Catat Deposit Provider
+            </button>
+          </div>
         </div>
 
         {/* Macro Summary Strip for Multi-Provider */}
@@ -735,7 +870,10 @@ export default function AdminFinancialsPage() {
                 <div className="provider-card-header">
                   <div>
                     <h4 className="provider-title">{card.provider.name}</h4>
-                    <span className="provider-id-tag font-mono">{card.provider.id}</span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="provider-id-tag font-mono">{card.provider.id}</span>
+                      <span className="provider-cat-tag font-mono">{card.provider.category.toUpperCase()}</span>
+                    </div>
                   </div>
                   <span className={`billing-badge ${card.provider.billing_type}`}>
                     {card.provider.billing_type === 'prepaid_usd' && 'Prepaid USD'}
@@ -847,8 +985,8 @@ export default function AdminFinancialsPage() {
         <div className="deposit-history-container">
           <div className="deposit-history-header">
             <div>
-              <h4>Riwayat Deposit Provider AI</h4>
-              <p>Daftar transaksi pembayaran riil ke penyedia layanan AI beserta kurs efektif.</p>
+              <h4>Riwayat Deposit Provider AI &amp; Vendor Operasional</h4>
+              <p>Daftar transaksi pembayaran riil ke penyedia layanan beserta kurs efektif.</p>
             </div>
 
             {/* Filter Tabs Provider */}
@@ -862,7 +1000,7 @@ export default function AdminFinancialsPage() {
               </button>
               {providers.map((p) => {
                 const count = deposits.filter((d) => d.provider_id === p.id).length
-                if (count === 0 && !['google', 'groq', 'deepseek'].includes(p.id)) return null
+                if (count === 0 && !['google', 'groq', 'deepseek', 'anthropic'].includes(p.id)) return null
                 return (
                   <button
                     key={p.id}
@@ -882,13 +1020,13 @@ export default function AdminFinancialsPage() {
               <thead>
                 <tr>
                   <th>TANGGAL DEPOSIT</th>
-                  <th>PROVIDER</th>
+                  <th>PROVIDER / VENDOR</th>
                   <th>PEMBAYARAN (IDR)</th>
                   <th>SALDO DITERIMA (USD / TOKEN)</th>
                   <th>KURS EFEKTIF RIIL</th>
                   <th>INVOICE &amp; METODE</th>
                   <th>CATATAN</th>
-                  <th>AKSI</th>
+                  <th style={{ textAlign: 'center' }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
@@ -920,9 +1058,16 @@ export default function AdminFinancialsPage() {
                           })}
                         </td>
                         <td>
-                          <span className={`provider-tag tag-${d.provider_id}`}>
-                            {d.ai_providers?.name || d.provider_id.toUpperCase()}
-                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className={`provider-tag tag-${d.provider_id}`}>
+                              {d.ai_providers?.name || d.provider_id.toUpperCase()}
+                            </span>
+                            {d.ai_providers?.category && (
+                              <span className="text-[10px] text-gray-500 font-mono">
+                                {d.ai_providers.category.toUpperCase()}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="font-bold text-gray-900">
                           {formatIDR(Number(d.amount_paid_idr))}
@@ -956,13 +1101,22 @@ export default function AdminFinancialsPage() {
                           {d.notes || '-'}
                         </td>
                         <td>
-                          <button
-                            onClick={() => handleDeleteTopup(d.id)}
-                            className="delete-topup-btn"
-                            title="Hapus catatan deposit"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="table-actions-cell">
+                            <button
+                              onClick={() => handleOpenEditDeposit(d)}
+                              className="edit-topup-btn"
+                              title="Edit catatan deposit (koreksi saldo USD/invoice)"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTopup(d.id)}
+                              className="delete-topup-btn"
+                              title="Hapus catatan deposit"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )
@@ -1137,14 +1291,14 @@ export default function AdminFinancialsPage() {
         </div>
       </div>
 
-      {/* MODAL CATAT DEPOSIT MULTI-PROVIDER AI */}
+      {/* MODAL CATAT DEPOSIT (TAMBAH / EDIT) */}
       {showTopupModal && (
         <div className="topup-modal-overlay" onClick={() => setShowTopupModal(false)}>
           <div className="topup-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="topup-modal-header">
               <div className="flex items-center gap-2">
                 <Wallet size={18} className="text-emerald-600" />
-                <h3>Catat Deposit Provider AI</h3>
+                <h3>{editingDepositId ? 'Edit Catatan Deposit Provider' : 'Catat Deposit Provider AI'}</h3>
               </div>
               <button
                 type="button"
@@ -1158,7 +1312,7 @@ export default function AdminFinancialsPage() {
             <form onSubmit={handleSaveTopup} className="topup-form">
               {/* Pilihan Provider Dinamis */}
               <div className="form-group">
-                <label>Provider AI / Cloud *</label>
+                <label>Provider / Vendor *</label>
                 <select
                   value={topupForm.provider_id}
                   onChange={(e) =>
@@ -1171,7 +1325,7 @@ export default function AdminFinancialsPage() {
                 >
                   {providers.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.billing_type === 'prepaid_usd' ? 'Prepaid USD' : p.billing_type === 'prepaid_tokens' ? 'Token Pack' : 'Postpaid'})
+                      {p.name} [{p.category.toUpperCase()}] ({p.billing_type === 'prepaid_usd' ? 'Prepaid USD' : p.billing_type === 'prepaid_tokens' ? 'Token Pack' : 'Postpaid'})
                     </option>
                   ))}
                 </select>
@@ -1214,7 +1368,7 @@ export default function AdminFinancialsPage() {
                 <input
                   type="number"
                   step="0.0001"
-                  placeholder="Contoh: 31.25"
+                  placeholder="Contoh: 6.25 atau 31.25"
                   value={topupForm.credited_amount_usd}
                   onChange={(e) =>
                     setTopupForm((prev) => ({ ...prev, credited_amount_usd: e.target.value }))
@@ -1222,6 +1376,17 @@ export default function AdminFinancialsPage() {
                   required
                 />
               </div>
+
+              {/* Peringatan Cerdas jika Provider USD belum diisi saldo USD */}
+              {selectedProvider?.billing_type === 'prepaid_usd' &&
+                (!topupForm.credited_amount_usd || parseFloat(topupForm.credited_amount_usd) <= 0) && (
+                  <div className="deposit-tip-warning">
+                    <AlertTriangle size={15} className="shrink-0 text-amber-600" />
+                    <span>
+                      <strong>Perhatian:</strong> {selectedProvider.name} menggunakan sistem saldo kredit USD. Anda wajib mengisi Saldo Masuk (USD) agar perhitungan sisa saldo di dashboard tidak $0.00.
+                    </span>
+                  </div>
+                )}
 
               {/* Live Effective Exchange Rate Banner */}
               {modalLiveEffectiveRate && (
@@ -1261,7 +1426,7 @@ export default function AdminFinancialsPage() {
               {/* Invoice & Payment Method */}
               <div className="form-row-2">
                 <div className="form-group">
-                  <label>No. Invoice / Referensi (Unik)</label>
+                  <label>No. Invoice / Referensi</label>
                   <input
                     type="text"
                     placeholder="Contoh: INV-GCP-2026-09"
@@ -1307,7 +1472,7 @@ export default function AdminFinancialsPage() {
                 <label>Catatan Tambahan (Opsional)</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Alokasi Qwen 2.5 72B / Promo kupon diskon"
+                  placeholder="Contoh: Koreksi nominal / Alokasi Qwen 2.5 72B"
                   value={topupForm.notes}
                   onChange={(e) =>
                     setTopupForm((prev) => ({ ...prev, notes: e.target.value }))
@@ -1328,7 +1493,130 @@ export default function AdminFinancialsPage() {
                   className="btn-submit"
                   disabled={isSavingTopup}
                 >
-                  {isSavingTopup ? 'Menyimpan...' : 'Simpan Transaksi'}
+                  {isSavingTopup ? 'Menyimpan...' : editingDepositId ? 'Simpan Perubahan' : 'Simpan Transaksi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DAFTARKAN VENDOR BARU (ACCOUNTING / OPERASIONAL) */}
+      {showVendorModal && (
+        <div className="topup-modal-overlay" onClick={() => setShowVendorModal(false)}>
+          <div className="topup-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="topup-modal-header">
+              <div className="flex items-center gap-2">
+                <Building size={18} className="text-indigo-600" />
+                <h3>Daftarkan Vendor / Alat Operasional Baru</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVendorModal(false)}
+                className="modal-close-btn"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveVendor} className="topup-form">
+              <div className="form-group">
+                <label>Nama Vendor / Alat *</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Midjourney AI / Resend Email / Supabase Compute"
+                  value={vendorForm.name}
+                  onChange={(e) => {
+                    const name = e.target.value
+                    const autoSlug = name.toLowerCase().replace(/[^a-z0-9_-]/g, '')
+                    setVendorForm((prev) => ({
+                      ...prev,
+                      name,
+                      id: prev.id === '' ? autoSlug : prev.id,
+                    }))
+                  }}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Identifier / Slug Sistem (Unik) *</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: midjourney / resend"
+                  value={vendorForm.id}
+                  onChange={(e) =>
+                    setVendorForm((prev) => ({
+                      ...prev,
+                      id: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+                    }))
+                  }
+                  required
+                />
+                <span className="text-xs text-gray-500">Huruf kecil tanpa spasi (contoh: midjourney).</span>
+              </div>
+
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label>Kategori Vendor *</label>
+                  <select
+                    value={vendorForm.category}
+                    onChange={(e) =>
+                      setVendorForm((prev) => ({ ...prev, category: e.target.value as any }))
+                    }
+                    required
+                  >
+                    <option value="marketing">Marketing & Desain Promosi</option>
+                    <option value="infra">Infrastruktur & Server</option>
+                    <option value="email">Layanan Email & Notifikasi</option>
+                    <option value="search">Search Engine / Riset</option>
+                    <option value="llm">LLM / AI Model</option>
+                    <option value="other">Lainnya</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Model Penagihan *</label>
+                  <select
+                    value={vendorForm.billing_type}
+                    onChange={(e) =>
+                      setVendorForm((prev) => ({ ...prev, billing_type: e.target.value as any }))
+                    }
+                    required
+                  >
+                    <option value="prepaid_usd">Prepaid USD (Deposit Saldo Dolar)</option>
+                    <option value="prepaid_tokens">Prepaid Token (Beli Kuota Keping)</option>
+                    <option value="postpaid_credit">Postpaid (Tagihan Akhir Bulan)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>URL Konsol / Website (Opsional)</label>
+                <input
+                  type="url"
+                  placeholder="Contoh: https://midjourney.com"
+                  value={vendorForm.website_url}
+                  onChange={(e) =>
+                    setVendorForm((prev) => ({ ...prev, website_url: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setShowVendorModal(false)}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-submit"
+                  disabled={isSavingVendor}
+                >
+                  {isSavingVendor ? 'Mendaftarkan...' : 'Daftarkan Vendor'}
                 </button>
               </div>
             </form>
@@ -1595,6 +1883,36 @@ export default function AdminFinancialsPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .header-action-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .btn-add-vendor {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          background: #ffffff;
+          color: #334155;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .btn-add-vendor:hover {
+          background: #f8fafc;
+          border-color: #94a3b8;
+          color: #0f172a;
         }
 
         .btn-add-topup {
@@ -1700,7 +2018,16 @@ export default function AdminFinancialsPage() {
           padding: 2px 6px;
           border-radius: 4px;
           display: inline-block;
-          margin-top: 2px;
+        }
+
+        .provider-cat-tag {
+          font-size: 10px;
+          font-weight: 700;
+          color: #4f46e5;
+          background: #eef2ff;
+          padding: 2px 6px;
+          border-radius: 4px;
+          display: inline-block;
         }
 
         .billing-badge {
@@ -1926,6 +2253,19 @@ export default function AdminFinancialsPage() {
           border-radius: 6px;
         }
 
+        .deposit-tip-warning {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 8px;
+          padding: 10px 12px;
+          font-size: 12px;
+          color: #92400e;
+          line-height: 1.4;
+        }
+
         .topup-alert-warning {
           display: flex;
           align-items: center;
@@ -1989,12 +2329,37 @@ export default function AdminFinancialsPage() {
           border: 1px solid #bbf7d0;
         }
 
+        .table-actions-cell {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .edit-topup-btn {
+          background: none;
+          border: none;
+          color: #64748b;
+          cursor: pointer;
+          padding: 5px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+        }
+
+        .edit-topup-btn:hover {
+          color: #4f46e5;
+          background: #eef2ff;
+        }
+
         .delete-topup-btn {
           background: none;
           border: none;
           color: #94a3b8;
           cursor: pointer;
-          padding: 4px;
+          padding: 5px;
           border-radius: 4px;
           display: flex;
           align-items: center;
