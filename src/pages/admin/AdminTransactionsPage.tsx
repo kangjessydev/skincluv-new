@@ -254,7 +254,7 @@ export default function AdminTransactionsPage() {
     const unpaidInvoices = invoices.filter((i) => i.status === 'UNPAID')
     const failedInvoices = invoices.filter((i) => i.status === 'FAILED' || i.status === 'REFUND')
 
-    const totalRevenue = paidInvoices.reduce((acc, curr) => acc + (curr.amount_idr || 0), 0)
+    const totalRevenue = paidInvoices.reduce((acc, curr) => acc + (curr.total_amount_idr || curr.amount_idr || 0), 0)
     const conversionRate = total > 0 ? ((paidInvoices.length / total) * 100).toFixed(1) : '0'
 
     return {
@@ -533,7 +533,7 @@ export default function AdminTransactionsPage() {
                         </span>
                       </td>
                       <td className="font-bold text-gray-900">
-                        {formatIDR(inv.amount_idr)}
+                        {formatIDR(inv.total_amount_idr || inv.amount_idr)}
                       </td>
                       <td>
                         <div className="status-cell-wrapper">

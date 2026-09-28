@@ -106,9 +106,11 @@ interface ProviderBalanceRecord {
 
 interface InvoiceRecord {
   amount_idr: number
+  total_amount_idr?: number | null
   plan: string
   status: string
   created_at: string
+  paid_at?: string | null
 }
 
 interface AiFeatureMaster {
@@ -206,7 +208,7 @@ export default function AdminFinancialsPage() {
           .order('created_at', { ascending: false }),
         supabase
           .from('tripay_invoices')
-          .select('amount_idr, plan, status, created_at')
+          .select('amount_idr, total_amount_idr, plan, status, created_at, paid_at')
           .eq('status', 'PAID'),
         supabase
           .from('ai_features')
@@ -433,14 +435,14 @@ export default function AdminFinancialsPage() {
         : []
 
     const currInvoices = invoices.filter((inv) => {
-      const t = new Date(inv.created_at).getTime()
+      const t = new Date(inv.paid_at || inv.created_at).getTime()
       return t >= cStart && t <= cEnd
     })
 
     const prevInvoices =
       pStart !== null && pEnd !== null
         ? invoices.filter((inv) => {
-            const t = new Date(inv.created_at).getTime()
+            const t = new Date(inv.paid_at || inv.created_at).getTime()
             return t >= pStart && t <= pEnd
           })
         : []
@@ -488,7 +490,7 @@ export default function AdminFinancialsPage() {
   const financials = useMemo(() => {
     const { currLogs, prevLogs, currInvoices, prevInvoices } = periodFilteredData
 
-    const totalRevenueIDR = currInvoices.reduce((acc, inv) => acc + (inv.amount_idr || 0), 0)
+    const totalRevenueIDR = currInvoices.reduce((acc, inv) => acc + (inv.total_amount_idr || inv.amount_idr || 0), 0)
     const totalCostUSD = currLogs.reduce((acc, log) => acc + (log.cost_usd || 0), 0)
     const totalCostIDR = totalCostUSD * wacRate
     const grossProfitIDR = totalRevenueIDR - totalCostIDR
@@ -503,7 +505,7 @@ export default function AdminFinancialsPage() {
     // Pembanding Periode Sebelumnya (MoM)
     const hasPrev = periodRange.prevStart !== null
     const prevRevenueIDR = hasPrev
-      ? prevInvoices.reduce((acc, inv) => acc + (inv.amount_idr || 0), 0)
+      ? prevInvoices.reduce((acc, inv) => acc + (inv.total_amount_idr || inv.amount_idr || 0), 0)
       : null
     const prevCostUSD = hasPrev
       ? prevLogs.reduce((acc, log) => acc + (log.cost_usd || 0), 0)

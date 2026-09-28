@@ -88,10 +88,10 @@ export default function AdminUsersPage() {
     setIsLoading(true)
     setFeedback(null)
     try {
-      // Ambil profiles, subscriptions, coin_balances, dan user_roles
+      // Ambil profiles, active_subscriptions, coin_balances, dan user_roles
       const [profilesRes, subsRes, coinsRes, rolesRes] = await Promise.all([
         supabase.from('profiles').select('id, full_name, username, avatar_url, created_at').order('created_at', { ascending: false }),
-        supabase.from('subscriptions').select('user_id, status, expires_at, subscription_tiers(slug, name)').eq('status', 'active'),
+        supabase.from('active_subscriptions').select('user_id, status, expires_at, tier_slug, tier_name'),
         supabase.from('coin_balances').select('user_id, balance'),
         supabase.from('user_roles').select('user_id, role'),
       ])
@@ -119,8 +119,8 @@ export default function AdminUsersPage() {
       const combined: UserItem[] = profiles.map((p) => {
         const sub = subMap.get(p.id)
         const role = roleMap.get(p.id) || 'customer'
-        const tierSlug = sub?.subscription_tiers?.slug || 'free'
-        const tierName = sub?.subscription_tiers?.name || 'Free Tier'
+        const tierSlug = sub?.tier_slug || 'free'
+        const tierName = sub?.tier_name || 'Free Tier'
 
         return {
           id: p.id,
@@ -156,7 +156,9 @@ export default function AdminUsersPage() {
     const paidUsers = users.filter((u) => u.tierSlug === 'glow' || u.tierSlug === 'premium' || u.tierSlug === 'pro').length
     const freeUsers = totalUsers - paidUsers
     const totalCoinsCirculating = users.reduce((acc, u) => acc + (u.balance || 0), 0)
-    const adminCount = users.filter((u) => u.role === 'admin').length
+    const adminCount = users.filter((u) =>
+      ['admin', 'super_admin', 'tech_lead', 'business_lead'].includes(u.role || '')
+    ).length
 
     return {
       totalUsers,
@@ -912,7 +914,7 @@ export default function AdminUsersPage() {
                             {csSummaryData.recent_invoices.map((inv: any, idx: number) => (
                               <tr key={idx} style={{ borderTop: '1px solid #f1f5f9' }}>
                                 <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontSize: 11 }}>
-                                  {inv.tripay_reference || '-'}
+                                  {inv.reference || inv.tripay_reference || inv.merchant_ref || '-'}
                                 </td>
                                 <td style={{ padding: '8px 10px' }}>{inv.plan}</td>
                                 <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>

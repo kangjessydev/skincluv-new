@@ -202,10 +202,15 @@ Deno.serve(async (req: Request) => {
               prompt_version_id: prompt.id,
               model_config_id: model.id,
               provider_id: model.provider,
+              input_summary: 'Exact image cache hit (RFC 011)',
+              output_summary: 'Loaded from exact hash match',
+              raw_output: { cache_hit: true, operation_reference: operationRef, scan_id: cachedScan.id },
               tokens_used: 0,
+              input_tokens: 0,
+              output_tokens: 0,
+              latency_ms: 0,
               cost_usd: 0,
-              status: 'CACHE_HIT',
-              operation_reference: operationRef,
+              status: 'success',
             })
 
             const cachedContent = cachedScan.raw_ai_response
