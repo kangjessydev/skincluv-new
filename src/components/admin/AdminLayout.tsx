@@ -50,6 +50,10 @@ const aiHubNavItems = [
   { to: '/admin/logs', icon: Activity, label: 'Log & Metrik AI' },
 ]
 
+const governanceNavItems = [
+  { to: '/admin/audit-logs', icon: ShieldCheck, label: 'Audit Log Tata Kelola' },
+]
+
 export default function AdminLayout() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const location = useLocation()
@@ -313,6 +317,14 @@ export default function AdminLayout() {
             <>
               <div style={groupHeaderStyle}>AI Brain & Training Hub</div>
               {renderNavGroup(aiHubNavItems)}
+            </>
+          )}
+
+          {/* Tata Kelola & Audit (Super Admin & Tech Lead) */}
+          {isSuper && (
+            <>
+              <div style={groupHeaderStyle}>Tata Kelola & Audit</div>
+              {renderNavGroup(governanceNavItems)}
             </>
           )}
         </nav>

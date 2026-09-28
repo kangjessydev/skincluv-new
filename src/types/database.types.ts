@@ -39,6 +39,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          id: string
+          actor_id: string | null
+          actor_email: string | null
+          actor_role: string | null
+          action: string
+          target_type: string
+          target_id: string | null
+          details: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          actor_email?: string | null
+          actor_role?: string | null
+          action: string
+          target_type: string
+          target_id?: string | null
+          details?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string | null
+          actor_email?: string | null
+          actor_role?: string | null
+          action?: string
+          target_type?: string
+          target_id?: string | null
+          details?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
       skincluv_handbook: {
         Row: {
           id: string
@@ -1730,6 +1766,15 @@ export type Database = {
           p_confirmation: string
         }
         Returns: Json
+      }
+      record_admin_audit_log: {
+        Args: {
+          p_action: string
+          p_target_type: string
+          p_target_id?: string | null
+          p_details?: Json
+        }
+        Returns: string
       }
     }
     Enums: {

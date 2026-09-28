@@ -336,6 +336,18 @@ export interface AiTrainingDataset {
   created_at: string
 }
 
+export interface AdminAuditLog {
+  id: string
+  actor_id: string | null
+  actor_email: string | null
+  actor_role: string | null
+  action: string
+  target_type: string
+  target_id: string | null
+  details: Json
+  created_at: string
+}
+
 // ----------------------------------------------------------------
 // Supabase Database interface (for typed client)
 // ----------------------------------------------------------------

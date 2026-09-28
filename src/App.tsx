@@ -48,6 +48,7 @@ const AdminTransactionsPage = lazy(() => import('@/pages/admin/AdminTransactions
 const AdminFinancialsPage = lazy(() => import('@/pages/admin/AdminFinancialsPage'))
 const AdminUsersPage = lazy(() => import('@/pages/admin/AdminUsersPage'))
 const AdminMarketIntelligencePage = lazy(() => import('@/pages/admin/AdminMarketIntelligencePage'))
+const AdminAuditLogsPage = lazy(() => import('@/pages/admin/AdminAuditLogsPage'))
 const TermsPage = lazy(() => import('@/pages/public/TermsPage'))
 const PrivacyPolicyPage = lazy(() => import('@/pages/public/PrivacyPolicyPage'))
 const MedicalDisclaimerPage = lazy(() => import('@/pages/public/MedicalDisclaimerPage'))
@@ -137,6 +138,9 @@ export default function App() {
             <Route path="/admin/knowledge/formulas" element={<AdminProductFormulasPage />} />
             <Route path="/admin/training/datasets" element={<AdminTrainingDatasetsPage />} />
             <Route path="/admin/logs" element={<AdminLogsPage />} />
+
+            {/* Tata Kelola & Audit */}
+            <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
           </Route>
         </Route>
 
