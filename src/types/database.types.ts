@@ -1136,28 +1136,40 @@ export type Database = {
         Row: {
           created_at: string
           features: Json
+          features_list: string[] | null
           id: string
           is_active: boolean
+          is_popular: boolean
           name: string
+          original_price_idr: number | null
           price_idr: number
+          promo_badge: string | null
           slug: string
         }
         Insert: {
           created_at?: string
           features?: Json
+          features_list?: string[] | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean
           name: string
+          original_price_idr?: number | null
           price_idr?: number
+          promo_badge?: string | null
           slug: string
         }
         Update: {
           created_at?: string
           features?: Json
+          features_list?: string[] | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean
           name?: string
+          original_price_idr?: number | null
           price_idr?: number
+          promo_badge?: string | null
           slug?: string
         }
         Relationships: []

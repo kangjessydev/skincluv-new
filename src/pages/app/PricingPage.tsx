@@ -1,15 +1,122 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap, ArrowLeft, HeartHandshake } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
+
+export interface Tier {
+  id?: string
+  slug: string
+  name: string
+  price_idr: number
+  original_price_idr?: number | null
+  features_list?: string[] | null
+  promo_badge?: string | null
+  is_popular?: boolean
+  is_active?: boolean
+}
+
+// Fallback jika proses pengambilan data database sedang berlangsung
+const DEFAULT_TIERS: Tier[] = [
+  {
+    slug: 'free',
+    name: 'Free / Starter',
+    price_idr: 0,
+    original_price_idr: 0,
+    promo_badge: 'Selalu Gratis',
+    is_popular: false,
+    features_list: [
+      '0 Kuota Bawaan (Akses via Credits)',
+      'Dapatkan Credits Gratis dari Misi Harian',
+      'Scan Wajah & Cek Komposisi Produk',
+      'Chatbot Konsultasi Standar'
+    ]
+  },
+  {
+    slug: 'glow',
+    name: 'Skincluv GLOW',
+    price_idr: 25000,
+    original_price_idr: 50000,
+    promo_badge: 'Ramah Kantong',
+    is_popular: false,
+    features_list: [
+      '100 Universal AI Uses / 30 Hari',
+      'Satu Kuota Bersama: Bebas Dipakai Scan Maupun Chat',
+      'Chatbot Konsultasi Ramah (Cepat & Edukatif)',
+      'Analisis Kondisi Wajah & Komposisi Skincare',
+      'Riwayat Scan Tersimpan Multi-Sesi',
+      'Cadangan AI Credits Misi Tetap Utuh'
+    ]
+  },
+  {
+    slug: 'premium',
+    name: 'Skincluv PRO',
+    price_idr: 49000,
+    original_price_idr: 99000,
+    promo_badge: 'Rekomendasi Utama',
+    is_popular: true,
+    features_list: [
+      '500 Universal AI Uses / 30 Hari (Terasa Unlimited)',
+      'Chatbot Skincare Expert (Analisis Lebih Dalam & Presisi)',
+      'Pencarian Web Terverifikasi (Tavily Grounding)',
+      'Analisis Layering Bahan Aktif Pagi & Malam',
+      'Evaluasi Kompatibilitas Skin Barrier & pH Formula',
+      'Deep Memory (Ingatan Lintas Sesi Percakapan)',
+      'Prioritas Respon AI Cepat & Responsif',
+      'Badge Eksklusif PRO di Profil'
+    ]
+  }
+]
 
 export default function PricingPage() {
   const navigate = useNavigate()
   const { subscription } = useAuthStore()
+  const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
+  const [isLoading, setIsLoading] = useState(true)
 
   const isPro = isActivePremium(subscription)
   const isGlow = isActiveGlow(subscription)
   const isFree = !isPro && !isGlow
+
+  useEffect(() => {
+    async function fetchTiers() {
+      try {
+        const { data, error } = await supabase
+          .from('subscription_tiers')
+          .select('id, slug, name, price_idr, original_price_idr, features_list, promo_badge, is_popular, is_active')
+          .eq('is_active', true)
+          .order('price_idr', { ascending: true })
+
+        if (error) {
+          console.warn('Gagal memuat tier dinamis, menggunakan konfigurasi fallback:', error.message)
+          return
+        }
+
+        if (data && data.length > 0) {
+          // Normalisasi slug dan format nama
+          const mappedTiers: Tier[] = data.map((t) => {
+            let formattedName = t.name
+            if (t.slug === 'free') formattedName = 'Free / Starter'
+            else if (t.slug === 'glow') formattedName = 'Skincluv GLOW'
+            else if (t.slug === 'premium' || t.slug === 'pro') formattedName = 'Skincluv PRO'
+
+            return {
+              ...t,
+              name: formattedName
+            }
+          })
+          setTiers(mappedTiers)
+        }
+      } catch (err) {
+        console.error('Kesalahan saat memuat data harga:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTiers()
+  }, [])
 
   return (
     <div className="pricing-page animate-fade-in">
@@ -23,92 +130,140 @@ export default function PricingPage() {
       </div>
 
       <div className="pricing-grid">
-        {/* Free Plan */}
-        <div className={`pricing-card free-card glass-card ${isFree ? 'current-active' : ''}`}>
-          <div className="plan-header">
-            <h3>Free / Starter</h3>
-            <p>Mulai gratis menggunakan Credits dari misi harian</p>
-            <div className="plan-price">Rp 0 <span>/ 30 hari</span></div>
-            <div className="plan-tagline">Selalu gratis • Tanpa syarat kartu</div>
-          </div>
-          <ul className="plan-features">
-            <li><CheckCircle2 size={16} className="icon-check" /> <strong>0 Kuota Bawaan</strong> (Akses via Credits)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Dapatkan Credits Gratis dari Misi Harian</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Scan Wajah & Cek Komposisi Produk</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Chatbot Konsultasi Standar</li>
-          </ul>
-          <div className="plan-footer">
-            <button className="btn btn-outline btn-block" disabled>
-              {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar'}
-            </button>
-          </div>
-        </div>
+        {tiers.map((tier) => {
+          const isTierFree = tier.slug === 'free'
+          const isTierGlow = tier.slug === 'glow'
+          const isTierPro = tier.slug === 'premium' || tier.slug === 'pro'
 
-        {/* GLOW Plan (Rp 25.000) */}
-        <div className={`pricing-card glow-card glass-card ${isGlow ? 'current-active' : ''}`}>
-          <div className="saving-badge"><HeartHandshake size={14} /> RAMAH KANTONG</div>
-          <div className="plan-header">
-            <h3>Skincluv GLOW</h3>
-            <p>Paling pas untuk pelajar & pemula perawatan rutin</p>
-            <div className="plan-price">Rp 25.000 <span>/ 30 hari</span></div>
-            <div className="plan-tagline">Sekali bayar. Selesai. Tanpa auto-debit.</div>
-          </div>
-          <ul className="plan-features">
-            <li><Zap size={16} className="icon-amber" /> <strong>100 Universal AI Uses</strong> / 30 Hari</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Satu Kuota Bersama</strong>: Bebas Dipakai Scan Maupun Chat</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Chatbot Konsultasi Ramah</strong> (Cepat & Edukatif)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Analisis Kondisi Wajah & Komposisi Skincare</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Riwayat Scan Tersimpan Multi-Sesi</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Cadangan AI Credits Misi Tetap Utuh</li>
-          </ul>
-          <div className="plan-footer">
-            {isGlow ? (
-              <button className="btn btn-secondary btn-block" disabled>
-                <ShieldCheck size={18} /> Paket GLOW Aktif
-              </button>
-            ) : isPro ? (
-              <button className="btn btn-outline btn-block" disabled title="Kamu sedang aktif di paket PRO yang lebih tinggi">
-                Sudah Aktif di Paket PRO
-              </button>
-            ) : (
-              <button className="btn btn-secondary btn-block" onClick={() => navigate('/checkout?plan=glow')}>
-                Beli GLOW Pass (Rp 25.000)
-              </button>
-            )}
-          </div>
-        </div>
+          const hasOriginalPrice =
+            typeof tier.original_price_idr === 'number' &&
+            tier.original_price_idr > tier.price_idr &&
+            tier.original_price_idr > 0
 
-        {/* PRO Plan (Rp 49.000) */}
-        <div className={`pricing-card pro-card glass-card ${isPro ? 'current-active' : ''}`}>
-          <div className="popular-badge"><Crown size={14} /> REKOMENDASI UTAMA</div>
-          <div className="plan-header">
-            <h3>Skincluv PRO</h3>
-            <p>Pengalaman AI Terlengkap, Lebih Pintar & Terasa Unlimited</p>
-            <div className="plan-price">Rp 49.000 <span>/ 30 hari</span></div>
-            <div className="plan-tagline">Sekali bayar. Selesai. Tanpa auto-debit.</div>
-          </div>
-          <ul className="plan-features">
-            <li><Zap size={16} className="icon-sky" /> <strong>500 Universal AI Uses</strong> / 30 Hari (Terasa Unlimited)</li>
-            <li><Zap size={16} className="icon-sky" /> <strong>Chatbot Skincare Expert</strong> (Analisis Lebih Dalam & Presisi)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> <strong>Pencarian Web Terverifikasi</strong> (Tavily Grounding)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Analisis Layering Bahan Aktif Pagi & Malam</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Evaluasi Kompatibilitas Skin Barrier & pH Formula</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Deep Memory (Ingatan Lintas Sesi Percakapan)</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Prioritas Respon AI Cepat & Responsif</li>
-            <li><CheckCircle2 size={16} className="icon-check" /> Badge Eksklusif PRO di Profil</li>
-          </ul>
-          <div className="plan-footer">
-            {isPro ? (
-              <button className="btn btn-secondary btn-block" disabled>
-                <ShieldCheck size={18} /> Paket PRO Aktif
-              </button>
-            ) : (
-              <button className="btn btn-primary btn-block btn-glow" onClick={() => navigate('/checkout?plan=pro')}>
-                <Crown size={18} /> Beli PRO Pass (Rp 49.000)
-              </button>
-            )}
-          </div>
-        </div>
+          const discountPct = hasOriginalPrice
+            ? Math.round(((tier.original_price_idr! - tier.price_idr) / tier.original_price_idr!) * 100)
+            : 0
+
+          const isCardActive =
+            (isTierFree && isFree) ||
+            (isTierGlow && isGlow) ||
+            (isTierPro && isPro)
+
+          const cardClass = isTierFree
+            ? 'free-card'
+            : isTierGlow
+            ? 'glow-card'
+            : 'pro-card'
+
+          let subtitle = 'Mulai gratis menggunakan Credits dari misi harian'
+          if (isTierGlow) subtitle = 'Paling pas untuk pelajar & pemula perawatan rutin'
+          else if (isTierPro) subtitle = 'Pengalaman AI Terlengkap, Lebih Pintar & Terasa Unlimited'
+
+          const features = tier.features_list && tier.features_list.length > 0
+            ? tier.features_list
+            : []
+
+          return (
+            <div
+              key={tier.slug}
+              className={`pricing-card ${cardClass} glass-card ${isCardActive ? 'current-active' : ''}`}
+            >
+              {/* Promo Badge */}
+              {tier.promo_badge && (
+                <div className={isTierPro ? 'popular-badge' : isTierGlow ? 'saving-badge' : 'free-badge'}>
+                  {isTierPro ? <Crown size={14} /> : isTierGlow ? <HeartHandshake size={14} /> : <Sparkles size={14} />}
+                  <span>{tier.promo_badge.toUpperCase()}</span>
+                </div>
+              )}
+
+              <div className="plan-header">
+                <h3>{tier.name}</h3>
+                <p>{subtitle}</p>
+
+                {/* Strikethrough & Discount Pill */}
+                {hasOriginalPrice && (
+                  <div className="plan-discount-wrap">
+                    <del className="plan-original-price">
+                      Rp {tier.original_price_idr!.toLocaleString('id-ID')}
+                    </del>
+                    <span className="discount-pill">Hemat {discountPct}%</span>
+                  </div>
+                )}
+
+                <div className="plan-price">
+                  Rp {tier.price_idr.toLocaleString('id-ID')} <span>/ 30 hari</span>
+                </div>
+
+                <div className="plan-tagline">
+                  {isTierFree ? 'Selalu gratis • Tanpa syarat kartu' : 'Sekali bayar. Selesai. Tanpa auto-debit.'}
+                </div>
+              </div>
+
+              {/* Dynamic Feature Bullets */}
+              <ul className="plan-features">
+                {features.map((feat, idx) => {
+                  const isHighlightZap =
+                    feat.toLowerCase().includes('universal ai') ||
+                    feat.toLowerCase().includes('expert')
+
+                  return (
+                    <li key={idx}>
+                      {isHighlightZap ? (
+                        <Zap size={16} className={isTierGlow ? 'icon-amber' : 'icon-sky'} />
+                      ) : (
+                        <CheckCircle2 size={16} className="icon-check" />
+                      )}
+                      <span>{feat}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+
+              {/* Action Buttons */}
+              <div className="plan-footer">
+                {isTierFree ? (
+                  <button className="btn btn-outline btn-block" disabled>
+                    {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar'}
+                  </button>
+                ) : isTierGlow ? (
+                  isGlow ? (
+                    <button className="btn btn-secondary btn-block" disabled>
+                      <ShieldCheck size={18} /> Paket GLOW Aktif
+                    </button>
+                  ) : isPro ? (
+                    <button
+                      className="btn btn-outline btn-block"
+                      disabled
+                      title="Kamu sedang aktif di paket PRO yang lebih tinggi"
+                    >
+                      Sudah Aktif di Paket PRO
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-secondary btn-block"
+                      onClick={() => navigate('/checkout?plan=glow')}
+                    >
+                      Beli GLOW Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
+                    </button>
+                  )
+                ) : isTierPro ? (
+                  isPro ? (
+                    <button className="btn btn-secondary btn-block" disabled>
+                      <ShieldCheck size={18} /> Paket PRO Aktif
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary btn-block btn-glow"
+                      onClick={() => navigate('/checkout?plan=pro')}
+                    >
+                      <Crown size={18} /> Beli PRO Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
+                    </button>
+                  )
+                ) : null}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Trust & Transparency FAQ Box (Kimi Review) */}
@@ -177,6 +332,11 @@ export default function PricingPage() {
           margin-top: auto;
           padding-top: var(--space-md);
         }
+        .free-badge {
+          position: absolute; top: -12px; right: 24px; background: #64748b;
+          color: white; font-size: 0.6875rem; font-weight: 800; padding: 4px 12px; border-radius: var(--radius-full);
+          display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(100, 116, 139, 0.25);
+        }
         .saving-badge {
           position: absolute; top: -12px; right: 24px; background: #eab308;
           color: white; font-size: 0.6875rem; font-weight: 800; padding: 4px 12px; border-radius: var(--radius-full);
@@ -189,7 +349,19 @@ export default function PricingPage() {
         }
 
         .plan-header h3 { font-size: 1.35rem; margin: 0 0 4px 0; color: var(--color-text-main); }
-        .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 12px; min-height: 38px; }
+        .plan-header p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 8px; min-height: 38px; }
+
+        .plan-discount-wrap {
+          display: flex; align-items: center; gap: 8px; margin-bottom: 2px;
+        }
+        .plan-original-price {
+          font-size: 0.9375rem; color: #94a3b8; font-weight: 600; text-decoration: line-through;
+        }
+        .discount-pill {
+          font-size: 0.6875rem; font-weight: 800; color: #dc2626; background: #fee2e2;
+          padding: 2px 8px; border-radius: var(--radius-full); border: 1px solid #fecaca;
+        }
+
         .plan-price { font-size: 2rem; font-weight: 800; color: var(--color-primary); margin-bottom: 6px; font-family: var(--font-heading); }
         .plan-price span { font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); }
 

@@ -40,7 +40,21 @@ Deno.serve(async (req: Request) => {
     }
 
     const isGlow = normalizedPlan === 'GLOW'
-    const amountIdr   = isGlow ? 25000 : 49000
+    const planSlugTarget = isGlow ? 'glow' : 'premium'
+
+    // ---- Invariant 18: Derive billing amount strictly from subscription_tiers.price_idr ----
+    const supabaseService = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    const { data: tierData } = await supabaseService
+      .from('subscription_tiers')
+      .select('price_idr, name')
+      .eq('slug', planSlugTarget)
+      .maybeSingle()
+
+    const amountIdr   = typeof tierData?.price_idr === 'number' ? tierData.price_idr : (isGlow ? 25000 : 49000)
     const planSku     = isGlow ? 'SKINCLUV-GLOW' : 'SKINCLUV-PRO'
     const planName    = isGlow ? 'Skincluv GLOW — 1 Bulan' : 'Skincluv PRO — 1 Bulan'
     const merchantRef = `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
@@ -105,11 +119,7 @@ Deno.serve(async (req: Request) => {
 
     const transaction = tripayData.data
 
-    // ---- Save to DB ----
-    const supabaseService = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    )
+    // ---- Save to DB (supabaseService instantiated above) ----
 
     const expiredAt = typeof transaction.expired_time === 'number'
       ? new Date(transaction.expired_time * 1000).toISOString()

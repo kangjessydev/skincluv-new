@@ -33,7 +33,30 @@ export default function CheckoutPage() {
   const planSlug = isGlow ? 'GLOW' : 'PREMIUM'
   const planTitle = isGlow ? 'Skincluv GLOW (Akses 30 Hari)' : 'Skincluv PRO (Akses 30 Hari)'
   const planDesc = isGlow ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage & Konsultasi Chatbot AI'
-  const planPriceFormatted = isGlow ? 'Rp 25.000' : 'Rp 49.000'
+
+  const [tierPrice, setTierPrice] = useState<number | null>(null)
+
+  useEffect(() => {
+    async function fetchTierPrice() {
+      try {
+        const targetSlug = isGlow ? 'glow' : 'premium'
+        const { data } = await supabase
+          .from('subscription_tiers')
+          .select('price_idr')
+          .eq('slug', targetSlug)
+          .maybeSingle()
+        if (data && typeof data.price_idr === 'number') {
+          setTierPrice(data.price_idr)
+        }
+      } catch {
+        // Fallback default
+      }
+    }
+    fetchTierPrice()
+  }, [isGlow])
+
+  const actualPrice = tierPrice ?? (isGlow ? 25000 : 49000)
+  const planPriceFormatted = `Rp ${actualPrice.toLocaleString('id-ID')}`
 
   // State for Review & Method Selector Mode (when reference is undefined)
   const [selectedMethod, setSelectedMethod] = useState<string>('BRIVA')
