@@ -11,6 +11,7 @@ interface AuthState {
   coinBalance: CoinBalance | null
   subscription: Subscription | null
   isAdmin: boolean
+  userRoles: string[]
   isLoading: boolean
   isInitialized: boolean
 
@@ -22,6 +23,7 @@ interface AuthState {
   setCoinBalance: (balance: CoinBalance | null) => void
   setSubscription: (subscription: Subscription | null) => void
   setIsAdmin: (isAdmin: boolean) => void
+  setUserRoles: (roles: string[]) => void
   setLoading: (isLoading: boolean) => void
   setInitialized: (initialized: boolean) => void
   reset: () => void
@@ -35,6 +37,7 @@ const initialState = {
   coinBalance: null,
   subscription: null,
   isAdmin: false,
+  userRoles: [] as string[],
   isLoading: true,
   isInitialized: false,
 }
@@ -51,9 +54,10 @@ export const useAuthStore = create<AuthState>()(
       setCoinBalance: (coinBalance) => set({ coinBalance }),
       setSubscription: (subscription) => set({ subscription }),
       setIsAdmin: (isAdmin) => set({ isAdmin }),
+      setUserRoles: (userRoles) => set({ userRoles }),
       setLoading: (isLoading) => set({ isLoading }),
       setInitialized: (isInitialized) => set({ isInitialized }),
-      reset: () => set({ ...initialState, isLoading: false, isInitialized: true }),
+      reset: () => set({ ...initialState, userRoles: [], isLoading: false, isInitialized: true }),
     }),
     {
       name: 'skincluv-auth',

@@ -17,6 +17,7 @@ UPDATE public.ai_providers SET category = 'llm' WHERE id IN ('google', 'groq', '
 DROP POLICY IF EXISTS "allow_read_ai_providers" ON public.ai_providers;
 
 -- Izinkan baca hanya untuk admin terotentikasi
+DROP POLICY IF EXISTS "admin_read_ai_providers" ON public.ai_providers;
 CREATE POLICY "admin_read_ai_providers" ON public.ai_providers
   FOR SELECT TO authenticated
   USING (public.is_admin());

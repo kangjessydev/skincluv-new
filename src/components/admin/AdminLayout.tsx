@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
 import {
   FileText,
@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   BookMarked,
 } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
 import './admin-responsive.css'
 
 const businessNavItems = [
@@ -52,6 +53,37 @@ const aiHubNavItems = [
 export default function AdminLayout() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const location = useLocation()
+  const { userRoles, isAdmin } = useAuthStore()
+
+  const isSuper = useMemo(() => {
+    return userRoles.includes('super_admin') || userRoles.includes('admin') || (!userRoles.length && isAdmin)
+  }, [userRoles, isAdmin])
+
+  const canSeeBusiness = useMemo(() => {
+    return isSuper || userRoles.includes('business_lead')
+  }, [isSuper, userRoles])
+
+  const canSeeUsers = useMemo(() => {
+    return isSuper || userRoles.includes('business_lead') || userRoles.includes('support_agent')
+  }, [isSuper, userRoles])
+
+  const canSeeConfig = useMemo(() => {
+    return isSuper || userRoles.includes('tech_lead')
+  }, [isSuper, userRoles])
+
+  const canSeeAiBrain = useMemo(() => {
+    return isSuper || userRoles.includes('tech_lead') || userRoles.includes('clinical_reviewer')
+  }, [isSuper, userRoles])
+
+  const roleBadgeInfo = useMemo(() => {
+    if (userRoles.includes('super_admin')) return { label: 'Super Admin', bg: '#f3e8ff', color: '#7e22ce', border: '#e9d5ff' }
+    if (userRoles.includes('tech_lead')) return { label: 'Tech Lead', bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' }
+    if (userRoles.includes('business_lead')) return { label: 'Business Lead', bg: '#fffbeb', color: '#b45309', border: '#fde68a' }
+    if (userRoles.includes('support_agent')) return { label: 'Customer Support', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' }
+    if (userRoles.includes('clinical_reviewer')) return { label: 'Clinical Reviewer', bg: '#f0fdfa', color: '#0f766e', border: '#99f6e4' }
+    if (userRoles.includes('admin') || isAdmin) return { label: 'Administrator', bg: '#eef2ff', color: '#4338ca', border: '#c7d2fe' }
+    return { label: 'Staff', bg: '#f1f5f9', color: '#475569', border: '#cbd5e1' }
+  }, [userRoles, isAdmin])
 
   // Close drawer on route change
   useEffect(() => {
@@ -122,7 +154,23 @@ export default function AdminLayout() {
 
           <div className="admin-top-bar-brand">
             <span className="admin-top-bar-sub">Skincluv</span>
-            <span className="admin-top-bar-title">Control Center</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="admin-top-bar-title">Control Center</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 600,
+                  padding: '1px 6px',
+                  borderRadius: 9999,
+                  background: roleBadgeInfo.bg,
+                  color: roleBadgeInfo.color,
+                  border: `1px solid ${roleBadgeInfo.border}`,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {roleBadgeInfo.label}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -161,8 +209,23 @@ export default function AdminLayout() {
               <ShieldCheck size={13} />
               Skincluv Admin
             </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
               Control Center
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: 9999,
+                  background: roleBadgeInfo.bg,
+                  color: roleBadgeInfo.color,
+                  border: `1px solid ${roleBadgeInfo.border}`,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {roleBadgeInfo.label}
+              </span>
             </div>
           </div>
 
@@ -221,21 +284,37 @@ export default function AdminLayout() {
             Overview
           </NavLink>
 
-          {/* Bisnis & Keuangan */}
-          <div style={groupHeaderStyle}>Bisnis & Keuangan</div>
-          {renderNavGroup(businessNavItems)}
+          {/* Bisnis & Keuangan (Person B) */}
+          {canSeeBusiness && (
+            <>
+              <div style={groupHeaderStyle}>Bisnis & Keuangan</div>
+              {renderNavGroup(businessNavItems)}
+            </>
+          )}
 
           {/* Pengguna & CRM */}
-          <div style={groupHeaderStyle}>Pengguna & CRM</div>
-          {renderNavGroup(userNavItems)}
+          {canSeeUsers && (
+            <>
+              <div style={groupHeaderStyle}>Pengguna & CRM</div>
+              {renderNavGroup(userNavItems)}
+            </>
+          )}
 
-          {/* Konfigurasi Sistem */}
-          <div style={groupHeaderStyle}>Konfigurasi Sistem</div>
-          {renderNavGroup(configNavItems)}
+          {/* Konfigurasi Sistem (Person A) */}
+          {canSeeConfig && (
+            <>
+              <div style={groupHeaderStyle}>Konfigurasi Sistem</div>
+              {renderNavGroup(configNavItems)}
+            </>
+          )}
 
-          {/* AI Knowledge & Training Hub */}
-          <div style={groupHeaderStyle}>AI Brain & Training Hub</div>
-          {renderNavGroup(aiHubNavItems)}
+          {/* AI Knowledge & Training Hub (Person A & Clinical) */}
+          {canSeeAiBrain && (
+            <>
+              <div style={groupHeaderStyle}>AI Brain & Training Hub</div>
+              {renderNavGroup(aiHubNavItems)}
+            </>
+          )}
         </nav>
       </aside>
 

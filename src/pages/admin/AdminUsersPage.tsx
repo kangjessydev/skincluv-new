@@ -12,8 +12,10 @@ import {
   AlertCircle,
   X,
   Filter,
+  UserCheck,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 
 interface UserItem {
   id: string
@@ -30,11 +32,22 @@ interface UserItem {
 }
 
 export default function AdminUsersPage() {
+  const { userRoles, isAdmin: isStaffAdmin } = useAuthStore()
+
+  const canManageRoles = useMemo(() => {
+    return (
+      userRoles.includes('super_admin') ||
+      userRoles.includes('tech_lead') ||
+      userRoles.includes('admin') ||
+      (!userRoles.length && isStaffAdmin)
+    )
+  }, [userRoles, isStaffAdmin])
+
   const [users, setUsers] = useState<UserItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [tierFilter, setTierFilter] = useState<'ALL' | 'FREE' | 'GLOW' | 'PRO'>('ALL')
-  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'CUSTOMER'>('ALL')
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'CUSTOMER' | 'ADMIN' | 'SUPER' | 'TECH' | 'BUSINESS' | 'SUPPORT'>('ALL')
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Modal State: Adjust Coins
@@ -45,8 +58,31 @@ export default function AdminUsersPage() {
 
   // Modal State: Manage Role
   const [roleModalUser, setRoleModalUser] = useState<UserItem | null>(null)
-  const [targetRole, setTargetRole] = useState<'admin' | 'customer'>('customer')
+  const [targetRole, setTargetRole] = useState<string>('customer')
   const [isChangingRole, setIsChangingRole] = useState(false)
+
+  // Modal State: CS-Safe Customer Summary (Invarian 16)
+  const [csSummaryUser, setCsSummaryUser] = useState<UserItem | null>(null)
+  const [csSummaryData, setCsSummaryData] = useState<any>(null)
+  const [isLoadingCsSummary, setIsLoadingCsSummary] = useState(false)
+
+  const handleOpenCsSummary = async (user: UserItem) => {
+    setCsSummaryUser(user)
+    setCsSummaryData(null)
+    setIsLoadingCsSummary(true)
+    try {
+      const { data, error } = await supabase.rpc('cs_get_customer_summary' as any, {
+        p_target_user_id: user.id,
+      })
+      if (error) throw error
+      setCsSummaryData(data)
+    } catch (err: any) {
+      console.error('[AdminUsers] Error loading CS summary:', err)
+      setFeedback({ type: 'error', message: `Gagal memuat data CS: ${err.message}` })
+    } finally {
+      setIsLoadingCsSummary(false)
+    }
+  }
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true)
@@ -143,8 +179,12 @@ export default function AdminUsersPage() {
 
       // Filter role
       if (roleFilter !== 'ALL') {
-        if (roleFilter === 'ADMIN' && u.role !== 'admin') return false
-        if (roleFilter === 'CUSTOMER' && u.role === 'admin') return false
+        if (roleFilter === 'SUPER' && u.role !== 'super_admin') return false
+        if (roleFilter === 'TECH' && u.role !== 'tech_lead') return false
+        if (roleFilter === 'BUSINESS' && u.role !== 'business_lead') return false
+        if (roleFilter === 'SUPPORT' && u.role !== 'support_agent') return false
+        if (roleFilter === 'ADMIN' && !['admin', 'super_admin', 'tech_lead', 'business_lead'].includes(u.role || '')) return false
+        if (roleFilter === 'CUSTOMER' && u.role && u.role !== 'customer') return false
       }
 
       // Search
@@ -352,7 +392,11 @@ export default function AdminUsersPage() {
             >
               <option value="ALL">Semua Role</option>
               <option value="CUSTOMER">Customer Biasa</option>
-              <option value="ADMIN">Staf Admin</option>
+              <option value="SUPER">Super Admin</option>
+              <option value="TECH">Tech Lead</option>
+              <option value="BUSINESS">Business Lead</option>
+              <option value="SUPPORT">Customer Support</option>
+              <option value="ADMIN">Semua Admin</option>
             </select>
           </div>
         </div>
@@ -437,19 +481,67 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td>
-                        {isAdmin ? (
-                          <span className="role-badge role-admin">
-                            <ShieldCheck size={12} /> ADMIN
-                          </span>
-                        ) : (
-                          <span className="role-badge role-customer">
-                            CUSTOMER
-                          </span>
-                        )}
+                        {(() => {
+                          const r = u.role || 'customer'
+                          if (r === 'super_admin') {
+                            return (
+                              <span className="role-badge role-super-admin">
+                                <ShieldCheck size={12} /> SUPER ADMIN
+                              </span>
+                            )
+                          }
+                          if (r === 'tech_lead') {
+                            return (
+                              <span className="role-badge role-tech-lead">
+                                <Shield size={12} /> TECH LEAD
+                              </span>
+                            )
+                          }
+                          if (r === 'business_lead') {
+                            return (
+                              <span className="role-badge role-business-lead">
+                                <Shield size={12} /> BUSINESS LEAD
+                              </span>
+                            )
+                          }
+                          if (r === 'support_agent') {
+                            return (
+                              <span className="role-badge role-support-agent">
+                                <UserCheck size={12} /> CS AGENT
+                              </span>
+                            )
+                          }
+                          if (r === 'clinical_reviewer') {
+                            return (
+                              <span className="role-badge role-clinical-reviewer">
+                                <Shield size={12} /> CLINICAL
+                              </span>
+                            )
+                          }
+                          if (r === 'admin') {
+                            return (
+                              <span className="role-badge role-admin">
+                                <ShieldCheck size={12} /> ADMIN
+                              </span>
+                            )
+                          }
+                          return (
+                            <span className="role-badge role-customer">
+                              CUSTOMER
+                            </span>
+                          )
+                        })()}
                       </td>
                       <td className="text-xs text-gray-500 font-mono">{joinDate}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div className="action-buttons-group">
+                          <button
+                            className="btn-action btn-cs-summary"
+                            onClick={() => handleOpenCsSummary(u)}
+                            title="Ringkasan Bantuan CS (Invarian 16)"
+                          >
+                            <UserCheck size={13} /> Detail CS
+                          </button>
                           <button
                             className="btn-action btn-adjust-coins"
                             onClick={() => {
@@ -461,16 +553,18 @@ export default function AdminUsersPage() {
                           >
                             <Coins size={13} /> Adjust Koin
                           </button>
-                          <button
-                            className="btn-action btn-manage-role"
-                            onClick={() => {
-                              setRoleModalUser(u)
-                              setTargetRole(u.role === 'admin' ? 'customer' : 'admin')
-                            }}
-                            title="Ubah Hak Akses Role"
-                          >
-                            <Shield size={13} /> Role
-                          </button>
+                          {canManageRoles && (
+                            <button
+                              className="btn-action btn-manage-role"
+                              onClick={() => {
+                                setRoleModalUser(u)
+                                setTargetRole(u.role || 'customer')
+                              }}
+                              title="Ubah Hak Akses Role"
+                            >
+                              <Shield size={13} /> Role
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -620,21 +714,77 @@ export default function AdminUsersPage() {
                     />
                     <div>
                       <strong>Customer</strong>
-                      <span>Pengguna aplikasi biasa dengan hak akses standar.</span>
+                      <span>Pengguna akhir aplikasi dengan hak akses standar.</span>
                     </div>
                   </label>
 
-                  <label className={`role-card-option ${targetRole === 'admin' ? 'selected' : ''}`}>
+                  <label className={`role-card-option ${targetRole === 'tech_lead' ? 'selected' : ''}`}>
                     <input
                       type="radio"
                       name="userRole"
-                      value="admin"
-                      checked={targetRole === 'admin'}
-                      onChange={() => setTargetRole('admin')}
+                      value="tech_lead"
+                      checked={targetRole === 'tech_lead'}
+                      onChange={() => setTargetRole('tech_lead')}
                     />
                     <div>
-                      <strong>Admin</strong>
-                      <span>Akses penuh ke Control Center Admin, prompt, model, & data finansial.</span>
+                      <strong>Tech Lead (Person A)</strong>
+                      <span>Lead Engineer. Mengelola AI Brain, prompt, model config, handbook, dan logging sistem.</span>
+                    </div>
+                  </label>
+
+                  <label className={`role-card-option ${targetRole === 'business_lead' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="business_lead"
+                      checked={targetRole === 'business_lead'}
+                      onChange={() => setTargetRole('business_lead')}
+                    />
+                    <div>
+                      <strong>Business Lead (Person B)</strong>
+                      <span>Business & Marketing. Mengelola Unit Economics, deposit vendor, pricing paket, dan CRM.</span>
+                    </div>
+                  </label>
+
+                  <label className={`role-card-option ${targetRole === 'support_agent' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="support_agent"
+                      checked={targetRole === 'support_agent'}
+                      onChange={() => setTargetRole('support_agent')}
+                    />
+                    <div>
+                      <strong>Customer Support (CS)</strong>
+                      <span>Bantuan CS. Akses ringkasan akun aman, verifikasi transaksi, & koreksi koin (Invarian 16).</span>
+                    </div>
+                  </label>
+
+                  <label className={`role-card-option ${targetRole === 'super_admin' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="super_admin"
+                      checked={targetRole === 'super_admin'}
+                      onChange={() => setTargetRole('super_admin')}
+                    />
+                    <div>
+                      <strong>Super Admin</strong>
+                      <span>Akses mutlak ke seluruh domain teknis, finansial, dan otoritas pengelolaan role.</span>
+                    </div>
+                  </label>
+
+                  <label className={`role-card-option ${targetRole === 'clinical_reviewer' ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="clinical_reviewer"
+                      checked={targetRole === 'clinical_reviewer'}
+                      onChange={() => setTargetRole('clinical_reviewer')}
+                    />
+                    <div>
+                      <strong>Clinical Reviewer</strong>
+                      <span>Reviewer Medis/BPOM. Akses kurasi formula, kamus bahan, dan aturan klinis.</span>
                     </div>
                   </label>
                 </div>
@@ -657,6 +807,220 @@ export default function AdminUsersPage() {
                 disabled={isChangingRole || targetRole === roleModalUser.role}
               >
                 {isChangingRole ? 'Menyimpan...' : 'Simpan Hak Akses'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: CS-Safe Customer Summary (Invarian 16) */}
+      {csSummaryUser && (
+        <div className="modal-overlay" onClick={() => !isLoadingCsSummary && setCsSummaryUser(null)}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: 640, maxHeight: '90vh', overflowY: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="modal-title-wrap">
+                <UserCheck size={18} className="text-blue-600" />
+                <div>
+                  <h3 style={{ margin: 0 }}>Ringkasan Bantuan CS</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: 11, color: '#64748b' }}>
+                    Akses Data Terisolasi CS (Invarian 16 dan UU PDP No. 27/2022)
+                  </p>
+                </div>
+              </div>
+              <button
+                className="modal-close"
+                onClick={() => setCsSummaryUser(null)}
+                disabled={isLoadingCsSummary}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {isLoadingCsSummary ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '36px 0' }}>
+                  <RefreshCw size={24} className="animate-spin text-blue-600" />
+                  <span style={{ fontSize: 13, color: '#64748b' }}>Memuat data aman pelanggan...</span>
+                </div>
+              ) : csSummaryData ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Banner Identitas Pelanggan */}
+                  <div className="user-target-banner" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <div className="avatar-circle sm">
+                      {csSummaryData.full_name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <span className="font-bold text-gray-900 block text-sm">
+                        {csSummaryData.full_name || 'Pelanggan Skincluv'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        @{csSummaryData.username || 'user'} • Terdaftar sejak {new Date(csSummaryData.registered_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: 11, color: '#64748b', display: 'block' }}>Paket Aktif:</span>
+                      <strong style={{ fontSize: 13, color: '#0f172a' }}>
+                        {csSummaryData.subscription?.tier_name || 'Free'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Saldo & Kuota */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                    <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b45309', fontSize: 12, fontWeight: 600 }}>
+                        <Coins size={15} /> Saldo Koin
+                      </div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: '#78350f', marginTop: 4 }}>
+                        {csSummaryData.coin_balance} <span style={{ fontSize: 12, fontWeight: 500 }}>Credits</span>
+                      </div>
+                    </div>
+                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#15803d', fontSize: 12, fontWeight: 600 }}>
+                        <Zap size={15} /> Masa Berlaku Paket
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#166534', marginTop: 4 }}>
+                        {csSummaryData.subscription?.expires_at
+                          ? new Date(csSummaryData.subscription.expires_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })
+                          : 'Tidak ada batas'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 10 Invoice Pembayaran Terakhir */}
+                  <div>
+                    <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#1e293b' }}>
+                      Riwayat Pembayaran Tripay (Maks 10 Terakhir)
+                    </h4>
+                    {csSummaryData.recent_invoices?.length > 0 ? (
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                          <thead style={{ background: '#f8fafc', color: '#64748b' }}>
+                            <tr>
+                              <th style={{ padding: '8px 10px', textAlign: 'left' }}>Ref / Invoice</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'left' }}>Paket</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'right' }}>Nominal</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'center' }}>Status</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'right' }}>Tanggal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {csSummaryData.recent_invoices.map((inv: any, idx: number) => (
+                              <tr key={idx} style={{ borderTop: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontSize: 11 }}>
+                                  {inv.tripay_reference || '-'}
+                                </td>
+                                <td style={{ padding: '8px 10px' }}>{inv.plan}</td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>
+                                  Rp {inv.amount_idr?.toLocaleString('id-ID')}
+                                </td>
+                                <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                  <span
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 600,
+                                      padding: '2px 6px',
+                                      borderRadius: 4,
+                                      background: inv.status === 'PAID' ? '#dcfce7' : '#fee2e2',
+                                      color: inv.status === 'PAID' ? '#15803d' : '#b91c1c',
+                                    }}
+                                  >
+                                    {inv.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right', color: '#64748b' }}>
+                                  {new Date(inv.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+                        Belum ada riwayat tagihan Tripay.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 10 Riwayat Koin Terakhir */}
+                  <div>
+                    <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#1e293b' }}>
+                      Riwayat Transaksi Koin Terakhir
+                    </h4>
+                    {csSummaryData.recent_coin_transactions?.length > 0 ? (
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                          <thead style={{ background: '#f8fafc', color: '#64748b' }}>
+                            <tr>
+                              <th style={{ padding: '8px 10px', textAlign: 'left' }}>Jumlah</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'left' }}>Tipe</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'left' }}>Keterangan</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'right' }}>Tanggal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {csSummaryData.recent_coin_transactions.map((tx: any, idx: number) => (
+                              <tr key={idx} style={{ borderTop: '1px solid #f1f5f9' }}>
+                                <td
+                                  style={{
+                                    padding: '8px 10px',
+                                    fontWeight: 700,
+                                    color: tx.amount > 0 ? '#16a34a' : '#dc2626',
+                                  }}
+                                >
+                                  {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
+                                </td>
+                                <td style={{ padding: '8px 10px', textTransform: 'capitalize' }}>
+                                  {tx.type}
+                                </td>
+                                <td style={{ padding: '8px 10px', color: '#64748b' }}>
+                                  {tx.notes || '-'}
+                                </td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right', color: '#64748b' }}>
+                                  {new Date(tx.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+                        Belum ada mutasi koin tercatat.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Banner Privasi Data */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: 8,
+                      padding: '10px 12px',
+                      fontSize: 11,
+                      color: '#475569',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Privasi Data Terjamin: Data foto wajah biometrik, diagnosis klinis, dan privasi percakapan obrolan pengguna diisolasi dari antarmuka ini demi kepatuhan UU PDP No. 27/2022.
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setCsSummaryUser(null)}
+              >
+                Tutup
               </button>
             </div>
           </div>
@@ -1038,8 +1402,22 @@ export default function AdminUsersPage() {
           border-radius: 999px;
         }
 
-        .role-admin { background: #e0e7ff; color: #3730a3; }
+        .role-super-admin { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+        .role-tech-lead { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .role-business-lead { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .role-support-agent { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .role-clinical-reviewer { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+        .role-admin { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
         .role-customer { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+        .btn-cs-summary {
+          background: #eff6ff;
+          border: 1px solid #bfdbfe;
+          color: #1d4ed8;
+        }
+        .btn-cs-summary:hover {
+          background: #dbeafe;
+        }
 
         .action-buttons-group {
           display: flex;

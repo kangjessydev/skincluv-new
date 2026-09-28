@@ -20,6 +20,7 @@ export function useAuthInit() {
     setCoinBalance,
     setSubscription,
     setIsAdmin,
+    setUserRoles,
     setLoading,
     setInitialized,
     reset,
@@ -49,9 +50,7 @@ export function useAuthInit() {
           supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', userId)
-            .eq('role', 'admin')
-            .maybeSingle(),
+            .eq('user_id', userId),
           supabase
             .from('ai_features')
             .select('slug, credit_cost'),
@@ -95,11 +94,17 @@ export function useAuthInit() {
           console.error('[useAuthInit] Gagal mengambil role pengguna:', roleRes.error)
         }
 
+        const assignedRoles: string[] = (roleRes.data || []).map((r: any) => r.role)
+        const hasAdminRole = assignedRoles.some((r) =>
+          ['admin', 'super_admin', 'tech_lead', 'business_lead'].includes(r)
+        )
+
         setProfile(profileData ?? null)
         setActiveSkinProfile((skinProfileRes.data as unknown as SkinProfile) ?? null)
         setCoinBalance(coinData ?? { id: userId, user_id: userId, balance: 0, updated_at: new Date().toISOString() })
         setSubscription((subRes.data as unknown as Subscription) ?? null)
-        setIsAdmin(!!roleRes.data)
+        setUserRoles(assignedRoles)
+        setIsAdmin(hasAdminRole)
 
         // Track daily login & streak safely on the server
         void supabase.rpc('track_daily_login').then(null, (err: unknown) => {
@@ -112,7 +117,7 @@ export function useAuthInit() {
         setInitialized(true)
       }
     },
-    [setLoading, setProfile, setActiveSkinProfile, setCoinBalance, setSubscription, setIsAdmin, setInitialized]
+    [setLoading, setProfile, setActiveSkinProfile, setCoinBalance, setSubscription, setIsAdmin, setUserRoles, setInitialized]
   )
 
   useEffect(() => {
