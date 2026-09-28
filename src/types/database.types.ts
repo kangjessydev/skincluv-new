@@ -177,6 +177,38 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_feedback: {
+        Row: {
+          created_at: string
+          feedback: number
+          id: string
+          log_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback: number
+          id?: string
+          log_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: number
+          id?: string
+          log_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_feedback_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "ai_request_logs"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       ai_request_logs: {
         Row: {
           cost_usd: number | null
@@ -1805,6 +1837,13 @@ export type Database = {
           p_details?: Json
         }
         Returns: string
+      }
+      record_ai_feedback: {
+        Args: {
+          p_log_id: string
+          p_feedback: number
+        }
+        Returns: boolean
       }
     }
     Enums: {

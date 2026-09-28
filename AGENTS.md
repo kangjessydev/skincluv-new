@@ -83,8 +83,8 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 18. **Pricing Integrity & Non-Derived Invoice Billing (RFC 015)**:
     - Nilai transaksi yang ditagihkan ke payment gateway (Tripay) wajib merujuk langsung ke kolom `price_idr` aktual saat pesanan dibuat. Persentase diskon promo hanya bersifat representasi visual di antarmuka dan tidak boleh dijadikan acuan nominal penagihan invoice.
 
-19. **Non-Therapeutic Cosmetic Demarcation (RFC 016)**:
-    - Skincluv beroperasi secara mutlak di luar definisi fasilitas telemedisin klinis (UU Kesehatan No. 17/2023, Permenkes No. 20/2019). Seluruh antarmuka publik, hasil scan, dan jawaban chatbot dilarang menggunakan kata medis terapeutik mutlak: *Diagnosis, Mengobati, Menyembuhkan, Terapi, Resep, Dokter AI, atau Terdaftar BPOM* (karena Skincluv adalah software platform edukasi kecantikan, bukan produk sediaan kosmetik). Hasil analisis wajib dilabeli sebagai *Skin Assessment / Cosmetic Observation*.
+19. **Non-Therapeutic Product Claim Boundary (RFC 016 & RFC 017)**:
+    - Skincluv beroperasi secara mutlak di luar definisi fasilitas telemedisin klinis dan alat kesehatan diagnostik (UU Kesehatan No. 17/2023, Permenkes No. 20/2019, dan Permenkes No. 62/2017 tentang Izin Edar Alat Kesehatan / SaMD). Skincluv dilarang memasarkan, merepresentasikan, atau menghasilkan klaim bahwa fitur analitik kosmetiknya merupakan diagnosis medis, terapi, resep, atau pengobatan. Seluruh antarmuka aktif pengguna, hasil scan, dan respons AI dilarang menggunakan register medis tereservasi: *Diagnosis, Terapi, Resep, Mengobati, Menyembuhkan, Klinis, Medis, Dermatologis*. Hasil pemindaian wajib dilabeli sebagai *Analisis Kulit AI / Pemetaan Kondisi Kulit / Observasi Visual*.
 
 20. **Dual-Track Deletion Lifecycle & Financial Integrity (RFC 016)**:
     - Penghapusan akun pengguna (Right to be Forgotten UU PDP No. 27/2022) wajib memisahkan data transaksi dari data biometrik. Kolom `tripay_invoices.user_id` wajib menggunakan referensi non-cascade (`ON DELETE SET NULL`) agar rekam jejak pembukuan kas Tripay tetap utuh untuk rekonsiliasi dan audit pajak. Sebaliknya, seluruh foto wajah fisik di Cloud Storage (`face-images`), vektor biometrik, riwayat chat, dan memori klinis wajib dimusnahkan secara total.
@@ -94,6 +94,9 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 
 22. **Zero-Runtime-Parser for Public Legal Docs (RFC 016)**:
     - Seluruh dokumen hukum dan pusat bantuan publik (`/terms`, `/privacy`, `/refund-policy`, `/medical-disclaimer`, `/faq`) wajib diimplementasikan sebagai komponen statis TSX/JSX yang di-*tree-shake* pada waktu kompilasi. Dilarang menyertakan pustaka parser Markdown runtime di browser klien demi menjamin FCP < 0.5 detik pada jaringan seluler 4G.
+
+23. **Canonical User-Facing Vocabulary & Database Invariant Hardening (RFC 017)**:
+    - Seluruh antarmuka publik dan aplikasi wajib menggunakan terminologi kanonikal pengguna: *Credits / AI Credits* (bukan Koin), *Skinsistant AI* (bukan Chatbot biasa), *Skin Assessment*, *Analisis Komposisi*, *Paket Akses*, dan *Riwayat Tagihan*. Skema basis data internal tetap mempertahankan nama tabel legacy (`coin_balances`, `coin_transactions`, `ai_features.credit_cost`) demi stabilitas sistem tanpa risiko migrasi skema. Selain itu, Invarian 1 (`universal_ai` wajib aktif) dan Invarian 2 (`face_validation` wajib 0 kredit) wajib dilindungi secara mutlak melalui *PostgreSQL CHECK constraint* di level database, bukan sekadar proteksi antarmuka (disabled input).
 
 ---
 

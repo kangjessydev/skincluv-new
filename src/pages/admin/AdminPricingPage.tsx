@@ -184,6 +184,13 @@ export default function AdminPricingPage() {
   }
 
   async function handleCreditCostUpdate(feature: Feature, newCost: number) {
+    if (feature.slug === 'face_validation' || feature.slug === 'universal_ai') {
+      setFeedback({
+        type: 'error',
+        message: `Fitur ${feature.name} (${feature.slug}) adalah invariant sistem yang terkunci (Invarian 1 & 2) dan tidak dapat diubah.`,
+      })
+      return
+    }
     if (newCost < 0) return
     try {
       const { error } = await supabase
@@ -520,32 +527,46 @@ export default function AdminPricingPage() {
                     </code>
                   </td>
                   <td style={{ padding: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        defaultValue={f.credit_cost ?? 1}
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value, 10)
-                          if (!isNaN(val) && val !== f.credit_cost) {
-                            handleCreditCostUpdate(f, val)
-                          }
-                        }}
-                        style={{
-                          width: 80,
-                          padding: '6px 10px',
-                          borderRadius: 6,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: '#b45309',
-                          textAlign: 'center',
-                          background: '#fffbeb',
-                        }}
-                      />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#92400e' }}>Credits / panggil</span>
-                    </div>
+                    {(() => {
+                      const isInvariantLocked = f.slug === 'face_validation' || f.slug === 'universal_ai'
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            disabled={isInvariantLocked}
+                            defaultValue={f.credit_cost ?? (f.slug === 'face_validation' ? 0 : 1)}
+                            onBlur={(e) => {
+                              if (isInvariantLocked) return
+                              const val = parseInt(e.target.value, 10)
+                              if (!isNaN(val) && val !== f.credit_cost) {
+                                handleCreditCostUpdate(f, val)
+                              }
+                            }}
+                            style={{
+                              width: 80,
+                              padding: '6px 10px',
+                              borderRadius: 6,
+                              border: isInvariantLocked ? '1px dashed #94a3b8' : '1px solid #d1d5db',
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: isInvariantLocked ? '#64748b' : '#b45309',
+                              textAlign: 'center',
+                              background: isInvariantLocked ? '#f1f5f9' : '#fffbeb',
+                              cursor: isInvariantLocked ? 'not-allowed' : 'text',
+                            }}
+                          />
+                          <span style={{ fontSize: 12, fontWeight: 600, color: isInvariantLocked ? '#64748b' : '#92400e' }}>
+                            {f.slug === 'face_validation'
+                              ? '0 Credits (Invarian 2: Gatekeeper Gratis)'
+                              : f.slug === 'universal_ai'
+                              ? 'Invarian 1: Universal Quota Anchor'
+                              : 'Credits / panggil'}
+                          </span>
+                        </div>
+                      )
+                    })()}
                   </td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
                     <span
