@@ -96,36 +96,6 @@ const faqs = [
 export default function LandingPage() {
   return (
     <div className="landing-container">
-      {/* NAVIGATION BAR */}
-      <header className="landing-navbar">
-        <div className="landing-nav-inner">
-          <Link to="/" className="landing-brand">
-            <div className="brand-logo">
-              <Sparkles size={20} />
-            </div>
-            <span className="brand-title">
-              Skin<span className="text-primary">cluv</span>
-            </span>
-          </Link>
-
-          <nav className="landing-nav-links">
-            <a href="#features">Fitur</a>
-            <a href="#how-it-works">Cara Kerja</a>
-            <a href="#pricing">Harga</a>
-            <a href="#faq">FAQ</a>
-          </nav>
-
-          <div className="landing-nav-actions">
-            <Link to="/login" className="btn btn-outline btn-sm">
-              Masuk
-            </Link>
-            <Link to="/register" className="btn btn-primary btn-sm">
-              Daftar Gratis <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* HERO SECTION */}
       <section className="landing-hero">
         <div className="landing-hero-inner">
@@ -258,23 +228,6 @@ export default function LandingPage() {
         </Link>
       </section>
 
-      {/* FOOTER */}
-      <footer className="landing-footer">
-        <div className="landing-footer-inner">
-          <p className="footer-copyright">© 2026 Skincluv. Asisten kesehatan kulit berbasis kecerdasan buatan.</p>
-          <div className="footer-links">
-            <Link to="/terms">Syarat &amp; Ketentuan</Link>
-            <span className="footer-sep">•</span>
-            <Link to="/privacy">Kebijakan Privasi (UU PDP)</Link>
-            <span className="footer-sep">•</span>
-            <a href="mailto:support@skincluv.com">Bantuan: support@skincluv.com</a>
-          </div>
-          <p className="footer-disclaimer">
-            Disclaimer: Skincluv adalah alat bantu edukasi kosmetik berbasis AI, bukan pengganti diagnosis medis dokter spesialis dermatologi.
-          </p>
-        </div>
-      </footer>
-
       {/* LANDING PAGE STYLES — Pure Vanilla CSS using skincluv tokens */}
       <style>{`
         .landing-container {
@@ -284,78 +237,14 @@ export default function LandingPage() {
           font-family: var(--font-body);
         }
 
-        .landing-navbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 100;
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-bottom: 1px solid var(--color-secondary-container);
-        }
-
-        .landing-nav-inner {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: var(--space-md) var(--space-lg);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .landing-brand {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .brand-logo {
-          background: linear-gradient(135deg, #0f6784 0%, #38bdf8 100%);
-          color: #ffffff;
-          border-radius: var(--radius-xl);
-          padding: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
         .hero-content {
           display: flex;
           flex-direction: column;
         }
-        .brand-title {
-          font-family: var(--font-heading);
-          font-size: 1.25rem;
-          font-weight: 800;
-        }
-        .text-primary { color: var(--color-primary); }
-
-        .landing-nav-links {
-          display: none;
-          gap: var(--space-lg);
-        }
-        @media (min-width: 768px) {
-          .landing-nav-links { display: flex; }
-        }
-
-        .landing-nav-links a {
-          color: var(--color-text-muted);
-          font-weight: 600;
-          font-size: 0.875rem;
-          transition: color 0.15s;
-        }
-        .landing-nav-links a:hover { color: var(--color-primary); }
-
-        .landing-nav-actions {
-          display: flex;
-          align-items: center;
-          gap: var(--space-xs);
-        }
 
         /* HERO */
         .landing-hero {
-          padding: 140px var(--space-lg) 80px;
+          padding: 48px var(--space-lg) 72px;
           max-width: 1200px;
           margin: 0 auto;
         }
@@ -673,7 +562,7 @@ export default function LandingPage() {
         /* CTA BANNER */
         .landing-cta-banner {
           max-width: 900px;
-          margin: 40px auto 80px;
+          margin: 40px auto 40px;
           background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
           color: white;
           border-radius: var(--radius-2xl);
@@ -694,56 +583,6 @@ export default function LandingPage() {
           margin: 0;
           opacity: 0.9;
           max-width: 480px;
-        }
-
-        /* FOOTER */
-        .landing-footer {
-          border-top: 1px solid var(--color-secondary-container);
-          padding: var(--space-2xl) var(--space-lg);
-          background: var(--color-surface-container-lowest);
-        }
-        .landing-footer-inner {
-          max-width: 900px;
-          margin: 0 auto;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: var(--space-sm);
-          text-align: center;
-        }
-        .footer-copyright {
-          margin: 0;
-          font-size: 0.875rem;
-          font-weight: 700;
-          color: var(--color-text-main);
-        }
-        .footer-links {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          align-items: center;
-          gap: 12px;
-          font-size: 0.8125rem;
-        }
-        .footer-links a {
-          color: var(--color-primary);
-          text-decoration: none;
-          font-weight: 600;
-          transition: opacity 0.15s;
-        }
-        .footer-links a:hover {
-          text-decoration: underline;
-        }
-        .footer-sep {
-          color: var(--color-text-muted);
-          font-size: 0.6875rem;
-        }
-        .footer-disclaimer {
-          margin: var(--space-xs) 0 0;
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
-          max-width: 620px;
-          line-height: 1.4;
         }
       `}</style>
     </div>
