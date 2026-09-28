@@ -54,6 +54,7 @@ const RefundPolicyPage = lazy(() => import('@/pages/public/RefundPolicyPage'))
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'))
 const AboutPage = lazy(() => import('@/pages/public/AboutPage'))
 const FaqPage = lazy(() => import('@/pages/public/FaqPage'))
+const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'))
 const PublicLayout = lazy(() => import('@/components/layout/PublicLayout'))
 
 export default function App() {
@@ -137,8 +138,11 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Fallback 404 Catch-All */}
+        <Route element={<PublicLayout />}>
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Routes>
     </Suspense>
   )
