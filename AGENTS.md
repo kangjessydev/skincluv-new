@@ -83,6 +83,18 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 18. **Pricing Integrity & Non-Derived Invoice Billing (RFC 015)**:
     - Nilai transaksi yang ditagihkan ke payment gateway (Tripay) wajib merujuk langsung ke kolom `price_idr` aktual saat pesanan dibuat. Persentase diskon promo hanya bersifat representasi visual di antarmuka dan tidak boleh dijadikan acuan nominal penagihan invoice.
 
+19. **Non-Therapeutic Cosmetic Demarcation (RFC 016)**:
+    - Skincluv beroperasi secara mutlak di luar definisi fasilitas telemedisin klinis (UU Kesehatan No. 17/2023, Permenkes No. 20/2019). Seluruh antarmuka publik, hasil scan, dan jawaban chatbot dilarang menggunakan kata medis terapeutik mutlak: *Diagnosis, Mengobati, Menyembuhkan, Terapi, Resep, Dokter AI, atau Terdaftar BPOM* (karena Skincluv adalah software platform edukasi kecantikan, bukan produk sediaan kosmetik). Hasil analisis wajib dilabeli sebagai *Skin Assessment / Cosmetic Observation*.
+
+20. **Dual-Track Deletion Lifecycle & Financial Integrity (RFC 016)**:
+    - Penghapusan akun pengguna (Right to be Forgotten UU PDP No. 27/2022) wajib memisahkan data transaksi dari data biometrik. Kolom `tripay_invoices.user_id` wajib menggunakan referensi non-cascade (`ON DELETE SET NULL`) agar rekam jejak pembukuan kas Tripay tetap utuh untuk rekonsiliasi dan audit pajak. Sebaliknya, seluruh foto wajah fisik di Cloud Storage (`face-images`), vektor biometrik, riwayat chat, dan memori klinis wajib dimusnahkan secara total.
+
+21. **Zero-Leakage Auth Callback & Token Sanitization (RFC 016)**:
+    - Tautan recovery kata sandi dan verifikasi email wajib diproses melalui endpoint tunggal `/auth/callback`. Parameter sensitif (`code`, `token`, `access_token`) pada URL wajib segera dibersihkan dari browser menggunakan `history.replaceState` sebelum telemetri atau skrip pihak ketiga dimuat, guna mencegah kebocoran sesi via HTTP Referrer.
+
+22. **Zero-Runtime-Parser for Public Legal Docs (RFC 016)**:
+    - Seluruh dokumen hukum dan pusat bantuan publik (`/terms`, `/privacy`, `/refund-policy`, `/medical-disclaimer`, `/faq`) wajib diimplementasikan sebagai komponen statis TSX/JSX yang di-*tree-shake* pada waktu kompilasi. Dilarang menyertakan pustaka parser Markdown runtime di browser klien demi menjamin FCP < 0.5 detik pada jaringan seluler 4G.
+
 ---
 
 ## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)

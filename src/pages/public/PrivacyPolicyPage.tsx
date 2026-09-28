@@ -1,282 +1,499 @@
+// src/pages/public/PrivacyPolicyPage.tsx
+// Kebijakan Privasi Resmi Skincluv
+// Kepatuhan: UU Pelindungan Data Pribadi (UU PDP No. 27/2022) & Invarian 20
+// Optimasi: DeepSeek 5-Layer Performance (Static TSX + content-visibility + Sticky Anchor TOC)
+
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Shield, Lock, Trash2, EyeOff, CheckCircle2 } from 'lucide-react'
+import { ShieldCheck, Lock, Trash2, EyeOff, Clock, ChevronRight, CheckCircle2, UserCheck, Database } from 'lucide-react'
 
 export default function PrivacyPolicyPage() {
+  const [activeSection, setActiveSection] = useState('data-dikumpulkan')
+
+  const scrollTo = (id: string) => {
+    setActiveSection(id)
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   return (
-    <div className="legal-container">
-      <header className="legal-header">
-        <div className="legal-header-inner">
-          <Link to="/" className="btn btn-secondary btn-sm">
-            <ArrowLeft size={16} />
-            <span>Kembali ke Beranda</span>
-          </Link>
-          <div className="legal-brand">
-            <Shield size={20} color="var(--color-primary)" />
-            <span style={{ fontWeight: 800 }}>Skincluv</span>
+    <div className="legal-doc-page animate-fade-in">
+      <div className="legal-doc-container">
+        {/* HEADER */}
+        <header className="legal-doc-header">
+          <div className="doc-meta-badge">
+            <ShieldCheck size={14} /> KEPATUHAN UU PDP NO. 27/2022
+          </div>
+          <h1>Kebijakan Privasi &amp; Perlindungan Data Biometrik</h1>
+          <p className="doc-subtitle">
+            Standar tata kelola, pemrosesan, perlindungan data pribadi spesifik (data biometrik wajah), dan jaminan hak pengguna sesuai Undang-Undang Pelindungan Data Pribadi Republik Indonesia.
+          </p>
+          <div className="doc-effective-date">
+            <Clock size={14} /> Terakhir diperbarui: 28 September 2026 • Berlaku untuk seluruh pengguna Skincluv
+          </div>
+        </header>
+
+        {/* CORE PRIVACY COMMITMENTS */}
+        <div className="privacy-commitments-grid">
+          <div className="commitment-card">
+            <div className="commitment-icon-wrap"><Lock size={20} /></div>
+            <div>
+              <h4>Minimisasi Data Biometrik</h4>
+              <p>Foto wajah disimpan di storage tertutup (*private bucket*) dengan enkripsi dan hanya dapat diakses melalui URL bertanda tangan berwaktu singkat (*short-lived signed URL*).</p>
+            </div>
+          </div>
+          <div className="commitment-card">
+            <div className="commitment-icon-wrap"><Trash2 size={20} /></div>
+            <div>
+              <h4>Hak untuk Dihapus (*Right to be Forgotten*)</h4>
+              <p>Pengguna memiliki kendali penuh untuk menghapus rekam jejak scan wajah, riwayat percakapan, atau menghapus akun secara permanen melalui Pusat Privasi.</p>
+            </div>
+          </div>
+          <div className="commitment-card">
+            <div className="commitment-icon-wrap"><EyeOff size={20} /></div>
+            <div>
+              <h4>Tanpa Penjualan Data ke Pihak Ketiga</h4>
+              <p>Data profil dan foto Anda tidak pernah diperjualbelikan kepada broker data, biro periklanan, atau pihak eksternal mana pun.</p>
+            </div>
+          </div>
+          <div className="commitment-card">
+            <div className="commitment-icon-wrap"><Database size={20} /></div>
+            <div>
+              <h4>Pemisahan Transaksi Finansial</h4>
+              <p>Data transaksi kas Tripay dipisahkan dari data biometrik untuk kepatuhan hukum pembukuan tanpa menyimpan identitas pribadi sensitif.</p>
+            </div>
           </div>
         </div>
-      </header>
 
-      <main className="legal-content">
-        <div className="legal-title-section">
-          <span className="legal-badge">Privasi &amp; Kepatuhan Regulasi</span>
-          <h1>Kebijakan Privasi</h1>
-          <p className="legal-subtitle">
-            Sesuai Undang-Undang Pelindungan Data Pribadi (UU PDP No. 27 Tahun 2022). Terakhir diperbarui: 27 September 2026.
-          </p>
-        </div>
-
-        <article className="legal-body">
-          <section className="legal-summary-card">
-            <h3>Komitmen Privasi Inti Skincluv:</h3>
-            <div className="legal-commitments-grid">
-              <div className="commitment-item">
-                <Lock size={18} className="commitment-icon" />
-                <div>
-                  <strong>Minimisasi Biometrik</strong>
-                  <span>Foto wajah diproses secara sirkular/sementara untuk ekstraksi skor klinis dan tidak disimpan sebagai album publik.</span>
-                </div>
-              </div>
-              <div className="commitment-item">
-                <Trash2 size={18} className="commitment-icon" />
-                <div>
-                  <strong>Hak untuk Dilupakan (Right to be Forgotten)</strong>
-                  <span>Pengguna dapat menghapus riwayat pemindaian dan mematikan memori AI kapan saja dengan pembersihan atomik.</span>
-                </div>
-              </div>
-              <div className="commitment-item">
-                <EyeOff size={18} className="commitment-icon" />
-                <div>
-                  <strong>Tanpa Penjualan Data</strong>
-                  <span>Data profil, riwayat scan, atau preferensi Anda tidak pernah dijual kepada pihak ketiga atau pengiklan.</span>
-                </div>
-              </div>
-              <div className="commitment-item">
-                <CheckCircle2 size={18} className="commitment-icon" />
-                <div>
-                  <strong>Enkripsi Standar Perbankan</strong>
-                  <span>Seluruh lalu lintas dilindungi enkripsi TLS 1.3 dan Row Level Security (RLS) PostgreSQL setingkat korporat.</span>
-                </div>
-              </div>
+        {/* CONTENT GRID */}
+        <div className="legal-content-grid">
+          {/* SIDEBAR TOC */}
+          <aside className="legal-sidebar">
+            <div className="sticky-toc-box">
+              <h3>Daftar Klausul</h3>
+              <nav className="toc-nav">
+                <button
+                  className={`toc-link ${activeSection === 'data-dikumpulkan' ? 'active' : ''}`}
+                  onClick={() => scrollTo('data-dikumpulkan')}
+                >
+                  <ChevronRight size={14} /> 1. Jenis Data yang Dikumpulkan
+                </button>
+                <button
+                  className={`toc-link ${activeSection === 'tujuan-pemrosesan' ? 'active' : ''}`}
+                  onClick={() => scrollTo('tujuan-pemrosesan')}
+                >
+                  <ChevronRight size={14} /> 2. Tujuan Pemrosesan
+                </button>
+                <button
+                  className={`toc-link ${activeSection === 'keamanan-penyimpanan' ? 'active' : ''}`}
+                  onClick={() => scrollTo('keamanan-penyimpanan')}
+                >
+                  <ChevronRight size={14} /> 3. Keamanan &amp; Penyimpanan
+                </button>
+                <button
+                  className={`toc-link ${activeSection === 'pihak-ketiga' ? 'active' : ''}`}
+                  onClick={() => scrollTo('pihak-ketiga')}
+                >
+                  <ChevronRight size={14} /> 4. Pihak Ketiga &amp; Pemroses AI
+                </button>
+                <button
+                  className={`toc-link ${activeSection === 'hak-pengguna' ? 'active' : ''}`}
+                  onClick={() => scrollTo('hak-pengguna')}
+                >
+                  <ChevronRight size={14} /> 5. Hak Pengguna (UU PDP)
+                </button>
+                <button
+                  className={`toc-link ${activeSection === 'penghapusan-akun' ? 'active' : ''}`}
+                  onClick={() => scrollTo('penghapusan-akun')}
+                >
+                  <ChevronRight size={14} /> 6. Siklus Penghapusan &amp; Retensi
+                </button>
+                <button
+                  className={`toc-link ${activeSection === 'kontak-dpo' ? 'active' : ''}`}
+                  onClick={() => scrollTo('kontak-dpo')}
+                >
+                  <ChevronRight size={14} /> 7. Kontak Petugas Privasi
+                </button>
+              </nav>
             </div>
-          </section>
+          </aside>
 
-          <h2>1. Informasi yang Kami Kumpulkan</h2>
-          <p>Kami mengumpulkan jenis data berikut untuk menyediakan layanan analitik kulit:</p>
-          <ul>
-            <li>
-              <strong>Data Akun:</strong> Alamat email, nama panggilan/display name, kata sandi terenkripsi,
-              serta preferensi profil (tipe kulit, keluhan utama).
-            </li>
-            <li>
-              <strong>Data Observasi Pemindaian (Scan Data):</strong> Citra foto wajah dan foto label komposisi
-              produk yang Anda unggah secara sadar. Citra diproses oleh sistem komputasi AI dermatologi untuk
-              menghitung parameter (tingkat sebum, kemerahan, pori, skor kerutan) dan mengekstraksi bahan aktif INCI.
-            </li>
-            <li>
-              <strong>Data Transaksi:</strong> Nomor referensi transaksi, status pembayaran, dan metode bayar
-              yang diteruskan dari Tripay Payment Gateway. Skincluv tidak pernah menyimpan nomor kartu kredit atau
-              PIN perbankan Anda.
-            </li>
-            <li>
-              <strong>Log Teknis &amp; Diagnostik:</strong> Alamat IP, jenis peramban, serta log latensi API
-              untuk mendeteksi anomali keamanan dan memantau performa model AI.
-            </li>
-          </ul>
+          {/* ARTICLE BODY */}
+          <article className="legal-article-body">
+            {/* Bagian 1 */}
+            <section id="data-dikumpulkan" className="legal-clause-block">
+              <h2>1. Jenis Data Pribadi yang Dikumpulkan</h2>
+              <p>
+                Dalam rangka menyediakan layanan komputasi kosmetik, Skincluv mengumpulkan kategori data berikut:
+              </p>
+              <ul>
+                <li>
+                  <strong>Data Pribadi Umum:</strong> Alamat email, nama tampilan profil, dan preferensi tipe kulit pengguna yang diisi secara sukarela.
+                </li>
+                <li>
+                  <strong>Data Pribadi Spesifik (Data Biometrik &amp; Observasi Kulit):</strong> Citra foto wajah yang diunggah untuk pemindaian AI. Berdasarkan <strong>Pasal 4 ayat (2) UU PDP No. 27/2022</strong>, data biometrik dan data kesehatan fisik diklasifikasikan sebagai data pribadi yang bersifat spesifik yang wajib mendapatkan standar keamanan ketat.
+                </li>
+                <li>
+                  <strong>Data Transaksi Finansial:</strong> Catatan tagihan pembayaran dari Tripay Gateway (nomor referensi transaksi, metode pembayaran, nominal, dan status pembayaran). Kami <em>tidak pernah</em> mengumpulkan atau menyimpan nomor kartu kredit/debit atau PIN bank pengguna.
+                </li>
+                <li>
+                  <strong>Data Teknis Telemetri:</strong> Alamat IP, jenis peramban, dan sistem operasi yang digunakan semata-mata untuk proteksi pencegahan penyalahgunaan API dan rate-limiting.
+                </li>
+              </ul>
+            </section>
 
-          <h2>2. Tujuan Pemrosesan Data Pribadi</h2>
-          <p>Data pribadi Anda diproses dengan dasar persetujuan eksplisit (consent) untuk tujuan:</p>
-          <ul>
-            <li>Melakukan analisis visual kondisi kulit wajah dan verifikasi keamanan bahan aktif kosmetik.</li>
-            <li>Menyajikan grafik perkembangan tren kondisi kulit (28-day skin cycle monitoring).</li>
-            <li>Memberikan rekomendasi produk yang relevan secara objektif berdasarkan komposisi bahan ilmiah.</li>
-            <li>Memproses kuota langganan, Misi Glow, serta pencatatan akuntansi token AI yang transparan.</li>
-          </ul>
+            {/* Bagian 2 */}
+            <section id="tujuan-pemrosesan" className="legal-clause-block">
+              <h2>2. Dasar Hukum &amp; Tujuan Pemrosesan Data</h2>
+              <p>
+                Pemrosesan data pribadi Anda dilakukan berdasarkan <strong>persetujuan eksplisit (*explicit consent*)</strong> saat mendaftar dan mengunggah foto wajah, dengan tujuan terbatas untuk:
+              </p>
+              <ul>
+                <li>Mengekstraksi indikator visual kondisi kulit (kelembaban, kemerahan, sebum, dan pori-pori) melalui model visi komputer.</li>
+                <li>Memberikan rekomendasi bahan aktif skincare edukatif non-terapeutik yang relevan dengan tipe kulit Anda.</li>
+                <li>Mengelola saldo kuota Universal AI dan riwayat aktivasi paket pass 30 hari.</li>
+                <li>Menghasilkan grafik tren perkembangan kondisi kulit mandiri dalam jangka waktu 28 hari.</li>
+              </ul>
+            </section>
 
-          <h2>3. Pemrosesan Citra Wajah &amp; Keamanan Biometrik</h2>
-          <p>
-            Skincluv memperlakukan citra wajah dengan standar kehati-hatian tertinggi:
-          </p>
-          <ul>
-            <li>
-              <strong>Idempotensi Hash SHA-256:</strong> Sistem hanya menyimpan nilai intisari hash kriptografis
-              foto untuk mendeteksi unggahan berulang identik tanpa menyimpan duplikat mentah.
-            </li>
-            <li>
-              <strong>Tidak Menggunakan Perceptual Similarity:</strong> Foto yang hanya mirip tidak pernah
-              diasumsikan identik secara otomatis demi menjaga akurasi klinis dan integritas data pengguna.
-            </li>
-            <li>
-              <strong>Isolasi Bubble Chat:</strong> Komponen antarmuka Skinsistant dilarang menampilkan kembali foto
-              wajah asli di ruang obrolan demi meminimalkan paparan data visual biometrik.
-            </li>
-          </ul>
+            {/* Bagian 3 */}
+            <section id="keamanan-penyimpanan" className="legal-clause-block">
+              <h2>3. Keamanan, Enkripsi, &amp; Penyimpanan Data</h2>
+              <p>
+                Kami menerapkan standar arsitektur keamanan *Zero-Trust*:
+              </p>
+              <ul>
+                <li><strong>Enkripsi In-Transit &amp; At-Rest:</strong> Seluruh komunikasi jaringan menggunakan protokol TLS 1.3 dengan algoritma enkripsi SHA-256 / AES-256.</li>
+                <li><strong>Private Storage Bucket:</strong> Foto wajah fisik disimpan di dalam Supabase Cloud Storage dengan status akses tertutup (*private*). Foto tidak memiliki URL publik permanen dan hanya dapat diakses melalui URL bertanda tangan kriptografis (*signed URL*) berbatas waktu (maksimal 60 menit) yang diotorisasi khusus untuk akun pemiliknya.</li>
+                <li><strong>Row Level Security (RLS):</strong> Basis data PostgreSQL mengaktifkan RLS ketat di level baris tabel; pengguna lain atau peran Customer Support secara teknis tidak dapat mengueri foto atau hasil klinis Anda.</li>
+              </ul>
+            </section>
 
-          <h2>4. Hak Subjek Data (Pasal 5 UU PDP No. 27/2022)</h2>
-          <p>Sebagai pemilik data pribadi, Anda memiliki hak penuh untuk:</p>
-          <ul>
-            <li><strong>Hak Akses &amp; Salinan:</strong> Melihat seluruh riwayat pemindaian dan riwayat obrolan Anda melalui dashboard akun.</li>
-            <li><strong>Hak Pembaruan (Rectification):</strong> Mengubah tipe kulit dan preferensi pada menu pengaturan.</li>
-            <li><strong>Hak Penghapusan (Erasure / Right to be Forgotten):</strong> Menghapus riwayat scan tertentu. Visual card terkait pada obrolan lampau akan seketika di-invalidasi menjadi 404/null untuk mencegah kebocoran data basi.</li>
-            <li><strong>Hak Penarikan Persetujuan (Withdrawal of Consent):</strong> Anda dapat mematikan tombol <em>Memory Consent</em> di panel Chatbot. Seketika itu juga seluruh ringkasan memori klinis Anda dihapus permanen secara atomik dari basis data.</li>
-          </ul>
+            {/* Bagian 4 */}
+            <section id="pihak-ketiga" className="legal-clause-block">
+              <h2>4. Keterlibatan Pihak Ketiga &amp; Pemroses AI</h2>
+              <p>
+                Untuk menjalankan komputasi awan, Skincluv bekerja sama dengan mitra pemroses data terpercaya:
+              </p>
+              <ul>
+                <li><strong>Penyedia Model AI (Google Cloud Vertex / Gemini &amp; OpenRouter):</strong> Foto wajah atau teks pertanyaan dikirimkan melalui saluran API terenkripsi semata-mata untuk inferensi analitik seketika. Berdasarkan perjanjian penyedia enterprise, data tidak digunakan untuk melatih model umum publik pihak ketiga.</li>
+                <li><strong>Penyedia Gerbang Pembayaran (Tripay):</strong> Untuk memproses verifikasi transaksi perbankan dan penerbitan kode QRIS / Virtual Account.</li>
+                <li><strong>Penyedia Pencarian Web Terverifikasi (Tavily Search):</strong> Hanya menerima kueri bahan aktif skincare dermatologi yang telah disanitasi dari kata ganti orang pertama demi privasi percakapan.</li>
+              </ul>
+            </section>
 
-          <h2>5. Keamanan dan Penyimpanan Data</h2>
-          <p>
-            Data disimpan di infrastruktur cloud tersertifikasi ISO/IEC 27001 dan SOC 2 Tipe II (Supabase).
-            Akses ke basis data dilindungi oleh kebijakan <em>Row Level Security</em> (RLS) di mana setiap baris data
-            hanya dapat dibaca dan ditulis oleh pengguna yang terotentikasi sebagai pemilik sah data tersebut.
-            Kunci service-role backend tidak pernah diekspos ke sisi klien.
-          </p>
+            {/* Bagian 5 */}
+            <section id="hak-pengguna" className="legal-clause-block">
+              <h2>5. Hak-Hak Pemilik Data Pribadi (UU PDP No. 27/2022)</h2>
+              <p>
+                Sebagai subjek data, Anda memiliki hak penuh yang dijamin oleh undang-undang:
+              </p>
+              <ul>
+                <li><strong>Hak Akses &amp; Portabilitas:</strong> Hak untuk melihat seluruh rekam jejak scan dan mengunduh salinan data profil Anda.</li>
+                <li><strong>Hak Penarikan Persetujuan (*Consent Withdrawal*):</strong> Anda dapat mematikan fitur memori asisten AI kapan saja melalui pengaturan chatbot, yang secara otomatis memicu penghapusan atomik memori percakapan.</li>
+                <li><strong>Hak Penghapusan Mandiri:</strong> Hak untuk menghapus riwayat foto scan wajah tertentu atau seluruh akun secara permanen.</li>
+              </ul>
+            </section>
 
-          <h2>6. Kontak Petugas Pelindungan Data (DPO)</h2>
-          <p>
-            Untuk mengajukan permohonan penghapusan akun secara menyeluruh atau pertanyaan mengenai hak privasi Anda,
-            silakan hubungi Petugas Pelindungan Data Skincluv di:
-          </p>
-          <p>
-            <strong>Email DPO:</strong> <code>privacy@skincluv.com</code><br />
-            <strong>Alamat:</strong> Jakarta, Indonesia.
-          </p>
-        </article>
-      </main>
+            {/* Bagian 6 */}
+            <section id="penghapusan-akun" className="legal-clause-block">
+              <h2>6. Siklus Penghapusan Data &amp; Kebijakan Retensi Backup</h2>
+              <p>
+                Sesuai prinsip kepatuhan hukum yang defensible:
+              </p>
+              <div className="clause-highlight-box">
+                <p><strong>Mekanisme Dual-Track Penghapusan:</strong></p>
+                <ul>
+                  <li><strong>Data Biometrik &amp; Klinis:</strong> Saat Anda menghapus akun atau menghapus riwayat scan, file fisik foto wajah di Cloud Storage, hasil ekstraksi fitur visual, riwayat chat, dan memori klinis akan <strong>dimusnahkan secara menyeluruh dari sistem operasional aktif</strong>.</li>
+                  <li><strong>Catatan Transaksi Finansial:</strong> Untuk memenuhi kewajiban rekonsiliasi dan hukum perpajakan Republik Indonesia, catatan invoice kas Tripay tetap dipertahankan dengan menghapus referensi identitas personal pengguna (foreign key dialihkan menjadi <code>NULL</code>) sehingga tidak lagi terhubung dengan identitas Anda.</li>
+                </ul>
+              </div>
+              <p>
+                <strong>Siklus Cadangan Terenkripsi (*Encrypted Backup Lifecycle*):</strong> Data aktif segera dihapus dari sistem operasional. Salinan cadangan (*disaster recovery snapshot*) yang terenkripsi akan terhapus secara alami mengikuti siklus retensi backup berkala (maksimal 30 hari) dan tidak pernah diproses kembali untuk operasional apa pun.
+              </p>
+            </section>
 
-      <footer className="legal-footer">
-        <p>© 2026 Skincluv. Sesuai regulasi UU PDP Republik Indonesia.</p>
-      </footer>
+            {/* Bagian 7 */}
+            <section id="kontak-dpo" className="legal-clause-block">
+              <h2>7. Kontak Petugas Pelindungan Data (DPO)</h2>
+              <p>
+                Apabila Anda memiliki pertanyaan, keberatan, atau ingin mengajukan permohonan hak atas data pribadi Anda, silakan hubungi tim kepatuhan privasi kami:
+              </p>
+              <div className="clause-highlight-box">
+                <p><strong>Tim Pelindungan Data Pribadi Skincluv:</strong></p>
+                <p>Email: <code>privacy@skincluv.com</code> / <code>support@skincluv.com</code></p>
+                <p>WhatsApp Dukungan: Melalui halaman <Link to="/contact">Kontak Resmi</Link></p>
+                <p>Waktu Respons: Maksimal 3 &times; 24 jam kerja sesuai ketentuan UU PDP.</p>
+              </div>
+            </section>
+          </article>
+        </div>
+      </div>
 
+      {/* STYLING VANILLA CSS */}
       <style>{`
-        .legal-container {
-          min-height: 100vh;
-          background: var(--color-surface-bg);
-          color: var(--color-text-main);
-          font-family: var(--font-body);
+        .legal-doc-page {
+          padding: 48px 0 80px;
+          background: var(--color-surface-bg, #f8fafc);
+          min-height: calc(100vh - 64px);
         }
-        .legal-header {
-          border-bottom: 1px solid var(--color-secondary-container);
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          position: sticky;
-          top: 0;
-          z-index: 50;
-        }
-        .legal-header-inner {
-          max-width: 900px;
+
+        .legal-doc-container {
+          max-width: 1120px;
           margin: 0 auto;
-          padding: var(--space-md) var(--space-lg);
-          display: flex;
+          padding: 0 var(--space-lg, 24px);
+        }
+
+        .legal-doc-header {
+          margin-bottom: 32px;
+        }
+
+        .doc-meta-badge {
+          display: inline-flex;
           align-items: center;
-          justify-content: space-between;
-        }
-        .legal-brand {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 1.125rem;
-        }
-        .legal-content {
-          max-width: 840px;
-          margin: 0 auto;
-          padding: 60px var(--space-lg) 100px;
-        }
-        .legal-title-section {
-          margin-bottom: var(--space-2xl);
-        }
-        .legal-badge {
-          display: inline-block;
+          gap: 6px;
           font-size: 0.75rem;
-          font-weight: 700;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          color: #0369a1;
+          background: #e0f2fe;
+          border: 1px solid #bae6fd;
           padding: 4px 12px;
-          border-radius: var(--radius-full);
-          background: var(--color-primary-fixed);
-          color: var(--color-on-primary-container);
-          margin-bottom: var(--space-sm);
+          border-radius: var(--radius-full, 9999px);
+          margin-bottom: 12px;
         }
-        .legal-title-section h1 {
+
+        .legal-doc-header h1 {
+          font-family: var(--font-heading, sans-serif);
           font-size: 2.25rem;
-          font-family: var(--font-heading);
           font-weight: 800;
-          margin: 0 0 10px;
+          color: var(--color-text-main, #0f172a);
+          line-height: 1.2;
+          margin: 0 0 12px 0;
         }
-        .legal-subtitle {
-          font-size: 0.875rem;
-          color: var(--color-text-muted);
-          margin: 0;
+
+        .doc-subtitle {
+          font-size: 1rem;
+          color: var(--color-text-muted, #64748b);
+          line-height: 1.6;
+          max-width: 820px;
+          margin: 0 0 16px 0;
         }
-        .legal-body {
-          line-height: 1.7;
-          font-size: 0.9375rem;
+
+        .doc-effective-date {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #94a3b8;
         }
-        .legal-body h2 {
-          font-size: 1.25rem;
-          font-family: var(--font-heading);
-          font-weight: 800;
-          margin: 36px 0 12px;
-          padding-top: 12px;
-          border-top: 1px solid var(--color-secondary-container);
-        }
-        .legal-body p {
-          margin: 0 0 16px;
-          color: var(--color-text-main);
-        }
-        .legal-body ul {
-          margin: 0 0 20px;
-          padding-left: 24px;
-        }
-        .legal-body li {
-          margin-bottom: 8px;
-        }
-        .legal-summary-card {
-          background: var(--color-surface-container-low);
-          border: 1px solid var(--color-secondary-container);
-          border-radius: var(--radius-2xl);
-          padding: var(--space-xl);
-          margin-bottom: var(--space-2xl);
-        }
-        .legal-summary-card h3 {
-          margin: 0 0 var(--space-lg);
-          font-size: 1.125rem;
-          font-family: var(--font-heading);
-          font-weight: 800;
-        }
-        .legal-commitments-grid {
+
+        .privacy-commitments-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: var(--space-md);
+          gap: 16px;
+          margin-bottom: 40px;
         }
+
         @media (min-width: 640px) {
-          .legal-commitments-grid {
+          .privacy-commitments-grid {
             grid-template-columns: 1fr 1fr;
           }
         }
-        .commitment-item {
+
+        .commitment-card {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
+          gap: 14px;
+          background: #ffffff;
+          border: 1px solid var(--color-secondary-container, #e2e8f0);
+          border-radius: var(--radius-lg, 12px);
+          padding: 18px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
-        .commitment-icon {
+
+        .commitment-icon-wrap {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: #e0f2fe;
+          color: var(--color-primary, #0f6784);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
-          color: var(--color-primary);
-          margin-top: 2px;
         }
-        .commitment-item strong {
-          display: block;
+
+        .commitment-card h4 {
           font-size: 0.875rem;
-          font-weight: 700;
-          margin-bottom: 4px;
+          font-weight: 800;
+          color: var(--color-text-main, #0f172a);
+          margin: 0 0 4px 0;
         }
-        .commitment-item span {
-          display: block;
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
-          line-height: 1.45;
-        }
-        .legal-footer {
-          border-top: 1px solid var(--color-secondary-container);
-          padding: var(--space-xl) var(--space-lg);
-          text-align: center;
+
+        .commitment-card p {
           font-size: 0.8125rem;
-          color: var(--color-text-muted);
+          color: var(--color-text-muted, #64748b);
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .legal-content-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 40px;
+          align-items: start;
+        }
+
+        @media (min-width: 860px) {
+          .legal-content-grid {
+            grid-template-columns: 280px 1fr;
+          }
+        }
+
+        .legal-sidebar {
+          position: sticky;
+          top: 84px;
+        }
+
+        .sticky-toc-box {
+          background: #ffffff;
+          border: 1px solid var(--color-secondary-container, #e2e8f0);
+          border-radius: var(--radius-xl, 16px);
+          padding: 20px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .sticky-toc-box h3 {
+          font-size: 0.875rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--color-text-main, #0f172a);
+          margin: 0 0 14px 0;
+          padding-bottom: 10px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .toc-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .toc-link {
+          background: transparent;
+          border: none;
+          text-align: left;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--color-text-muted, #64748b);
+          padding: 8px 10px;
+          border-radius: var(--radius-md, 8px);
+          cursor: pointer;
+          transition: all 0.15s ease;
+          width: 100%;
+        }
+
+        .toc-link:hover {
+          color: var(--color-primary, #0f6784);
+          background: #f0f9ff;
+        }
+
+        .toc-link.active {
+          color: var(--color-primary, #0f6784);
+          background: #e0f2fe;
+          font-weight: 700;
+        }
+
+        .legal-article-body {
+          background: #ffffff;
+          border: 1px solid var(--color-secondary-container, #e2e8f0);
+          border-radius: var(--radius-xl, 16px);
+          padding: 32px var(--space-xl, 32px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        @media (min-width: 768px) {
+          .legal-article-body {
+            padding: 40px 48px;
+          }
+        }
+
+        .legal-clause-block {
+          margin-bottom: 40px;
+          padding-bottom: 32px;
+          border-bottom: 1px solid #f1f5f9;
+          content-visibility: auto;
+          contain-intrinsic-size: 0 350px;
+        }
+
+        .legal-clause-block:last-child {
+          margin-bottom: 0;
+          padding-bottom: 0;
+          border-bottom: none;
+        }
+
+        .legal-clause-block h2 {
+          font-family: var(--font-heading, sans-serif);
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: var(--color-primary, #0f6784);
+          margin: 0 0 16px 0;
+          scroll-margin-top: 90px;
+        }
+
+        .legal-clause-block p {
+          font-size: 0.9375rem;
+          color: var(--color-text-main, #334155);
+          line-height: 1.7;
+          margin: 0 0 16px 0;
+        }
+
+        .legal-clause-block ul {
+          margin: 0 0 16px 0;
+          padding-left: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .legal-clause-block li {
+          font-size: 0.9375rem;
+          color: var(--color-text-main, #334155);
+          line-height: 1.6;
+        }
+
+        .clause-highlight-box {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: var(--radius-md, 8px);
+          padding: 16px 20px;
+          margin-bottom: 16px;
+        }
+
+        .clause-highlight-box p {
+          margin-bottom: 8px;
+        }
+
+        .clause-highlight-box p:last-child {
+          margin-bottom: 0;
+        }
+
+        .clause-highlight-box ul {
+          margin-bottom: 0;
+        }
+
+        .legal-clause-block a {
+          color: var(--color-primary, #0f6784);
+          font-weight: 600;
+          text-decoration: underline;
         }
       `}</style>
     </div>

@@ -46,6 +46,12 @@ const AdminUsersPage = lazy(() => import('@/pages/admin/AdminUsersPage'))
 const AdminMarketIntelligencePage = lazy(() => import('@/pages/admin/AdminMarketIntelligencePage'))
 const TermsPage = lazy(() => import('@/pages/public/TermsPage'))
 const PrivacyPolicyPage = lazy(() => import('@/pages/public/PrivacyPolicyPage'))
+const MedicalDisclaimerPage = lazy(() => import('@/pages/public/MedicalDisclaimerPage'))
+const RefundPolicyPage = lazy(() => import('@/pages/public/RefundPolicyPage'))
+const ContactPage = lazy(() => import('@/pages/public/ContactPage'))
+const AboutPage = lazy(() => import('@/pages/public/AboutPage'))
+const FaqPage = lazy(() => import('@/pages/public/FaqPage'))
+const PublicLayout = lazy(() => import('@/components/layout/PublicLayout'))
 
 export default function App() {
   useAuthInit()
@@ -65,12 +71,18 @@ export default function App() {
           <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
         </Route>
 
-        {/* Public legal pages */}
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-
-        {/* Public landing page (when unauthenticated) */}
-        {!user && <Route path="/" element={<LandingPage />} />}
+        {/* Public regulatory, trust, & informational routes */}
+        <Route element={<PublicLayout />}>
+          {!user && <Route path="/" element={<LandingPage />} />}
+          {!user && <Route path="/pricing" element={<PricingPage />} />}
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/refund-policy" element={<RefundPolicyPage />} />
+          <Route path="/medical-disclaimer" element={<MedicalDisclaimerPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Route>
 
         {/* Protected app routes */}
         <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>
