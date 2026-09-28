@@ -111,7 +111,7 @@ export default function App() {
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/privacy-center" element={<PrivacyCenterPage />} />
-          <Route path="/wallet" element={<Navigate to="/profile" replace />} />
+          <Route path="/wallet" element={<Navigate to="/pricing" replace />} />
         </Route>
 
         {/* Protected admin routes */}

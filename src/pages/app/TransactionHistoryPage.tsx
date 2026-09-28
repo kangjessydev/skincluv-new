@@ -43,8 +43,8 @@ export default function TransactionHistoryPage() {
   return (
     <div className="transactions-page animate-fade-in">
       <div className="transactions-header">
-        <Link to="/wallet" className="back-link">
-          <ArrowLeft size={18} /> Wallet
+        <Link to="/profile" className="back-link">
+          <ArrowLeft size={18} /> Kembali ke Profil
         </Link>
         <h1>Riwayat Transaksi</h1>
         <p className="page-subtitle">Daftar tagihan & pembayaran paket langganan kamu.</p>
@@ -75,7 +75,7 @@ export default function TransactionHistoryPage() {
             <ShoppingBag size={48} className="empty-icon" />
             <h3>Belum Ada Transaksi</h3>
             <p>Kamu belum memiliki riwayat transaksi di Skincluv.</p>
-            <Link to="/wallet" className="btn btn-primary btn-sm mt-md">Upgrade ke PRO</Link>
+            <Link to="/pricing" className="btn btn-primary btn-sm mt-md">Upgrade ke PRO</Link>
           </div>
         ) : (
           filteredInvoices.map(inv => {

@@ -87,7 +87,7 @@ export default function PublicLayout() {
                 <li><Link to="/#features">AI Skin Assessment Wajah</Link></li>
                 <li><Link to="/#features">Cek Komposisi Kosmetik</Link></li>
                 <li><Link to="/#features">Skinsistant AI Chatbot</Link></li>
-                <li><Link to="/faq">Sistem Koin Misi Harian</Link></li>
+                <li><Link to="/faq">Sistem AI Credits &amp; Misi</Link></li>
               </ul>
             </div>
 

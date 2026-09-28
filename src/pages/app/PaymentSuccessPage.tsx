@@ -149,8 +149,8 @@ export default function PaymentSuccessPage() {
             <Link to="/chatbot" className="btn btn-outline flex-1">
               <MessageSquare size={18} /> Chat AI
             </Link>
-            <Link to="/wallet" className="btn btn-ghost flex-1">
-              Ke Wallet <ArrowRight size={16} />
+            <Link to="/transactions" className="btn btn-ghost flex-1">
+              Riwayat Tagihan <ArrowRight size={16} />
             </Link>
           </div>
         </div>

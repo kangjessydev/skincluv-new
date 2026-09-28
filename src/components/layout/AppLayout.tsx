@@ -251,7 +251,7 @@ export default function AppLayout() {
 
             <NavLink to="/chatbot" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
               <MessageCircle size={20} />
-              <span>Chatbot</span>
+              <span>Skinsistant</span>
             </NavLink>
             <NavLink to="/profile" className={({ isActive }) => `floating-nav-item ${isActive ? 'active' : ''}`}>
               <User size={20} />
