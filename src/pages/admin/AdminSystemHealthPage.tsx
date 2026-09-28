@@ -14,7 +14,6 @@ import {
   CreditCard,
   Zap,
   Activity,
-  ArrowUpRight,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -233,7 +232,7 @@ export default function AdminSystemHealthPage() {
         addHistoryLog(`Google Gemini AI status: ${status} (latensi acuan: ${recentLatency} ms)`, 'success')
       } else if (serviceId === 'openrouter_qwen') {
         const start = performance.now()
-        const { data: configs } = await supabase
+        await supabase
           .from('model_configs')
           .select('provider, is_active')
           .eq('provider', 'groq')
@@ -322,7 +321,7 @@ export default function AdminSystemHealthPage() {
 
   useEffect(() => {
     runAllDiagnostics()
-  }, [])
+  }, [runAllDiagnostics])
 
   // Kalkulasi Status Keseluruhan
   const overallStatus = useMemo<{ status: ServiceStatus; label: string; desc: string }>(() => {
