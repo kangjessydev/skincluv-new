@@ -20,6 +20,7 @@ import {
   X,
   ShieldCheck,
   BookMarked,
+  Server,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import './admin-responsive.css'
@@ -52,6 +53,7 @@ const aiHubNavItems = [
 
 const governanceNavItems = [
   { to: '/admin/audit-logs', icon: ShieldCheck, label: 'Audit Log Tata Kelola' },
+  { to: '/admin/system-health', icon: Server, label: 'Status & Kesehatan Sistem' },
 ]
 
 export default function AdminLayout() {

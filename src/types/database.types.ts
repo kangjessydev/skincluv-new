@@ -75,6 +75,36 @@ export type Database = {
         }
         Relationships: []
       }
+      skincluv_knowledge_cache: {
+        Row: {
+          id: string
+          query_hash: string
+          query_text: string
+          sources: Json
+          created_at: string
+          expires_at: string
+          hit_count: number
+        }
+        Insert: {
+          id?: string
+          query_hash: string
+          query_text: string
+          sources: Json
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+        }
+        Update: {
+          id?: string
+          query_hash?: string
+          query_text?: string
+          sources?: Json
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+        }
+        Relationships: []
+      }
       skincluv_handbook: {
         Row: {
           id: string
