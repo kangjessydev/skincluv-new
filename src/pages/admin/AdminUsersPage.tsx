@@ -1011,7 +1011,15 @@ export default function AdminUsersPage() {
                     Privasi Data Terjamin: Data foto wajah biometrik, diagnosis klinis, dan privasi percakapan obrolan pengguna diisolasi dari antarmuka ini demi kepatuhan UU PDP No. 27/2022.
                   </div>
                 </div>
-              ) : null}
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 0', textAlign: 'center' }}>
+                  <AlertCircle size={28} className="text-amber-500" />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>Gagal memuat ringkasan pelanggan</span>
+                  <span style={{ fontSize: 12, color: '#64748b', maxWidth: 360 }}>
+                    Tidak ada data ringkasan yang dapat ditampilkan. Pastikan Anda memiliki wewenang Customer Support atau Administrator.
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">

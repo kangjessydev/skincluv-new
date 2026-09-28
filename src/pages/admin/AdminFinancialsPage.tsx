@@ -20,8 +20,29 @@ import {
   ArrowRight,
   Pencil,
   Tag,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight,
+  Scale,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+
+export type FinancialPeriod = 'MTD' | 'LAST_MONTH' | 'LAST_30_DAYS' | 'ALL_TIME' | 'CUSTOM'
+
+interface DeltaResult {
+  pct: number
+  text: string
+  direction: 'up' | 'down' | 'flat'
+}
+
+interface PeriodRange {
+  currentStart: Date
+  currentEnd: Date
+  prevStart: Date | null
+  prevEnd: Date | null
+  label: string
+  comparisonLabel: string
+}
 
 interface AiLogRecord {
   id: string
@@ -113,6 +134,15 @@ export default function AdminFinancialsPage() {
   // Filter & Toast Feedback State
   const [depositFilter, setDepositFilter] = useState<string>('all')
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // Filter Periode Finansial & MoM
+  const [period, setPeriod] = useState<FinancialPeriod>('MTD')
+  const [customStartDate, setCustomStartDate] = useState(() => {
+    const d = new Date()
+    d.setDate(1)
+    return d.toISOString().slice(0, 10)
+  })
+  const [customEndDate, setCustomEndDate] = useState(() => new Date().toISOString().slice(0, 10))
 
   // Modal & Form State untuk Deposit Provider (Tambah & Edit)
   const [showTopupModal, setShowTopupModal] = useState(false)
@@ -238,18 +268,261 @@ export default function AdminFinancialsPage() {
     loadFinancialData()
   }, [loadFinancialData])
 
-  // Hitung Metrik Finansial Makro
+  // Rentang Waktu Periode Aktif & Pembanding MoM
+  const periodRange = useMemo<PeriodRange>(() => {
+    const now = new Date()
+
+    if (period === 'MTD') {
+      const currentStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+      const currentEnd = new Date(now)
+
+      const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0)
+      const daysInPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate()
+      const targetDay = Math.min(now.getDate(), daysInPrevMonth)
+      const prevEnd = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        targetDay,
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds(),
+        now.getMilliseconds()
+      )
+
+      const monthNames = [
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+      ]
+      const currMonthName = monthNames[now.getMonth()]
+      const prevMonthName = monthNames[prevStart.getMonth()]
+
+      return {
+        currentStart,
+        currentEnd,
+        prevStart,
+        prevEnd,
+        label: `Bulan Berjalan (${currMonthName} ${now.getFullYear()})`,
+        comparisonLabel: `Bulan Lalu (${prevMonthName} ${prevStart.getFullYear()}) s/d Tgl ${targetDay}`,
+      }
+    }
+
+    if (period === 'LAST_MONTH') {
+      const currentStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0)
+      const currentEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+
+      const prevStart = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0)
+      const prevEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999)
+
+      const monthNames = [
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+      ]
+      const currMonthName = monthNames[currentStart.getMonth()]
+      const prevMonthName = monthNames[prevStart.getMonth()]
+
+      return {
+        currentStart,
+        currentEnd,
+        prevStart,
+        prevEnd,
+        label: `Bulan Kemarin Penuh (${currMonthName} ${currentStart.getFullYear()})`,
+        comparisonLabel: `2 Bulan Lalu (${prevMonthName} ${prevStart.getFullYear()})`,
+      }
+    }
+
+    if (period === 'LAST_30_DAYS') {
+      const currentEnd = new Date(now)
+      const currentStart = new Date(now.getTime() - 30 * 86400000)
+
+      const prevEnd = new Date(currentStart.getTime())
+      const prevStart = new Date(prevEnd.getTime() - 30 * 86400000)
+
+      return {
+        currentStart,
+        currentEnd,
+        prevStart,
+        prevEnd,
+        label: '30 Hari Terakhir',
+        comparisonLabel: '30 Hari Sebelumnya',
+      }
+    }
+
+    if (period === 'CUSTOM' && customStartDate && customEndDate) {
+      const currentStart = new Date(`${customStartDate}T00:00:00`)
+      const currentEnd = new Date(`${customEndDate}T23:59:59.999`)
+      const durationMs = Math.max(86400000, currentEnd.getTime() - currentStart.getTime())
+
+      const prevEnd = new Date(currentStart.getTime() - 1)
+      const prevStart = new Date(prevEnd.getTime() - durationMs)
+
+      return {
+        currentStart,
+        currentEnd,
+        prevStart,
+        prevEnd,
+        label: `${customStartDate} s/d ${customEndDate}`,
+        comparisonLabel: `Periode Sebelumnya (${Math.round(durationMs / 86400000)} hari)`,
+      }
+    }
+
+    // ALL_TIME default
+    return {
+      currentStart: new Date(0),
+      currentEnd: new Date(now),
+      prevStart: null,
+      prevEnd: null,
+      label: 'Sepanjang Waktu (Semua Data)',
+      comparisonLabel: '',
+    }
+  }, [period, customStartDate, customEndDate])
+
+  // Estimasi durasi hari periode aktif untuk proyeksi burn rate harian
+  const daysInPeriod = useMemo(() => {
+    const diffMs = periodRange.currentEnd.getTime() - periodRange.currentStart.getTime()
+    return Math.max(1, Math.round(diffMs / 86400000))
+  }, [periodRange])
+
+  // Hitung Weighted Average Cost (WAC Kurs IDR per USD) dari seluruh deposit tersimpan (Invariant 17)
+  const wacRate = useMemo(() => {
+    const totalPaidIDR = deposits.reduce((sum, d) => sum + (d.amount_paid_idr || 0), 0)
+    const totalCreditedUSD = deposits.reduce((sum, d) => sum + (d.credited_amount_usd || 0), 0)
+    if (totalCreditedUSD > 0 && totalPaidIDR > 0) {
+      return Math.round(totalPaidIDR / totalCreditedUSD)
+    }
+    return USD_TO_IDR // 16000 fallback
+  }, [deposits])
+
+  // Pisahkan dataset berdasarkan periode aktif vs periode pembanding (MoM)
+  const periodFilteredData = useMemo(() => {
+    const cStart = periodRange.currentStart.getTime()
+    const cEnd = periodRange.currentEnd.getTime()
+    const pStart = periodRange.prevStart ? periodRange.prevStart.getTime() : null
+    const pEnd = periodRange.prevEnd ? periodRange.prevEnd.getTime() : null
+
+    const currLogs = logs.filter((l) => {
+      const t = new Date(l.created_at).getTime()
+      return t >= cStart && t <= cEnd
+    })
+
+    const prevLogs =
+      pStart !== null && pEnd !== null
+        ? logs.filter((l) => {
+            const t = new Date(l.created_at).getTime()
+            return t >= pStart && t <= pEnd
+          })
+        : []
+
+    const currInvoices = invoices.filter((inv) => {
+      const t = new Date(inv.created_at).getTime()
+      return t >= cStart && t <= cEnd
+    })
+
+    const prevInvoices =
+      pStart !== null && pEnd !== null
+        ? invoices.filter((inv) => {
+            const t = new Date(inv.created_at).getTime()
+            return t >= pStart && t <= pEnd
+          })
+        : []
+
+    const currDeposits = deposits.filter((d) => {
+      const t = new Date(d.deposited_at).getTime()
+      return t >= cStart && t <= cEnd
+    })
+
+    const prevDeposits =
+      pStart !== null && pEnd !== null
+        ? deposits.filter((d) => {
+            const t = new Date(d.deposited_at).getTime()
+            return t >= pStart && t <= pEnd
+          })
+        : []
+
+    return {
+      currLogs,
+      prevLogs,
+      currInvoices,
+      prevInvoices,
+      currDeposits,
+      prevDeposits,
+    }
+  }, [logs, invoices, deposits, periodRange])
+
+  // Helper kalkulasi Delta MoM persentase
+  const calcDelta = useCallback((curr: number, prev: number | null): DeltaResult | null => {
+    if (prev === null) return null
+    if (prev === 0) {
+      if (curr === 0) return { pct: 0, text: '0%', direction: 'flat' }
+      return { pct: 100, text: '+100%', direction: 'up' }
+    }
+    const pct = ((curr - prev) / prev) * 100
+    const formatted = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`
+    return {
+      pct,
+      text: formatted,
+      direction: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat',
+    }
+  }, [])
+
+  // Hitung Metrik Finansial Makro Periode Aktif & MoM Comparison
   const financials = useMemo(() => {
-    const totalRevenueIDR = invoices.reduce((acc, inv) => acc + (inv.amount_idr || 0), 0)
-    const totalCostUSD = logs.reduce((acc, log) => acc + (log.cost_usd || 0), 0)
-    const totalCostIDR = totalCostUSD * USD_TO_IDR
+    const { currLogs, prevLogs, currInvoices, prevInvoices } = periodFilteredData
+
+    const totalRevenueIDR = currInvoices.reduce((acc, inv) => acc + (inv.amount_idr || 0), 0)
+    const totalCostUSD = currLogs.reduce((acc, log) => acc + (log.cost_usd || 0), 0)
+    const totalCostIDR = totalCostUSD * wacRate
     const grossProfitIDR = totalRevenueIDR - totalCostIDR
     const grossMarginPercent =
       totalRevenueIDR > 0 ? ((grossProfitIDR / totalRevenueIDR) * 100).toFixed(1) : '100'
 
-    const totalTokens = logs.reduce((acc, log) => acc + (log.tokens_used || 0), 0)
-    const avgTokenPerCall = logs.length > 0 ? Math.round(totalTokens / logs.length) : 0
-    const avgCostPerCallIDR = logs.length > 0 ? (totalCostIDR / logs.length).toFixed(1) : '0'
+    const totalTokens = currLogs.reduce((acc, log) => acc + (log.tokens_used || 0), 0)
+    const currCalls = currLogs.length
+    const avgTokenPerCall = currCalls > 0 ? Math.round(totalTokens / currCalls) : 0
+    const avgCostPerCallIDR = currCalls > 0 ? (totalCostIDR / currCalls).toFixed(1) : '0'
+
+    // Pembanding Periode Sebelumnya (MoM)
+    const hasPrev = periodRange.prevStart !== null
+    const prevRevenueIDR = hasPrev
+      ? prevInvoices.reduce((acc, inv) => acc + (inv.amount_idr || 0), 0)
+      : null
+    const prevCostUSD = hasPrev
+      ? prevLogs.reduce((acc, log) => acc + (log.cost_usd || 0), 0)
+      : null
+    const prevCostIDR = prevCostUSD !== null ? prevCostUSD * wacRate : null
+    const prevGrossProfitIDR =
+      prevRevenueIDR !== null && prevCostIDR !== null ? prevRevenueIDR - prevCostIDR : null
+
+    const prevTotalTokens = hasPrev
+      ? prevLogs.reduce((acc, log) => acc + (log.tokens_used || 0), 0)
+      : null
+    const prevCalls = hasPrev ? prevLogs.length : null
+
+    // Deltas
+    const deltaRevenue = calcDelta(totalRevenueIDR, prevRevenueIDR)
+    const deltaCost = calcDelta(totalCostUSD, prevCostUSD)
+    const deltaProfit = calcDelta(grossProfitIDR, prevGrossProfitIDR)
+    const deltaCalls = calcDelta(currCalls, prevCalls)
+    const deltaTokens = calcDelta(totalTokens, prevTotalTokens)
 
     return {
       totalRevenueIDR,
@@ -258,13 +531,57 @@ export default function AdminFinancialsPage() {
       grossProfitIDR,
       grossMarginPercent,
       totalTokens,
-      totalCalls: logs.length,
+      totalCalls: currCalls,
+      currCalls,
+      currInvoicesCount: currInvoices.length,
       avgTokenPerCall,
       avgCostPerCallIDR,
+      prevRevenueIDR,
+      prevCostUSD,
+      prevCostIDR,
+      prevGrossProfitIDR,
+      prevTotalTokens,
+      prevCalls,
+      deltaRevenue,
+      deltaCost,
+      deltaProfit,
+      deltaCalls,
+      deltaTokens,
     }
-  }, [invoices, logs])
+  }, [periodFilteredData, wacRate, periodRange.prevStart, calcDelta])
 
-  // Analisis per Fitur AI
+  // Data Dual-Track Treasury & Arus Kas Deposit Periode Aktif
+  const periodData = useMemo(() => {
+    const { currDeposits, prevDeposits } = periodFilteredData
+
+    const currDepositPaidIDR = currDeposits.reduce((acc, d) => acc + (d.amount_paid_idr || 0), 0)
+    const currDepositCreditedUSD = currDeposits.reduce(
+      (acc, d) => acc + (d.credited_amount_usd || 0),
+      0
+    )
+    const currDepositsCount = currDeposits.length
+
+    const hasPrev = periodRange.prevStart !== null
+    const prevDepositPaidIDR = hasPrev
+      ? prevDeposits.reduce((acc, d) => acc + (d.amount_paid_idr || 0), 0)
+      : null
+    const prevDepositCreditedUSD = hasPrev
+      ? prevDeposits.reduce((acc, d) => acc + (d.credited_amount_usd || 0), 0)
+      : null
+
+    const deltaDeposits = calcDelta(currDepositPaidIDR, prevDepositPaidIDR)
+
+    return {
+      currDepositPaidIDR,
+      currDepositCreditedUSD,
+      currDepositsCount,
+      prevDepositPaidIDR,
+      prevDepositCreditedUSD,
+      deltaDeposits,
+    }
+  }, [periodFilteredData, periodRange.prevStart, calcDelta])
+
+  // Analisis per Fitur AI berdasarkan periode aktif
   const featureBreakdown = useMemo(() => {
     const map = new Map<
       string,
@@ -297,7 +614,7 @@ export default function AdminFinancialsPage() {
       })
     })
 
-    logs.forEach((log) => {
+    periodFilteredData.currLogs.forEach((log) => {
       const featId = log.feature_id
       if (map.has(featId)) {
         const item = map.get(featId)!
@@ -316,7 +633,7 @@ export default function AdminFinancialsPage() {
       ...item,
       minTokens: item.minTokens === Infinity ? 0 : item.minTokens,
     }))
-  }, [features, logs])
+  }, [features, periodFilteredData.currLogs])
 
   // Engine Analisis Multi-Provider & Runway AI
   const providerAnalytics = useMemo(() => {
@@ -709,16 +1026,121 @@ export default function AdminFinancialsPage() {
         </button>
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* Filter Periode Bar */}
+      <div className="period-filter-bar">
+        <div className="period-filter-left">
+          <div className="period-filter-title">
+            <Calendar size={16} className="text-indigo-600" />
+            <span>Periode Analisis:</span>
+          </div>
+          <div className="period-tabs">
+            <button
+              type="button"
+              className={`period-tab ${period === 'MTD' ? 'active' : ''}`}
+              onClick={() => setPeriod('MTD')}
+            >
+              Bulan Ini (MTD)
+            </button>
+            <button
+              type="button"
+              className={`period-tab ${period === 'LAST_MONTH' ? 'active' : ''}`}
+              onClick={() => setPeriod('LAST_MONTH')}
+            >
+              Bulan Kemarin
+            </button>
+            <button
+              type="button"
+              className={`period-tab ${period === 'LAST_30_DAYS' ? 'active' : ''}`}
+              onClick={() => setPeriod('LAST_30_DAYS')}
+            >
+              30 Hari Terakhir
+            </button>
+            <button
+              type="button"
+              className={`period-tab ${period === 'ALL_TIME' ? 'active' : ''}`}
+              onClick={() => setPeriod('ALL_TIME')}
+            >
+              Sepanjang Waktu
+            </button>
+            <button
+              type="button"
+              className={`period-tab ${period === 'CUSTOM' ? 'active' : ''}`}
+              onClick={() => setPeriod('CUSTOM')}
+            >
+              Kustom Tanggal
+            </button>
+          </div>
+        </div>
+
+        {period === 'CUSTOM' && (
+          <div className="period-custom-inputs">
+            <div className="custom-date-field">
+              <label>Dari:</label>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+              />
+            </div>
+            <div className="custom-date-field">
+              <label>Sampai:</label>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="period-range-indicator">
+          <span className="period-active-label">{periodRange.label}</span>
+          {periodRange.comparisonLabel && (
+            <span className="period-comparison-label">
+              Bandingkan dgn: {periodRange.comparisonLabel}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* KPI Cards Grid dengan MoM Delta */}
       <div className="kpi-grid">
         <div className="kpi-card revenue">
           <div className="kpi-icon-wrap">
             <DollarSign size={22} />
           </div>
           <div className="kpi-content">
-            <span className="kpi-label">Total Omzet Penjualan</span>
+            <div className="kpi-top-row">
+              <span className="kpi-label">Total Omzet Penjualan</span>
+              {financials.deltaRevenue && (
+                <span
+                  className={`kpi-delta-pill ${
+                    financials.deltaRevenue.direction === 'up'
+                      ? 'positive'
+                      : financials.deltaRevenue.direction === 'down'
+                      ? 'negative'
+                      : 'neutral'
+                  }`}
+                >
+                  {financials.deltaRevenue.direction === 'up' ? (
+                    <ArrowUpRight size={12} />
+                  ) : (
+                    <ArrowDownRight size={12} />
+                  )}
+                  {financials.deltaRevenue.text} MoM
+                </span>
+              )}
+            </div>
             <span className="kpi-value">{formatIDR(financials.totalRevenueIDR)}</span>
-            <span className="kpi-subtext">Dari {invoices.length} tagihan Tripay lunas</span>
+            <span className="kpi-subtext">
+              Dari {financials.currInvoicesCount} tagihan lunas
+              {financials.prevRevenueIDR !== null && (
+                <span className="kpi-prev-text">
+                  {' '}
+                  (vs {formatIDR(financials.prevRevenueIDR)} periode lalu)
+                </span>
+              )}
+            </span>
           </div>
         </div>
 
@@ -727,10 +1149,32 @@ export default function AdminFinancialsPage() {
             <Cpu size={22} />
           </div>
           <div className="kpi-content">
-            <span className="kpi-label">Total Biaya API Token (COGS)</span>
+            <div className="kpi-top-row">
+              <span className="kpi-label">Biaya Konsumsi Akrual (COGS)</span>
+              {financials.deltaCost && (
+                <span
+                  className={`kpi-delta-pill ${
+                    financials.deltaCost.direction === 'up' ? 'warning' : 'positive'
+                  }`}
+                >
+                  {financials.deltaCost.direction === 'up' ? (
+                    <ArrowUpRight size={12} />
+                  ) : (
+                    <ArrowDownRight size={12} />
+                  )}
+                  {financials.deltaCost.text} MoM
+                </span>
+              )}
+            </div>
             <span className="kpi-value">{formatIDR(financials.totalCostIDR)}</span>
             <span className="kpi-subtext">
               ${financials.totalCostUSD.toFixed(4)} ({financials.totalTokens.toLocaleString()} tokens)
+              {financials.prevCostUSD !== null && (
+                <span className="kpi-prev-text">
+                  {' '}
+                  (vs ${financials.prevCostUSD.toFixed(4)} periode lalu)
+                </span>
+              )}
             </span>
           </div>
         </div>
@@ -740,10 +1184,36 @@ export default function AdminFinancialsPage() {
             <Sparkles size={22} />
           </div>
           <div className="kpi-content">
-            <span className="kpi-label">Laba Kotor AI (Gross Profit)</span>
+            <div className="kpi-top-row">
+              <span className="kpi-label">Laba Kotor AI (Gross Profit)</span>
+              {financials.deltaProfit && (
+                <span
+                  className={`kpi-delta-pill ${
+                    financials.deltaProfit.direction === 'up'
+                      ? 'positive'
+                      : financials.deltaProfit.direction === 'down'
+                      ? 'negative'
+                      : 'neutral'
+                  }`}
+                >
+                  {financials.deltaProfit.direction === 'up' ? (
+                    <ArrowUpRight size={12} />
+                  ) : (
+                    <ArrowDownRight size={12} />
+                  )}
+                  {financials.deltaProfit.text} MoM
+                </span>
+              )}
+            </div>
             <span className="kpi-value">{formatIDR(financials.grossProfitIDR)}</span>
             <span className="kpi-subtext font-semibold text-emerald-600">
               Margin Bersih: {financials.grossMarginPercent}%
+              {financials.prevGrossProfitIDR !== null && (
+                <span className="kpi-prev-text font-normal text-slate-500">
+                  {' '}
+                  (vs {formatIDR(financials.prevGrossProfitIDR)})
+                </span>
+              )}
             </span>
           </div>
         </div>
@@ -753,11 +1223,158 @@ export default function AdminFinancialsPage() {
             <Percent size={22} />
           </div>
           <div className="kpi-content">
-            <span className="kpi-label">Rata-Rata Biaya per Call</span>
+            <div className="kpi-top-row">
+              <span className="kpi-label">Rata-Rata Biaya per Call</span>
+              {financials.deltaCalls && (
+                <span className="kpi-delta-pill neutral">
+                  {financials.deltaCalls.direction === 'up' ? (
+                    <ArrowUpRight size={12} />
+                  ) : (
+                    <ArrowDownRight size={12} />
+                  )}
+                  {financials.deltaCalls.text} Call
+                </span>
+              )}
+            </div>
             <span className="kpi-value">Rp {financials.avgCostPerCallIDR}</span>
             <span className="kpi-subtext">
-              ~{financials.avgTokenPerCall.toLocaleString()} tokens per eksekusi
+              ~{financials.avgTokenPerCall.toLocaleString()} tokens per eksekusi ({financials.currCalls}{' '}
+              total call)
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Dual-Track Accounting Strip: Treasury Cash vs Accrual COGS vs Rollover */}
+      <div className="dual-track-card">
+        <div className="dual-track-header">
+          <div className="flex items-center gap-2">
+            <Scale size={18} className="text-indigo-600" />
+            <h3>Dual-Track Accounting: Kas Fisik Treasury vs Konsumsi Akrual COGS</h3>
+          </div>
+          <span className="dual-track-badge">
+            Sesuai Standar Akuntansi RFC 015 &amp; PSAK
+          </span>
+        </div>
+        <p className="dual-track-desc">
+          Setoran deposit ke provider adalah aset prabayar (arus kas), bukan beban operasional. Beban
+          riil dihitung dari token yang dikonsumsi dengan valuasi Weighted Average Cost (WAC Kurs:{' '}
+          {formatIDR(wacRate)}/USD).
+        </p>
+
+        <div className="dual-track-grid">
+          {/* Trek 1: Kas Fisik Treasury */}
+          <div className="track-column treasury">
+            <div className="track-tag-wrap">
+              <span className="track-tag treasury-tag">TREK 1: KAS FISIK TREASURY</span>
+              <span className="track-subtag">Cash Outflow</span>
+            </div>
+            <div className="track-main-value">
+              {formatIDR(periodData.currDepositPaidIDR)}
+            </div>
+            <div className="track-sub-value">
+              +${periodData.currDepositCreditedUSD.toFixed(2)} kredit masuk
+            </div>
+            <div className="track-meta">
+              <div className="track-meta-row">
+                <span>Perubahan MoM:</span>
+                {periodData.deltaDeposits ? (
+                  <span className={`track-delta ${periodData.deltaDeposits.direction}`}>
+                    {periodData.deltaDeposits.direction === 'up' ? (
+                      <ArrowUpRight size={12} />
+                    ) : (
+                      <ArrowDownRight size={12} />
+                    )}
+                    {periodData.deltaDeposits.text}
+                  </span>
+                ) : (
+                  <span>-</span>
+                )}
+              </div>
+              <div className="track-meta-row">
+                <span>Jumlah Transaksi:</span>
+                <span className="font-semibold text-slate-700">
+                  {periodData.currDepositsCount} deposit
+                </span>
+              </div>
+            </div>
+            <div className="track-footer-note text-amber-800 bg-amber-50">
+              Uang kas keluar dicatat sebagai deposit prabayar, bukan pengurang laba bersih.
+            </div>
+          </div>
+
+          {/* Trek 2: Konsumsi Akrual COGS */}
+          <div className="track-column accrual">
+            <div className="track-tag-wrap">
+              <span className="track-tag accrual-tag">TREK 2: KONSUMSI AKRUAL (COGS)</span>
+              <span className="track-subtag">Beban Pokok Riil</span>
+            </div>
+            <div className="track-main-value text-red-600">
+              {formatIDR(financials.totalCostIDR)}
+            </div>
+            <div className="track-sub-value">
+              ${financials.totalCostUSD.toFixed(4)} ({financials.totalTokens.toLocaleString()} tokens)
+            </div>
+            <div className="track-meta">
+              <div className="track-meta-row">
+                <span>Perubahan MoM:</span>
+                {financials.deltaCost ? (
+                  <span
+                    className={`track-delta ${
+                      financials.deltaCost.pct <= 0 ? 'good' : 'warning'
+                    }`}
+                  >
+                    {financials.deltaCost.direction === 'up' ? (
+                      <ArrowUpRight size={12} />
+                    ) : (
+                      <ArrowDownRight size={12} />
+                    )}
+                    {financials.deltaCost.text}
+                  </span>
+                ) : (
+                  <span>-</span>
+                )}
+              </div>
+              <div className="track-meta-row">
+                <span>Kurs Valuasi WAC:</span>
+                <span className="font-semibold text-slate-700">{formatIDR(wacRate)} / USD</span>
+              </div>
+            </div>
+            <div className="track-footer-note text-emerald-800 bg-emerald-50">
+              Beban operasional riil yang membentuk Laba Kotor: {formatIDR(financials.grossProfitIDR)}{' '}
+              ({financials.grossMarginPercent}% margin).
+            </div>
+          </div>
+
+          {/* Trek 3: Rollover & Saldo Prabayar */}
+          <div className="track-column rollover">
+            <div className="track-tag-wrap">
+              <span className="track-tag rollover-tag">TREK 3: CADANGAN SALDO ROLLOVER</span>
+              <span className="track-subtag">Prepaid Runway</span>
+            </div>
+            <div className="track-main-value text-indigo-700">
+              ${providerAnalytics.totalRemainingUSD.toFixed(2)}
+            </div>
+            <div className="track-sub-value">
+              ~{formatIDR(providerAnalytics.totalRemainingIDR)} saldo mengendap
+            </div>
+            <div className="track-meta">
+              <div className="track-meta-row">
+                <span>Burn Rate Rata-Rata:</span>
+                <span className="font-semibold text-slate-700">
+                  ${(financials.totalCostUSD / daysInPeriod).toFixed(3)} / hari
+                </span>
+              </div>
+              <div className="track-meta-row">
+                <span>Rata-Rata Token:</span>
+                <span className="font-semibold text-slate-700">
+                  ~{Math.round(financials.totalTokens / daysInPeriod).toLocaleString()} tokens / hari
+                </span>
+              </div>
+            </div>
+            <div className="track-footer-note text-indigo-800 bg-indigo-50">
+              Saldo otomatis di-rollover ke bulan berikutnya tanpa hangus dan siap melayani permintaan AI.
+            </div>
           </div>
         </div>
       </div>
@@ -1140,8 +1757,14 @@ export default function AdminFinancialsPage() {
       <div className="section-card">
         <div className="section-header">
           <div>
-            <h3>Ekonomi Fitur AI (Cost per Feature)</h3>
-            <p>Berapa modal riil yang keluar setiap kali pengguna memanggil fitur AI tertentu.</p>
+            <div className="flex items-center gap-2">
+              <Cpu size={18} className="text-indigo-600" />
+              <h3>Ekonomi Fitur AI (Cost per Feature) &bull; {periodRange.label}</h3>
+            </div>
+            <p>
+              Berapa modal token riil yang dikonsumsi pengguna untuk setiap fitur AI selama periode
+              terpilih (dihitung dgn kurs WAC: {formatIDR(wacRate)}/USD).
+            </p>
           </div>
         </div>
 
@@ -1162,7 +1785,7 @@ export default function AdminFinancialsPage() {
               {featureBreakdown.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-gray-400">
-                    Belum ada data eksekusi AI yang tercatat.
+                    Belum ada data eksekusi AI yang tercatat pada periode ini.
                   </td>
                 </tr>
               ) : (
@@ -1171,7 +1794,7 @@ export default function AdminFinancialsPage() {
                   const avgInput = f.calls > 0 ? Math.round(f.totalInputTokens / f.calls) : 0
                   const avgOutput = f.calls > 0 ? Math.round(f.totalOutputTokens / f.calls) : 0
                   const avgCostIDR =
-                    f.calls > 0 ? ((f.totalCostUSD * USD_TO_IDR) / f.calls).toFixed(1) : '0'
+                    f.calls > 0 ? ((f.totalCostUSD * wacRate) / f.calls).toFixed(1) : '0'
 
                   return (
                     <tr key={f.slug} className="table-row">
@@ -1907,6 +2530,119 @@ export default function AdminFinancialsPage() {
           border-color: #94a3b8;
         }
 
+        /* Period Filter Bar */
+        .period-filter-bar {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 14px 18px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 14px;
+          margin-bottom: 20px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .period-filter-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .period-filter-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #1e293b;
+        }
+
+        .period-tabs {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .period-tab {
+          padding: 6px 12px;
+          background: #f8fafc;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .period-tab:hover {
+          background: #f1f5f9;
+          border-color: #94a3b8;
+          color: #0f172a;
+        }
+
+        .period-tab.active {
+          background: #4f46e5;
+          color: #ffffff;
+          border-color: #4f46e5;
+          box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+        }
+
+        .period-custom-inputs {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #f8fafc;
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .custom-date-field {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          color: #475569;
+        }
+
+        .custom-date-field input {
+          padding: 4px 8px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          font-size: 11px;
+          color: #0f172a;
+          background: #ffffff;
+          outline: none;
+        }
+
+        .custom-date-field input:focus {
+          border-color: #4f46e5;
+        }
+
+        .period-range-indicator {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          text-align: right;
+        }
+
+        .period-active-label {
+          font-size: 12px;
+          font-weight: 700;
+          color: #1e293b;
+        }
+
+        .period-comparison-label {
+          font-size: 11px;
+          color: #64748b;
+        }
+
         /* KPI Grid */
         .kpi-grid {
           display: grid;
@@ -1944,14 +2680,59 @@ export default function AdminFinancialsPage() {
         .kpi-content {
           display: flex;
           flex-direction: column;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .kpi-top-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 2px;
         }
 
         .kpi-label {
-          font-size: 12px;
-          font-weight: 600;
+          font-size: 11px;
+          font-weight: 700;
           color: #64748b;
           text-transform: uppercase;
           letter-spacing: 0.03em;
+        }
+
+        .kpi-delta-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 9999px;
+          white-space: nowrap;
+        }
+
+        .kpi-delta-pill.positive {
+          background: #dcfce7;
+          color: #15803d;
+          border: 1px solid #bbf7d0;
+        }
+
+        .kpi-delta-pill.negative {
+          background: #fee2e2;
+          color: #b91c1c;
+          border: 1px solid #fecaca;
+        }
+
+        .kpi-delta-pill.warning {
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fde68a;
+        }
+
+        .kpi-delta-pill.neutral {
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #e2e8f0;
         }
 
         .kpi-value {
@@ -1965,6 +2746,164 @@ export default function AdminFinancialsPage() {
         .kpi-subtext {
           font-size: 12px;
           color: #94a3b8;
+          line-height: 1.3;
+        }
+
+        .kpi-prev-text {
+          color: #64748b;
+          font-size: 11px;
+        }
+
+        /* Dual-Track Accounting Strip */
+        .dual-track-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          padding: 20px 22px;
+          margin-bottom: 24px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .dual-track-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 6px;
+        }
+
+        .dual-track-header h3 {
+          font-size: 15px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .dual-track-badge {
+          font-size: 11px;
+          font-weight: 700;
+          color: #4338ca;
+          background: #e0e7ff;
+          border: 1px solid #c7d2fe;
+          padding: 3px 9px;
+          border-radius: 6px;
+          letter-spacing: 0.02em;
+        }
+
+        .dual-track-desc {
+          font-size: 12px;
+          color: #64748b;
+          margin: 0 0 16px 0;
+          line-height: 1.5;
+        }
+
+        .dual-track-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+
+        .track-column {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .track-tag-wrap {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .track-tag {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 3px 8px;
+          border-radius: 6px;
+          letter-spacing: 0.04em;
+        }
+
+        .treasury-tag {
+          background: #fef3c7;
+          color: #92400e;
+          border: 1px solid #fde68a;
+        }
+
+        .accrual-tag {
+          background: #fee2e2;
+          color: #991b1b;
+          border: 1px solid #fecaca;
+        }
+
+        .rollover-tag {
+          background: #e0e7ff;
+          color: #3730a3;
+          border: 1px solid #c7d2fe;
+        }
+
+        .track-subtag {
+          font-size: 11px;
+          font-weight: 600;
+          color: #64748b;
+        }
+
+        .track-main-value {
+          font-size: 22px;
+          font-weight: 800;
+          color: #0f172a;
+          letter-spacing: -0.02em;
+        }
+
+        .track-sub-value {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .track-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          border-top: 1px solid #e2e8f0;
+          padding-top: 10px;
+          font-size: 12px;
+          color: #475569;
+        }
+
+        .track-meta-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .track-delta {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          font-weight: 700;
+          font-size: 11px;
+        }
+
+        .track-delta.up, .track-delta.good {
+          color: #15803d;
+        }
+
+        .track-delta.down, .track-delta.warning {
+          color: #b91c1c;
+        }
+
+        .track-footer-note {
+          font-size: 11px;
+          border-radius: 8px;
+          padding: 8px 10px;
+          line-height: 1.4;
+          margin-top: auto;
         }
 
         /* Section Card */
@@ -2781,7 +3720,19 @@ export default function AdminFinancialsPage() {
           .btn-refresh {
             align-self: flex-start;
           }
+          .period-filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .period-range-indicator {
+            align-items: flex-start;
+            text-align: left;
+          }
           .kpi-grid {
+            grid-template-columns: 1fr;
+          }
+          .dual-track-grid {
             grid-template-columns: 1fr;
           }
           .provider-cards-grid {
