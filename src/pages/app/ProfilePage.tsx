@@ -276,6 +276,13 @@ export default function ProfilePage() {
                 </div>
                 <ArrowRight size={16} />
               </Link>
+              <Link to="/privacy-center" className="nav-item-link">
+                <div className="nav-item-left">
+                  <ShieldCheck size={18} className="icon-emerald" />
+                  <span>Pusat Privasi & Hak Hapus Data</span>
+                </div>
+                <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </div>
@@ -442,6 +449,7 @@ export default function ProfilePage() {
         .icon-amber { color: var(--color-tertiary-container); }
         .icon-sky { color: var(--color-primary-container); }
         .icon-slate { color: var(--color-secondary); }
+        .icon-emerald { color: #10b981; }
 
         .mt-lg { margin-top: var(--space-xl); }
         .skin-profile-form h3 { font-size: 1rem; margin-bottom: var(--space-md); display: flex; align-items: center; gap: 8px; }

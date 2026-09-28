@@ -1718,6 +1718,19 @@ export type Database = {
       }
       track_daily_login: { Args: never; Returns: Json }
       track_profile_completion: { Args: never; Returns: Json }
+      delete_user_face_scans_only: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      delete_user_account: {
+        Args: {
+          p_user_id: string
+          p_confirmation: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
