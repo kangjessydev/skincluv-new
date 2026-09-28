@@ -19,12 +19,18 @@ const CONCERNS_LIST = [
 ]
 
 export default function ProfilePage() {
-  const { profile, activeSkinProfile, setActiveSkinProfile, subscription, coinBalance } = useAuthStore()
+  const { profile, activeSkinProfile, setActiveSkinProfile, subscription, coinBalance, isAdmin, userRoles } = useAuthStore()
   const [skinType, setSkinType] = useState(activeSkinProfile?.skin_type || 'normal')
   const [concerns, setConcerns] = useState<string[]>(activeSkinProfile?.skin_concerns || [])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
+
+  const canAccessAdmin =
+    isAdmin ||
+    userRoles.some((r) =>
+      ['super_admin', 'tech_lead', 'business_lead', 'support_agent', 'clinical_reviewer', 'admin'].includes(r)
+    )
 
   const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number; name: string } | null>(null)
 
@@ -283,6 +289,15 @@ export default function ProfilePage() {
                 </div>
                 <ArrowRight size={16} />
               </Link>
+              {canAccessAdmin && (
+                <Link to="/admin" className="nav-item-link" style={{ borderLeft: '3px solid #4f46e5', backgroundColor: '#f5f3ff' }}>
+                  <div className="nav-item-left">
+                    <ShieldCheck size={18} style={{ color: '#4f46e5' }} />
+                    <span style={{ fontWeight: 600, color: '#4f46e5' }}>Admin Control Center</span>
+                  </div>
+                  <ArrowRight size={16} style={{ color: '#4f46e5' }} />
+                </Link>
+              )}
             </div>
           </div>
         </div>

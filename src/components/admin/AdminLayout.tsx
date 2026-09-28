@@ -9,7 +9,7 @@ import {
   CreditCard,
   Package,
   BookOpen,
-  FileCode,
+  // FileCode,
   Activity,
   TrendingUp,
   Users,
@@ -47,7 +47,8 @@ const aiHubNavItems = [
   { to: '/admin/knowledge/handbook', icon: BookMarked, label: 'Buku Panduan Fitur' },
   { to: '/admin/knowledge/ingredients', icon: BookOpen, label: 'Kamus Bahan AI' },
   { to: '/admin/knowledge/formulas', icon: Sparkles, label: 'Formula & Cache' },
-  { to: '/admin/training/datasets', icon: FileCode, label: 'Dataset & Fine-Tuning' },
+  // Deactivated for production readiness until human review & de-identification pipeline is established
+  // { to: '/admin/training/datasets', icon: FileCode, label: 'Dataset & Fine-Tuning' },
   { to: '/admin/logs', icon: Activity, label: 'Log & Metrik AI' },
 ]
 

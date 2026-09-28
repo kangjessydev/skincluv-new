@@ -15,6 +15,7 @@ import {
   Crown,
   Zap,
   Store,
+  ShieldCheck,
   Receipt,
   LogOut,
   ArrowLeft,
@@ -36,11 +37,17 @@ const navItems = [
 ]
 
 export default function AppLayout() {
-  const { coinBalance, profile, subscription, reset } = useAuthStore()
+  const { coinBalance, profile, subscription, isAdmin, userRoles, reset } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
+
+  const canAccessAdmin =
+    isAdmin ||
+    userRoles.some((r) =>
+      ['super_admin', 'tech_lead', 'business_lead', 'support_agent', 'clinical_reviewer', 'admin'].includes(r)
+    )
 
   const isPro = isActivePremium(subscription)
   const isChatbotPage = location.pathname.startsWith('/chatbot')
@@ -210,6 +217,20 @@ export default function AppLayout() {
                       <Receipt size={16} />
                       <span>Riwayat Tagihan</span>
                     </Link>
+                    {canAccessAdmin && (
+                      <>
+                        <div className="popover-divider" />
+                        <Link
+                          to="/admin"
+                          className="popover-item"
+                          style={{ color: '#4f46e5', fontWeight: 600 }}
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <ShieldCheck size={16} />
+                          <span>Admin Control Center</span>
+                        </Link>
+                      </>
+                    )}
                     <div className="popover-divider" />
                     <button className="popover-item text-red-600" onClick={handleSignOut}>
                       <LogOut size={16} />
