@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   CreditCard,
   CheckCircle2,
@@ -6,14 +6,10 @@ import {
   RefreshCw,
   Layers,
   Coins,
-  Sparkles,
   Plus,
   Trash2,
-  Edit2,
   X,
   Tag,
-  Flame,
-  Check,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
