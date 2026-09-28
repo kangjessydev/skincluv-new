@@ -1,12 +1,11 @@
+// src/pages/auth/RegisterPage.tsx
+// Harmonized with LoginPage Editorial Aesthetic — Pure Vanilla CSS
+
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-/**
- * RegisterPage — Ported 100% faithfully from scan-2 UI design.
- * Pure vector icons only (no emojis).
- */
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -28,21 +27,26 @@ export default function RegisterPage() {
 
     setIsLoading(true)
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    })
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      })
 
-    if (error) {
-      setError(error.message)
-    } else {
-      setRegistered(true)
+      if (error) {
+        setError(error.message)
+      } else {
+        setRegistered(true)
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Gagal mendaftar akun.')
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const handleGoogleRegister = async () => {
@@ -68,59 +72,134 @@ export default function RegisterPage() {
 
   if (registered) {
     return (
-      <div className="auth-success-box">
-        <div className="auth-success-icon-badge">
-          <CheckCircle2 size={36} className="text-emerald-500" />
+      <div className="login-form-container success-container">
+        <div className="success-icon-badge">
+          <CheckCircle2 size={32} />
         </div>
-        <h2 className="auth-success-title">Akun Berhasil Dibuat</h2>
-        <p className="auth-success-desc">
-          Cek email kamu di <strong>{email}</strong> untuk konfirmasi pendaftaran. Setelah dikonfirmasi, kamu bisa langsung masuk.
+        <h1>Akun Berhasil Dibuat</h1>
+        <p className="sub success-desc">
+          Cek email Anda di <strong>{email}</strong> untuk tautan konfirmasi. Setelah dikonfirmasi, Anda dapat langsung masuk.
         </p>
-        <Link to="/login" className="submit-pill-btn text-center text-decoration-none">
+        <Link to="/login" className="btn-submit-email success-btn">
           Masuk Sekarang
         </Link>
+
+        <style>{`
+          .login-form-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          .success-container {
+            text-align: center;
+            align-items: center;
+            padding: 24px 0;
+          }
+          .success-icon-badge {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+          }
+          h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 30px;
+            font-weight: 500;
+            line-height: 1.25;
+            color: var(--ink, #1A2B2B);
+            margin: 0 0 12px 0;
+          }
+          .sub {
+            font-size: 15px;
+            color: var(--ink-soft, #5C6B6B);
+            line-height: 1.5;
+            margin: 0;
+          }
+          .success-desc {
+            max-width: 360px;
+            margin-bottom: 28px;
+          }
+          .btn-submit-email {
+            width: 100%;
+            height: 44px;
+            background: var(--teal-800, #0B4F5C);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+          }
+          .btn-submit-email:hover {
+            background: var(--teal-900, #0A3E48);
+          }
+          .success-btn {
+            max-width: 240px;
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div className="register-card-content">
-      {/* HEADER TITLE */}
-      <div className="register-header">
-        <h2 className="register-title">Buat Akun Baru</h2>
-        <p className="register-subtitle">Mulai perjalanan perawatan & konsultasi kulit sehat Anda</p>
+    <div className="login-form-container">
+      {/* KEMBALI LINK */}
+      <Link to="/" className="kembali">
+        &#8592; Kembali
+      </Link>
+
+      {/* HEADER GROUP */}
+      <div className="group">
+        <div className="eyebrow">SKINCLUV</div>
+        <h1>Mulai perjalanan Anda</h1>
+        <p className="sub">Daftar untuk analisis kulit personal berbasis kecerdasan buatan.</p>
       </div>
 
-      {/* ERROR ALERT */}
+      {/* ERROR ALERT BANNER */}
       {error && (
-        <div className="auth-alert-error">
-          <AlertCircle size={18} className="shrink-0" />
+        <div className="login-error-alert">
+          <AlertCircle size={16} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* GOOGLE OAUTH BUTTON (SCAN-2 STYLING) */}
-      <div className="google-btn-container">
+      {/* GOOGLE ACTION GROUP */}
+      <div className="group">
         <button
-          type="button"
           onClick={handleGoogleRegister}
+          type="button"
           disabled={googleLoading || isLoading}
-          className="google-oauth-btn"
+          className="btn-google"
         >
-          <div className="google-icon-wrapper">
-            {googleLoading ? (
-              <Loader2 size={18} className="animate-spin text-primary" />
-            ) : (
-              <svg className="google-svg" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#FBBC05" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#34A853" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                <path fill="#4285F4" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-            )}
-          </div>
-          <span className="google-btn-text">Daftar dengan Google</span>
+          {googleLoading ? (
+            <Loader2 size={18} className="animate-spin text-primary" />
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z" />
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z" />
+              <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z" />
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
+            </svg>
+          )}
+          <span>Daftar dengan Google</span>
         </button>
+
+        <div className="trust">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+          <span>Data kulit Anda aman dan terenkripsi</span>
+        </div>
       </div>
 
       {/* DIVIDER */}
@@ -128,356 +207,322 @@ export default function RegisterPage() {
         <span>atau daftar dengan email</span>
       </div>
 
-      {/* FORM */}
-      <form onSubmit={handleRegister} className="auth-form-stack">
-        <div className="form-field">
-          <label className="field-label">Nama Lengkap</label>
-          <div className="input-pill">
-            <User size={18} className="field-icon" />
+      {/* FORM FIELDS */}
+      <form onSubmit={handleRegister} className="email-login-form">
+        <div className="form-input-group">
+          <label className="input-label">Nama Lengkap</label>
+          <div className="input-field-box">
+            <User size={14} className="field-icon" />
             <input
               type="text"
-              className="field-input"
-              placeholder="Nama kamu"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              placeholder="Nama lengkap Anda"
+              className="text-input"
               required
             />
           </div>
         </div>
 
-        <div className="form-field">
-          <label className="field-label">Email</label>
-          <div className="input-pill">
-            <Mail size={18} className="field-icon" />
+        <div className="form-input-group">
+          <label className="input-label">Email</label>
+          <div className="input-field-box">
+            <Mail size={14} className="field-icon" />
             <input
               type="email"
-              className="field-input"
-              placeholder="nama@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="nama@email.com"
+              className="text-input"
               required
-              autoComplete="email"
             />
           </div>
         </div>
 
-        <div className="form-field">
-          <label className="field-label">Password</label>
-          <div className="input-pill">
-            <Lock size={18} className="field-icon" />
+        <div className="form-input-group">
+          <label className="input-label">Password</label>
+          <div className="input-field-box">
+            <Lock size={14} className="field-icon" />
             <input
               type={showPassword ? 'text' : 'password'}
-              className="field-input field-input-right"
-              placeholder="Minimal 8 karakter"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Minimal 8 karakter"
+              className="text-input"
               required
-              minLength={8}
-              autoComplete="new-password"
             />
             <button
               type="button"
-              className="toggle-password-btn"
               onClick={() => setShowPassword(!showPassword)}
-              tabIndex={-1}
+              className="toggle-password-btn"
+              aria-label="Tampilkan atau sembunyikan password"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           </div>
         </div>
 
         <button
           type="submit"
-          className="submit-pill-btn"
           disabled={isLoading || googleLoading}
+          className="btn-submit-email"
         >
-          {isLoading ? <Loader2 size={20} className="animate-spin" /> : 'Buat Akun Gratis'}
+          {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Buat Akun Baru'}
         </button>
       </form>
 
-      {/* FOOTER TEXT */}
-      <p className="auth-footer">
-        Sudah punya akun?{' '}
-        <Link to="/login" className="auth-footer-link">
-          Masuk di sini
-        </Link>
+      {/* LOGIN LINK */}
+      <p className="link-row">
+        Sudah punya akun? <Link to="/login">Masuk di sini</Link>
       </p>
 
+      {/* LEGAL DISCLAIMER FOOTER */}
+      <p className="legal">
+        Dengan mendaftar, Anda menyetujui <Link to="/terms">Syarat Layanan</Link> dan <Link to="/privacy">Kebijakan Privasi</Link>.
+      </p>
+
+      {/* PURE VANILLA CSS STYLING HARMONIZED WITH LOGIN */}
       <style>{`
-        .register-card-content {
+        .login-form-container {
+          width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 18px;
         }
 
-        .register-header {
-          text-align: center;
-        }
-
-        .register-title {
-          font-size: 1.5rem;
-          font-weight: 900;
-          color: #1e293b;
-          margin: 0 0 6px 0;
-          letter-spacing: -0.02em;
-        }
-
-        .register-subtitle {
-          font-size: 0.85rem;
-          color: #64748b;
-          margin: 0;
-          line-height: 1.4;
-        }
-
-        .auth-alert-error {
-          display: flex;
+        .kembali {
+          display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 12px 16px;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--teal-800, #0B4F5C);
+          text-decoration: none;
+          margin-bottom: 32px;
+          width: fit-content;
+          transition: opacity 0.2s ease;
+        }
+
+        .kembali:hover {
+          opacity: 0.75;
+        }
+
+        .group {
+          margin-bottom: 24px;
+        }
+
+        .eyebrow {
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          color: var(--teal-700, #126575);
+          margin-bottom: 8px;
+          text-transform: uppercase;
+        }
+
+        h1 {
+          font-family: 'Fraunces', serif;
+          font-size: 32px;
+          font-weight: 500;
+          line-height: 1.2;
+          color: var(--ink, #1A2B2B);
+          margin: 0 0 8px 0;
+        }
+
+        .sub {
+          font-size: 15px;
+          color: var(--ink-soft, #5C6B6B);
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .login-error-alert {
+          margin-bottom: 20px;
+          padding: 10px 14px;
           background: #fef2f2;
           border: 1px solid #fecaca;
-          border-radius: 16px;
           color: #dc2626;
-          font-size: 0.825rem;
+          border-radius: 10px;
+          font-size: 13px;
           font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
-        .google-btn-container {
-          width: 100%;
-        }
-
-        .google-oauth-btn {
+        .btn-google {
           width: 100%;
           height: 52px;
-          background: #0f6784;
-          border: none;
-          border-radius: 9999px;
+          border-radius: 12px;
+          border: 1px solid var(--line, rgba(10, 62, 72, 0.12));
+          background: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
-          position: relative;
+          gap: 10px;
+          font-size: 15px;
+          font-weight: 600;
+          color: var(--ink, #1A2B2B);
           cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 10px 20px -5px rgba(15, 103, 132, 0.25);
-          padding-left: 56px;
-          padding-right: 20px;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
-        .google-oauth-btn:hover:not(:disabled) {
-          background: #0a4d63;
-          transform: translateY(-1px);
+        .btn-google:hover {
+          border-color: var(--teal-700, #126575);
+          box-shadow: 0 0 0 3px rgba(11, 79, 92, 0.08);
         }
 
-        .google-oauth-btn:active:not(:disabled) {
-          transform: scale(0.98);
-        }
-
-        .google-oauth-btn:disabled {
+        .btn-google:disabled {
           opacity: 0.6;
           cursor: not-allowed;
         }
 
-        .google-icon-wrapper {
-          position: absolute;
-          left: 6px;
-          top: 6px;
-          bottom: 6px;
-          width: 40px;
-          background: #ffffff;
-          border-radius: 9999px;
+        .trust {
+          margin-top: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .google-svg {
-          width: 20px;
-          height: 20px;
-        }
-
-        .google-btn-text {
-          color: #ffffff;
-          font-size: 0.85rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          width: 100%;
-          text-align: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--teal-800, #0B4F5C);
+          background: var(--teal-100, #DCEEEA);
+          border-radius: 10px;
+          padding: 9px 12px;
         }
 
         .auth-divider {
           display: flex;
           align-items: center;
           text-align: center;
-          color: #94a3b8;
-          font-size: 0.75rem;
-          font-weight: 600;
-          margin: 2px 0;
+          color: var(--ink-soft, #5C6B6B);
+          font-size: 13px;
+          margin: 4px 0 20px 0;
         }
 
         .auth-divider::before,
         .auth-divider::after {
           content: '';
           flex: 1;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid var(--line, rgba(10, 62, 72, 0.12));
         }
 
         .auth-divider span {
           padding: 0 12px;
         }
 
-        .auth-form-stack {
+        .email-login-form {
+          margin-bottom: 20px;
           display: flex;
           flex-direction: column;
           gap: 12px;
+          width: 100%;
+          text-align: left;
         }
 
-        .form-field {
+        .form-input-group {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
         }
 
-        .field-label {
-          font-size: 0.775rem;
-          font-weight: 800;
-          color: #334155;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
+        .input-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ink-soft, #5C6B6B);
         }
 
-        .input-pill {
-          position: relative;
+        .input-field-box {
           display: flex;
           align-items: center;
+          background: #f8fafc;
+          border: 1px solid var(--line, rgba(10, 62, 72, 0.12));
+          border-radius: 10px;
+          padding: 0 12px;
+          height: 44px;
         }
 
         .field-icon {
-          position: absolute;
-          left: 16px;
-          color: #94a3b8;
-          pointer-events: none;
+          color: var(--ink-soft, #5C6B6B);
+          margin-right: 8px;
+          shrink: 0;
         }
 
-        .field-input {
+        .text-input {
           width: 100%;
-          height: 48px;
-          padding-left: 46px;
-          padding-right: 16px;
-          background: #f8fafc;
-          border: 1.5px solid #e2e8f0;
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          color: #1e293b;
-          transition: all 0.2s ease;
+          height: 100%;
+          border: none;
+          background: transparent;
+          font-size: 14px;
           outline: none;
-        }
-
-        .field-input-right {
-          padding-right: 48px;
-        }
-
-        .field-input:focus {
-          background: #ffffff;
-          border-color: #0f6784;
-          box-shadow: 0 0 0 4px rgba(15, 103, 132, 0.1);
+          color: var(--ink, #1A2B2B);
         }
 
         .toggle-password-btn {
-          position: absolute;
-          right: 14px;
           background: none;
           border: none;
-          color: #94a3b8;
+          color: var(--ink-soft, #5C6B6B);
           cursor: pointer;
           display: flex;
           align-items: center;
-          justify-content: center;
           padding: 4px;
         }
 
-        .toggle-password-btn:hover {
-          color: #0f6784;
-        }
-
-        .submit-pill-btn {
+        .btn-submit-email {
           width: 100%;
-          height: 48px;
-          background: #0f6784;
+          height: 44px;
+          background: var(--teal-800, #0B4F5C);
           color: #ffffff;
+          font-weight: 600;
+          font-size: 14px;
           border: none;
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          font-weight: 800;
+          border-radius: 10px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          margin-top: 4px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-top: 6px;
-          box-shadow: 0 8px 16px -4px rgba(15, 103, 132, 0.25);
-        }
-
-        .submit-pill-btn:hover:not(:disabled) {
-          background: #0a4d63;
-          transform: translateY(-1px);
-        }
-
-        .submit-pill-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .auth-footer {
-          text-align: center;
-          font-size: 0.825rem;
-          color: #64748b;
-          margin: 0;
-        }
-
-        .auth-footer-link {
-          color: #0f6784;
-          font-weight: 800;
           text-decoration: none;
         }
 
-        .auth-footer-link:hover {
+        .btn-submit-email:hover {
+          background: var(--teal-900, #0A3E48);
+        }
+
+        .link-row {
+          text-align: center;
+          font-size: 14px;
+          color: var(--ink-soft, #5C6B6B);
+          margin: 0 0 20px 0;
+        }
+
+        .link-row a {
+          color: var(--teal-800, #0B4F5C);
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        .link-row a:hover {
           text-decoration: underline;
         }
 
-        .auth-success-box {
+        .legal {
+          margin-top: 20px;
+          padding-top: 20px;
+          border-top: 1px solid var(--line, rgba(10, 62, 72, 0.12));
+          font-size: 12.5px;
+          line-height: 1.6;
+          color: var(--ink-soft, #5C6B6B);
           text-align: center;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 0;
         }
 
-        .auth-success-icon-badge {
-          width: 64px;
-          height: 64px;
-          border-radius: 20px;
-          background: #ecfdf5;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 4px;
+        .legal a {
+          color: var(--teal-800, #0B4F5C);
+          font-weight: 500;
+          text-decoration: none;
         }
 
-        .auth-success-title {
-          font-size: 1.25rem;
-          font-weight: 900;
-          color: #1e293b;
-          margin: 0;
-        }
-
-        .auth-success-desc {
-          font-size: 0.85rem;
-          color: #64748b;
-          line-height: 1.5;
-          margin: 0;
+        .legal a:hover {
+          text-decoration: underline;
         }
       `}</style>
     </div>
