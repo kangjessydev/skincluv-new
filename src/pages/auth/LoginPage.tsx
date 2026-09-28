@@ -159,7 +159,12 @@ export default function LoginPage() {
           </div>
 
           <div className="form-input-group">
-            <label className="input-label">Password</label>
+            <div className="label-with-link">
+              <label className="input-label">Password</label>
+              <Link to="/forgot-password" className="forgot-password-link">
+                Lupa kata sandi?
+              </Link>
+            </div>
             <div className="input-field-box">
               <Lock size={14} className="field-icon" />
               <input
@@ -197,7 +202,7 @@ export default function LoginPage() {
 
       {/* LEGAL DISCLAIMER FOOTER */}
       <p className="legal">
-        Dengan mendaftar, Anda menyetujui <a href="#">Syarat Layanan</a> dan <a href="#">Kebijakan Privasi</a>.
+        Dengan mendaftar atau masuk, Anda menyetujui <Link to="/terms">Syarat Layanan</Link> dan <Link to="/privacy">Kebijakan Privasi</Link>.
       </p>
 
       {/* PURE VANILLA CSS STYLING FROM CLAUDE */}
@@ -340,6 +345,23 @@ export default function LoginPage() {
           display: flex;
           flex-direction: column;
           gap: 4px;
+        }
+
+        .label-with-link {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .forgot-password-link {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--teal-700, #126575);
+          text-decoration: none;
+        }
+
+        .forgot-password-link:hover {
+          text-decoration: underline;
         }
 
         .input-label {

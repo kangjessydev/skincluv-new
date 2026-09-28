@@ -14,6 +14,9 @@ import DashboardPage from '@/pages/app/DashboardPage'
 
 // Lazy load user feature pages
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'))
+const AuthCallbackPage = lazy(() => import('@/pages/auth/AuthCallbackPage'))
 const FaceScanPage = lazy(() => import('@/pages/app/FaceScanPage'))
 const ScanHistoryPage = lazy(() => import('@/pages/app/ScanHistoryPage'))
 const IngredientScanPage = lazy(() => import('@/pages/app/IngredientScanPage'))
@@ -69,6 +72,9 @@ export default function App() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Route>
 
         {/* Public regulatory, trust, & informational routes */}
