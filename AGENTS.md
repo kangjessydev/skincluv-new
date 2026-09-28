@@ -74,6 +74,15 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 15. **Product Handbook Hierarchy of Authority (RFC 013)**:
     - Pengetahuan produk dan fitur Skincluv bersumber dari tabel handbook terverifikasi dengan aturan *what_it_is_not* (penangkal halusinasi scope). Aturan hierarki mutlak: Database / Logika Transaksi (`subscription_tiers`, `ai_features`) > Handbook (Prosa & Scope) > LLM (Naratif). Biaya kredit dan harga paket tidak boleh di-hardcode secara statis di handbook.
 
+16. **Biometric & Clinical Data Isolation for Support Roles (RFC 015)**:
+    - Role Customer Support (`support_agent`) dan peran non-klinis lainnya hanya berhak membaca status pembayaran, langganan, dan saldo kuota via CS-safe DTO/RPC sempit. DILARANG KERAS mengakses foto wajah asli, storage signed URL, atau rekam jejak klinis pengguna demi kepatuhan UU PDP No. 27/2022.
+
+17. **Dual-Track Accounting: Cash Treasury vs Accrual Consumption (RFC 015)**:
+    - Setoran kas deposit ke provider adalah aset prabayar (*prepaid asset / cash movement*), bukan beban biaya berjalan. Grafik tren biaya operasional bulanan wajib mem-plot konsumsi riil (`cost_usd`), bukan pergerakan kas deposit, dengan valuasi saldo menggunakan metode Weighted Average Cost (WAC).
+
+18. **Pricing Integrity & Non-Derived Invoice Billing (RFC 015)**:
+    - Nilai transaksi yang ditagihkan ke payment gateway (Tripay) wajib merujuk langsung ke kolom `price_idr` aktual saat pesanan dibuat. Persentase diskon promo hanya bersifat representasi visual di antarmuka dan tidak boleh dijadikan acuan nominal penagihan invoice.
+
 ---
 
 ## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)
