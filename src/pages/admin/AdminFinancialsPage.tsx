@@ -140,6 +140,10 @@ export default function AdminFinancialsPage() {
     website_url: '',
   })
 
+  // Modal Konfirmasi Hapus Deposit (In-App Modal)
+  const [depositToDelete, setDepositToDelete] = useState<ProviderDepositRecord | null>(null)
+  const [isDeletingDeposit, setIsDeletingDeposit] = useState(false)
+
   // Auto-dismiss floating feedback toast
   useEffect(() => {
     if (!feedback) return
@@ -592,16 +596,20 @@ export default function AdminFinancialsPage() {
     }
   }
 
-  // Handler Hapus Deposit
-  const handleDeleteTopup = async (id: string) => {
-    if (!window.confirm('Hapus catatan deposit provider ini dari pembukuan?')) return
+  // Handler Konfirmasi Hapus Deposit In-App
+  const confirmDeleteDeposit = async () => {
+    if (!depositToDelete) return
+    setIsDeletingDeposit(true)
     try {
-      const { error } = await supabase.from('provider_deposits').delete().eq('id', id)
+      const { error } = await supabase.from('provider_deposits').delete().eq('id', depositToDelete.id)
       if (error) throw error
-      setFeedback({ type: 'success', message: 'Catatan deposit berhasil dihapus' })
+      setFeedback({ type: 'success', message: 'Catatan deposit berhasil dihapus dari pembukuan' })
+      setDepositToDelete(null)
       loadFinancialData()
     } catch (err: any) {
       setFeedback({ type: 'error', message: `Gagal menghapus deposit: ${err.message}` })
+    } finally {
+      setIsDeletingDeposit(false)
     }
   }
 
@@ -1110,7 +1118,7 @@ export default function AdminFinancialsPage() {
                               <Pencil size={14} />
                             </button>
                             <button
-                              onClick={() => handleDeleteTopup(d.id)}
+                              onClick={() => setDepositToDelete(d)}
                               className="delete-topup-btn"
                               title="Hapus catatan deposit"
                             >
@@ -1620,6 +1628,164 @@ export default function AdminFinancialsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus Deposit In-App */}
+      {depositToDelete && (
+        <div
+          className="topup-modal-overlay"
+          style={{ zIndex: 10001 }}
+          onClick={() => !isDeletingDeposit && setDepositToDelete(null)}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 16,
+              maxWidth: 460,
+              width: '100%',
+              padding: '24px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              border: '1px solid #fee2e2',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 10,
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#111827' }}>
+                  Hapus Catatan Deposit
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#6b7280' }}>
+                  Konfirmasi pembukuan kas dan saldo vendor
+                </p>
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.5 }}>
+              Apakah Anda yakin ingin menghapus catatan deposit untuk vendor{' '}
+              <strong>&quot;{depositToDelete.ai_providers?.name || depositToDelete.provider_id}&quot;</strong>?
+            </div>
+
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: '12px 14px',
+                fontSize: '0.8125rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                color: '#475569',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Nominal Kas (IDR):</span>
+                <strong style={{ color: '#0f172a' }}>Rp {depositToDelete.amount_paid_idr.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Kredit Saldo:</span>
+                <strong style={{ color: '#0f172a' }}>
+                  {depositToDelete.credited_amount_usd > 0
+                    ? `$${depositToDelete.credited_amount_usd.toFixed(2)} USD`
+                    : `${depositToDelete.credited_tokens.toLocaleString('id-ID')} Token`}
+                </strong>
+              </div>
+              {depositToDelete.invoice_number && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b' }}>No. Invoice:</span>
+                  <span style={{ fontFamily: 'monospace', color: '#0f172a' }}>{depositToDelete.invoice_number}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Tanggal:</span>
+                <span>{new Date(depositToDelete.deposited_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</span>
+              </div>
+            </div>
+
+            <p style={{ margin: 0, fontSize: '0.75rem', color: '#b91c1c', lineHeight: 1.4 }}>
+              Perhatian: Menghapus catatan ini akan membatalkan pencatatan kas deposit dan menyesuaikan kembali saldo prabayar serta weighted average cost (WAC) pada sistem pembukuan.
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 10,
+                marginTop: 4,
+                paddingTop: 14,
+                borderTop: '1px solid #f1f5f9',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setDepositToDelete(null)}
+                disabled={isDeletingDeposit}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  cursor: isDeletingDeposit ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteDeposit}
+                disabled={isDeletingDeposit}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: isDeletingDeposit ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  opacity: isDeletingDeposit ? 0.7 : 1,
+                }}
+              >
+                {isDeletingDeposit ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>Hapus Deposit</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
