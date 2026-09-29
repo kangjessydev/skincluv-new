@@ -21,9 +21,11 @@ import {
   AlertTriangle,
   Clock,
   X,
+  Coins,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData } from '@/hooks/useDashboardData'
+import { Badge, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
 
 const weekData = [
   { day: 'Sen', date: '21', score: 76 },
@@ -51,8 +53,8 @@ function getTimeOfDayGreeting(): string {
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { profile, subscription } = useAuthStore()
-  const { data } = useDashboardData()
+  const { profile, subscription, coinBalance } = useAuthStore()
+  const { data, loading } = useDashboardData()
 
   const [checked, setChecked] = useState(initialRoutine.map((item) => item.done))
   const [showExpiryBanner, setShowExpiryBanner] = useState(true)
@@ -83,6 +85,29 @@ export default function DashboardPage() {
   }
   const showExpiryAlert = showExpiryBanner && daysRemaining !== null && daysRemaining <= 3
 
+  // AI Credits Status
+  const credits = coinBalance?.balance ?? 0
+  const creditStatus = credits === 0 ? 'empty' : credits <= 5 ? 'low' : 'normal'
+
+  // Last Scan Date
+  const lastScanDate = skinAssessment?.latest_scanned_at
+    ? new Date(skinAssessment.latest_scanned_at).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null
+
+  const getStatusVariant = (status?: string): 'optimal' | 'attention' | 'alert' | 'neutral' => {
+    if (!status) return 'neutral'
+    const s = status.toLowerCase()
+    if (s.includes('optimal') || s.includes('baik') || s.includes('sehat')) return 'optimal'
+    if (s.includes('perhatian') || s.includes('waspada')) return 'attention'
+    if (s.includes('kritis') || s.includes('bahaya') || s.includes('peringatan')) return 'alert'
+    return 'neutral'
+  }
+
   return (
     <div className="v0-page-body">
       {/* SUBSCRIPTION EXPIRY REMINDER (Quiet & Sleek) */}
@@ -110,64 +135,173 @@ export default function DashboardPage() {
         <div>
           <p className="v0-greeting-date-text">{todayFormatted}</p>
           <h1 className="v0-greeting-h1">Selamat {timeOfDay}, {firstName}</h1>
-          <p className="v0-greeting-lead">Jaga ritmemu hari ini, satu langkah kecil sudah berarti.</p>
+          <p className="v0-greeting-lead">Ringkasan kondisi kulit dan akses cepat perawatan harianmu.</p>
         </div>
+
+        {/* AI Credits Status Pill */}
+        <div className="v0-header-actions">
+          <button
+            onClick={() => navigate('/pricing')}
+            className={`v0-credits-pill v0-credits-${creditStatus}`}
+            title="Kelola AI Credits Anda"
+          >
+            <Coins size={16} />
+            <span className="v0-credits-amount">{credits} AI Credits</span>
+            {credits <= 5 && (
+              <span className="v0-credits-action-tag">
+                {credits === 0 ? 'Habis · Isi Ulang' : 'Sisa Sedikit'}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* QUICK SCAN SHORTCUTS (2 Primary Action Buttons) */}
+      <div className="v0-quick-scan-grid">
         <button
           onClick={() => navigate('/face-scan')}
-          className="v0-checkin-btn"
+          className="v0-quick-scan-btn v0-quick-scan-face"
         >
-          <Sparkles size={16} strokeWidth={2.2} />
-          <span>Mulai check-in</span>
+          <div className="v0-quick-scan-icon bg-teal text-teal">
+            <ScanFace size={22} strokeWidth={2.2} />
+          </div>
+          <div className="v0-quick-scan-info">
+            <span className="v0-quick-scan-title">Scan Wajah AI</span>
+            <span className="v0-quick-scan-sub">Analisis kondisi kulit & skor visual</span>
+          </div>
+          <ChevronRight size={18} className="v0-quick-scan-arrow" />
+        </button>
+
+        <button
+          onClick={() => navigate('/ingredient-scan')}
+          className="v0-quick-scan-btn v0-quick-scan-ingredient"
+        >
+          <div className="v0-quick-scan-icon bg-blue text-blue">
+            <FlaskConical size={22} strokeWidth={2.2} />
+          </div>
+          <div className="v0-quick-scan-info">
+            <span className="v0-quick-scan-title">Scan Komposisi</span>
+            <span className="v0-quick-scan-sub">Analisis keamanan bahan skincare</span>
+          </div>
+          <ChevronRight size={18} className="v0-quick-scan-arrow" />
         </button>
       </div>
 
-      {/* 3 TOP STAT CARDS */}
-      <div className="v0-stats-trio">
-        {/* Card 1: Kesehatan hari ini */}
-        <div className="v0-stat-box">
-          <div className="v0-stat-head-flex">
-            <span className="v0-stat-ico-container bg-teal text-teal">
-              <HeartPulse size={20} strokeWidth={2.2} />
-            </span>
-            <span className="v0-stat-label-text">Kesehatan hari ini</span>
+      {/* LATEST SKIN ASSESSMENT (Primary Value Proposition) */}
+      {loading ? (
+        <div className="v0-assessment-loading-card">
+          <Skeleton height={24} width={180} />
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center', marginTop: 14 }}>
+            <Skeleton height={80} width={80} radius="50%" />
+            <div style={{ flex: 1 }}>
+              <Skeleton height={18} width="40%" />
+              <div style={{ height: 8 }} />
+              <SkeletonText lines={2} />
+            </div>
           </div>
-          <div className="v0-stat-number-row">
-            <span className="v0-stat-big-num">{skinAssessment?.latest_score || 82}</span>
-            <span className="v0-stat-sub-denom">/100</span>
-          </div>
-          <p className="v0-stat-delta-note">
-            {skinAssessment?.trend_label || '+6 dari kemarin'}
-          </p>
         </div>
+      ) : skinAssessment?.has_face_scan ? (
+        <section className="v0-card-panel v0-assessment-hero-card">
+          <div className="v0-panel-title-row">
+            <div>
+              <div className="v0-assessment-badge-row">
+                <span className="v0-assessment-tag">SKIN ASSESSMENT TERAKHIR</span>
+                {skinAssessment.latest_status && (
+                  <Badge variant={getStatusVariant(skinAssessment.latest_status)} dot size="sm">
+                    {skinAssessment.latest_status}
+                  </Badge>
+                )}
+              </div>
+              <h2 className="v0-h2-title" style={{ marginTop: 6 }}>
+                Observasi Kulit {skinAssessment.skin_type ? `· ${skinAssessment.skin_type}` : ''}
+              </h2>
+              {lastScanDate && (
+                <p className="v0-p-sub">Dipindai pada {lastScanDate}</p>
+              )}
+            </div>
+            <button onClick={() => navigate('/scan-history')} className="v0-action-link-btn">
+              Riwayat lengkap <ArrowUpRight size={15} />
+            </button>
+          </div>
 
-        {/* Card 2: Hidrasi */}
-        <div className="v0-stat-box">
-          <div className="v0-stat-head-flex">
-            <span className="v0-stat-ico-container bg-blue text-blue">
-              <Droplets size={20} strokeWidth={2.2} />
-            </span>
-            <span className="v0-stat-label-text">Hidrasi</span>
-          </div>
-          <div className="v0-stat-number-row">
-            <span className="v0-stat-big-num">1.4</span>
-            <span className="v0-stat-sub-denom">L / 2L</span>
-          </div>
-          <p className="v0-stat-delta-note">60% target harian</p>
-        </div>
+          <div className="v0-assessment-body-flex">
+            {/* Circular Score Ring */}
+            <div className="v0-score-ring-container">
+              <svg className="v0-score-svg" viewBox="0 0 80 80">
+                <circle
+                  className="v0-score-bg-circle"
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  strokeWidth="6"
+                />
+                <circle
+                  className="v0-score-fg-circle"
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  strokeWidth="6"
+                  strokeDasharray={213.6}
+                  strokeDashoffset={213.6 - (213.6 * Math.min(Math.max(skinAssessment.latest_score || 0, 0), 100)) / 100}
+                  style={{
+                    stroke: (skinAssessment.latest_score || 0) >= 80 ? '#1f9d97' : (skinAssessment.latest_score || 0) >= 60 ? '#3b82f6' : '#f59e0b'
+                  }}
+                />
+              </svg>
+              <div className="v0-score-center-text">
+                <span className="v0-score-big">{skinAssessment.latest_score ?? '-'}</span>
+                <span className="v0-score-max">/100</span>
+              </div>
+            </div>
 
-        {/* Card 3: Paparan UV */}
-        <div className="v0-stat-box">
-          <div className="v0-stat-head-flex">
-            <span className="v0-stat-ico-container bg-coral text-coral">
-              <SunMedium size={20} strokeWidth={2.2} />
-            </span>
-            <span className="v0-stat-label-text">Paparan UV</span>
+            {/* Assessment Notes & Meta */}
+            <div className="v0-assessment-notes-col">
+              <p className="v0-assessment-notes-p">
+                {skinAssessment.analysis_notes || 'Kondisi kulit terjaga dengan baik. Lanjutkan hidrasi dan proteksi UV harian.'}
+              </p>
+              <div className="v0-assessment-meta-tags">
+                {skinAssessment.trend_label && (
+                  <span className="v0-assessment-trend-chip">
+                    {skinAssessment.trend_label}
+                  </span>
+                )}
+                {skinAssessment.skin_type && (
+                  <span className="v0-assessment-type-chip">
+                    Tipe: {skinAssessment.skin_type}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="v0-stat-number-row">
-            <span className="v0-stat-big-num">Rendah</span>
+        </section>
+      ) : (
+        <section className="v0-card-panel v0-empty-assessment-panel">
+          <EmptyFaceScan onScan={() => navigate('/face-scan')} />
+        </section>
+      )}
+
+      {/* COMPACT MISSION STRIP (1-line, no bulky card) */}
+      <div className="v0-mission-strip">
+        <div className="v0-mission-left">
+          <span className="v0-mission-spark-icon">
+            <Sparkles size={16} />
+          </span>
+          <span className="v0-mission-title">Misi Hari Ini:</span>
+          <span className="v0-mission-counter">
+            <strong>{missions.completed}</strong> dari <strong>{missions.total}</strong> selesai
+          </span>
+          <div className="v0-mission-track">
+            <div
+              className="v0-mission-bar"
+              style={{
+                width: `${Math.min(100, Math.round((missions.completed / Math.max(missions.total, 1)) * 100))}%`,
+              }}
+            />
           </div>
-          <p className="v0-stat-delta-note">Waktu aman hingga 10.30</p>
         </div>
+        <button onClick={() => navigate('/missions')} className="v0-mission-link-btn">
+          Buka Misi <ChevronRight size={14} />
+        </button>
       </div>
 
       {/* MIDDLE GRID: CHART (1.55fr) + INSIGHT (1fr) */}
@@ -415,55 +549,297 @@ export default function DashboardPage() {
           margin: 9px 0 0;
         }
 
-        /* Button "Mulai check-in" */
-        .v0-checkin-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 9px;
-          height: 46px;
-          border-radius: 14px;
-          background: #1f9d97;
-          padding: 0 22px;
-          font-size: 14px;
-          font-weight: 600;
-          color: #ffffff;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 8px 20px rgba(31, 157, 151, 0.24);
-          transition: all 0.15s ease;
-        }
-        .v0-checkin-btn:hover {
-          background: #188b86;
-          transform: translateY(-1px);
-        }
-
-        /* 3 Stat Cards Grid */
-        .v0-stats-trio {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 18px;
-          align-items: start; /* RFC 019 T3: kartu stat tidak stretch */
-        }
-        .v0-stat-box {
-          background: #ffffff;
-          border: 1px solid #dfeaf2;
-          border-radius: 18px;
-          padding: 22px 24px;
-          box-shadow: 0 12px 35px rgba(43, 84, 116, 0.04);
-        }
-        .v0-stat-head-flex {
+        /* ── T5: Header Actions (Credits Pill) ── */
+        .v0-header-actions {
           display: flex;
           align-items: center;
-          gap: 13px;
+          gap: 10px;
         }
-        .v0-stat-ico-container {
+        .v0-credits-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          height: 40px;
+          padding: 0 16px;
+          border-radius: 100px;
+          border: 1.5px solid #d0e7e5;
+          background: #f4fbfa;
+          color: #2aa59e;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          white-space: nowrap;
+        }
+        .v0-credits-pill:hover {
+          background: #e9f7f5;
+        }
+        .v0-credits-pill.v0-credits-low {
+          border-color: #fed7aa;
+          background: #fff7ed;
+          color: #c2410c;
+        }
+        .v0-credits-pill.v0-credits-empty {
+          border-color: #fca5a5;
+          background: #fef2f2;
+          color: #dc2626;
+          animation: v0-pulse-warning 2s infinite;
+        }
+        @keyframes v0-pulse-warning {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.15); }
+          50% { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+        }
+        .v0-credits-amount { font-variant-numeric: tabular-nums; }
+        .v0-credits-action-tag {
+          background: #dc2626;
+          color: #fff;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 100px;
+          letter-spacing: 0.01em;
+        }
+        .v0-credits-pill.v0-credits-low .v0-credits-action-tag {
+          background: #ea580c;
+        }
+
+        /* ── T5: Quick Scan Shortcuts Grid ── */
+        .v0-quick-scan-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          align-items: start;
+        }
+        .v0-quick-scan-btn {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 18px 20px;
+          border-radius: 18px;
+          border: 1.5px solid #dfeaf2;
+          background: #ffffff;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 4px 16px rgba(43, 84, 116, 0.04);
+          transition: all 0.18s ease;
+        }
+        .v0-quick-scan-btn:hover {
+          border-color: #b5dbd8;
+          box-shadow: 0 8px 24px rgba(31, 157, 151, 0.12);
+          transform: translateY(-1px);
+        }
+        .v0-quick-scan-face:hover { border-color: #b5dbd8; }
+        .v0-quick-scan-ingredient:hover { border-color: #b3d4f5; }
+        .v0-quick-scan-icon {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 40px;
-          height: 40px;
-          border-radius: 13px;
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          flex-shrink: 0;
         }
+        .v0-quick-scan-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .v0-quick-scan-title {
+          font-size: 14.5px;
+          font-weight: 700;
+          color: #1c3449;
+          line-height: 1.2;
+        }
+        .v0-quick-scan-sub {
+          font-size: 12px;
+          color: #8496a6;
+          line-height: 1.4;
+        }
+        .v0-quick-scan-arrow {
+          color: #b0bec9;
+          flex-shrink: 0;
+        }
+
+        /* ── T5: Assessment Loading Card ── */
+        .v0-assessment-loading-card {
+          background: #ffffff;
+          border: 1px solid #dfeaf2;
+          border-radius: 18px;
+          padding: 26px;
+          box-shadow: 0 12px 35px rgba(43, 84, 116, 0.04);
+        }
+
+        /* ── T5: Assessment Hero Card ── */
+        .v0-assessment-hero-card {
+          background: #ffffff;
+        }
+        .v0-assessment-badge-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .v0-assessment-tag {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+          color: #7d96a5;
+        }
+        .v0-assessment-body-flex {
+          display: flex;
+          align-items: flex-start;
+          gap: 28px;
+          margin-top: 4px;
+        }
+        /* SVG Score Ring */
+        .v0-score-ring-container {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          flex-shrink: 0;
+        }
+        .v0-score-svg {
+          width: 120px;
+          height: 120px;
+          transform: rotate(-90deg);
+        }
+        .v0-score-bg-circle {
+          fill: none;
+          stroke: #e8f3f8;
+        }
+        .v0-score-fg-circle {
+          fill: none;
+          stroke-linecap: round;
+          transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .v0-score-center-text {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        }
+        .v0-score-big {
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          color: #1b3048;
+        }
+        .v0-score-max {
+          font-size: 12px;
+          font-weight: 600;
+          color: #93a2af;
+          margin-top: 2px;
+        }
+        /* Assessment Notes Column */
+        .v0-assessment-notes-col {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .v0-assessment-notes-p {
+          font-size: 14px;
+          line-height: 1.65;
+          color: #4e6679;
+          margin: 0;
+        }
+        .v0-assessment-meta-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .v0-assessment-trend-chip,
+        .v0-assessment-type-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 12px;
+          border-radius: 100px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .v0-assessment-trend-chip {
+          background: #e9f7f6;
+          color: #1f9d97;
+        }
+        .v0-assessment-type-chip {
+          background: #f1f5f9;
+          color: #475569;
+        }
+        .v0-empty-assessment-panel {
+          min-height: 180px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* ── T5: Mission Strip ── */
+        .v0-mission-strip {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 12px 18px;
+          border-radius: 14px;
+          background: #f8fafc;
+          border: 1px solid #e2ecf2;
+        }
+        .v0-mission-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .v0-mission-spark-icon {
+          display: flex;
+          align-items: center;
+          color: #f59e0b;
+        }
+        .v0-mission-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #3b4f61;
+        }
+        .v0-mission-counter {
+          font-size: 13px;
+          color: #5d7a8c;
+        }
+        .v0-mission-counter strong {
+          color: #2aa59e;
+        }
+        .v0-mission-track {
+          width: 100px;
+          height: 5px;
+          border-radius: 100px;
+          background: #dde8ef;
+          overflow: hidden;
+        }
+        .v0-mission-bar {
+          height: 100%;
+          border-radius: 100px;
+          background: linear-gradient(90deg, #1f9d97, #2bc5bc);
+          transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          min-width: 5px;
+        }
+        .v0-mission-link-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: none;
+          border: none;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #258e8b;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .v0-mission-link-btn:hover { opacity: 0.75; }
+
         .bg-teal { background: #e5f7f4; }
         .text-teal { color: #299d96; }
         .bg-blue { background: #e6f2ff; }
@@ -473,35 +849,7 @@ export default function DashboardPage() {
         .bg-lavender { background: #f1edff; }
         .text-lavender { color: #896bc2; }
 
-        .v0-stat-label-text {
-          font-size: 13px;
-          font-weight: 600;
-          color: #7d91a2;
-        }
-        .v0-stat-number-row {
-          margin-top: 22px;
-          display: flex;
-          align-items: baseline;
-          gap: 5px;
-        }
-        .v0-stat-big-num {
-          font-size: 32px;
-          font-weight: 700;
-          letter-spacing: -0.04em;
-          color: #1c3449;
-          line-height: 1;
-        }
-        .v0-stat-sub-denom {
-          font-size: 13.5px;
-          font-weight: 600;
-          color: #93a2af;
-        }
-        .v0-stat-delta-note {
-          margin: 6px 0 0;
-          font-size: 12px;
-          font-weight: 500;
-          color: #86a0ae;
-        }
+
 
         /* Generic Panels */
         .v0-card-panel {
@@ -845,7 +1193,7 @@ export default function DashboardPage() {
           .v0-page-body {
             padding: 24px 20px 48px;
           }
-          .v0-stats-trio {
+          .v0-quick-scan-grid {
             grid-template-columns: 1fr;
           }
           .v0-activities-3cols {
@@ -853,6 +1201,13 @@ export default function DashboardPage() {
           }
           .v0-greeting-h1 {
             font-size: 28px;
+          }
+          .v0-assessment-body-flex {
+            flex-direction: column;
+            align-items: center;
+          }
+          .v0-mission-track {
+            display: none;
           }
         }
       `}</style>
