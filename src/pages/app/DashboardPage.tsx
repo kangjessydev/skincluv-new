@@ -66,6 +66,9 @@ export default function DashboardPage() {
   const skinAssessment = data?.skin_assessment
   const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0 }
   const missions = data?.missions ?? { completed: 0, total: 1 }
+  const recentScans = data?.recent_scans ?? []
+  const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
+  const hasEnoughTrendData = recentScans.length >= 3
 
   const userName = profile?.full_name || 'Pengguna'
   const firstName = userName.split(' ')[0]
@@ -304,50 +307,95 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* MIDDLE GRID: CHART (1.55fr) + INSIGHT (1fr) */}
+      {/* MIDDLE GRID: SCAN TREND CHART (1.55fr) + INSIGHT (1fr) */}
       <div className="v0-middle-split-grid">
-        {/* Weekly Balance Chart */}
+        {/* Scan Score Trend Chart — RFC 019 guardrail: ≥3 titik data */}
         <section className="v0-card-panel">
           <div className="v0-panel-title-row">
             <div>
-              <h2 className="v0-h2-title">Keseimbangan mingguan</h2>
-              <p className="v0-p-sub">Ringkasan dari check-in dan jurnal harianmu</p>
+              <h2 className="v0-h2-title">Tren Analisis Kulit</h2>
+              <p className="v0-p-sub">
+                {hasEnoughTrendData
+                  ? `${recentScans.length} scan terakhir · skor wajah`
+                  : `${recentScans.length} scan — butuh minimal 3 untuk melihat tren`}
+              </p>
             </div>
             <button onClick={() => navigate('/scan-history')} className="v0-action-link-btn">
-              Lihat detail <ArrowUpRight size={15} />
+              Lihat riwayat <ArrowUpRight size={15} />
             </button>
           </div>
 
-          <div className="v0-bars-chart-row">
-            {weekData.map((item, index) => {
-              const isHighlight = index === 5
-              return (
-                <div key={item.day} className="v0-bar-item-col">
-                  <div className="v0-bar-track-box">
-                    <div
-                      className={`v0-bar-colored-pillar ${isHighlight ? 'active' : ''}`}
-                      style={{ height: `${item.score}%` }}
-                    />
-                    {isHighlight && (
-                      <span className="v0-bar-badge-tooltip">{item.score}</span>
-                    )}
-                  </div>
-                  <span className={`v0-bar-day-title ${isHighlight ? 'active' : ''}`}>
-                    {item.day}
-                  </span>
-                  <span className="v0-bar-date-label">{item.date}</span>
-                </div>
-              )
-            })}
+          {loading ? (
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', height: 160 }}>
+              {[60,80,45,95,70,88,75].map((h, i) => (
+                <Skeleton key={i} height={`${h}%`} width="100%" radius="8px 8px 0 0" />
+              ))}
+            </div>
+          ) : hasEnoughTrendData ? (
+            <div className="v0-bars-chart-row">
+              {recentScans
+                .filter(s => s.type === 'face' && s.score !== null)
+                .slice(-7)
+                .map((scan, index, arr) => {
+                  const isLatest = index === arr.length - 1
+                  const scoreVal = scan.score ?? 0
+                  const dateLabel = new Date(scan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+                  return (
+                    <div key={scan.id} className="v0-bar-item-col">
+                      <div className="v0-bar-track-box">
+                        <div
+                          className={`v0-bar-colored-pillar ${isLatest ? 'active' : ''}`}
+                          style={{ height: `${scoreVal}%` }}
+                        />
+                        {isLatest && (
+                          <span className="v0-bar-badge-tooltip">{scoreVal}</span>
+                        )}
+                      </div>
+                      <span className={`v0-bar-day-title ${isLatest ? 'active' : ''}`}>
+                        {dateLabel.split(' ')[0]}
+                      </span>
+                      <span className="v0-bar-date-label">{dateLabel.split(' ')[1] ?? ''}</span>
+                    </div>
+                  )
+                })}
+            </div>
+          ) : (
+            <div className="v0-chart-empty-state">
+              <CalendarDays size={32} strokeWidth={1.5} />
+              <p className="v0-chart-empty-title">Belum cukup data tren</p>
+              <p className="v0-chart-empty-sub">
+                Lakukan setidaknya 3 Analisis Kulit AI untuk melihat grafik perkembangan kulitmu.
+              </p>
+              <button onClick={() => navigate('/face-scan')} className="v0-chart-empty-cta">
+                <ScanFace size={15} /> Mulai Analisis
+              </button>
+            </div>
+          )}
+
+          {/* Scan count summary pills */}
+          <div className="v0-scan-summary-pills">
+            <span className="v0-scan-pill v0-scan-pill-face">
+              <ScanFace size={14} /> {scanCounts.face_total} Wajah
+            </span>
+            <span className="v0-scan-pill v0-scan-pill-ingredient">
+              <FlaskConical size={14} /> {scanCounts.ingredient_total} Komposisi
+            </span>
+            {productSummary.total_products_scanned > 0 && (
+              <span className="v0-scan-pill v0-scan-pill-safe">
+                <ShieldCheck size={14} /> {productSummary.safe_products_count}/{productSummary.total_products_scanned} Aman
+              </span>
+            )}
           </div>
         </section>
 
-        {/* Insight Card */}
+        {/* Insight / Analysis Notes Card */}
         <section className="v0-card-panel v0-insight-colored-panel">
           <div className="v0-panel-title-row">
             <div>
-              <p className="v0-insight-micro-tag">INSIGHT UNTUKMU</p>
-              <h2 className="v0-insight-main-h2">Kulitmu butuh jeda</h2>
+              <p className="v0-insight-micro-tag">INSIGHT KULITMU</p>
+              <h2 className="v0-insight-main-h2">
+                {skinAssessment?.has_face_scan ? 'Catatan AI' : 'Mulai dari sini'}
+              </h2>
             </div>
             <span className="v0-insight-top-icon">
               <Sparkles size={20} />
@@ -355,20 +403,26 @@ export default function DashboardPage() {
           </div>
 
           <p className="v0-insight-body-text">
-            {skinAssessment?.analysis_notes ||
-              'Dari catatanmu minggu ini, kulit terlihat lebih sensitif setelah hari yang panjang. Coba sederhanakan rutinitas malam ini.'}
+            {skinAssessment?.analysis_notes
+              ? skinAssessment.analysis_notes
+              : 'Lakukan Analisis Kulit AI pertamamu. Skinsistant AI akan menyediakan insight mendalam tentang kondisi kulitmu berdasarkan foto wajah.'}
           </p>
 
           <div className="v0-insight-footer-row">
-            <span className="v0-insight-source-label">Berdasarkan 4 catatan</span>
-            <button onClick={() => navigate('/chatbot')} className="v0-insight-btn-action">
-              Buka jurnal <ChevronRight size={15} />
+            <span className="v0-insight-source-label">
+              {skinAssessment?.has_face_scan ? `Total ${scanCounts.total} scan` : 'Belum ada scan'}
+            </span>
+            <button
+              onClick={() => navigate(skinAssessment?.has_face_scan ? '/chatbot' : '/face-scan')}
+              className="v0-insight-btn-action"
+            >
+              {skinAssessment?.has_face_scan ? 'Tanya Skinsistant' : 'Mulai Scan'} <ChevronRight size={15} />
             </button>
           </div>
         </section>
       </div>
 
-      {/* BOTTOM GRID: ROUTINE (1fr) + ACTIVITY (1.55fr) */}
+      {/* BOTTOM GRID: ROUTINE (1fr) + RECENT SCANS (1.55fr) */}
       <div className="v0-bottom-split-grid">
         {/* Rutinitas Pagi */}
         <section className="v0-card-panel">
@@ -410,46 +464,58 @@ export default function DashboardPage() {
           </button>
         </section>
 
-        {/* Aktivitas Terakhir */}
+        {/* Riwayat Scan Terakhir — real data */}
         <section className="v0-card-panel">
           <div className="v0-panel-title-row">
             <div>
-              <h2 className="v0-h2-title">Aktivitas terakhir</h2>
-              <p className="v0-p-sub">Catatan kesehatan dan perawatanmu</p>
+              <h2 className="v0-h2-title">Riwayat scan terakhir</h2>
+              <p className="v0-p-sub">Analisis terbaru dari akun kamu</p>
             </div>
             <button onClick={() => navigate('/scan-history')} className="v0-action-link-btn">
-              Lihat semua
+              Lihat semua <ArrowUpRight size={15} />
             </button>
           </div>
 
-          <div className="v0-activities-3cols">
-            <div className="v0-single-activity-card">
-              <span className="v0-activity-icon-badge bg-blue text-blue">
-                <Droplets size={19} />
-              </span>
-              <p className="v0-act-title-text">Minum air</p>
-              <p className="v0-act-time-text">Hari ini, 08.12</p>
-              <p className="v0-act-val-text">+250 ml</p>
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[1,2,3].map(i => (
+                <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <Skeleton height={44} width={44} radius="12px" />
+                  <div style={{ flex: 1 }}><SkeletonText lines={2} /></div>
+                  <Skeleton height={20} width={40} radius="100px" />
+                </div>
+              ))}
             </div>
-
-            <div className="v0-single-activity-card">
-              <span className="v0-activity-icon-badge bg-teal text-teal">
-                <Sparkles size={19} />
-              </span>
-              <p className="v0-act-title-text">Rutinitas wajah</p>
-              <p className="v0-act-time-text">Hari ini, 07.40</p>
-              <p className="v0-act-val-text">Selesai</p>
+          ) : recentScans.length > 0 ? (
+            <div className="v0-recent-scan-list">
+              {recentScans.slice(0, 5).map(scan => (
+                <button
+                  key={scan.id}
+                  onClick={() => navigate('/scan-history')}
+                  className="v0-recent-scan-row"
+                >
+                  <span className={`v0-recent-scan-icon ${scan.type === 'face' ? 'bg-teal text-teal' : 'bg-blue text-blue'}`}>
+                    {scan.type === 'face' ? <ScanFace size={18} /> : <FlaskConical size={18} />}
+                  </span>
+                  <div className="v0-recent-scan-info">
+                    <span className="v0-recent-scan-title">{scan.title}</span>
+                    <span className="v0-recent-scan-time">
+                      {new Date(scan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  {scan.score !== null && (
+                    <span className="v0-recent-scan-score">{scan.score}</span>
+                  )}
+                  <ChevronRight size={14} className="v0-recent-scan-arrow" />
+                </button>
+              ))}
             </div>
-
-            <div className="v0-single-activity-card">
-              <span className="v0-activity-icon-badge bg-lavender text-lavender">
-                <Activity size={19} />
-              </span>
-              <p className="v0-act-title-text">Mood check-in</p>
-              <p className="v0-act-time-text">Kemarin, 21.05</p>
-              <p className="v0-act-val-text">Tenang</p>
+          ) : (
+            <div className="v0-recent-empty">
+              <HeartPulse size={28} strokeWidth={1.5} style={{ color: '#b0c4d0' }} />
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8496a6' }}>Riwayat scan belum ada</p>
             </div>
-          </div>
+          )}
 
           {/* Sunscreen Reminder Strip */}
           <div className="v0-sunscreen-reminder-strip">
@@ -457,7 +523,7 @@ export default function DashboardPage() {
               <SunMedium size={18} />
             </span>
             <p className="v0-sun-text-content">
-              Jangan lupa re-apply sunscreen sebelum keluar siang nanti untuk proteksi maksimal.
+              Jangan lupa re-apply sunscreen siang hari untuk proteksi maksimal.
             </p>
           </div>
         </section>
@@ -1153,6 +1219,130 @@ export default function DashboardPage() {
           margin: 14px 0 0;
         }
 
+        /* ── Chart Empty State ── */
+        .v0-chart-empty-state {
+          height: 200px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          color: #b0c4d0;
+        }
+        .v0-chart-empty-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #6d869a;
+          margin: 0;
+        }
+        .v0-chart-empty-sub {
+          font-size: 12.5px;
+          color: #8eaabb;
+          text-align: center;
+          max-width: 240px;
+          line-height: 1.5;
+          margin: 0;
+        }
+        .v0-chart-empty-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 4px;
+          padding: 8px 16px;
+          border-radius: 100px;
+          border: 1.5px solid #d0e7e5;
+          background: #f4fbfa;
+          color: #2aa59e;
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .v0-chart-empty-cta:hover { background: #e6f5f4; }
+
+        /* ── Scan Summary Pills ── */
+        .v0-scan-summary-pills {
+          display: flex;
+          gap: 8px;
+          margin-top: 20px;
+          flex-wrap: wrap;
+        }
+        .v0-scan-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 12px;
+          border-radius: 100px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .v0-scan-pill-face { background: #e5f7f4; color: #299d96; }
+        .v0-scan-pill-ingredient { background: #e6f2ff; color: #4b91c6; }
+        .v0-scan-pill-safe { background: #f0fdf4; color: #16a34a; }
+
+        /* ── Recent Scan List ── */
+        .v0-recent-scan-list {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .v0-recent-scan-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 8px;
+          border-radius: 13px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          text-align: left;
+          width: 100%;
+          transition: background 0.15s;
+        }
+        .v0-recent-scan-row:hover { background: #f5f9fb; }
+        .v0-recent-scan-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          flex-shrink: 0;
+        }
+        .v0-recent-scan-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          overflow: hidden;
+        }
+        .v0-recent-scan-title {
+          font-size: 13.5px;
+          font-weight: 600;
+          color: #1c3449;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .v0-recent-scan-time {
+          font-size: 11px;
+          color: #8fa3b0;
+        }
+        .v0-recent-scan-score {
+          font-size: 16px;
+          font-weight: 800;
+          color: #1f9d97;
+          letter-spacing: -0.03em;
+          flex-shrink: 0;
+        }
+        .v0-recent-scan-arrow { color: #c4d5df; flex-shrink: 0; }
+        .v0-recent-empty {
+          height: 120px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
         .v0-sunscreen-reminder-strip {
           margin-top: 22px;
           border-radius: 14px;
