@@ -11,7 +11,6 @@ import PageLoader from '@/components/ui/PageLoader'
 import LoginPage from '@/pages/auth/LoginPage'
 import LandingPage from '@/pages/LandingPage'
 import DashboardPage from '@/pages/app/DashboardPage'
-const DashboardV2Page = lazy(() => import('@/pages/app/DashboardV2Page'))
 
 // Lazy load user feature pages
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'))
@@ -95,12 +94,10 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
         </Route>
 
-        {/* Standalone Full Shell Preview for V2 (v0.dev Design 100% Faithful) */}
-        <Route path="/beranda-2" element={user ? <DashboardV2Page /> : <Navigate to="/login" replace />} />
-
         {/* Protected app routes */}
         <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/beranda-2" element={<Navigate to="/" replace />} />
           <Route path="/face-scan" element={<FaceScanPage />} />
           <Route path="/scan-history" element={<ScanHistoryPage />} />
           <Route path="/ingredient-scan" element={<IngredientScanPage />} />

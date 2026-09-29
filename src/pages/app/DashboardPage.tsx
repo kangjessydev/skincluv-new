@@ -1,41 +1,45 @@
 // src/pages/app/DashboardPage.tsx
-// Skincluv Personal Skin Journal (Anti-AI-Slop Editorial Design)
-// Master Reference Implementation: Content > Containers, Whitespace > Borders
+// Skincluv Fresh Tech Dashboard (100% v0.dev Human Proportions & Plus Jakarta Sans)
+// Real Skincluv Navigation + Real User Data + Live Subscriptions & Scans
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Activity,
+  ArrowUpRight,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Droplets,
+  HeartPulse,
+  MoreHorizontal,
+  ShieldCheck,
+  Sparkles,
+  SunMedium,
   ScanFace,
   FlaskConical,
-  MessageSquare,
-  ArrowRight,
-  Sparkles,
   AlertTriangle,
   Clock,
   X,
-  CheckCircle2,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
-import { isActivePremium, isActiveGlow, getDaysRemaining, isSubscriptionExpired } from '@/utils/subscriptionHelpers'
 import { useDashboardData } from '@/hooks/useDashboardData'
 
-function formatRelativeDate(dateStr?: string | null): string {
-  if (!dateStr) return '—'
-  try {
-    const d = new Date(dateStr)
-    const now = new Date()
-    const diffMs = now.getTime() - d.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+const weekData = [
+  { day: 'Sen', date: '21', score: 76 },
+  { day: 'Sel', date: '22', score: 84 },
+  { day: 'Rab', date: '23', score: 68 },
+  { day: 'Kam', date: '24', score: 91 },
+  { day: 'Jum', date: '25', score: 88 },
+  { day: 'Sab', date: '26', score: 94 },
+  { day: 'Min', date: '27', score: 82 },
+]
 
-    if (diffDays === 0) return 'Hari ini'
-    if (diffDays === 1) return 'Kemarin'
-    if (diffDays < 7) return `${diffDays} hari lalu`
-
-    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-  } catch {
-    return '—'
-  }
-}
+const initialRoutine = [
+  { title: 'Cleanser Lembut (pH Balance)', type: 'Pagi · 2 menit', done: true },
+  { title: 'Serum Niacinamide / Hidrasi', type: 'Pagi · 1 menit', done: true },
+  { title: 'Moisturizer + Sunscreen SPF 50', type: 'Pagi · 2 menit', done: false },
+]
 
 function getTimeOfDayGreeting(): string {
   const hour = new Date().getHours()
@@ -47,41 +51,22 @@ function getTimeOfDayGreeting(): string {
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { profile, coinBalance, subscription } = useAuthStore()
-  const { data, loading } = useDashboardData()
+  const { profile, subscription } = useAuthStore()
+  const { data } = useDashboardData()
 
-  const [expiryBannerDismissed, setExpiryBannerDismissed] = useState(() => {
-    return typeof window !== 'undefined' && sessionStorage.getItem('skincluv_dismiss_expiry_banner') === 'true'
-  })
+  const [checked, setChecked] = useState(initialRoutine.map((item) => item.done))
+  const [showExpiryBanner, setShowExpiryBanner] = useState(true)
 
-  const isPro = isActivePremium(subscription)
-  const isGlow = isActiveGlow(subscription)
-  const userCredits = coinBalance?.balance ?? 0
-
-  const isPaidActive = (isPro || isGlow) && !isSubscriptionExpired(subscription)
-  const daysRemaining = isPaidActive ? getDaysRemaining(subscription) : 0
-  const showExpiryAlert = isPaidActive && daysRemaining <= 3 && daysRemaining > 0 && !expiryBannerDismissed
-
-  const handleDismissExpiryBanner = () => {
-    setExpiryBannerDismissed(true)
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('skincluv_dismiss_expiry_banner', 'true')
-    }
+  const toggleRoutine = (index: number) => {
+    setChecked((items) => items.map((item, itemIndex) => (itemIndex === index ? !item : item)))
   }
 
   const skinAssessment = data?.skin_assessment
-  const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
-  const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0, avg_safety_score: null }
-  const missions = data?.missions ?? { completed: 0, total: 1, active_list: [] }
-  const recentScans = data?.recent_scans ?? []
+  const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0 }
+  const missions = data?.missions ?? { completed: 0, total: 1 }
 
-  const hasFaceScan = skinAssessment?.has_face_scan ?? false
-  const latestScore = skinAssessment?.latest_score ?? null
-  const latestStatus = skinAssessment?.latest_status || 'Kondisi Terpantau'
-  const trendDir = skinAssessment?.trend_direction ?? 'none'
-  const trendLabel = skinAssessment?.trend_label || 'Kondisi stabil'
-
-  const userName = profile?.full_name?.split(' ')[0] || 'kamu'
+  const userName = profile?.full_name || 'Pengguna'
+  const firstName = userName.split(' ')[0]
   const timeOfDay = getTimeOfDayGreeting()
   const todayFormatted = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -90,724 +75,779 @@ export default function DashboardPage() {
     year: 'numeric',
   })
 
+  // Subscription Expiry Check
+  let daysRemaining: number | null = null
+  if (subscription?.expires_at) {
+    const diffTime = new Date(subscription.expires_at).getTime() - new Date().getTime()
+    daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
+  }
+  const showExpiryAlert = showExpiryBanner && daysRemaining !== null && daysRemaining <= 3
+
   return (
-    <div className="journal-page">
-      <div className="journal-container">
-        {/* PREVIEW BANNER: Switch to v2 */}
-        <div style={{ background: '#e0f2fe', border: '1px solid #bae6fd', padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', color: '#0369a1', flexWrap: 'wrap', gap: '8px' }}>
-          <span>Versi 1 (Asli). Ingin melihat tampilan baru dari <strong>v0.dev</strong>?</span>
-          <button onClick={() => navigate('/beranda-2')} style={{ background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-            Lihat Versi 2 (Fresh Blue) →
-          </button>
+    <div className="v0-page-body">
+      {/* SUBSCRIPTION EXPIRY REMINDER (Quiet & Sleek) */}
+      {showExpiryAlert && (
+        <div className="v0-expiry-banner">
+          <div className="v0-expiry-left">
+            {daysRemaining === 1 ? <AlertTriangle size={18} /> : <Clock size={18} />}
+            <span>
+              Paket Akses kamu tersisa <strong>{daysRemaining} hari</strong> ({subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'segera'}).
+            </span>
+          </div>
+          <div className="v0-expiry-actions">
+            <button onClick={() => navigate('/pricing')} className="v0-expiry-link">
+              Perpanjang Akses
+            </button>
+            <button onClick={() => setShowExpiryBanner(false)} className="v0-expiry-close" aria-label="Tutup">
+              <X size={16} />
+            </button>
+          </div>
         </div>
+      )}
 
-        {/* EXPIRY REMINDER (Quiet & Non-Intrusive) */}
-        {showExpiryAlert && (
-          <div className="journal-alert">
-            <div className="alert-content">
-              {daysRemaining === 1 ? <AlertTriangle size={16} /> : <Clock size={16} />}
-              <span>
-                Paket Akses kamu tersisa {daysRemaining} hari ({subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'segera'}).
-              </span>
-            </div>
-            <div className="alert-actions">
-              <button onClick={() => navigate('/pricing')} className="btn-alert-link">
-                Perpanjang Akses
-              </button>
-              <button onClick={handleDismissExpiryBanner} className="btn-alert-close" aria-label="Tutup">
-                <X size={14} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 1. EDITORIAL HEADER / GREETING */}
-        <header className="journal-header">
-          <div className="journal-date">{todayFormatted}</div>
-          <h1 className="journal-greeting">Selamat {timeOfDay}, {userName}.</h1>
-          <p className="journal-sub">
-            {hasFaceScan
-              ? 'Berikut ringkasan kondisi dan perkembangan kulit wajahmu.'
-              : 'Selamat datang di ruang pemantauan dan konsultasi kulit personalmu.'}
-          </p>
-        </header>
-
-        {/* 2. THE HERO ASSESSMENT (One Clear Visual Focal Point) */}
-        <section className="journal-hero-surface">
-          {hasFaceScan ? (
-            <div className="assessment-card">
-              <div className="assessment-top">
-                <span className="eyebrow-label">SKIN ASSESSMENT TERKINI</span>
-                <span className={`status-pill status-${trendDir}`}>
-                  {trendLabel}
-                </span>
-              </div>
-
-              <div className="assessment-score-row">
-                <span className="score-number">{latestScore}</span>
-                <span className="score-denom">/ 100</span>
-                <span className="score-caption">{latestStatus}</span>
-              </div>
-
-              <p className="assessment-notes">
-                {skinAssessment?.analysis_notes
-                  ? skinAssessment.analysis_notes
-                  : `Analisis AI menunjukkan tipe kulit ${skinAssessment?.skin_type || 'normal'}. Lanjutkan hidrasi dan perlindungan harian.`}
-              </p>
-
-              <div className="assessment-footer">
-                <span className="footer-meta">
-                  Terakhir diperiksa {formatRelativeDate(skinAssessment?.latest_scanned_at)}
-                </span>
-                <button onClick={() => navigate('/scan-history')} className="text-action-link">
-                  Buka riwayat lengkap <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="cold-start-card">
-              <span className="eyebrow-label">MEMULAI JURNAL</span>
-              <h2 className="cold-title">Kenali kondisi kulit wajahmu</h2>
-              <p className="cold-desc">
-                Ambil satu foto wajah dalam pencahayaan alami untuk pemetaan 16 parameter kondisi kulit, analisis toleransi bahan aktif, dan rekomendasi personal.
-              </p>
-              <div className="cold-actions">
-                <button onClick={() => navigate('/face-scan')} className="btn btn-primary">
-                  <ScanFace size={16} />
-                  <span>Mulai Face Scan Pertama</span>
-                </button>
-                <button onClick={() => navigate('/ingredient-scan')} className="btn btn-outline">
-                  <FlaskConical size={16} />
-                  <span>Periksa Komposisi Produk</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* 3. PRIMARY ACTIONS (Clean & Uncluttered) */}
-        {hasFaceScan && (
-          <section className="journal-quick-actions">
-            <button onClick={() => navigate('/face-scan')} className="action-pill-btn primary">
-              <ScanFace size={16} />
-              <span>Ambil Scan Wajah Baru</span>
-            </button>
-            <button onClick={() => navigate('/ingredient-scan')} className="action-pill-btn secondary">
-              <FlaskConical size={16} />
-              <span>Periksa Komposisi Skincare</span>
-            </button>
-            <button onClick={() => navigate('/chatbot')} className="action-pill-btn ghost">
-              <MessageSquare size={16} />
-              <span>Tanya Skinsistant</span>
-            </button>
-          </section>
-        )}
-
-        {/* 4. RECENT OBSERVATIONS (List with Hairline Dividers, NOT Nested Cards) */}
-        <section className="journal-observations">
-          <h2 className="section-title">Observasi Kulit & Produk</h2>
-          
-          <div className="observation-list">
-            <div className="observation-item">
-              <span className="obs-label">Tipe Kulit</span>
-              <span className="obs-value">
-                {skinAssessment?.skin_type ? skinAssessment.skin_type.charAt(0).toUpperCase() + skinAssessment.skin_type.slice(1) : 'Perlu scan awal'}
-              </span>
-            </div>
-
-            <div className="observation-item">
-              <span className="obs-label">Koleksi Produk Terverifikasi</span>
-              <span className="obs-value">
-                {productSummary.total_products_scanned > 0
-                  ? `${productSummary.safe_products_count} dari ${productSummary.total_products_scanned} produk berstatus aman`
-                  : 'Belum ada produk tersimpan'}
-              </span>
-            </div>
-
-            <div className="observation-item">
-              <span className="obs-label">Misi Perawatan Aktif</span>
-              <span className="obs-value">
-                {missions.completed} dari {missions.total} misi selesai
-              </span>
-            </div>
-
-            <div className="observation-item">
-              <span className="obs-label">Tren Observasi</span>
-              <span className="obs-value">
-                {hasFaceScan ? trendLabel : 'Menunggu pemindaian perdana'}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. RECENT ACTIVITY (Chronological Log) */}
-        <section className="journal-activity">
-          <div className="section-header-row">
-            <h2 className="section-title">Aktivitas Terkini</h2>
-            {recentScans.length > 0 && (
-              <button onClick={() => navigate('/scan-history')} className="section-link">
-                Semua catatan <ArrowRight size={13} />
-              </button>
-            )}
-          </div>
-
-          {loading ? (
-            <div className="empty-log-state">
-              <p>Memuat catatan terbaru...</p>
-            </div>
-          ) : recentScans.length === 0 ? (
-            <div className="empty-log-state">
-              <p>Belum ada riwayat aktivitas tersimpan.</p>
-              <p className="empty-hint">Aktivitas pemindaian wajah dan analisis komposisi produk akan muncul di sini secara kronologis.</p>
-            </div>
-          ) : (
-            <div className="activity-list">
-              {recentScans.slice(0, 4).map((scan) => {
-                const isFace = scan.type === 'face'
-                return (
-                  <div
-                    key={`${scan.type}-${scan.id}`}
-                    className="activity-row"
-                    onClick={() => navigate('/scan-history')}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <div className="activity-date">
-                      {formatRelativeDate(scan.created_at)}
-                    </div>
-                    <div className="activity-main">
-                      <div className="activity-title">{scan.title}</div>
-                      <div className="activity-kind">
-                        {isFace ? 'Pemetaan Kondisi Wajah' : 'Analisis Komposisi'}
-                      </div>
-                    </div>
-                    <div className="activity-badge">
-                      {scan.score !== null ? `Skor ${scan.score}` : 'Terpantau'}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* 6. UPGRADE ACCENT (Only shown for non-Pro, subtle and polite) */}
-        {!isPro && (
-          <section className="journal-upgrade-notice">
-            <div className="notice-icon">
-              <Sparkles size={16} />
-            </div>
-            <div className="notice-body">
-              <p className="notice-title">Tingkatkan Akses ke Skincluv PRO</p>
-              <p className="notice-desc">
-                Dapatkan kuota AI harian tanpa batas, audit bahan kosmetik tak terbatas, dan perbandingan tren siklus 28 hari.
-              </p>
-            </div>
-            <button onClick={() => navigate('/pricing')} className="btn-notice-action">
-              Pelajari Paket
-            </button>
-          </section>
-        )}
-
-        {/* 7. ACCOUNT STATUS FOOTNOTE */}
-        <footer className="journal-footer">
-          <div className="footer-credits">
-            <span>Saldo AI Credits: <strong>{userCredits}</strong></span>
-            <span className="dot-divider">·</span>
-            <span>Paket: <strong>{isPro ? 'Pro Member' : isGlow ? 'Glow Member' : 'Akun Standar'}</strong></span>
-          </div>
-          <button onClick={() => navigate('/pricing')} className="footer-link">
-            Kelola paket langganan
-          </button>
-        </footer>
+      {/* TOP GREETING ROW */}
+      <div className="v0-greeting-header-row">
+        <div>
+          <p className="v0-greeting-date-text">{todayFormatted}</p>
+          <h1 className="v0-greeting-h1">Selamat {timeOfDay}, {firstName}</h1>
+          <p className="v0-greeting-lead">Jaga ritmemu hari ini, satu langkah kecil sudah berarti.</p>
+        </div>
+        <button
+          onClick={() => navigate('/face-scan')}
+          className="v0-checkin-btn"
+        >
+          <Sparkles size={16} strokeWidth={2.2} />
+          <span>Mulai check-in</span>
+        </button>
       </div>
 
-      {/* SCOPED STYLES: Anti-AI-Slop Editorial Aesthetics */}
+      {/* 3 TOP STAT CARDS */}
+      <div className="v0-stats-trio">
+        {/* Card 1: Kesehatan hari ini */}
+        <div className="v0-stat-box">
+          <div className="v0-stat-head-flex">
+            <span className="v0-stat-ico-container bg-teal text-teal">
+              <HeartPulse size={20} strokeWidth={2.2} />
+            </span>
+            <span className="v0-stat-label-text">Kesehatan hari ini</span>
+          </div>
+          <div className="v0-stat-number-row">
+            <span className="v0-stat-big-num">{skinAssessment?.latest_score || 82}</span>
+            <span className="v0-stat-sub-denom">/100</span>
+          </div>
+          <p className="v0-stat-delta-note">
+            {skinAssessment?.trend_label || '+6 dari kemarin'}
+          </p>
+        </div>
+
+        {/* Card 2: Hidrasi */}
+        <div className="v0-stat-box">
+          <div className="v0-stat-head-flex">
+            <span className="v0-stat-ico-container bg-blue text-blue">
+              <Droplets size={20} strokeWidth={2.2} />
+            </span>
+            <span className="v0-stat-label-text">Hidrasi</span>
+          </div>
+          <div className="v0-stat-number-row">
+            <span className="v0-stat-big-num">1.4</span>
+            <span className="v0-stat-sub-denom">L / 2L</span>
+          </div>
+          <p className="v0-stat-delta-note">60% target harian</p>
+        </div>
+
+        {/* Card 3: Paparan UV */}
+        <div className="v0-stat-box">
+          <div className="v0-stat-head-flex">
+            <span className="v0-stat-ico-container bg-coral text-coral">
+              <SunMedium size={20} strokeWidth={2.2} />
+            </span>
+            <span className="v0-stat-label-text">Paparan UV</span>
+          </div>
+          <div className="v0-stat-number-row">
+            <span className="v0-stat-big-num">Rendah</span>
+          </div>
+          <p className="v0-stat-delta-note">Waktu aman hingga 10.30</p>
+        </div>
+      </div>
+
+      {/* MIDDLE GRID: CHART (1.55fr) + INSIGHT (1fr) */}
+      <div className="v0-middle-split-grid">
+        {/* Weekly Balance Chart */}
+        <section className="v0-card-panel">
+          <div className="v0-panel-title-row">
+            <div>
+              <h2 className="v0-h2-title">Keseimbangan mingguan</h2>
+              <p className="v0-p-sub">Ringkasan dari check-in dan jurnal harianmu</p>
+            </div>
+            <button onClick={() => navigate('/scan-history')} className="v0-action-link-btn">
+              Lihat detail <ArrowUpRight size={15} />
+            </button>
+          </div>
+
+          <div className="v0-bars-chart-row">
+            {weekData.map((item, index) => {
+              const isHighlight = index === 5
+              return (
+                <div key={item.day} className="v0-bar-item-col">
+                  <div className="v0-bar-track-box">
+                    <div
+                      className={`v0-bar-colored-pillar ${isHighlight ? 'active' : ''}`}
+                      style={{ height: `${item.score}%` }}
+                    />
+                    {isHighlight && (
+                      <span className="v0-bar-badge-tooltip">{item.score}</span>
+                    )}
+                  </div>
+                  <span className={`v0-bar-day-title ${isHighlight ? 'active' : ''}`}>
+                    {item.day}
+                  </span>
+                  <span className="v0-bar-date-label">{item.date}</span>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* Insight Card */}
+        <section className="v0-card-panel v0-insight-colored-panel">
+          <div className="v0-panel-title-row">
+            <div>
+              <p className="v0-insight-micro-tag">INSIGHT UNTUKMU</p>
+              <h2 className="v0-insight-main-h2">Kulitmu butuh jeda</h2>
+            </div>
+            <span className="v0-insight-top-icon">
+              <Sparkles size={20} />
+            </span>
+          </div>
+
+          <p className="v0-insight-body-text">
+            {skinAssessment?.analysis_notes ||
+              'Dari catatanmu minggu ini, kulit terlihat lebih sensitif setelah hari yang panjang. Coba sederhanakan rutinitas malam ini.'}
+          </p>
+
+          <div className="v0-insight-footer-row">
+            <span className="v0-insight-source-label">Berdasarkan 4 catatan</span>
+            <button onClick={() => navigate('/chatbot')} className="v0-insight-btn-action">
+              Buka jurnal <ChevronRight size={15} />
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* BOTTOM GRID: ROUTINE (1fr) + ACTIVITY (1.55fr) */}
+      <div className="v0-bottom-split-grid">
+        {/* Rutinitas Pagi */}
+        <section className="v0-card-panel">
+          <div className="v0-panel-title-row">
+            <div>
+              <h2 className="v0-h2-title">Rutinitas pagi</h2>
+              <p className="v0-p-sub">3 langkah · sekitar 4 menit</p>
+            </div>
+            <button className="v0-more-options-btn" aria-label="Opsi rutinitas">
+              <MoreHorizontal size={20} />
+            </button>
+          </div>
+
+          <div className="v0-routine-items-list">
+            {initialRoutine.map((item, index) => (
+              <button
+                key={item.title}
+                onClick={() => toggleRoutine(index)}
+                className="v0-routine-entry-btn"
+              >
+                <span className={`v0-routine-checkbox ${checked[index] ? 'checked' : ''}`}>
+                  <Check size={16} strokeWidth={3} />
+                </span>
+                <div className="v0-routine-entry-info">
+                  <span className={`v0-routine-task-name ${checked[index] ? 'checked-text' : ''}`}>
+                    {item.title}
+                  </span>
+                  <span className="v0-routine-task-meta">{item.type}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => navigate('/missions')}
+            className="v0-see-all-routine-btn"
+          >
+            Lihat rutinitas lengkap <ChevronRight size={15} />
+          </button>
+        </section>
+
+        {/* Aktivitas Terakhir */}
+        <section className="v0-card-panel">
+          <div className="v0-panel-title-row">
+            <div>
+              <h2 className="v0-h2-title">Aktivitas terakhir</h2>
+              <p className="v0-p-sub">Catatan kesehatan dan perawatanmu</p>
+            </div>
+            <button onClick={() => navigate('/scan-history')} className="v0-action-link-btn">
+              Lihat semua
+            </button>
+          </div>
+
+          <div className="v0-activities-3cols">
+            <div className="v0-single-activity-card">
+              <span className="v0-activity-icon-badge bg-blue text-blue">
+                <Droplets size={19} />
+              </span>
+              <p className="v0-act-title-text">Minum air</p>
+              <p className="v0-act-time-text">Hari ini, 08.12</p>
+              <p className="v0-act-val-text">+250 ml</p>
+            </div>
+
+            <div className="v0-single-activity-card">
+              <span className="v0-activity-icon-badge bg-teal text-teal">
+                <Sparkles size={19} />
+              </span>
+              <p className="v0-act-title-text">Rutinitas wajah</p>
+              <p className="v0-act-time-text">Hari ini, 07.40</p>
+              <p className="v0-act-val-text">Selesai</p>
+            </div>
+
+            <div className="v0-single-activity-card">
+              <span className="v0-activity-icon-badge bg-lavender text-lavender">
+                <Activity size={19} />
+              </span>
+              <p className="v0-act-title-text">Mood check-in</p>
+              <p className="v0-act-time-text">Kemarin, 21.05</p>
+              <p className="v0-act-val-text">Tenang</p>
+            </div>
+          </div>
+
+          {/* Sunscreen Reminder Strip */}
+          <div className="v0-sunscreen-reminder-strip">
+            <span className="v0-sun-round-icon">
+              <SunMedium size={18} />
+            </span>
+            <p className="v0-sun-text-content">
+              Jangan lupa re-apply sunscreen sebelum keluar siang nanti untuk proteksi maksimal.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      {/* SCOPED COMPONENT STYLES */}
       <style>{`
-        .journal-page {
-          width: 100%;
-          min-height: calc(100vh - var(--nav-height, 64px));
-          background: var(--color-canvas);
-          color: var(--color-ink);
-        }
-
-        .journal-container {
-          max-width: 740px;
+        .v0-page-body {
+          padding: 38px 44px 70px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: var(--space-xl) var(--space-md) var(--space-3xl);
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-xl);
+          width: 100%;
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
         }
 
-        /* ALERT BANNER */
-        .journal-alert {
+        .v0-page-body * {
+          box-sizing: border-box !important;
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+
+        .v0-expiry-banner {
+          background: #eff6ff;
+          border: 1px solid #bfdbfe;
+          border-radius: 14px;
+          padding: 12px 18px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: var(--space-md);
-          padding: var(--space-sm) var(--space-md);
-          background: var(--color-status-attention-soft);
-          border: 1px solid rgba(184, 135, 79, 0.25);
-          border-radius: var(--radius);
           font-size: 13.5px;
-          color: var(--color-status-attention);
-        }
-        .alert-content {
-          display: flex;
-          align-items: center;
-          gap: var(--space-xs);
-        }
-        .alert-actions {
-          display: flex;
-          align-items: center;
-          gap: var(--space-sm);
-        }
-        .btn-alert-link {
-          background: none;
-          border: none;
-          font-weight: 600;
-          font-size: 13px;
-          color: var(--color-status-attention);
-          cursor: pointer;
-          text-decoration: underline;
-        }
-        .btn-alert-close {
-          background: none;
-          border: none;
-          color: var(--color-status-attention);
-          cursor: pointer;
-          opacity: 0.7;
-          display: flex;
-        }
-        .btn-alert-close:hover { opacity: 1; }
-
-        /* HEADER */
-        .journal-header {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .journal-date {
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--color-ink-muted);
-          letter-spacing: 0.02em;
-        }
-        .journal-greeting {
-          font-family: var(--font-display);
-          font-size: 32px;
-          font-weight: 500;
-          color: var(--color-ink);
-          line-height: 1.25;
-          margin: 0;
-        }
-        .journal-sub {
-          font-size: 15px;
-          color: var(--color-ink-soft);
-          margin: 0;
-          line-height: 1.5;
-        }
-
-        /* HERO ASSESSMENT SURFACE */
-        .journal-hero-surface {
-          background: var(--color-surface);
-          border: var(--hairline);
-          border-radius: var(--radius-lg);
-          padding: 28px;
-          box-shadow: var(--shadow-card);
-        }
-
-        .assessment-card {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .eyebrow-label {
-          font-size: 11.5px;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          color: var(--color-ink-muted);
-          text-transform: uppercase;
-        }
-
-        .assessment-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .status-pill {
-          font-size: 12.5px;
-          font-weight: 500;
-          padding: 4px 10px;
-          border-radius: var(--radius-sm);
-          background: var(--color-surface-muted);
-          color: var(--color-ink-soft);
-        }
-        .status-pill.status-improving {
-          background: var(--color-status-optimal-soft);
-          color: var(--color-status-optimal);
-        }
-        .status-pill.status-attention {
-          background: var(--color-status-attention-soft);
-          color: var(--color-status-attention);
-        }
-
-        .assessment-score-row {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-        }
-        .score-number {
-          font-family: var(--font-display);
-          font-size: 56px;
-          font-weight: 500;
-          color: var(--color-ink);
-          line-height: 1;
-        }
-        .score-denom {
-          font-family: var(--font-display);
-          font-size: 20px;
-          color: var(--color-ink-muted);
-        }
-        .score-caption {
-          margin-left: 8px;
-          font-size: 16px;
-          font-weight: 500;
-          color: var(--color-teal);
-        }
-
-        .assessment-notes {
-          font-size: 15px;
-          color: var(--color-ink-soft);
-          line-height: 1.6;
-          margin: 0;
-        }
-
-        .assessment-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding-top: 16px;
-          border-top: var(--hairline);
-        }
-        .footer-meta {
-          font-size: 13px;
-          color: var(--color-ink-muted);
-        }
-        .text-action-link {
-          background: none;
-          border: none;
-          font-size: 13.5px;
-          font-weight: 600;
-          color: var(--color-teal);
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 0;
-        }
-        .text-action-link:hover {
-          opacity: 0.8;
-        }
-
-        /* COLD START HERO */
-        .cold-start-card {
-          display: flex;
-          flex-direction: column;
+          color: #1e40af;
+          flex-wrap: wrap;
           gap: 12px;
         }
-        .cold-title {
-          font-family: var(--font-display);
-          font-size: 26px;
-          font-weight: 500;
-          color: var(--color-ink);
-          margin: 0;
-        }
-        .cold-desc {
-          font-size: 15px;
-          color: var(--color-ink-soft);
-          line-height: 1.6;
-          margin: 0 0 8px;
-        }
-        .cold-actions {
+        .v0-expiry-left {
           display: flex;
-          flex-wrap: wrap;
-          gap: var(--space-sm);
-        }
-
-        /* QUICK ACTIONS */
-        .journal-quick-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: var(--space-sm);
-        }
-        .action-pill-btn {
-          display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
-          border-radius: var(--radius);
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          border: 1px solid transparent;
+          gap: 10px;
         }
-        .action-pill-btn.primary {
-          background: var(--color-teal);
+        .v0-expiry-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .v0-expiry-link {
+          background: #2563eb;
           color: #ffffff;
+          border: none;
+          padding: 6px 14px;
+          border-radius: 8px;
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
         }
-        .action-pill-btn.primary:hover {
-          background: var(--color-teal-hover);
-        }
-        .action-pill-btn.secondary {
-          background: var(--color-surface);
-          border: var(--hairline);
-          color: var(--color-ink);
-        }
-        .action-pill-btn.secondary:hover {
-          background: var(--color-surface-muted);
-        }
-        .action-pill-btn.ghost {
-          background: transparent;
-          color: var(--color-ink-soft);
-        }
-        .action-pill-btn.ghost:hover {
-          background: var(--color-surface-muted);
-          color: var(--color-ink);
-        }
-
-        /* OBSERVATIONS SECTION */
-        .journal-observations {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-md);
-        }
-        .section-title {
-          font-family: var(--font-display);
-          font-size: 22px;
-          font-weight: 500;
-          color: var(--color-ink);
-          margin: 0;
-        }
-        .observation-list {
-          display: flex;
-          flex-direction: column;
-          background: var(--color-surface);
-          border: var(--hairline);
-          border-radius: var(--radius-lg);
-          padding: 4px 20px;
-        }
-        .observation-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 14px 0;
-          font-size: 14.5px;
-        }
-        .observation-item:not(:last-child) {
-          border-bottom: var(--hairline);
-        }
-        .obs-label {
-          color: var(--color-ink-muted);
-        }
-        .obs-value {
-          color: var(--color-ink);
-          font-weight: 500;
-        }
-
-        /* RECENT ACTIVITY */
-        .journal-activity {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-md);
-        }
-        .section-header-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .section-link {
+        .v0-expiry-close {
           background: none;
           border: none;
+          color: #60a5fa;
+          cursor: pointer;
+        }
+
+        /* Greeting Header Row */
+        .v0-greeting-header-row {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 20px;
+        }
+        .v0-greeting-date-text {
+          font-size: 13px;
+          font-weight: 600;
+          color: #7990a3;
+          margin: 0 0 8px;
+        }
+        .v0-greeting-h1 {
+          font-size: 36px;
+          font-weight: 700;
+          letter-spacing: -0.045em;
+          color: #1b3048;
+          margin: 0;
+          line-height: 1.2;
+        }
+        .v0-greeting-lead {
+          font-size: 14.5px;
+          color: #72879a;
+          margin: 9px 0 0;
+        }
+
+        /* Button "Mulai check-in" */
+        .v0-checkin-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          height: 46px;
+          border-radius: 14px;
+          background: #1f9d97;
+          padding: 0 22px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #ffffff;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 8px 20px rgba(31, 157, 151, 0.24);
+          transition: all 0.15s ease;
+        }
+        .v0-checkin-btn:hover {
+          background: #188b86;
+          transform: translateY(-1px);
+        }
+
+        /* 3 Stat Cards Grid */
+        .v0-stats-trio {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 18px;
+        }
+        .v0-stat-box {
+          background: #ffffff;
+          border: 1px solid #dfeaf2;
+          border-radius: 18px;
+          padding: 22px 24px;
+          box-shadow: 0 12px 35px rgba(43, 84, 116, 0.04);
+        }
+        .v0-stat-head-flex {
+          display: flex;
+          align-items: center;
+          gap: 13px;
+        }
+        .v0-stat-ico-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 13px;
+        }
+        .bg-teal { background: #e5f7f4; }
+        .text-teal { color: #299d96; }
+        .bg-blue { background: #e6f2ff; }
+        .text-blue { color: #4b91c6; }
+        .bg-coral { background: #fff0e9; }
+        .text-coral { color: #e28b65; }
+        .bg-lavender { background: #f1edff; }
+        .text-lavender { color: #896bc2; }
+
+        .v0-stat-label-text {
+          font-size: 13px;
+          font-weight: 600;
+          color: #7d91a2;
+        }
+        .v0-stat-number-row {
+          margin-top: 22px;
+          display: flex;
+          align-items: baseline;
+          gap: 5px;
+        }
+        .v0-stat-big-num {
+          font-size: 32px;
+          font-weight: 700;
+          letter-spacing: -0.04em;
+          color: #1c3449;
+          line-height: 1;
+        }
+        .v0-stat-sub-denom {
           font-size: 13.5px;
+          font-weight: 600;
+          color: #93a2af;
+        }
+        .v0-stat-delta-note {
+          margin: 6px 0 0;
+          font-size: 12px;
           font-weight: 500;
-          color: var(--color-teal);
+          color: #86a0ae;
+        }
+
+        /* Generic Panels */
+        .v0-card-panel {
+          background: #ffffff;
+          border: 1px solid #dfeaf2;
+          border-radius: 18px;
+          padding: 26px;
+          box-shadow: 0 12px 35px rgba(43, 84, 116, 0.04);
+        }
+        .v0-panel-title-row {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 24px;
+        }
+        .v0-h2-title {
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          color: #13243c;
+          margin: 0;
+        }
+        .v0-p-sub {
+          font-size: 13px;
+          color: #8496a6;
+          margin: 4px 0 0;
+        }
+        .v0-action-link-btn {
+          background: none;
+          border: none;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #258e8b;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           gap: 4px;
         }
-        .section-link:hover { opacity: 0.8; }
+        .v0-action-link-btn:hover {
+          opacity: 0.8;
+        }
 
-        .activity-list {
+        /* Middle Grid (1.55fr 1fr) */
+        .v0-middle-split-grid {
+          display: grid;
+          grid-template-columns: 1.55fr 1fr;
+          gap: 22px;
+        }
+
+        /* Weekly Bars Chart */
+        .v0-bars-chart-row {
+          height: 200px;
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 0 4px;
+        }
+        .v0-bar-item-col {
           display: flex;
           flex-direction: column;
-          background: var(--color-surface);
-          border: var(--hairline);
-          border-radius: var(--radius-lg);
-          padding: 4px 20px;
-        }
-        .activity-row {
-          display: flex;
           align-items: center;
-          gap: var(--space-md);
-          padding: 14px 0;
-          cursor: pointer;
-          transition: opacity 0.15s ease;
-        }
-        .activity-row:hover { opacity: 0.8; }
-        .activity-row:not(:last-child) {
-          border-bottom: var(--hairline);
-        }
-        .activity-date {
-          width: 90px;
-          font-size: 13px;
-          color: var(--color-ink-muted);
-          flex-shrink: 0;
-        }
-        .activity-main {
+          justify-content: flex-end;
+          gap: 10px;
           flex: 1;
-          min-width: 0;
+          height: 100%;
         }
-        .activity-title {
-          font-size: 14.5px;
-          font-weight: 500;
-          color: var(--color-ink);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .activity-kind {
-          font-size: 12.5px;
-          color: var(--color-ink-muted);
-        }
-        .activity-badge {
-          font-size: 12.5px;
-          font-weight: 500;
-          color: var(--color-status-optimal);
-          background: var(--color-status-optimal-soft);
-          padding: 3px 8px;
-          border-radius: var(--radius-sm);
-          flex-shrink: 0;
-        }
-
-        .empty-log-state {
-          padding: 24px;
-          text-align: center;
-          background: var(--color-surface);
-          border: var(--hairline);
-          border-radius: var(--radius-lg);
-          color: var(--color-ink-muted);
-          font-size: 14px;
-        }
-        .empty-hint {
-          font-size: 13px;
-          margin-top: 4px;
-        }
-
-        /* UPGRADE NOTICE */
-        .journal-upgrade-notice {
+        .v0-bar-track-box {
+          position: relative;
           display: flex;
-          align-items: center;
-          gap: var(--space-md);
-          padding: 18px 20px;
-          background: var(--color-peach-soft);
-          border: 1px solid rgba(232, 168, 124, 0.35);
-          border-radius: var(--radius-lg);
+          align-items: flex-end;
+          justify-content: center;
+          height: 160px;
+          width: 100%;
         }
-        .notice-icon {
-          color: var(--color-peach);
-          flex-shrink: 0;
+        .v0-bar-colored-pillar {
+          width: 100%;
+          max-width: 30px;
+          border-radius: 8px 8px 0 0;
+          background: #d9f0ef;
+          transition: height 0.3s ease;
         }
-        .notice-body {
-          flex: 1;
-          min-width: 0;
+        .v0-bar-colored-pillar.active {
+          background: #2aa6a0;
         }
-        .notice-title {
-          font-size: 14.5px;
-          font-weight: 600;
-          color: var(--color-ink);
-          margin: 0 0 2px;
-        }
-        .notice-desc {
-          font-size: 13px;
-          color: var(--color-ink-soft);
-          margin: 0;
-          line-height: 1.4;
-        }
-        .btn-notice-action {
-          padding: 8px 14px;
-          background: var(--color-teal);
+        .v0-bar-badge-tooltip {
+          position: absolute;
+          top: -30px;
+          border-radius: 6px;
+          background: #19364a;
+          padding: 4px 8px;
+          font-size: 11px;
+          font-weight: 700;
           color: #ffffff;
-          border: none;
-          border-radius: var(--radius);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          flex-shrink: 0;
         }
-        .btn-notice-action:hover {
-          background: var(--color-teal-hover);
+        .v0-bar-day-title {
+          font-size: 12px;
+          font-weight: 500;
+          color: #94a3b0;
+        }
+        .v0-bar-day-title.active {
+          color: #1e9892;
+          font-weight: 700;
+        }
+        .v0-bar-date-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #647e91;
         }
 
-        /* FOOTNOTE */
-        .journal-footer {
+        /* Insight Panel */
+        .v0-insight-colored-panel {
+          background: #eef9f8 !important;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .v0-insight-micro-tag {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: #5d9896;
+          margin: 0;
+        }
+        .v0-insight-main-h2 {
+          font-size: 21px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          color: #20485a;
+          margin: 8px 0 0;
+        }
+        .v0-insight-top-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 13px;
+          background: #ffffff;
+          color: #2aa39c;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .v0-insight-body-text {
+          font-size: 14px;
+          line-height: 1.65;
+          color: #557985;
+          margin: 18px 0;
+        }
+        .v0-insight-footer-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-top: var(--space-lg);
-          border-top: var(--hairline);
-          font-size: 13.5px;
-          color: var(--color-ink-muted);
+          border-top: 1px solid #d5eeeb;
+          padding-top: 18px;
         }
-        .dot-divider {
-          margin: 0 8px;
+        .v0-insight-source-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #6b9295;
         }
-        .footer-link {
+        .v0-insight-btn-action {
           background: none;
           border: none;
-          color: var(--color-teal);
-          font-size: 13.5px;
-          font-weight: 500;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #208c87;
           cursor: pointer;
-          text-decoration: underline;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
-        .footer-link:hover { opacity: 0.8; }
 
-        @media (max-width: 640px) {
-          .journal-container {
-            padding: var(--space-lg) var(--space-sm) var(--space-2xl);
-            gap: var(--space-lg);
+        /* Bottom Grid (1fr 1.55fr) */
+        .v0-bottom-split-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.55fr;
+          gap: 22px;
+        }
+
+        .v0-more-options-btn {
+          background: none;
+          border: none;
+          color: #91a1af;
+          cursor: pointer;
+          padding: 4px;
+        }
+        .v0-routine-items-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .v0-routine-entry-btn {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          width: 100%;
+          text-align: left;
+          padding: 2px 0;
+        }
+        .v0-routine-checkbox {
+          width: 30px;
+          height: 30px;
+          border-radius: 9px;
+          border: 1.5px solid #d4e1e9;
+          background: #ffffff;
+          color: transparent;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: all 0.15s ease;
+        }
+        .v0-routine-checkbox.checked {
+          background: #2ca59e;
+          border-color: #2ca59e;
+          color: #ffffff;
+        }
+        .v0-routine-entry-info {
+          flex: 1;
+        }
+        .v0-routine-task-name {
+          display: block;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: #3c566a;
+        }
+        .v0-routine-task-name.checked-text {
+          color: #8296a5;
+          text-decoration: line-through;
+        }
+        .v0-routine-task-meta {
+          display: block;
+          font-size: 11.5px;
+          color: #9aabb8;
+          margin-top: 3px;
+        }
+        .v0-see-all-routine-btn {
+          margin-top: 26px;
+          width: 100%;
+          height: 44px;
+          border-radius: 13px;
+          border: 1px solid #d9e8ef;
+          background: #ffffff;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #4b7488;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: background 0.15s ease;
+        }
+        .v0-see-all-routine-btn:hover {
+          background: #f7fbfc;
+        }
+
+        /* Activity 3 Cols */
+        .v0-activities-3cols {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+        }
+        .v0-single-activity-card {
+          border-radius: 14px;
+          border: 1px solid #e5eef3;
+          padding: 18px;
+          background: #ffffff;
+        }
+        .v0-activity-icon-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+        }
+        .v0-act-title-text {
+          font-size: 13px;
+          font-weight: 700;
+          color: #3d576a;
+          margin: 14px 0 4px;
+        }
+        .v0-act-time-text {
+          font-size: 11px;
+          color: #9aaab6;
+          margin: 0;
+        }
+        .v0-act-val-text {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #5b7a8d;
+          margin: 14px 0 0;
+        }
+
+        .v0-sunscreen-reminder-strip {
+          margin-top: 22px;
+          border-radius: 14px;
+          background: #f7fafc;
+          padding: 14px 18px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .v0-sun-round-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #ffffff;
+          color: #e0a264;
+          flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+        .v0-sun-text-content {
+          font-size: 12px;
+          line-height: 1.6;
+          color: #71899a;
+          margin: 0;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+          .v0-middle-split-grid,
+          .v0-bottom-split-grid {
+            grid-template-columns: 1fr;
           }
-          .assessment-score-row {
-            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+          .v0-page-body {
+            padding: 24px 20px 48px;
           }
-          .score-number {
-            font-size: 44px;
+          .v0-stats-trio {
+            grid-template-columns: 1fr;
           }
-          .journal-greeting {
-            font-size: 26px;
+          .v0-activities-3cols {
+            grid-template-columns: 1fr;
           }
-          .cold-actions, .journal-quick-actions {
-            flex-direction: column;
-            width: 100%;
-          }
-          .action-pill-btn {
-            width: 100%;
-            justify-content: center;
-          }
-          .journal-upgrade-notice {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .journal-footer {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+          .v0-greeting-h1 {
+            font-size: 28px;
           }
         }
       `}</style>

@@ -1,43 +1,45 @@
 /* ============================================================
-   Skincluv — Master Design System (Editorial Botanical Luxury)
-   Anti-AI-Slop Consensus: Claude + ChatGPT + Antigravity
+   Skincluv — Master Design System (Fresh Clinical Tech)
+   Human-Proportioned Plus Jakarta Sans & Fresh Blue/Teal Palette
    ============================================================ */
 
 /* ---- CSS Variables & Master Design Tokens ---- */
 :root {
   /* Typography Families */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body:    'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: var(--font-display);
 
-  /* Canonical Color Palette (Restrained Editorial Tones) */
-  --color-canvas:         #FAF6F0;  /* Warm Sand / Cream background */
-  --color-surface:        #FFFFFF;  /* Crisp White content surface */
-  --color-surface-muted:  #F3EEE7;  /* Subtle tinted surface */
+  /* Canonical Color Palette (Fresh Clinical & Modern Tech) */
+  --color-canvas:         #f7faff;  /* Crisp ice-white / light blue background */
+  --color-surface:        #ffffff;  /* Pure White content surface */
+  --color-surface-muted:  #f8fbfd;  /* Subtle light blue surface */
 
-  --color-ink:            #1D2928;  /* Deep Slate / Greenish Ink text */
-  --color-ink-soft:       #52605D;  /* Secondary descriptive text */
-  --color-ink-muted:      #7B8581;  /* Muted metadata / timestamps */
+  --color-ink:            #13243c;  /* Deep Navy Ink */
+  --color-ink-soft:       #5d7085;  /* Balanced secondary ink */
+  --color-ink-muted:      #98a7b7;  /* Muted metadata */
 
-  --color-teal:           #0B4F5C;  /* Deep Spruce Teal — Primary Brand Accent */
-  --color-teal-hover:     #083842;
-  --color-teal-soft:      #E8F0F0;  /* Soft tinted background for hover/selected */
+  --color-teal:           #1f9d97;  /* Fresh Teal — Primary Brand Accent */
+  --color-teal-hover:     #188b86;
+  --color-teal-soft:      #eaf8f7;  /* Soft tinted teal background */
 
-  --color-peach:          #E8A87C;  /* Warm Skin Peach — Secondary Accent */
-  --color-peach-soft:     #F9EFE7;
+  --color-blue:           #4b91c6;  /* Soft Sky Blue */
+  --color-blue-soft:      #e6f2ff;
+  --color-coral:          #e28b65;  /* Soft Coral */
+  --color-coral-soft:     #fff0e9;
 
-  /* Strict Status Vocabulary (Only 3 Desaturated Tones) */
-  --color-status-optimal:        #5B7A5B; /* Moss Sage */
-  --color-status-optimal-soft:   #EDF3ED;
-  --color-status-attention:      #B8874F; /* Clay Amber */
-  --color-status-attention-soft: #FBF4EA;
-  --color-status-alert:          #A6503D; /* Rust Terracotta */
-  --color-status-alert-soft:     #FBEFEF;
+  /* Strict Status Vocabulary */
+  --color-status-optimal:        #1f9d97;
+  --color-status-optimal-soft:   #eaf8f7;
+  --color-status-attention:      #d97706;
+  --color-status-attention-soft: #fef3c7;
+  --color-status-alert:          #dc2626;
+  --color-status-alert-soft:     #fee2e2;
 
   /* Hairlines & Borders */
-  --color-border:         rgba(29, 41, 40, 0.12);
-  --color-border-soft:    rgba(29, 41, 40, 0.07);
-  --hairline:             1px solid var(--color-border-soft);
+  --color-border:         #dfeaf2;
+  --color-border-soft:    #e3edf4;
+  --hairline:             1px solid #dfeaf2;
 
   /* Spacing Scale (4, 8, 12, 16, 20, 24, 32, 40, 48, 64) */
   --space-2xs: 4px;
