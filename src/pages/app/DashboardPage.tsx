@@ -442,6 +442,7 @@ export default function DashboardPage() {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 18px;
+          align-items: start; /* RFC 019 T3: kartu stat tidak stretch */
         }
         .v0-stat-box {
           background: #ffffff;
@@ -548,6 +549,7 @@ export default function DashboardPage() {
           display: grid;
           grid-template-columns: 1.55fr 1fr;
           gap: 22px;
+          align-items: start; /* RFC 019 T3: Keseimbangan & Insight ikuti tinggi konten masing2 */
         }
 
         /* Weekly Bars Chart */
@@ -616,7 +618,8 @@ export default function DashboardPage() {
           background: #eef9f8 !important;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
+          /* justify-content removed: align-items:start pada parent grid sudah
+             membuat tinggi auto. Footer didorong ke bawah via margin-top:auto */
         }
         .v0-insight-micro-tag {
           font-size: 11px;
@@ -656,6 +659,7 @@ export default function DashboardPage() {
           justify-content: space-between;
           border-top: 1px solid #d5eeeb;
           padding-top: 18px;
+          margin-top: auto; /* dorong footer ke bawah meski konten insight pendek */
         }
         .v0-insight-source-label {
           font-size: 12px;
@@ -679,6 +683,7 @@ export default function DashboardPage() {
           display: grid;
           grid-template-columns: 1fr 1.55fr;
           gap: 22px;
+          align-items: start; /* RFC 019 T3: Rutinitas & Aktivitas ikuti tinggi konten masing2 */
         }
 
         .v0-more-options-btn {
