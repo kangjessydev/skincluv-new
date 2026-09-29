@@ -279,7 +279,7 @@ export default function AppLayout() {
       {/* ===================== SCOPED APP LAYOUT CSS ===================== */}
       <style>{`
         .v0-app-shell {
-          min-height: 100vh;
+          height: 100dvh;
           width: 100%;
           background: #f7faff !important;
           color: #13243c !important;
@@ -288,6 +288,7 @@ export default function AppLayout() {
           padding: 0 !important;
           box-sizing: border-box !important;
           -webkit-font-smoothing: antialiased;
+          overflow: hidden;
         }
 
         .v0-app-shell * {
@@ -295,22 +296,26 @@ export default function AppLayout() {
           font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
         }
 
+        /* RFC 019: CSS Grid Opsi C — kolom scroll independen */
         .v0-shell-inner {
-          display: flex;
-          min-height: 100vh;
-          max-width: 1520px;
-          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 264px minmax(0, 1fr);
+          height: 100dvh;
+          overflow: hidden;
         }
 
-        /* SIDEBAR (264px) */
+        /* SIDEBAR — scroll independen, tidak ikut scroll konten */
         .v0-shell-sidebar {
           width: 264px;
-          flex-shrink: 0;
+          height: 100dvh;
+          overflow-y: auto;
+          overscroll-behavior: contain;
           background: #ffffff;
           border-right: 1px solid #dce8f1;
           padding: 26px 20px 24px;
           display: flex;
           flex-direction: column;
+          flex-shrink: 0;
         }
 
         .v0-sidebar-brand-row {
@@ -557,18 +562,19 @@ export default function AppLayout() {
           color: #e53e3e;
         }
 
-        /* MAIN CONTENT SECTION */
+        /* MAIN CONTENT — scroll independen */
         .v0-shell-main {
-          flex: 1;
           min-width: 0;
+          min-height: 0;  /* RFC 019: wajib agar grid child tidak override overflow */
           display: flex;
           flex-direction: column;
+          overflow-y: auto;
         }
 
-        /* Top Navbar (78px) */
+        /* Top Navbar — 64px (RFC 019 final: ChatGPT verdict) */
         .v0-shell-header {
-          height: 78px;
-          background: rgba(255, 255, 255, 0.85);
+          height: 64px;
+          background: rgba(255, 255, 255, 0.92);
           backdrop-filter: blur(10px);
           border-bottom: 1px solid #e3edf4;
           display: flex;
@@ -578,6 +584,7 @@ export default function AppLayout() {
           position: sticky;
           top: 0;
           z-index: 30;
+          flex-shrink: 0;
         }
         .v0-header-burger-btn {
           display: none;
@@ -707,8 +714,24 @@ export default function AppLayout() {
           width: 100%;
         }
 
-        /* Responsive Breakpoints */
+        /* Tablet: navbar 60px */
+        @media (max-width: 1279px) {
+          .v0-shell-header {
+            height: 60px;
+          }
+        }
+
         @media (max-width: 1024px) {
+          /* Mobile: shell jadi single column */
+          .v0-shell-inner {
+            display: block;
+            height: 100dvh;
+            overflow: hidden;
+          }
+          .v0-shell-main {
+            height: 100dvh;
+            overflow-y: auto;
+          }
           .v0-shell-sidebar {
             position: fixed;
             inset: 0 auto 0 0;
