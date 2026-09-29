@@ -67,9 +67,10 @@
   --shadow-sm:     var(--shadow-subtle);
   --shadow-md:     var(--shadow-card);
 
-  /* Layout Dimensions */
-  --nav-height: 64px;
-  --sidebar-width: 256px;
+  /* Layout Dimensions (RFC 019 Final: 64px navbar, 264px sidebar) */
+  --nav-height:         64px;   /* Desktop default (ChatGPT final: 64px) */
+  --nav-height-tablet:  60px;   /* Tablet 768–1279px */
+  --sidebar-width:      264px;  /* RFC 019 approved (was 256px) */
   --sidebar-collapsed-width: 72px;
   --content-max-width: 1080px;
 
@@ -117,8 +118,7 @@ body {
 
 #root {
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  /* Shell layout (flex/grid) is handled by AppLayout, not here */
 }
 
 /* ---- Typography Scale ---- */
