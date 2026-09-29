@@ -93,6 +93,14 @@ export default function DashboardPage() {
   return (
     <div className="journal-page">
       <div className="journal-container">
+        {/* PREVIEW BANNER: Switch to v2 */}
+        <div style={{ background: '#e0f2fe', border: '1px solid #bae6fd', padding: '10px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', color: '#0369a1', flexWrap: 'wrap', gap: '8px' }}>
+          <span>Versi 1 (Asli). Ingin melihat tampilan baru dari <strong>v0.dev</strong>?</span>
+          <button onClick={() => navigate('/beranda-2')} style={{ background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+            Lihat Versi 2 (Fresh Blue) →
+          </button>
+        </div>
+
         {/* EXPIRY REMINDER (Quiet & Non-Intrusive) */}
         {showExpiryAlert && (
           <div className="journal-alert">

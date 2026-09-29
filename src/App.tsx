@@ -11,6 +11,7 @@ import PageLoader from '@/components/ui/PageLoader'
 import LoginPage from '@/pages/auth/LoginPage'
 import LandingPage from '@/pages/LandingPage'
 import DashboardPage from '@/pages/app/DashboardPage'
+const DashboardV2Page = lazy(() => import('@/pages/app/DashboardV2Page'))
 
 // Lazy load user feature pages
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'))
@@ -97,6 +98,7 @@ export default function App() {
         {/* Protected app routes */}
         <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/beranda-2" element={<DashboardV2Page />} />
           <Route path="/face-scan" element={<FaceScanPage />} />
           <Route path="/scan-history" element={<ScanHistoryPage />} />
           <Route path="/ingredient-scan" element={<IngredientScanPage />} />
