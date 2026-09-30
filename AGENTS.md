@@ -121,3 +121,62 @@ Untuk berkonsultasi dengan AI lain, alurnya adalah:
 3. User menyalin isi RFC ke Claude / ChatGPT / DeepSeek.
 4. AI Reviewer menjawab dengan analisis mendalam, fokus pada celah keamanan, logika, arsitektur, atau optimasi.
 5. User menempelkan kembali masukan tersebut ke Antigravity untuk dievaluasi secara logis dan diimplementasikan ke kode nyata.
+
+---
+
+## 5. Aturan Mutlak Antigravity: Disiplin Penamaan & Kontrak Kode
+
+> **Latar Belakang**: Insiden Migration 064 membuktikan bahwa AI dapat secara tidak sengaja mengubah nama field RPC (`type` → `scan_type`, `skin_assessment` → `face_latest`, `scan_counts` → `stats`) tanpa memperbarui interface TypeScript yang mengonsumsinya. Akibatnya data chart kosong meski DB berisi data. Aturan di bawah ini bersifat **mutlak dan tidak dapat dikecualikan**.
+
+### 5.1 Kunci Kontrak RPC ↔ TypeScript (Anti-Schema Drift)
+
+**SEBELUM** menulis migration SQL baru yang mengandung `CREATE OR REPLACE FUNCTION`, AI **WAJIB**:
+
+1. **Baca interface TypeScript konsumernya terlebih dahulu.** Baca dulu, baru tulis SQL.
+
+2. **Field name di `jsonb_build_object(...)` HARUS identik karakter per karakter dengan field TypeScript.**
+   ```
+   BENAR : jsonb_build_object('skin_assessment', ...)  ->  data.skin_assessment
+   SALAH : jsonb_build_object('face_latest', ...)      ->  data.skin_assessment  <- DRIFT!
+   ```
+
+3. **Jika terpaksa mengubah nama field**, lakukan dalam satu commit atomik: update SQL RPC + interface TypeScript + semua consumer `.tsx/.ts` + komentar `/* BREAKING: renamed X->Y migration NNN */`.
+
+4. **Dilarang membuat nama field baru untuk konsep yang sudah ada.** Sudah ada `total_products_scanned`? Jangan buat `total_recommended` untuk hal yang sama.
+
+### 5.2 Canonical Field Registry — Kontrak RPC Dashboard
+
+**`src/hooks/useDashboardData.ts` adalah satu-satunya sumber kebenaran** untuk kontrak data dashboard.
+
+| Konsep | Field TypeScript (CANONICAL) | Field SQL jsonb_build_object (HARUS SAMA) |
+| :--- | :--- | :--- |
+| Status kulit terkini | `data.skin_assessment` | `'skin_assessment'` |
+| Jumlah scan wajah | `data.scan_counts.face_total` | `'scan_counts' -> 'face_total'` |
+| Scan terakhir tipe | `data.recent_scans[].type` | `'type'` -- bukan `scan_type`! |
+| Misi selesai | `data.missions.completed` | `'missions' -> 'completed'` |
+| Produk dipindai | `data.product_summary.total_products_scanned` | `'total_products_scanned'` |
+| Chart tren wajah | `data.face_trend[].score` | `'face_trend' -> 'score'` |
+
+**Jika ada migration baru yang mengubah salah satu field di atas, WAJIB update tabel ini sekaligus.**
+
+### 5.3 Anti-Duplikasi Kode
+
+Sebelum membuat hook, komponen, atau helper baru, AI WAJIB grep terlebih dahulu:
+
+```bash
+# Sebelum buat hook baru
+grep -r "useDashboard" src/ --include="*.ts" --include="*.tsx" -l
+
+# Sebelum buat CSS class baru di DashboardPage
+grep "v0-[nama-konsep]" src/pages/app/DashboardPage.tsx
+```
+
+Jika sudah ada -> gunakan yang lama. Jangan buat implementasi paralel dengan nama berbeda.
+
+### 5.4 Checklist Wajib Sebelum Setiap `supabase db push` yang Mengandung RPC
+
+- [ ] Sudah membaca interface TypeScript consumer-nya terlebih dahulu
+- [ ] Semua field `jsonb_build_object` cocok 1:1 dengan field TypeScript
+- [ ] `tsc --noEmit` lulus 0 error
+- [ ] Tidak ada nama field baru untuk konsep yang sudah punya nama
+- [ ] Tabel registry 5.2 diupdate jika ada perubahan field canonical
