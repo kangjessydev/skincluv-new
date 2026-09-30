@@ -68,7 +68,11 @@ export default function DashboardPage() {
   const missions = data?.missions ?? { completed: 0, total: 1 }
   const recentScans = data?.recent_scans ?? []
   const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
-  const hasEnoughTrendData = recentScans.length >= 3
+  // face_trend: 7 titik scan wajah non-repeat (dari RPC migration 082)
+  // Dibalik ke ASC agar chart berjalan kiri→kanan (terlama ke terbaru)
+  const faceTrend = [...(data?.face_trend ?? [])].reverse()
+  // Guardrail RFC 019: chart hanya ditampilkan bila ≥3 scan wajah unik tersedia
+  const hasEnoughTrendData = scanCounts.face_total >= 3
 
   const userName = profile?.full_name || 'Pengguna'
   const firstName = userName.split(' ')[0]
@@ -333,31 +337,28 @@ export default function DashboardPage() {
             </div>
           ) : hasEnoughTrendData ? (
             <div className="v0-bars-chart-row">
-              {recentScans
-                .filter(s => s.type === 'face' && s.score !== null)
-                .slice(-7)
-                .map((scan, index, arr) => {
-                  const isLatest = index === arr.length - 1
-                  const scoreVal = scan.score ?? 0
-                  const dateLabel = new Date(scan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-                  return (
-                    <div key={scan.id} className="v0-bar-item-col">
-                      <div className="v0-bar-track-box">
-                        <div
-                          className={`v0-bar-colored-pillar ${isLatest ? 'active' : ''}`}
-                          style={{ height: `${scoreVal}%` }}
-                        />
-                        {isLatest && (
-                          <span className="v0-bar-badge-tooltip">{scoreVal}</span>
-                        )}
-                      </div>
-                      <span className={`v0-bar-day-title ${isLatest ? 'active' : ''}`}>
-                        {dateLabel.split(' ')[0]}
-                      </span>
-                      <span className="v0-bar-date-label">{dateLabel.split(' ')[1] ?? ''}</span>
+              {faceTrend.map((point, index, arr) => {
+                const isLatest = index === arr.length - 1
+                const scoreVal = point.score ?? 0
+                const dateLabel = new Date(point.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+                return (
+                  <div key={point.id} className="v0-bar-item-col">
+                    <div className="v0-bar-track-box">
+                      <div
+                        className={`v0-bar-colored-pillar ${isLatest ? 'active' : ''}`}
+                        style={{ height: `${scoreVal}%` }}
+                      />
+                      {isLatest && (
+                        <span className="v0-bar-badge-tooltip">{scoreVal}</span>
+                      )}
                     </div>
-                  )
-                })}
+                    <span className={`v0-bar-day-title ${isLatest ? 'active' : ''}`}>
+                      {dateLabel.split(' ')[0]}
+                    </span>
+                    <span className="v0-bar-date-label">{dateLabel.split(' ')[1] ?? ''}</span>
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <div className="v0-chart-empty-state">

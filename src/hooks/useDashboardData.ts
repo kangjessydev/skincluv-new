@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
+// ============================================================
+// Interfaces — satu-satunya sumber kebenaran, cocok 1:1 dengan
+// output RPC get_user_dashboard_summary() (Migration 082)
+// ============================================================
+
 export interface DashboardProfile {
   skin_type?: string
   skin_concerns?: string[]
@@ -54,6 +59,13 @@ export interface DashboardRecentScan {
   title: string
   score: number | null
   created_at: string
+  is_repeat?: boolean
+}
+
+export interface DashboardFaceTrendPoint {
+  id: string
+  score: number
+  created_at: string
 }
 
 export interface DashboardSummaryData {
@@ -63,8 +75,13 @@ export interface DashboardSummaryData {
   scan_counts: DashboardScanCounts
   missions: DashboardMissions
   recent_scans: DashboardRecentScan[]
+  /** 7 face scan terbaru non-repeat, diurutkan DESC untuk chart tren */
+  face_trend: DashboardFaceTrendPoint[]
 }
 
+// ============================================================
+// Hook
+// ============================================================
 export function useDashboardData() {
   const { session, user } = useAuthStore()
   const [data, setData] = useState<DashboardSummaryData | null>(null)
@@ -82,14 +99,13 @@ export function useDashboardData() {
     setError(null)
 
     try {
-      // Panggil RPC teragregasi get_user_dashboard_summary() (Zero-IDOR, single roundtrip)
       const { data: summary, error: rpcError } = await supabase.rpc('get_user_dashboard_summary')
 
       if (rpcError) {
         console.error('[useDashboardData] RPC error:', rpcError)
         setError(rpcError.message)
       } else if (summary) {
-        setData(summary as unknown as DashboardSummaryData)
+        setData(summary as DashboardSummaryData)
       }
     } catch (err: any) {
       console.error('[useDashboardData] unexpected error:', err)
