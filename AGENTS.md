@@ -180,3 +180,67 @@ Jika sudah ada -> gunakan yang lama. Jangan buat implementasi paralel dengan nam
 - [ ] `tsc --noEmit` lulus 0 error
 - [ ] Tidak ada nama field baru untuk konsep yang sudah punya nama
 - [ ] Tabel registry 5.2 diupdate jika ada perubahan field canonical
+
+---
+
+### 5.5 SOP Frontend & UI Design System: Doktrin *Search-Before-Create*
+
+> **Prinsip Utama**: AI dilarang keras berasumsi atau membuat nama class CSS baru secara generatif dari nol (*self-contained bias*). Setiap komponen antarmuka yang akan dibuat **WAJIB** dicek terlebih dahulu apakah sudah memiliki padanan kanonikal di `src/index.css`.
+
+#### 1. Protokol Tiga Langkah: Reuse -> Extend -> Create
+Sebelum menulis baris CSS baru di `src/index.css` atau class di JSX `.tsx`, AI **WAJIB**:
+1. **Grep Terlebih Dahulu**: Jalankan pencarian di `src/index.css` untuk memeriksa komponen sejenis.
+   ```bash
+   # Cek apakah class komponen sejenis sudah ada di CSS global
+   grep "\.v0-profile-" src/index.css
+   grep "v0-" src/index.css
+   ```
+2. **Reuse First (Gunakan Ulang)**: Jika konsep UI sudah ada (misal kartu kontainer, chip seleksi, tombol simpan, back link), **WAJIB gunakan class yang sudah ada**. Dilarang membuat class baru dengan nama berbeda untuk konsep yang sama.
+3. **Extend Second (Gunakan Modifier)**: Jika memerlukan sedikit variasi warna atau ikon, gunakan modifier class (misal: `.v0-profile-chip.active`, `.v0-profile-nav-icon-wrap.teal`, `.v0-profile-section-icon.alert`). Dilarang membuat root selector baru.
+4. **Create Last (Hanya Jika Benar-Benar Baru)**: Hanya boleh membuat class baru jika komponen tersebut benar-benar belum pernah ada di seluruh aplikasi Skincluv.
+
+---
+
+### 5.6 Canonical UI Class Registry — Kontrak Antarmuka Frontend
+
+Tabel ini adalah **sumber kebenaran tunggal** untuk penamaan class UI di area akun, profil, dan sub-halamannya. Siapapun AI yang mengedit area ini **WAJIB** mematuhi penamaan ini:
+
+| Kebutuhan Visual / Komponen UI | Class Kanonikal Wajib (`src/index.css`) | Class Terlarang (Antipattern / Duplikasi) |
+| :--- | :--- | :--- |
+| **Halaman Wrapper Profil & Anak-anaknya** | `.v0-profile-page` | `.subpage-container`, `.profile-page-custom`, wrapper polosan tanpa padding |
+| **Kartu Kontainer Utama (Card)** | `.v0-profile-card` | `.v0-subpage-card`, `.glass-card`, `.profile-box`, `.stich-bento-card` |
+| **Tombol Seleksi / Chip** | `.v0-profile-chip` | `.v0-selectable-chip`, `.tag-pill`, `.chip-btn` |
+| **Indikator Aktif Chip** | `.v0-profile-chip.active` | `.selected`, `.chip-active`, `.active-pill` |
+| **Tautan Navigasi Kembali (Sub-page)** | `.v0-profile-back-link` | `.btn-back-link`, `.back-link`, `.back-arrow` |
+| **Tombol Aksi Simpan Formulir** | `.v0-profile-save-btn` | `.v0-save-profile-btn`, `.btn-primary`, `.btn-save` |
+| **Grup Seksi Formulir** | `.v0-profile-form-section` | `.v0-form-block`, `.form-group-custom` |
+| **Icon Wrapper Seksi** | `.v0-profile-section-icon` | `.icon-box-custom`, `.v0-form-num` |
+| **Kotak Notifikasi Sukses/Error** | `.v0-profile-message.success` / `.error` | `.v0-subpage-alert`, `.alert-box`, `.alert-custom` |
+| **Tombol Aksi Kartu Hub** | `.v0-profile-hub-action-btn` | `.btn-hub`, `.hub-link-custom` |
+
+---
+
+### 5.7 Larangan Mutlak Styling (Strict Frontend Invariants)
+
+1. **Zero Hardcoded Colors**:
+   - DILARANG menggunakan kode warna hex manual (misal `#1f9d97`, `#f0fdf4`, `#bbf7d0`, `#e2e8f0`) di dalam file `.tsx` ataupun rule CSS baru.
+   - Wajib selalu merujuk ke CSS variables resmi di `:root`: `var(--color-teal)`, `var(--color-surface)`, `var(--color-border)`, `var(--color-status-optimal-soft)`, `var(--radius)`, dll.
+2. **Zero Layout/Theming Inline Styles**:
+   - DILARANG menggunakan atribut `style={{ background: '...', color: '...' }}` di JSX untuk tata letak dan pewarnaan.
+   - Pengecualian HANYA berlaku untuk nilai dinamis murni hasil kalkulasi JavaScript (misal: persentase progress bar `style={{ width: `${percent}%` }}`).
+3. **No Island `<style>` Blocks**:
+   - DILARANG menyisipkan tag `<style>{...}</style>` baru di dalam komponen `.tsx` pada folder `src/pages/app/` dan `src/pages/profile/`. Seluruh styling halaman aplikasi wajib tersentralisasi di `src/index.css`.
+4. **Desktop Form Max-Width Discipline**:
+   - Formulir mandiri yang dirender dalam 1 kolom (seperti `/profile/skin`) wajib memiliki pembatas lebar proporsional di desktop (`max-width: 760px` terpusat / margin auto) agar tidak melebar kosong hingga 1120px+.
+
+---
+
+### 5.8 Checklist Wajib Sebelum Mengubah / Menambah UI Frontend
+
+- [ ] Sudah menjalankan `grep` di `src/index.css` untuk mengecek apakah class / komponen serupa sudah ada
+- [ ] Menggunakan class kanonikal dari Canonical UI Class Registry (Tabel 5.6)
+- [ ] Tidak ada warna hex hardcoded di JSX atau CSS baru (semua menggunakan CSS variables `var(--color-*)`)
+- [ ] Tidak ada inline `<style>` baru di dalam file `.tsx`
+- [ ] Formulir single-column memiliki batas `max-width: 760px` di desktop
+- [ ] Lolos verifikasi build: `tsc --noEmit` & `vite build` 0 error
+
