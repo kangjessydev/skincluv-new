@@ -954,6 +954,7 @@ a:hover { opacity: 0.8; }
 }
 
 /* Hub Action Buttons & Subpage Navigation (RFC 020) */
+.v0-back-link,
 .v0-profile-back-link {
   display: inline-flex;
   align-items: center;
@@ -963,8 +964,15 @@ a:hover { opacity: 0.8; }
   font-family: var(--font-body);
   color: var(--color-teal);
   text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  outline: none;
   transition: opacity 0.15s ease;
 }
+.v0-back-link:hover,
 .v0-profile-back-link:hover {
   opacity: 0.8;
   text-decoration: underline;
@@ -1621,46 +1629,135 @@ a:hover { opacity: 0.8; }
   line-height: 1.5;
 }
 
-/* Transaction & Billing History (RFC 020 Alignment) */
-.tx-page-header {
-  margin-bottom: 20px;
-}
-.tx-filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.tx-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.tx-card {
-  padding: 18px 20px;
-}
-.tx-card-top {
+/* ============================================================
+   Global UI Components (Section 5.10 AGENTS.md - DRY Pattern)
+   Reusable across Transactions, Coins, Profile, Missions, etc.
+   ============================================================ */
+
+/* 1. Stat / Balance Card */
+.v0-stat-card {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px dashed var(--color-border);
+  align-items: center;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-.tx-ref {
-  font-family: monospace;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-teal);
+.v0-stat-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.v0-stat-card-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  font-family: var(--font-display);
   display: block;
 }
-.tx-date {
+
+/* 2. Filter Bar */
+.v0-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.v0-filter-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 3. Ledger & Transaction Lists */
+.v0-ledger-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.v0-ledger-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  transition: all 0.15s ease;
+}
+.v0-ledger-item:hover {
+  border-color: var(--color-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+.v0-ledger-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+.v0-ledger-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.v0-ledger-icon.optimal,
+.v0-ledger-icon.credit {
+  background: var(--color-status-optimal-soft);
+  color: var(--color-status-optimal);
+}
+.v0-ledger-icon.alert,
+.v0-ledger-icon.debit {
+  background: var(--color-status-alert-soft);
+  color: var(--color-status-alert);
+}
+.v0-ledger-icon.teal {
+  background: var(--color-teal-soft);
+  color: var(--color-teal);
+}
+.v0-ledger-info {
+  flex: 1;
+  min-width: 0;
+}
+.v0-ledger-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0 0 2px 0;
+  line-height: 1.35;
+}
+.v0-ledger-sub {
   font-size: 0.75rem;
   color: var(--color-ink-muted);
   display: block;
-  margin-top: 2px;
 }
-.tx-badge {
+.v0-ledger-amount {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  text-align: right;
+  flex-shrink: 0;
+}
+.v0-ledger-amount.credit {
+  color: var(--color-status-optimal);
+}
+.v0-ledger-amount.debit {
+  color: var(--color-status-alert);
+}
+
+/* 4. Global Status Badges */
+.v0-badge {
   padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
@@ -1669,46 +1766,39 @@ a:hover { opacity: 0.8; }
   align-items: center;
   gap: 5px;
 }
-.tx-badge.success {
+.v0-badge.success,
+.v0-badge.optimal {
   background: var(--color-status-optimal-soft);
   color: var(--color-status-optimal);
 }
-.tx-badge.warning {
+.v0-badge.warning,
+.v0-badge.attention {
   background: var(--color-status-attention-soft);
   color: var(--color-status-attention);
 }
-.tx-badge.danger {
+.v0-badge.danger,
+.v0-badge.alert {
   background: var(--color-status-alert-soft);
   color: var(--color-status-alert);
 }
-.tx-card-body {
+
+/* 5. Empty & Loading States */
+.v0-empty-state,
+.v0-loading-state {
+  text-align: center;
+  padding: 48px 20px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
 }
-.tx-plan-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.v0-empty-icon {
+  color: var(--color-ink-muted);
+  opacity: 0.4;
 }
-.tx-plan-icon {
-  color: var(--color-teal);
-  flex-shrink: 0;
-}
-.tx-plan-title {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--color-ink);
-  margin: 0 0 2px 0;
-}
-.tx-price-tag {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-teal);
-}
-.tx-pay-btn {
+
+/* 6. Action Button */
+.v0-btn-action {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1719,130 +1809,11 @@ a:hover { opacity: 0.8; }
   font-size: 0.8125rem;
   font-weight: 700;
   text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: opacity 0.15s ease;
 }
-.tx-pay-btn:hover {
+.v0-btn-action:hover {
   opacity: 0.9;
-}
-.tx-empty-state, .tx-loading-state {
-  text-align: center;
-  padding: 48px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.tx-empty-icon {
-  color: var(--color-ink-muted);
-  opacity: 0.5;
-}
-
-/* Coin History Ledger (RFC 020 Alignment) */
-.ch-balance-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.ch-balance-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.ch-balance-val {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-ink);
-  font-family: var(--font-display);
-  display: block;
-}
-.ch-history-card {
-  padding: 20px 24px;
-}
-.ch-filter-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.ch-filter-title {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-ink);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.ch-ledger-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.ch-ledger-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border-soft);
-  transition: border-color 0.15s ease;
-}
-.ch-ledger-item:hover {
-  border-color: var(--color-border);
-}
-.ch-icon-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.ch-icon-circle.credit {
-  background: var(--color-status-optimal-soft);
-  color: var(--color-status-optimal);
-}
-.ch-icon-circle.debit {
-  background: var(--color-status-alert-soft);
-  color: var(--color-status-alert);
-}
-.ch-ledger-info {
-  flex: 1;
-  min-width: 0;
-}
-.ch-ledger-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink);
-  margin: 0 0 2px 0;
-}
-.ch-ledger-date {
-  font-size: 0.75rem;
-  color: var(--color-ink-muted);
-  display: block;
-}
-.ch-ledger-amount {
-  font-size: 0.9375rem;
-  font-weight: 800;
-  font-family: var(--font-display);
-}
-.ch-ledger-amount.credit {
-  color: var(--color-status-optimal);
-}
-.ch-ledger-amount.debit {
-  color: var(--color-status-alert);
-}
-.ch-status-text {
-  text-align: center;
-  color: var(--color-ink-muted);
-  font-size: 0.875rem;
-  padding: 32px 0;
 }
 

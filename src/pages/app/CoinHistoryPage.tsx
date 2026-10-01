@@ -62,7 +62,7 @@ export default function CoinHistoryPage() {
       <div className="v0-profile-form-container">
         <button
           type="button"
-          className="v0-profile-back-link"
+          className="v0-back-link"
           onClick={() => navigate('/profile/billing')}
         >
           <ArrowLeft size={16} /> Kembali ke Billing & Langganan
@@ -74,14 +74,14 @@ export default function CoinHistoryPage() {
         </div>
 
         {/* Coin Balance Card */}
-        <div className="v0-profile-card ch-balance-card">
-          <div className="ch-balance-left">
+        <div className="v0-profile-card v0-stat-card">
+          <div className="v0-stat-card-left">
             <div className="v0-profile-credits-icon-box">
               <Coins size={22} />
             </div>
             <div>
               <span className="v0-profile-credits-title">Total Saldo Credits</span>
-              <span className="ch-balance-val">{coinBalance?.balance ?? 0} Credits</span>
+              <span className="v0-stat-card-val">{coinBalance?.balance ?? 0} Credits</span>
             </div>
           </div>
           <Link to="/missions" className="v0-profile-hub-action-btn">
@@ -90,9 +90,9 @@ export default function CoinHistoryPage() {
         </div>
 
         {/* Filter Tabs & History List Card */}
-        <div className="v0-profile-card ch-history-card">
-          <div className="ch-filter-row">
-            <span className="ch-filter-title"><Filter size={15} /> Filter Mutasi:</span>
+        <div className="v0-profile-card">
+          <div className="v0-filter-bar">
+            <span className="v0-filter-label"><Filter size={15} /> Filter Mutasi:</span>
             <div className="v0-profile-chip-group">
               <button
                 type="button"
@@ -118,30 +118,32 @@ export default function CoinHistoryPage() {
             </div>
           </div>
 
-          <div className="ch-ledger-list">
+          <div className="v0-ledger-list">
             {loading ? (
-              <p className="ch-status-text">Memuat riwayat mutasi...</p>
+              <p className="v0-ledger-sub" style={{ textAlign: 'center', padding: '32px 0' }}>Memuat riwayat mutasi...</p>
             ) : filtered.length === 0 ? (
-              <p className="ch-status-text">Belum ada riwayat mutasi credits.</p>
+              <p className="v0-ledger-sub" style={{ textAlign: 'center', padding: '32px 0' }}>Belum ada riwayat mutasi credits.</p>
             ) : (
               filtered.map((item) => (
-                <div key={item.id} className="ch-ledger-item">
-                  <div className={`ch-icon-circle ${isCredit(item.type) ? 'credit' : 'debit'}`}>
-                    {isCredit(item.type) ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+                <div key={item.id} className="v0-ledger-item">
+                  <div className="v0-ledger-left">
+                    <div className={`v0-ledger-icon ${isCredit(item.type) ? 'optimal' : 'alert'}`}>
+                      {isCredit(item.type) ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+                    </div>
+                    <div className="v0-ledger-info">
+                      <h4 className="v0-ledger-title">{item.notes || TYPE_LABEL[item.type] || item.type}</h4>
+                      <span className="v0-ledger-sub">
+                        {new Date(item.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
                   </div>
-                  <div className="ch-ledger-info">
-                    <h4 className="ch-ledger-title">{item.notes || TYPE_LABEL[item.type] || item.type}</h4>
-                    <span className="ch-ledger-date">
-                      {new Date(item.created_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                  <div className={`ch-ledger-amount ${isCredit(item.type) ? 'credit' : 'debit'}`}>
+                  <div className={`v0-ledger-amount ${isCredit(item.type) ? 'credit' : 'debit'}`}>
                     {isCredit(item.type) ? '+' : '-'}{item.amount} Credits
                   </div>
                 </div>

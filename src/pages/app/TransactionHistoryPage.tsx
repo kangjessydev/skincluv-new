@@ -42,100 +42,106 @@ export default function TransactionHistoryPage() {
   return (
     <div className="v0-page-container animate-fade-in">
       <div className="v0-profile-form-container">
-      <div className="tx-page-header">
-        <Link to="/profile/billing" className="v0-profile-back-link">
-          <ArrowLeft size={16} /> Kembali ke Billing & Langganan
-        </Link>
-        <div className="v0-profile-form-header" style={{ marginTop: '12px' }}>
-          <h1 className="v0-profile-form-main-title">Riwayat Tagihan & Transaksi</h1>
-          <p className="v0-profile-form-main-sub">Daftar tagihan & status pembayaran paket langganan kamu.</p>
+        <div>
+          <Link to="/profile/billing" className="v0-back-link">
+            <ArrowLeft size={16} /> Kembali ke Billing & Langganan
+          </Link>
+          <div className="v0-profile-form-header" style={{ marginTop: '12px' }}>
+            <h1 className="v0-profile-form-main-title">Riwayat Tagihan & Transaksi</h1>
+            <p className="v0-profile-form-main-sub">Daftar tagihan & status pembayaran paket langganan kamu.</p>
+          </div>
         </div>
-      </div>
 
-      {/* Filter Tabs */}
-      <div className="tx-filter-row">
-        <button
-          type="button"
-          className={`v0-profile-chip ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          Semua ({invoices.length})
-        </button>
-        <button
-          type="button"
-          className={`v0-profile-chip ${filter === 'unpaid' ? 'active' : ''}`}
-          onClick={() => setFilter('unpaid')}
-        >
-          Belum Dibayar ({invoices.filter(i => i.status === 'UNPAID').length})
-        </button>
-        <button
-          type="button"
-          className={`v0-profile-chip ${filter === 'paid' ? 'active' : ''}`}
-          onClick={() => setFilter('paid')}
-        >
-          Lunas ({invoices.filter(i => i.status === 'PAID').length})
-        </button>
-      </div>
-
-      {/* Transactions List */}
-      <div className="tx-list">
-        {loading ? (
-          <div className="v0-profile-card tx-loading-state">
-            <RefreshCw size={24} className="animate-spin text-teal" />
-            <p className="v0-profile-hub-sub">Memuat riwayat transaksi...</p>
+        {/* Filter Tabs */}
+        <div className="v0-filter-bar">
+          <div className="v0-profile-chip-group">
+            <button
+              type="button"
+              className={`v0-profile-chip ${filter === 'all' ? 'active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              Semua ({invoices.length})
+            </button>
+            <button
+              type="button"
+              className={`v0-profile-chip ${filter === 'unpaid' ? 'active' : ''}`}
+              onClick={() => setFilter('unpaid')}
+            >
+              Belum Dibayar ({invoices.filter(i => i.status === 'UNPAID').length})
+            </button>
+            <button
+              type="button"
+              className={`v0-profile-chip ${filter === 'paid' ? 'active' : ''}`}
+              onClick={() => setFilter('paid')}
+            >
+              Lunas ({invoices.filter(i => i.status === 'PAID').length})
+            </button>
           </div>
-        ) : filteredInvoices.length === 0 ? (
-          <div className="v0-profile-card tx-empty-state">
-            <ShoppingBag size={44} className="tx-empty-icon" />
-            <h3 className="v0-profile-hub-title">Belum Ada Transaksi</h3>
-            <p className="v0-profile-hub-sub">Kamu belum memiliki riwayat transaksi di Skincluv.</p>
-            <Link to="/pricing" className="v0-profile-save-btn" style={{ textDecoration: 'none', marginTop: '12px' }}>
-              Upgrade ke PRO
-            </Link>
-          </div>
-        ) : (
-          filteredInvoices.map(inv => {
-            const isPaid = inv.status === 'PAID'
-            const isUnpaid = inv.status === 'UNPAID'
-            const dateFormatted = new Date(inv.created_at).toLocaleDateString('id-ID', {
-              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            })
+        </div>
 
-            return (
-              <div key={inv.id} className="v0-profile-card tx-card">
-                <div className="tx-card-top">
-                  <div>
-                    <span className="tx-ref">{inv.merchant_ref}</span>
-                    <span className="tx-date">{dateFormatted}</span>
-                  </div>
-                  {isPaid ? (
-                    <span className="tx-badge success"><CheckCircle2 size={12} /> LUNAS</span>
-                  ) : isUnpaid ? (
-                    <span className="tx-badge warning"><Clock size={12} /> BELUM DIBAYAR</span>
-                  ) : (
-                    <span className="tx-badge danger">KADALUARSA</span>
-                  )}
-                </div>
+        {/* Transactions List */}
+        <div className="v0-ledger-list">
+          {loading ? (
+            <div className="v0-profile-card v0-loading-state">
+              <RefreshCw size={24} className="animate-spin text-teal" />
+              <p className="v0-ledger-sub">Memuat riwayat transaksi...</p>
+            </div>
+          ) : filteredInvoices.length === 0 ? (
+            <div className="v0-profile-card v0-empty-state">
+              <ShoppingBag size={44} className="v0-empty-icon" />
+              <h3 className="v0-profile-hub-title">Belum Ada Transaksi</h3>
+              <p className="v0-profile-hub-sub">Kamu belum memiliki riwayat transaksi di Skincluv.</p>
+              <Link to="/pricing" className="v0-btn-action" style={{ marginTop: '12px' }}>
+                Upgrade ke PRO
+              </Link>
+            </div>
+          ) : (
+            filteredInvoices.map(inv => {
+              const isPaid = inv.status === 'PAID'
+              const isUnpaid = inv.status === 'UNPAID'
+              const dateFormatted = new Date(inv.created_at).toLocaleDateString('id-ID', {
+                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              })
 
-                <div className="tx-card-body">
-                  <div className="tx-plan-info">
-                    <CreditCard size={20} className="tx-plan-icon" />
+              return (
+                <div key={inv.id} className="v0-profile-card" style={{ padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: '1px dashed var(--color-border)' }}>
                     <div>
-                      <h4 className="tx-plan-title">Skincluv PRO — 1 Bulan</h4>
-                      <span className="tx-price-tag">Rp {inv.amount_idr?.toLocaleString('id-ID')}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-teal)', display: 'block' }}>
+                        {inv.merchant_ref}
+                      </span>
+                      <span className="v0-ledger-sub" style={{ marginTop: '2px' }}>{dateFormatted}</span>
                     </div>
+                    {isPaid ? (
+                      <span className="v0-badge success"><CheckCircle2 size={12} /> LUNAS</span>
+                    ) : isUnpaid ? (
+                      <span className="v0-badge warning"><Clock size={12} /> BELUM DIBAYAR</span>
+                    ) : (
+                      <span className="v0-badge danger">KADALUARSA</span>
+                    )}
                   </div>
-                  
-                  {isUnpaid && (
-                    <Link to={`/checkout/${inv.merchant_ref}`} className="tx-pay-btn">
-                      Bayar Sekarang <ExternalLink size={14} />
-                    </Link>
-                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <CreditCard size={20} style={{ color: 'var(--color-teal)', flexShrink: 0 }} />
+                      <div>
+                        <h4 className="v0-ledger-title">Skincluv PRO — 1 Bulan</h4>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-teal)' }}>
+                          Rp {inv.amount_idr?.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {isUnpaid && (
+                      <Link to={`/checkout/${inv.merchant_ref}`} className="v0-btn-action">
+                        Bayar Sekarang <ExternalLink size={14} />
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })
-        )}
+              )
+            })
+          )}
         </div>
       </div>
     </div>

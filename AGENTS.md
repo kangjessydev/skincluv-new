@@ -271,4 +271,26 @@ Setiap halaman standar di dalam `.v0-shell-page-content` wajib menggunakan spesi
 | **Tipe B: Focused Ledger & Forms** | Riwayat Transaksi, Mutasi Koin, Edit Profil Kulit | `max-width: 760px; width: 100%; margin-right: auto; margin-left: 0;` (Terkunci di anchor kiri, tidak melar berlebihan). |
 | **Tipe C: Full-Bleed Viewport** | Chatbot (/chatbot), Camera Viewfinder HUD | Viewport penuh edge-to-edge tanpa padding luar shell standar. |
 
+---
+
+### 5.10 Prinsip DRY Global Pattern (Anti-Page-Prefix Duplication)
+
+> **Latar Belakang**: Insiden pembuatan class terisolasi per halaman (misal: `.tx-*` untuk transaksi, `.ch-*` untuk coin history) menyebabkan duplikasi CSS puluhan baris untuk komponen yang sama persis (kartu saldo, baris mutasi, filter bar, empty state). Jika ada perubahan desain, developer terpaksa mengedit satu per satu di banyak tempat. Aturan ini mewajibkan abstraksi global agar CSS ramping, seragam, dan sekali ubah berefek ke seluruh aplikasi.
+
+#### 1. Larangan Duplikasi Prefix Halaman
+- **DILARANG** membuat selector CSS dengan prefix nama halaman spesifik (seperti `.tx-*`, `.ch-*`, `.ps-*`, `.pr-*`) untuk konsep UI umum yang muncul di lebih dari satu tempat.
+- Prefix halaman **HANYA** boleh digunakan untuk komponen yang 100% eksklusif (misal: Reticle Oval Viewfinder Kamera di Face Scan, atau Radar Chart Polygon).
+
+#### 2. Kamus Komponen Global Kanonikal (`.v0-*`)
+Setiap halaman baru atau yang sedang direfaktorisasi **WAJIB** memakai komponen global ini:
+| Komponen UI | Class Global Wajib | Catatan Implementasi & Reset |
+| :--- | :--- | :--- |
+| **Tombol / Link Kembali** | `.v0-back-link` | Wajib reset: `background: none; border: none; padding: 0; cursor: pointer;` agar tidak memicu border abu-abu bawaan browser jika dipakai di elemen `<button>`. |
+| **Kartu Saldo / Ringkasan Metrik** | `.v0-stat-card` | Berisi icon-box, label, nominal besar, dan tombol CTA. |
+| **Bar Filter Mutasi / Status** | `.v0-filter-bar` | Flex container berisi label filter (`.v0-filter-label`) + grup chip (`.v0-profile-chip-group`). |
+| **Daftar & Baris Ledger** | `.v0-ledger-list`, `.v0-ledger-item` | Baris transaksi/mutasi dengan icon status bundar (`.v0-ledger-icon`), detail judul & tanggal, serta nominal/badge. |
+| **Pill Badge Status** | `.v0-badge.success` / `.warning` / `.danger` | Menggunakan token CSS variabel soft background + solid ink. |
+| **Kartu Kosong (Empty State)** | `.v0-empty-state` | Ikon redup 44px, judul bold, teks penjelasan, tombol aksi. |
+
+
 
