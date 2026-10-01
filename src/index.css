@@ -1781,6 +1781,11 @@ a:hover { opacity: 0.8; }
   background: var(--color-status-alert-soft);
   color: var(--color-status-alert);
 }
+.v0-badge.neutral {
+  background: var(--color-surface-muted);
+  color: var(--color-ink-soft);
+  border: 1px solid var(--color-border);
+}
 
 /* 5. Empty & Loading States */
 .v0-empty-state,
@@ -2025,6 +2030,82 @@ a:hover { opacity: 0.8; }
   font-size: 0.84375rem;
   color: var(--color-ink);
   line-height: 1.4;
+}
+
+/* Tier Action Buttons */
+.v0-tier-btn-primary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: var(--color-teal);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.v0-tier-btn-primary:hover {
+  opacity: 0.92;
+}
+
+.v0-tier-btn-secondary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: var(--color-teal-soft);
+  color: var(--color-teal);
+  border: 1px solid rgba(31, 157, 151, 0.25);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.v0-tier-btn-secondary:hover {
+  background: rgba(31, 157, 151, 0.15);
+}
+
+.v0-tier-btn-active {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: var(--color-teal-soft);
+  color: var(--color-teal);
+  border: 1.5px solid var(--color-teal);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: default;
+}
+
+.v0-tier-btn-disabled {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+  font-size: 0.84375rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 .v0-qa-grid {
   display: grid;

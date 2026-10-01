@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Crown, CheckCircle2, Sparkles, ShieldCheck, Zap, ArrowLeft, HeartHandshake } from 'lucide-react'
+import { Crown, CheckCircle2, Sparkles, ShieldCheck, ArrowLeft, HeartHandshake } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
@@ -167,7 +167,7 @@ export default function PricingPage() {
               {/* Promo Badge */}
               {tier.promo_badge && (
                 <div className="v0-tier-badge-pos">
-                  <span className={`v0-badge ${isTierPro ? 'optimal' : isTierGlow ? 'warning' : ''}`} style={isTierPro ? { background: 'var(--color-teal)', color: '#fff' } : undefined}>
+                  <span className={`v0-badge ${isTierPro ? 'optimal' : isTierGlow ? 'warning' : 'neutral'}`} style={isTierPro ? { background: 'var(--color-teal)', color: '#fff' } : undefined}>
                     {isTierPro ? <Crown size={12} /> : isTierGlow ? <HeartHandshake size={12} /> : <Sparkles size={12} />}
                     <span>{tier.promo_badge.toUpperCase()}</span>
                   </span>
@@ -199,50 +199,38 @@ export default function PricingPage() {
 
               {/* Dynamic Feature Bullets */}
               <ul className="v0-tier-features">
-                {features.map((feat, idx) => {
-                  const isHighlightZap =
-                    feat.toLowerCase().includes('universal ai') ||
-                    feat.toLowerCase().includes('expert')
-
-                  return (
-                    <li key={idx}>
-                      {isHighlightZap ? (
-                        <Zap size={16} style={{ color: isTierGlow ? 'var(--color-gold)' : 'var(--color-teal)', flexShrink: 0, marginTop: 2 }} />
-                      ) : (
-                        <CheckCircle2 size={16} style={{ color: 'var(--color-status-optimal)', flexShrink: 0, marginTop: 2 }} />
-                      )}
-                      <span>{feat}</span>
-                    </li>
-                  )
-                })}
+                {features.map((feat, idx) => (
+                  <li key={idx}>
+                    <CheckCircle2 size={16} style={{ color: 'var(--color-status-optimal)', flexShrink: 0, marginTop: 2 }} />
+                    <span>{feat}</span>
+                  </li>
+                ))}
               </ul>
 
               {/* Action Buttons */}
               <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
                 {isTierFree ? (
-                  <button type="button" className="v0-profile-chip" style={{ width: '100%', justifyContent: 'center' }} disabled>
-                    {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar'}
+                  <button type="button" className="v0-tier-btn-disabled" disabled>
+                    {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar (Bawaan)'}
                   </button>
                 ) : isTierGlow ? (
                   isGlow ? (
-                    <button type="button" className="v0-profile-chip active" style={{ width: '100%', justifyContent: 'center' }} disabled>
+                    <button type="button" className="v0-tier-btn-active" disabled>
                       <ShieldCheck size={16} /> Paket GLOW Aktif
                     </button>
                   ) : isPro ? (
                     <button
                       type="button"
-                      className="v0-profile-chip"
+                      className="v0-tier-btn-disabled"
                       disabled
-                      style={{ width: '100%', justifyContent: 'center' }}
                       title="Kamu sedang aktif di paket PRO yang lebih tinggi"
                     >
-                      Sudah Aktif di Paket PRO
+                      Sudah Termasuk di Paket PRO
                     </button>
                   ) : (
                     <button
                       type="button"
-                      className="v0-btn-action"
-                      style={{ width: '100%', justifyContent: 'center', background: 'var(--color-teal-soft)', color: 'var(--color-teal)', border: '1px solid rgba(31, 157, 151, 0.25)' }}
+                      className="v0-tier-btn-secondary"
                       onClick={() => navigate('/checkout?plan=glow')}
                     >
                       Beli GLOW Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
@@ -250,14 +238,21 @@ export default function PricingPage() {
                   )
                 ) : isTierPro ? (
                   isPro ? (
-                    <button type="button" className="v0-profile-chip active" style={{ width: '100%', justifyContent: 'center' }} disabled>
+                    <button type="button" className="v0-tier-btn-active" disabled>
                       <ShieldCheck size={16} /> Paket PRO Aktif
+                    </button>
+                  ) : isGlow ? (
+                    <button
+                      type="button"
+                      className="v0-tier-btn-primary"
+                      onClick={() => navigate('/checkout?plan=pro')}
+                    >
+                      <Crown size={16} /> Upgrade ke PRO Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
                     </button>
                   ) : (
                     <button
                       type="button"
-                      className="v0-btn-action"
-                      style={{ width: '100%', justifyContent: 'center', padding: '12px 18px' }}
+                      className="v0-tier-btn-primary"
                       onClick={() => navigate('/checkout?plan=pro')}
                     >
                       <Crown size={16} /> Beli PRO Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
