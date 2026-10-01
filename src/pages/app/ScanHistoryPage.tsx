@@ -147,7 +147,7 @@ export default function ScanHistoryPage() {
 
 
   return (
-    <div className="skincluv-scan-history-page">
+    <div className="v0-page-container skincluv-scan-history-page animate-fade-in">
       {/* Header Bar */}
       <div className="page-header-box">
         <Link to="/" className="back-link-btn">
