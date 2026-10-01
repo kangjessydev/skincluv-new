@@ -592,3 +592,29 @@
 .btn-consult-skinsistant-modal:hover {
   background: #1e293b;
 }
+
+/* Medical & Non-Therapeutic Disclaimer (RFC 016 & RFC 017 Invariant 19) */
+.modal-card-disclaimer,
+.in-chat-card-disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 10px 16px;
+  margin-top: 14px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-ink-soft, #64748b);
+  background: var(--color-surface-muted, #f8fafc);
+  border: 1px dashed var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 10px);
+  line-height: 1.45;
+  box-sizing: border-box;
+}
+
+.modal-card-disclaimer .disclaimer-shield-icon,
+.in-chat-card-disclaimer .disclaimer-shield-icon {
+  color: var(--color-teal, #1f9d97);
+  flex-shrink: 0;
+}

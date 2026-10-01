@@ -105,7 +105,7 @@ export function useDashboardData() {
         console.error('[useDashboardData] RPC error:', rpcError)
         setError(rpcError.message)
       } else if (summary) {
-        setData(summary as DashboardSummaryData)
+        setData(summary as unknown as DashboardSummaryData)
       }
     } catch (err: any) {
       console.error('[useDashboardData] unexpected error:', err)

@@ -218,7 +218,8 @@ export default function IngredientScanDetailModal({ scan, onClose, onConsult }: 
             </div>
           )}
 
-          <div className="in-chat-card-disclaimer" style={{ marginTop: '8px' }}>
+          <div className="modal-card-disclaimer in-chat-card-disclaimer">
+            <ShieldCheck size={14} className="disclaimer-shield-icon" />
             <span>Analisis AI — bukan pengganti konsultasi dokter spesialis kulit</span>
           </div>
         </div>
