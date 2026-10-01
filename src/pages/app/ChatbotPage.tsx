@@ -1501,7 +1501,9 @@ export default function ChatbotPage() {
           width: 56px;
           height: 56px;
           border-radius: 50%;
-          background: #eaf4fa;
+          background: var(--color-teal-soft, #f0fdf4);
+          border: 1px solid var(--color-teal-light, #ccfbf1);
+          color: var(--color-teal, #0f6784);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1511,13 +1513,14 @@ export default function ChatbotPage() {
         .chat-welcome-box h2 {
           font-size: 1.25rem;
           font-weight: 800;
-          color: #0f172a;
+          color: var(--color-ink, #0f172a);
           margin: 0 0 8px 0;
+          font-family: var(--font-heading, inherit);
         }
 
         .chat-welcome-box p {
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           line-height: 1.6;
           margin: 0 0 24px 0;
         }
@@ -1533,21 +1536,24 @@ export default function ChatbotPage() {
           align-items: center;
           gap: 8px;
           padding: 10px 14px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
+          background: var(--color-surface, #ffffff);
+          border: 1px solid var(--color-border, #e2e8f0);
+          border-radius: var(--radius-md, 12px);
           font-size: 0.8125rem;
           font-weight: 600;
-          color: #0f6784;
+          color: var(--color-ink, #1e293b);
           cursor: pointer;
           text-align: left;
           transition: all 0.2s ease;
+          font-family: inherit;
         }
 
         .welcome-chip-item:hover {
-          background: #eaf4fa;
-          border-color: #0f6784;
+          background: var(--color-teal-soft, #f0fdf4);
+          border-color: var(--color-teal-light, #99f6e4);
+          color: var(--color-teal, #0f6784);
           transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(15, 103, 132, 0.08);
         }
 
         .loading-chat-state {
@@ -1556,7 +1562,7 @@ export default function ChatbotPage() {
           justify-content: center;
           gap: 10px;
           padding: 32px;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           font-size: 0.875rem;
         }
 
@@ -1584,12 +1590,13 @@ export default function ChatbotPage() {
         }
 
         .bot-avatar {
-          background: #eaf4fa;
-          color: #0f6784;
+          background: var(--color-teal-soft, #f0fdf4);
+          border: 1px solid var(--color-teal-light, #ccfbf1);
+          color: var(--color-teal, #0f6784);
         }
 
         .user-avatar {
-          background: #0f6784;
+          background: var(--color-teal, #0f6784);
           color: #ffffff;
           font-size: 0.75rem;
           font-weight: 700;
@@ -1602,15 +1609,15 @@ export default function ChatbotPage() {
         }
 
         .chat-bubble {
-          border-radius: 16px;
+          border-radius: var(--radius-lg, 16px);
           padding: 12px 16px;
           font-size: 0.875rem;
           line-height: 1.6;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         .chat-row.user .chat-bubble {
-          background: #0f6784;
+          background: linear-gradient(135deg, var(--color-teal, #0f6784) 0%, var(--color-teal-hover, #0b4f5c) 100%);
           color: #ffffff !important;
           border-bottom-right-radius: 4px;
         }
@@ -1621,15 +1628,15 @@ export default function ChatbotPage() {
         }
 
         .chat-row.bot .chat-bubble {
-          background: #ffffff;
-          color: #0f172a;
-          border: 1px solid #e2e8f0;
+          background: var(--color-surface, #ffffff);
+          color: var(--color-ink, #0f172a);
+          border: 1px solid var(--color-border, #e2e8f0);
           border-bottom-left-radius: 4px;
         }
 
         .thinking-bubble {
-          background: #ffffff !important;
-          border: 1px solid #e2e8f0 !important;
+          background: var(--color-surface, #ffffff) !important;
+          border: 1px solid var(--color-border, #e2e8f0) !important;
           border-bottom-left-radius: 4px !important;
           display: flex;
           align-items: center;
@@ -1648,7 +1655,7 @@ export default function ChatbotPage() {
           width: 5px;
           height: 5px;
           border-radius: 50%;
-          background: #0f6784;
+          background: var(--color-teal, #0f6784);
           animation: dotBounce 1.1s infinite ease-in-out;
         }
 
@@ -1674,7 +1681,7 @@ export default function ChatbotPage() {
         .shimmer-think-text {
           font-size: 0.8125rem;
           font-weight: 500;
-          color: #0f6784;
+          color: var(--color-teal, #0f6784);
           animation: thinkShimmer 1.8s infinite ease-in-out;
           white-space: nowrap;
         }
@@ -1698,7 +1705,7 @@ export default function ChatbotPage() {
 
         .chat-timestamp {
           font-size: 0.65rem;
-          color: #94a3b8;
+          color: var(--color-ink-muted, #94a3b8);
           margin-top: 3px;
           display: block;
         }
