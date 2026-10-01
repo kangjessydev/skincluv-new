@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Lock, Eye, KeyRound } from 'lucide-react'
+import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Lock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -54,7 +54,7 @@ export default function PrivacyCenterPage() {
     setScansDeletedSuccess(false)
 
     try {
-      const { data, error } = await supabase.rpc('delete_user_face_scans_only', {
+      const { error } = await supabase.rpc('delete_user_face_scans_only', {
         p_user_id: user.id
       })
 
@@ -82,7 +82,7 @@ export default function PrivacyCenterPage() {
     setDeleteError(null)
 
     try {
-      const { data, error } = await supabase.rpc('delete_user_account', {
+      const { error } = await supabase.rpc('delete_user_account', {
         p_user_id: user.id,
         p_confirmation: 'DELETE MY ACCOUNT'
       })
@@ -102,32 +102,42 @@ export default function PrivacyCenterPage() {
   }
 
   return (
-    <div className="privacy-center-page animate-fade-in">
-      <div className="privacy-center-container">
-        {/* HEADER */}
-        <header className="privacy-header">
-          <Link to="/profile" className="btn-back-link">
+    <div className="v0-page-container animate-fade-in">
+      <div className="v0-profile-form-container">
+        {/* Back Link */}
+        <div style={{ marginBottom: '16px' }}>
+          <Link to="/profile" className="v0-back-link">
             <ArrowLeft size={16} /> Kembali ke Profil
           </Link>
-          <span className="privacy-badge"><ShieldCheck size={14} /> PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)</span>
-          <h1>Pengelolaan Data &amp; Hak Privasi</h1>
-          <p className="privacy-subtitle">
+        </div>
+
+        {/* HEADER */}
+        <div className="v0-profile-form-header" style={{ marginBottom: '28px', textAlign: 'left' }}>
+          <span className="v0-celebrate-badge" style={{ marginBottom: '8px' }}>
+            <ShieldCheck size={14} /> PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)
+          </span>
+          <h1 className="v0-profile-form-main-title">Pengelolaan Data &amp; Hak Privasi</h1>
+          <p className="v0-profile-form-main-sub">
             Anda memegang kendali penuh atas data pribadi, citra pemindaian wajah, dan keberadaan akun Anda pada platform Skincluv.
           </p>
-        </header>
+        </div>
 
-        <div className="privacy-cards-stack">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* KARTU 1: PORTABILITAS DATA */}
-          <div className="card privacy-card glass-card">
-            <div className="card-header-icon">
-              <div className="icon-wrap sky-bg"><Download size={22} /></div>
+          <div className="v0-profile-card">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+              <div className="v0-icon-wrap sky"><Download size={22} /></div>
               <div>
-                <h3>Unduh Salinan Data Pribadi (*Data Portability*)</h3>
-                <p>Ekspor seluruh catatan profil, jenis kulit, status kuota, dan saldo koin Anda ke dalam berkas standar JSON.</p>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 4px' }}>
+                  Unduh Salinan Data Pribadi (<em>Data Portability</em>)
+                </h3>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
+                  Ekspor seluruh catatan profil, jenis kulit, status kuota, dan saldo kredit Anda ke dalam berkas standar JSON.
+                </p>
               </div>
             </div>
-            <div className="card-actions">
-              <button className="btn btn-outline btn-sm" onClick={handleExportData}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--color-border-soft)' }}>
+              <button type="button" className="v0-btn-secondary" onClick={handleExportData}>
                 <Download size={15} />
                 <span>Unduh Data Profil (JSON)</span>
               </button>
@@ -135,27 +145,30 @@ export default function PrivacyCenterPage() {
           </div>
 
           {/* KARTU 2: HAPUS SCAN WAJAH SAJA */}
-          <div className="card privacy-card glass-card">
-            <div className="card-header-icon">
-              <div className="icon-wrap amber-bg"><Trash2 size={22} /></div>
+          <div className="v0-profile-card">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+              <div className="v0-icon-wrap amber"><Trash2 size={22} /></div>
               <div>
-                <h3>Pembersihan Rekam Jejak Biometrik Wajah</h3>
-                <p>
-                  Musnahkan seluruh foto wajah dan skor pemindaian masa lalu Anda dari basis data operasional. Akun, kuota langganan, dan saldo koin Anda akan tetap utuh.
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 4px' }}>
+                  Pembersihan Rekam Jejak Biometrik Wajah
+                </h3>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
+                  Musnahkan seluruh foto wajah dan skor pemindaian masa lalu Anda dari basis data operasional. Akun, kuota langganan, dan saldo kredit Anda akan tetap utuh.
                 </p>
               </div>
             </div>
 
             {scansDeletedSuccess && (
-              <div className="alert-success-box animate-fade-in">
-                <CheckCircle2 size={16} className="text-success" />
+              <div className="v0-profile-message success animate-fade-in" style={{ marginBottom: '16px' }}>
+                <CheckCircle2 size={16} />
                 <span>Seluruh riwayat pemindaian wajah Anda berhasil dimusnahkan secara bersih.</span>
               </div>
             )}
 
-            <div className="card-actions">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--color-border-soft)' }}>
               <button
-                className="btn btn-outline btn-sm"
+                type="button"
+                className="v0-btn-secondary"
                 onClick={handleDeleteFaceScans}
                 disabled={isDeletingScans}
               >
@@ -166,18 +179,20 @@ export default function PrivacyCenterPage() {
           </div>
 
           {/* KARTU 3: KETENTUAN HAK PRIVASI */}
-          <div className="card privacy-card glass-card">
-            <div className="card-header-icon">
-              <div className="icon-wrap teal-bg"><Lock size={22} /></div>
+          <div className="v0-profile-card">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+              <div className="v0-icon-wrap teal"><Lock size={22} /></div>
               <div>
-                <h3>Kebijakan &amp; Yurisdiksi Perlindungan Data</h3>
-                <p>
-                  Pelajari bagaimana kami mengamankan foto wajah di storage tertutup (*private bucket*) dan mengisolasi data transaksi kas non-PII.
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 4px' }}>
+                  Kebijakan &amp; Yurisdiksi Perlindungan Data
+                </h3>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
+                  Pelajari bagaimana kami mengamankan foto wajah di storage tertutup (<em>private bucket</em>) dan mengisolasi data transaksi kas non-PII.
                 </p>
               </div>
             </div>
-            <div className="card-actions">
-              <Link to="/privacy" className="btn btn-outline btn-sm">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--color-border-soft)' }}>
+              <Link to="/privacy" className="v0-btn-secondary">
                 <Eye size={15} />
                 <span>Baca Kebijakan Privasi Lengkap</span>
               </Link>
@@ -185,19 +200,22 @@ export default function PrivacyCenterPage() {
           </div>
 
           {/* KARTU 4: PENGHAPUSAN AKUN PERMANEN (DANGER ZONE) */}
-          <div className="card danger-card glass-card">
-            <div className="card-header-icon">
-              <div className="icon-wrap rose-bg"><AlertTriangle size={22} /></div>
+          <div className="v0-card-danger">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+              <div className="v0-icon-wrap rose"><AlertTriangle size={22} /></div>
               <div>
-                <h3 className="text-danger">Pemusnahan Akun Permanen (*Right to be Forgotten*)</h3>
-                <p>
-                  Menghapus akun Skincluv Anda secara permanen. Seluruh foto wajah, riwayat percakapan chatbot, profil kulit, saldo koin, dan kuota pass akan dimusnahkan seketika. Tindakan ini tidak dapat dibatalkan.
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-status-alert)', margin: '0 0 4px' }}>
+                  Pemusnahan Akun Permanen (<em>Right to be Forgotten</em>)
+                </h3>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
+                  Menghapus akun Skincluv Anda secara permanen. Seluruh foto wajah, riwayat percakapan AI, profil kulit, saldo kredit, dan kuota pass akan dimusnahkan seketika. Tindakan ini tidak dapat dibatalkan.
                 </p>
               </div>
             </div>
-            <div className="card-actions">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid rgba(239, 68, 68, 0.15)' }}>
               <button
-                className="btn btn-danger btn-sm"
+                type="button"
+                className="v0-btn-danger"
                 onClick={() => {
                   setConfirmationInput('')
                   setDeleteError(null)
@@ -213,23 +231,23 @@ export default function PrivacyCenterPage() {
 
         {/* MODAL KONFIRMASI GANDA PENGHAPUSAN AKUN */}
         {showDeleteModal && (
-          <div className="modal-backdrop animate-fade-in">
-            <div className="delete-modal-card animate-scale-up">
-              <div className="modal-icon-warning">
-                <AlertTriangle size={36} />
+          <div className="v0-modal-backdrop animate-fade-in">
+            <div className="v0-modal-card animate-scale-up">
+              <div className="v0-modal-icon-alert">
+                <AlertTriangle size={28} />
               </div>
-              <h2>Pemusnahan Akun Permanen</h2>
-              <p className="modal-warning-text">
+              <h2 className="v0-modal-title">Pemusnahan Akun Permanen</h2>
+              <p className="v0-modal-desc">
                 Anda hendak menghapus akun <strong>{user?.email}</strong>. Seluruh riwayat foto wajah, hasil pemindaian, percakapan AI, dan kuota langganan yang tersisa akan <strong>dihapus permanen dan tidak dapat dipulihkan kembali</strong>.
               </p>
 
               {deleteError && (
-                <div className="modal-error-banner">
+                <div className="v0-modal-error-banner">
                   <span>{deleteError}</span>
                 </div>
               )}
 
-              <div className="confirmation-input-box">
+              <div className="v0-modal-input-group">
                 <label htmlFor="confirm-delete">
                   Ketik <code>DELETE MY ACCOUNT</code> di bawah ini untuk mengonfirmasi:
                 </label>
@@ -244,10 +262,10 @@ export default function PrivacyCenterPage() {
                 />
               </div>
 
-              <div className="modal-buttons-row">
+              <div className="v0-modal-footer-btns">
                 <button
                   type="button"
-                  className="btn btn-outline btn-sm"
+                  className="v0-btn-secondary"
                   onClick={() => setShowDeleteModal(false)}
                   disabled={isDeletingAccount}
                 >
@@ -255,7 +273,7 @@ export default function PrivacyCenterPage() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-danger btn-sm"
+                  className="v0-btn-danger"
                   onClick={handlePermanentlyDeleteAccount}
                   disabled={isDeletingAccount || confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
                 >
@@ -273,288 +291,6 @@ export default function PrivacyCenterPage() {
           </div>
         )}
       </div>
-
-      <style>{`
-        .privacy-center-page {
-          padding-bottom: 60px;
-          max-width: 860px;
-          margin: 0 auto;
-          width: 100%;
-        }
-
-        .privacy-header {
-          margin-bottom: 32px;
-          position: relative;
-        }
-
-        .btn-back-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: transparent;
-          border: none;
-          color: var(--color-primary, #0f6784);
-          font-family: var(--font-heading);
-          font-weight: 700;
-          font-size: 0.875rem;
-          cursor: pointer;
-          padding: 4px 8px;
-          border-radius: var(--radius-sm);
-          text-decoration: none;
-          margin-bottom: 12px;
-        }
-
-        .btn-back-link:hover {
-          background: var(--color-surface-container-low, #f1f5f9);
-        }
-
-        .privacy-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.75rem;
-          font-weight: 800;
-          letter-spacing: 0.05em;
-          color: var(--color-primary, #0f6784);
-          background: #e0f2fe;
-          border: 1px solid #bae6fd;
-          padding: 4px 12px;
-          border-radius: var(--radius-full);
-          margin-bottom: 8px;
-        }
-
-        .privacy-header h1 {
-          font-family: var(--font-heading, sans-serif);
-          font-size: 2rem;
-          font-weight: 800;
-          color: var(--color-text-main, #0f172a);
-          margin: 4px 0 8px 0;
-        }
-
-        .privacy-subtitle {
-          color: var(--color-text-muted, #64748b);
-          font-size: 0.9375rem;
-          line-height: 1.6;
-        }
-
-        .privacy-cards-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .privacy-card {
-          padding: 24px;
-          border-radius: var(--radius-xl, 16px);
-          background: #ffffff;
-          border: 1px solid var(--color-secondary-container, #e2e8f0);
-          box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.02));
-        }
-
-        .danger-card {
-          padding: 24px;
-          border-radius: var(--radius-xl, 16px);
-          background: #ffffff;
-          border: 1px solid #fecaca;
-          border-left: 5px solid #ef4444;
-          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.04);
-        }
-
-        .card-header-icon {
-          display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          margin-bottom: 20px;
-        }
-
-        .icon-wrap {
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .sky-bg {
-          background: #e0f2fe;
-          color: #0284c7;
-        }
-
-        .amber-bg {
-          background: #fef3c7;
-          color: #d97706;
-        }
-
-        .teal-bg {
-          background: #ccfbf1;
-          color: #0f766e;
-        }
-
-        .rose-bg {
-          background: #ffe4e6;
-          color: #e11d48;
-        }
-
-        .card-header-icon h3 {
-          font-family: var(--font-heading, sans-serif);
-          font-size: 1.0625rem;
-          font-weight: 800;
-          color: var(--color-text-main, #0f172a);
-          margin: 0 0 4px 0;
-        }
-
-        .text-danger {
-          color: #dc2626 !important;
-        }
-
-        .card-header-icon p {
-          font-size: 0.875rem;
-          color: var(--color-text-muted, #64748b);
-          line-height: 1.5;
-          margin: 0;
-        }
-
-        .card-actions {
-          display: flex;
-          justify-content: flex-end;
-          padding-top: 16px;
-          border-top: 1px solid #f1f5f9;
-        }
-
-        .alert-success-box {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: #dcfce7;
-          border: 1px solid #bbf7d0;
-          color: #15803d;
-          padding: 10px 14px;
-          border-radius: var(--radius-md, 8px);
-          font-size: 0.8125rem;
-          font-weight: 600;
-          margin-bottom: 16px;
-        }
-
-        .btn-danger {
-          background: #ef4444;
-          color: #ffffff;
-          border: none;
-          font-weight: 700;
-        }
-
-        .btn-danger:hover {
-          background: #dc2626;
-        }
-
-        /* MODAL */
-        .modal-backdrop {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 20px;
-        }
-
-        .delete-modal-card {
-          background: #ffffff;
-          border-radius: var(--radius-2xl, 20px);
-          padding: 36px 28px;
-          max-width: 480px;
-          width: 100%;
-          text-align: center;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-icon-warning {
-          width: 64px;
-          height: 64px;
-          border-radius: 50%;
-          background: #fee2e2;
-          color: #dc2626;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 16px;
-        }
-
-        .delete-modal-card h2 {
-          font-family: var(--font-heading, sans-serif);
-          font-size: 1.35rem;
-          font-weight: 800;
-          color: var(--color-text-main, #0f172a);
-          margin: 0 0 10px 0;
-        }
-
-        .modal-warning-text {
-          font-size: 0.875rem;
-          color: var(--color-text-muted, #64748b);
-          line-height: 1.6;
-          margin: 0 0 20px 0;
-        }
-
-        .modal-error-banner {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #dc2626;
-          padding: 10px 14px;
-          border-radius: var(--radius-md, 8px);
-          font-size: 0.8125rem;
-          margin-bottom: 16px;
-        }
-
-        .confirmation-input-box {
-          text-align: left;
-          margin-bottom: 24px;
-        }
-
-        .confirmation-input-box label {
-          display: block;
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: #334155;
-          margin-bottom: 8px;
-        }
-
-        .confirmation-input-box code {
-          background: #f1f5f9;
-          color: #dc2626;
-          font-weight: 800;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
-
-        .confirmation-input-box input {
-          width: 100%;
-          padding: 11px 14px;
-          border: 1px solid #cbd5e1;
-          border-radius: var(--radius-md, 8px);
-          font-size: 0.875rem;
-          font-weight: 700;
-          letter-spacing: 0.05em;
-          text-align: center;
-        }
-
-        .confirmation-input-box input:focus {
-          outline: none;
-          border-color: #ef4444;
-          box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-        }
-
-        .modal-buttons-row {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-        }
-      `}</style>
     </div>
   )
 }

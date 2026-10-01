@@ -2050,4 +2050,187 @@ a:hover { opacity: 0.8; }
   margin: 0;
 }
 
+/* 9. Action Buttons & Danger Components (Section 5.10 DRY Pattern) */
+.v0-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.v0-btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  border-color: var(--color-ink-muted);
+}
+.v0-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
+.v0-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  background: var(--color-status-alert);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.v0-btn-danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.v0-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.v0-card-danger {
+  background: var(--color-surface);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-left: 4px solid var(--color-status-alert);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.04);
+}
+
+/* Generic Icon Wraps */
+.v0-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.v0-icon-wrap.sky {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+.v0-icon-wrap.amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+.v0-icon-wrap.teal {
+  background: var(--color-teal-soft);
+  color: var(--color-teal);
+}
+.v0-icon-wrap.rose {
+  background: #ffe4e6;
+  color: var(--color-status-alert);
+}
+
+/* Modals */
+.v0-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.v0-modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  padding: 32px 28px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-border-soft);
+}
+.v0-modal-icon-alert {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: #fee2e2;
+  color: var(--color-status-alert);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.v0-modal-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0 0 10px;
+}
+.v0-modal-desc {
+  font-size: 0.875rem;
+  color: var(--color-ink-soft);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+.v0-modal-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--color-status-alert);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.v0-modal-input-group {
+  text-align: left;
+  margin-bottom: 24px;
+}
+.v0-modal-input-group label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+.v0-modal-input-group code {
+  background: var(--color-surface-muted);
+  color: var(--color-status-alert);
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.v0-modal-input-group input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: center;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-sizing: border-box;
+}
+.v0-modal-input-group input:focus {
+  outline: none;
+  border-color: var(--color-status-alert);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+.v0-modal-footer-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
