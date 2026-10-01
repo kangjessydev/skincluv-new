@@ -28,16 +28,41 @@ export interface AiResponse {
   rawResponse: unknown
 }
 
+export interface ProviderErrorDetails {
+  provider: 'google' | 'anthropic' | 'openai' | 'groq'
+  httpStatus: number
+  providerCode?: string
+  providerMessage?: string
+  rawBody?: unknown
+  isTransient: boolean
+  modelUsed?: string
+}
+
+export class AiProviderError extends Error {
+  readonly details: ProviderErrorDetails
+
+  constructor(message: string, details: ProviderErrorDetails) {
+    super(message)
+    this.name = 'AiProviderError'
+    this.details = details
+  }
+}
+
 // ---- Google Gemini ----
 async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
   const { apiKey, systemPrompt, messages, parameters } = opts
-  
-  // Model failover list: provide graceful fallback between active Flash models
+
+  // Model failover list: RFC 021 Multi-Tier Failover
+  // 1. Primary requested (gemini-3.5-flash)
+  // 2. Secondary Flash (gemini-3.6-flash)
+  // 3. Fallback Active Flash (gemini-2.5-flash)
+  // (Note: gemini-2.0-flash excluded as Google retired it in June 2026)
   const candidateModels = [opts.modelName]
-  if (opts.modelName.includes('3.6') && !candidateModels.includes('gemini-3.5-flash')) {
-    candidateModels.push('gemini-3.5-flash')
-  } else if (opts.modelName.includes('3.5') && !candidateModels.includes('gemini-3.6-flash')) {
-    candidateModels.push('gemini-3.6-flash')
+  const flashFallbacks = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']
+  for (const fallback of flashFallbacks) {
+    if (!candidateModels.includes(fallback)) {
+      candidateModels.push(fallback)
+    }
   }
 
   // Build contents array: system instruction + conversation with multimodal support
@@ -59,45 +84,81 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
     }
   })
 
-  const generationConfig: Record<string, any> = {
-    temperature: parameters?.temperature ?? 0.2,
-    maxOutputTokens: parameters?.max_tokens ?? 2500,
-  }
-
-  // Only send thinkingConfig if thinking_budget is explicitly configured in parameters.
-  // Never default to 0; if unset, allow Gemini to use its native default reasoning.
-  if (parameters?.thinking_budget !== undefined && parameters?.thinking_budget !== null) {
-    generationConfig.thinkingConfig = {
-      thinkingBudget: Number(parameters.thinking_budget),
-    }
-  }
-
-  // Native Structured JSON (responseMimeType: "application/json")
-  const responseMimeType = parameters?.response_mime_type || parameters?.responseMimeType
-  if (responseMimeType) {
-    generationConfig.responseMimeType = String(responseMimeType)
-  }
-
-  const responseSchema = parameters?.response_schema || parameters?.responseSchema
-  if (responseSchema) {
-    generationConfig.responseSchema = responseSchema
-  }
-
-  const body = {
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    contents,
-    generationConfig,
-  }
+  // DeepSeek & ChatGPT Consensus: SLA Latency & Full Jitter Exponential Backoff
+  const SLA_DEADLINE_MS = 9000
+  const MIN_ATTEMPT_TIME_MS = 500
+  const BASE_DELAY_MS = 300
+  const MAX_DELAY_MS = 2000
+  const startTime = performance.now()
 
   let lastStatus = 0
   let lastErr = ''
+  let lastProviderCode = ''
+  let lastModelTried = opts.modelName
+  let totalAttempts = 0
 
   for (const currentModel of candidateModels) {
-    // Retry up to 2 attempts per candidate model for transient 503 or 429
-    for (let attempt = 0; attempt < 2; attempt++) {
-      if (attempt > 0) {
-        await new Promise((r) => setTimeout(r, 1200))
+    lastModelTried = currentModel
+
+    const generationConfig: Record<string, any> = {
+      temperature: parameters?.temperature ?? 0.2,
+      maxOutputTokens: parameters?.max_tokens ?? 2500,
+    }
+
+    const responseMimeType = parameters?.response_mime_type || parameters?.responseMimeType
+    if (responseMimeType) {
+      generationConfig.responseMimeType = String(responseMimeType)
+    }
+
+    const responseSchema = parameters?.response_schema || parameters?.responseSchema
+    if (responseSchema) {
+      generationConfig.responseSchema = responseSchema
+    }
+
+    // Thinking config based on model family (RFC 021 Amendment):
+    // Gemini 2.5 supports thinkingBudget (0 for fast-scan, -1 for dynamic/deep).
+    // Gemini 3.x does not support true thinking-off, uses thinkingLevel ('minimal' or 'high').
+    const is25 = currentModel.startsWith('gemini-2.5')
+    if (parameters?.thinking_budget !== undefined && parameters?.thinking_budget !== null) {
+      const budgetNum = Number(parameters.thinking_budget)
+      if (is25) {
+        generationConfig.thinkingConfig = { thinkingBudget: budgetNum }
+      } else {
+        generationConfig.thinkingConfig = { thinkingLevel: budgetNum === 0 ? 'minimal' : 'high' }
       }
+    }
+
+    const body = {
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      generationConfig,
+    }
+
+    // Up to 2 retry attempts per candidate model
+    for (let modelAttempt = 0; modelAttempt < 2; modelAttempt++) {
+      const remainingTime = SLA_DEADLINE_MS - (performance.now() - startTime)
+      if (remainingTime < MIN_ATTEMPT_TIME_MS) {
+        console.warn(`[callGemini] Execution budget exhausted (${Math.round(performance.now() - startTime)}ms), breaking retry loop.`)
+        break
+      }
+
+      if (totalAttempts > 0) {
+        // Full Jitter Backoff (DeepSeek formula): random(0, min(cap, base * 2^attempt))
+        const rawDelay = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * Math.pow(2, totalAttempts - 1))
+        const jitterDelay = Math.floor(Math.random() * rawDelay)
+        if (jitterDelay + MIN_ATTEMPT_TIME_MS > remainingTime) {
+          console.warn(`[callGemini] Not enough time for backoff delay (${jitterDelay}ms), breaking.`)
+          break
+        }
+        await new Promise((r) => setTimeout(r, jitterDelay))
+      }
+
+      totalAttempts++
+
+      // Per-attempt AbortController with remaining time
+      const attemptRemaining = SLA_DEADLINE_MS - (performance.now() - startTime)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), Math.max(1000, attemptRemaining))
 
       try {
         const res = await fetch(
@@ -106,61 +167,98 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
+            signal: controller.signal,
           }
         )
+        clearTimeout(timeoutId)
 
         if (!res.ok) {
           lastStatus = res.status
           lastErr = await res.text()
-          console.warn(`[callGemini] Model ${currentModel} returned ${res.status}: ${lastErr.slice(0, 150)}`)
-          
-          // If hard daily quota exhaustion, skip retrying this model and switch immediately
+
+          try {
+            const parsedErr = JSON.parse(lastErr)
+            lastProviderCode = parsedErr?.error?.status || ''
+          } catch {
+            // raw string
+          }
+
+          console.warn(`[callGemini] Model ${currentModel} attempt ${modelAttempt + 1} returned ${res.status}: ${lastErr.slice(0, 150)}`)
+
+          // Daily quota exhaustion: do not retry this model, switch immediately
           if (res.status === 429 && (lastErr.includes('RESOURCE_EXHAUSTED') || lastErr.includes('PerDay') || lastErr.includes('quota'))) {
             console.warn(`[callGemini] Daily quota exceeded for ${currentModel}, switching to fallback model immediately.`)
             break
           }
 
-          // If transient error (503 High Demand or standard 429 Rate Limit burst), retry or switch to fallback model
+          // Transient error: retry or next model
           if (res.status === 503 || res.status === 429) {
             continue
           }
-          throw new Error(`Gemini API error ${res.status}: ${lastErr}`)
+
+          // Non-transient error (e.g. 400 Bad Request, 403 Forbidden): fail immediately
+          throw new AiProviderError(`Gemini error ${res.status}`, {
+            provider: 'google',
+            httpStatus: res.status,
+            providerCode: lastProviderCode || 'CLIENT_ERROR',
+            providerMessage: lastErr,
+            rawBody: lastErr,
+            isTransient: false,
+            modelUsed: currentModel,
+          })
         }
 
         const data = await res.json()
         const parts: any[] = data.candidates?.[0]?.content?.parts ?? []
-        // Concatenate all text parts (Gemini splits large outputs across multiple parts)
         const content = parts
           .filter((p: any) => typeof p.text === 'string')
           .map((p: any) => p.text)
           .join('')
 
         if (!content) {
-          throw new Error(`Gemini returned empty content. Raw: ${JSON.stringify(data).slice(0, 400)}`)
+          throw new AiProviderError('Gemini returned empty content', {
+            provider: 'google',
+            httpStatus: 502,
+            providerCode: 'EMPTY_CONTENT',
+            rawBody: data,
+            isTransient: true,
+            modelUsed: currentModel,
+          })
         }
 
         const inputTokens = data.usageMetadata?.promptTokenCount ?? 0
         const outputTokens = data.usageMetadata?.candidatesTokenCount ?? 0
-        const thoughtsTokens = data.usageMetadata?.thoughtsTokenCount ?? 0
+        const _thoughtsTokens = data.usageMetadata?.thoughtsTokenCount ?? 0
         const tokensUsed = inputTokens + outputTokens
-        console.log(`[callGemini] [TELEMETRY] model=${currentModel} inputTokens=${inputTokens} outputTokens=${outputTokens} thoughtsTokens=${thoughtsTokens} totalTokens=${tokensUsed}`)
+        console.log(`[callGemini] [TELEMETRY] model=${currentModel} (fallback=${currentModel !== opts.modelName}) inTokens=${inputTokens} outTokens=${outputTokens} total=${tokensUsed}`)
 
         return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
       } catch (err: any) {
-        // If it's a non-503/429 error, rethrow immediately
-        if (lastStatus !== 503 && lastStatus !== 429) {
+        clearTimeout(timeoutId)
+        if (err instanceof AiProviderError && !err.details.isTransient) {
           throw err
+        }
+        if (err.name === 'AbortError') {
+          console.warn(`[callGemini] Model ${currentModel} timed out under deadline budget.`)
         }
       }
     }
   }
 
+  // All attempts exhausted: throw typed AiProviderError
   const isQuotaExhausted = lastStatus === 429 || lastErr.includes('RESOURCE_EXHAUSTED') || lastErr.includes('quota')
-  const formattedErrMsg = isQuotaExhausted
-    ? 'Kuota Google Gemini API Free Tier habis (limit harian tercapai). Silakan ganti API Key di Google AI Studio atau hubungkan billing pay-as-you-go.'
-    : `Gemini API error ${lastStatus || 503}: ${lastErr || 'Model overloaded. All retry and fallback attempts failed.'}`
-
-  throw new Error(formattedErrMsg)
+  throw new AiProviderError(
+    isQuotaExhausted ? 'Gemini API quota exhausted' : 'Gemini API temporarily unavailable',
+    {
+      provider: 'google',
+      httpStatus: lastStatus || 503,
+      providerCode: lastProviderCode || (isQuotaExhausted ? 'RESOURCE_EXHAUSTED' : 'UNAVAILABLE'),
+      providerMessage: lastErr || 'Model overloaded. All retry and fallback attempts failed.',
+      rawBody: lastErr,
+      isTransient: !isQuotaExhausted,
+      modelUsed: lastModelTried,
+    }
+  )
 }
 
 // ---- Anthropic Claude ----
