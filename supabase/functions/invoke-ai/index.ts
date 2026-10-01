@@ -17,7 +17,30 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
-import { callAiProvider, interpolatePrompt, estimateCostUsd } from '../_shared/aiProviders.ts'
+import { callAiProvider, interpolatePrompt, estimateCostUsd, AiProviderError } from '../_shared/aiProviders.ts'
+
+export type AIErrorCode =
+  | 'AI_TEMPORARILY_UNAVAILABLE'
+  | 'AI_RATE_LIMITED'
+  | 'AI_INVALID_REQUEST'
+  | 'AI_CONFIGURATION_ERROR'
+  | 'AI_CONTENT_UNAVAILABLE'
+  | 'AI_REQUEST_TIMEOUT'
+  | 'AI_SERVICE_ERROR'
+  | 'AI_OPERATION_UNKNOWN'
+
+export interface AIErrorDTO {
+  ok: false
+  success: false
+  error: {
+    error_code: AIErrorCode
+    is_transient: boolean
+    retry_after_seconds: number | null
+    credit_status: 'NOT_CHARGED' | 'RELEASED' | 'COMMITTED' | 'PENDING'
+    message: string
+    operation_id: string
+  }
+}
 import {
   needsWebSearch,
   buildSearchQuery,
@@ -67,7 +90,7 @@ Deno.serve(async (req: Request) => {
 
     // ---- 2. Parse request body ----
     const body = await req.json()
-    const { feature_slug, messages, input_context, use_coins, session_id, message_count, idempotency_key, force_reanalysis } = body as {
+    const { feature_slug, messages, input_context, use_coins, session_id, message_count, idempotency_key, client_operation_id, force_reanalysis } = body as {
       feature_slug: string
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
       input_context?: Record<string, string>
@@ -75,6 +98,7 @@ Deno.serve(async (req: Request) => {
       session_id?: string       // ID sesi aktif (untuk session summary trigger)
       message_count?: number    // Jumlah pesan dalam sesi ini (frontend kirim)
       idempotency_key?: string  // Client-generated UUID untuk idempotensi finansial
+      client_operation_id?: string // RFC 021 client operation reference
       force_reanalysis?: boolean // Paksa analisis ulang mengabaikan cache foto identik
     }
 
@@ -163,10 +187,11 @@ Deno.serve(async (req: Request) => {
         .then(() => {})
     })
 
-    // Validasi idempotency key dari client (mencegah double-spending saat retry)
+    // Validasi idempotency key dari client (mencegah double-spending saat retry — RFC 021)
     let operationRef = crypto.randomUUID()
-    if (typeof idempotency_key === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotency_key)) {
-      operationRef = idempotency_key
+    const opIdCandidate = client_operation_id || idempotency_key
+    if (typeof opIdCandidate === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(opIdCandidate)) {
+      operationRef = opIdCandidate
     }
 
     // ---- 4.5 Exact Canonical Image Deduplication & Cache Hit (RFC 011 Consensus) ----
@@ -974,11 +999,51 @@ END PRODUCT_TEXT`
 
     const latencyMs = Date.now() - startTime
 
-    // ---- Opsi A: Rollback on provider error ----
+    // ---- Opsi A: Rollback & Sanitized Response on provider error (RFC 021 Invariant INV-AI-ERR-01, 02, 03) ----
     if (aiError) {
-      await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost, operationRef)
+      let creditStatus: 'RELEASED' | 'PENDING' = 'PENDING'
+      try {
+        await rollback(supabaseService, user.id, deductedFeatureId, subscription?.id, deductMode, creditCost, operationRef)
+        creditStatus = 'RELEASED'
+      } catch (rbErr) {
+        console.error('[invoke-ai] Rollback failed or timed out:', rbErr)
+        creditStatus = 'PENDING'
+      }
 
-      // Log failed attempt (no quota/coin consumed)
+      // Extract typed provider details (INV-AI-ERR-01: zero raw vendor leakage to client)
+      const providerDetails = aiError instanceof AiProviderError ? aiError.details : (aiError as any)?.details
+      const httpStatus = providerDetails?.httpStatus || 500
+      const isTransient = providerDetails?.isTransient ?? true
+
+      // Map to Skincluv Error Taxonomy (INV-AI-ERR-02 & INV-AI-ERR-03)
+      let errorCode: AIErrorCode = 'AI_SERVICE_ERROR'
+      let userMessage = 'Layanan analisis AI sedang mengalami gangguan sementara. Silakan coba kembali.'
+      let retryAfter: number | null = null
+
+      if (httpStatus === 503) {
+        errorCode = 'AI_TEMPORARILY_UNAVAILABLE'
+        retryAfter = 20
+        userMessage = creditStatus === 'RELEASED'
+          ? 'Layanan AI Google sedang mengalami lonjakan antrean padat sesaat. Silakan coba lagi dalam 15–20 detik. Credit kamu sudah dikembalikan dan aman.'
+          : 'Layanan AI Google sedang mengalami lonjakan antrean padat sesaat. Permintaan Credit kamu sedang diamankan dan tidak akan ditagihkan ganda.'
+      } else if (httpStatus === 429) {
+        errorCode = 'AI_RATE_LIMITED'
+        retryAfter = 30
+        userMessage = creditStatus === 'RELEASED'
+          ? 'Layanan AI sedang menerima banyak permintaan secara bersamaan. Silakan tunggu sebentar dan coba lagi. Credit kamu tidak terpotong.'
+          : 'Layanan AI sedang menerima banyak permintaan. Status Credit kamu sedang diamankan.'
+      } else if (httpStatus === 400) {
+        errorCode = 'AI_INVALID_REQUEST'
+        userMessage = 'Permintaan analisis tidak dapat diproses karena format data tidak valid. Silakan gunakan foto yang jelas.'
+      } else if (aiError.name === 'AbortError' || httpStatus === 504) {
+        errorCode = 'AI_REQUEST_TIMEOUT'
+        retryAfter = 20
+        userMessage = creditStatus === 'RELEASED'
+          ? 'Waktu permintaan AI habis karena koneksi lambat. Silakan coba klik Mulai Analisis lagi. Credit kamu tetap aman.'
+          : 'Waktu permintaan AI habis. Status Credit kamu sedang diamankan.'
+      }
+
+      // Log raw Google error strictly server-side for telemetry & admin audit (INV-AI-ERR-01)
       await supabaseService.from('ai_request_logs').insert({
         user_id: user.id,
         feature_id: feature.id,
@@ -986,12 +1051,30 @@ END PRODUCT_TEXT`
         model_config_id: model.id,
         provider_id: model.provider,
         input_summary: messages.at(-1)?.content?.slice(0, 200),
-        raw_output: { error: aiError.message },
+        raw_output: {
+          error_code: errorCode,
+          credit_status: creditStatus,
+          provider_details: providerDetails || { message: aiError.message },
+        },
         latency_ms: latencyMs,
         status: 'error',
       })
 
-      return jsonError(`AI provider error: ${aiError.message}`, 502)
+      return jsonAiError(
+        {
+          ok: false,
+          success: false,
+          error: {
+            error_code: errorCode,
+            is_transient: isTransient,
+            retry_after_seconds: retryAfter,
+            credit_status: creditStatus,
+            message: userMessage,
+            operation_id: operationRef,
+          },
+        },
+        httpStatus === 503 ? 503 : httpStatus === 429 ? 429 : 502
+      )
     }
 
     // ---- 9. Log successful result ----
@@ -1472,6 +1555,13 @@ async function computeSha256(dataStr: string): Promise<string> {
 function jsonError(message: string, status: number): Response {
   return new Response(
     JSON.stringify({ success: false, error: message }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status }
+  )
+}
+
+function jsonAiError(dto: AIErrorDTO, status: number): Response {
+  return new Response(
+    JSON.stringify(dto),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status }
   )
 }
