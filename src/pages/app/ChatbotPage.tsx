@@ -680,6 +680,8 @@ export default function ChatbotPage() {
     }
   }
 
+  const activeSession = sessions.find((s) => s.id === sessionId)
+
   return (
     <div className="skinsistant-chat-root">
       {/* COIN CONFIRMATION MODAL */}
@@ -700,6 +702,7 @@ export default function ChatbotPage() {
           <button
             onClick={() => setShowHistoryModal(!showHistoryModal)}
             className="util-btn util-history-btn"
+            title="Riwayat Sesi Percakapan"
           >
             <History size={16} />
             <span>Riwayat ({sessions.length})</span>
@@ -718,6 +721,15 @@ export default function ChatbotPage() {
           </button>
         </div>
 
+        <div className="chat-util-center">
+          <div className="chat-session-badge">
+            <Sparkles size={13} style={{ color: 'var(--color-teal)' }} />
+            <span className="chat-session-badge-title">
+              {activeSession?.title || 'Konsultasi Kulit AI'}
+            </span>
+          </div>
+        </div>
+
         <div className="chat-util-right">
           {sessionId && messages.length > 0 && (
             <button
@@ -730,7 +742,7 @@ export default function ChatbotPage() {
             </button>
           )}
 
-          <button onClick={handleCreateNewChat} className="util-btn util-new-btn">
+          <button onClick={handleCreateNewChat} className="util-btn util-new-btn" title="Mulai Percakapan Baru">
             <Plus size={16} />
             <span>Chat Baru</span>
           </button>
@@ -1242,10 +1254,11 @@ export default function ChatbotPage() {
           min-height: 0;
           flex: 1;
           width: 100%;
-          background: #f8fafc;
+          background: var(--color-surface-muted, #f8fafc);
           position: relative;
           box-sizing: border-box;
           overflow: hidden;
+          font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
         }
 
         /* UTILITY BAR */
@@ -1253,40 +1266,90 @@ export default function ChatbotPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 10px 20px;
-          background: #ffffff;
-          border-bottom: 1px solid #e2e8f0;
+          padding: 10px 16px;
+          background: var(--color-surface, #ffffff);
+          border-bottom: 1px solid var(--color-border, #e2e8f0);
           flex-shrink: 0;
+          gap: 12px;
+        }
+
+        .chat-util-left,
+        .chat-util-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .chat-util-center {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 0;
+          flex: 1;
+        }
+
+        .chat-session-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 12px;
+          border-radius: var(--radius-full, 9999px);
+          background: var(--color-teal-soft, #f0fdf4);
+          border: 1px solid var(--color-teal-light, #ccfbf1);
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--color-teal, #0f6784);
+          max-width: 280px;
+        }
+
+        .chat-session-badge-title {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .util-btn {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 6px;
           font-size: 0.8125rem;
           font-weight: 600;
-          border: none;
-          background: transparent;
+          border: 1px solid var(--color-border, #e2e8f0);
+          background: var(--color-surface, #ffffff);
           cursor: pointer;
           padding: 6px 12px;
-          border-radius: 8px;
-          transition: background 0.2s ease;
+          border-radius: var(--radius-md, 8px);
+          transition: all 0.2s ease;
+          font-family: inherit;
         }
 
-        .util-history-btn {
-          color: #64748b;
+        .util-history-btn,
+        .util-memory-btn {
+          color: var(--color-ink-muted, #64748b);
         }
-        .util-history-btn:hover {
-          background: #f1f5f9;
-          color: #0f6784;
+        .util-history-btn:hover,
+        .util-memory-btn:hover {
+          background: var(--color-surface-muted, #f8fafc);
+          color: var(--color-teal, #0f6784);
+          border-color: var(--color-teal-light, #99f6e4);
+        }
+
+        .util-reset-btn {
+          color: var(--color-status-alert, #ef4444);
+          border-color: var(--color-border, #e2e8f0);
+        }
+        .util-reset-btn:hover {
+          background: #fef2f2;
+          border-color: #fecaca;
         }
 
         .util-new-btn {
-          color: #0f6784;
-          background: #eaf4fa;
+          color: #ffffff;
+          background: var(--color-teal, #0f6784);
+          border-color: transparent;
         }
         .util-new-btn:hover {
-          background: #d4e5f1;
+          background: var(--color-teal-hover, #0d5870);
         }
 
         /* HISTORY DRAWER */
@@ -1301,9 +1364,9 @@ export default function ChatbotPage() {
         }
 
         .history-drawer {
-          width: 280px;
+          width: 290px;
           height: 100%;
-          background: #ffffff;
+          background: var(--color-surface, #ffffff);
           box-shadow: 4px 0 20px rgba(0,0,0,0.15);
           display: flex;
           flex-direction: column;
@@ -1320,14 +1383,15 @@ export default function ChatbotPage() {
           align-items: center;
           justify-content: space-between;
           padding: 16px;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid var(--color-border, #e2e8f0);
         }
 
         .drawer-header h3 {
           font-size: 0.9375rem;
           font-weight: 700;
-          color: #0f172a;
+          color: var(--color-ink, #0f172a);
           margin: 0;
+          font-family: var(--font-heading, inherit);
         }
 
         .drawer-close-btn {
@@ -2446,6 +2510,16 @@ export default function ChatbotPage() {
           }
           .chat-util-bar {
             padding: 8px 12px;
+            gap: 8px;
+          }
+          .chat-util-center {
+            display: none;
+          }
+          .util-btn span {
+            display: none;
+          }
+          .util-btn {
+            padding: 6px 8px;
           }
           .chat-scroll-area {
             padding: 14px 12px;
