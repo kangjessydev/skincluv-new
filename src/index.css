@@ -1941,4 +1941,113 @@ a:hover { opacity: 0.8; }
   line-height: 1.45;
 }
 
+/* 8. Tier & Pricing Cards (Section 5.10 DRY Pattern) */
+.v0-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+.v0-tier-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.2s ease;
+}
+.v0-tier-card.featured {
+  border: 2px solid var(--color-teal);
+  box-shadow: 0 4px 20px rgba(31, 157, 151, 0.12);
+}
+.v0-tier-card.active-current {
+  outline: 2px solid var(--color-teal);
+}
+.v0-tier-badge-pos {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+}
+.v0-tier-discount-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.v0-tier-orig-price {
+  font-size: 0.9375rem;
+  color: var(--color-ink-muted);
+  text-decoration: line-through;
+}
+.v0-tier-discount-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: var(--color-status-alert);
+  background: var(--color-status-alert-soft);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+.v0-tier-price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  margin-bottom: 6px;
+}
+.v0-tier-price span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+.v0-tier-tagline {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-teal);
+  background: var(--color-teal-soft);
+  border: 1px solid rgba(31, 157, 151, 0.2);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.v0-tier-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.v0-tier-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.84375rem;
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+.v0-qa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.v0-qa-card {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+}
+.v0-qa-card h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0 0 6px 0;
+}
+.v0-qa-card p {
+  font-size: 0.8125rem;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
 
