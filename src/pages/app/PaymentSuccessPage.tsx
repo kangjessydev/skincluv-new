@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Crown, CheckCircle, Sparkles, ScanFace, MessageSquare, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Crown, CheckCircle, Sparkles, ScanFace, MessageSquare, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import type { Subscription } from '@/types/database'
@@ -71,261 +71,101 @@ export default function PaymentSuccessPage() {
     : (isGlowPlan ? 'Rp 25.000' : 'Rp 49.000')
 
   return (
-    <div className="payment-success-page animate-fade-in">
-      <div className="success-card glass-card">
-        <div className="crown-badge-wrapper">
-          <div className={`crown-circle ${isGlowPlan ? 'crown-circle-glow' : ''}`}>
-            {isGlowPlan ? <Sparkles size={44} className="crown-icon-animated" /> : <Crown size={48} className="crown-icon-animated" />}
-          </div>
-          <div className="sparkle-badge">
-            <Sparkles size={16} /> Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
-          </div>
+    <div className="v0-page-container animate-fade-in">
+      <div className="v0-profile-form-container">
+        <div style={{ marginBottom: '16px' }}>
+          <Link to="/profile/billing" className="v0-back-link">
+            <ArrowLeft size={16} /> Kembali ke Billing & Langganan
+          </Link>
         </div>
 
-        <h1 className="success-title">Selamat! Kamu Resmi Memiliki Akses {isGlowPlan ? 'GLOW' : 'PRO'}</h1>
-        <p className="success-subtitle">
-          Nikmati akses analisis kulit cerdas & komunikasi tanpa batas bersama AI Skincluv selama 30 hari ke depan.
-        </p>
-
-        {/* Invoice Summary Box */}
-        <div className="receipt-box">
-          <div className="receipt-row">
-            <span className="receipt-label">No. Referensi:</span>
-            <span className="receipt-value code">{reference}</span>
+        <div className="v0-profile-card" style={{ padding: '32px 28px', textAlign: 'center' }}>
+          {/* Animated Celebration Crown/Sparkle */}
+          <div className={`v0-celebrate-circle ${isGlowPlan ? 'glow' : ''}`}>
+            {isGlowPlan ? <Sparkles size={40} /> : <Crown size={42} />}
           </div>
-          <div className="receipt-row">
-            <span className="receipt-label">Paket:</span>
-            <span className="receipt-value highlight">{planName}</span>
-          </div>
-          <div className="receipt-row">
-            <span className="receipt-label">Total Pembayaran:</span>
-            <span className="receipt-value">{planPriceFormatted}</span>
-          </div>
-          <div className="receipt-row">
-            <span className="receipt-label">Status Pembayaran:</span>
-            <span className="badge badge-success">
-              <ShieldCheck size={14} className="inline-icon" /> LUNAS
+          <div>
+            <span className="v0-celebrate-badge">
+              <Sparkles size={14} /> Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
             </span>
           </div>
-        </div>
 
-        {/* Benefits Checklist */}
-        <div className="benefits-card">
-          <h3>Fitur {isGlowPlan ? 'GLOW' : 'PRO'} yang Sudah Terbuka:</h3>
-          <ul>
-            <li>
-              <CheckCircle size={18} className="check-icon" /> 
-              {isGlowPlan ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage / 30 Hari'}
-            </li>
-            <li>
-              <CheckCircle size={18} className="check-icon" /> 
-              Analisis Wajah AI & Rekomendasi Perawatan Kulit yang Dipersonalisasi
-            </li>
-            <li>
-              <CheckCircle size={18} className="check-icon" /> 
-              Peringatan Bahan Berbahaya & Kontraindikasi Skincare
-            </li>
-            <li>
-              <CheckCircle size={18} className="check-icon" /> 
-              Tanya Jawab AI Konsultan Skincare 24/7
-            </li>
-          </ul>
-        </div>
-
-        {/* BPOM Compliance Disclaimer */}
-        <div className="bpom-disclaimer-box">
-          <AlertCircle size={15} className="disclaimer-icon" />
-          <p>
-            <strong>Catatan Kepatuhan:</strong> Skincluv adalah alat bantu perawatan kulit berbasis AI — bukan pengganti diagnosis medis, resep obat, atau konsultasi dokter spesialis kulit.
+          <h1 className="v0-profile-form-main-title" style={{ fontSize: '1.375rem', marginBottom: '8px' }}>
+            Selamat! Kamu Resmi Memiliki Akses {isGlowPlan ? 'GLOW' : 'PRO'}
+          </h1>
+          <p className="v0-profile-form-main-sub" style={{ marginBottom: '24px' }}>
+            Nikmati akses analisis kondisi kulit & konsultasi Skinsistant AI selama 30 hari ke depan.
           </p>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="action-grid mt-lg">
-          <Link to="/face-scan" className="btn btn-primary btn-block">
-            <ScanFace size={18} /> Coba Scan Wajah Sekarang
-          </Link>
-          <div className="secondary-actions">
-            <Link to="/chatbot" className="btn btn-outline flex-1">
-              <MessageSquare size={18} /> Chat AI
+          {/* Invoice Summary Box */}
+          <div className="v0-receipt-box">
+            <div className="v0-receipt-row">
+              <span className="v0-receipt-label">No. Referensi:</span>
+              <span className="v0-receipt-val code">{reference}</span>
+            </div>
+            <div className="v0-receipt-row">
+              <span className="v0-receipt-label">Paket:</span>
+              <span className="v0-receipt-val highlight">{planName}</span>
+            </div>
+            <div className="v0-receipt-row">
+              <span className="v0-receipt-label">Total Pembayaran:</span>
+              <span className="v0-receipt-val">{planPriceFormatted}</span>
+            </div>
+            <div className="v0-receipt-row">
+              <span className="v0-receipt-label">Status Pembayaran:</span>
+              <span className="v0-badge success">
+                <CheckCircle size={12} /> LUNAS
+              </span>
+            </div>
+          </div>
+
+          {/* Benefits Checklist */}
+          <div className="v0-benefits-card">
+            <h3>Fitur {isGlowPlan ? 'GLOW' : 'PRO'} yang Sudah Terbuka:</h3>
+            <ul className="v0-benefits-list">
+              <li>
+                <CheckCircle size={16} className="v0-benefits-icon" />
+                <span>{isGlowPlan ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage / 30 Hari'}</span>
+              </li>
+              <li>
+                <CheckCircle size={16} className="v0-benefits-icon" />
+                <span>Analisis Kulit AI & Rekomendasi Rutinitas yang Dipersonalisasi</span>
+              </li>
+              <li>
+                <CheckCircle size={16} className="v0-benefits-icon" />
+                <span>Peringatan Komposisi & Deteksi Interaksi Skincare</span>
+              </li>
+              <li>
+                <CheckCircle size={16} className="v0-benefits-icon" />
+                <span>Tanya Jawab Edukatif Bersama Skinsistant AI 24/7</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Non-Therapeutic Compliance Disclaimer (RFC 016/017) */}
+          <div className="v0-disclaimer-box">
+            <AlertCircle size={16} className="v0-disclaimer-icon" />
+            <p>
+              <strong>Pemberitahuan Kepatuhan:</strong> Skincluv adalah panduan perawatan kosmetik berbasis AI — bukan diagnosis klinis, resep obat, atau pengganti dokter spesialis dermatologi.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+            <Link to="/face-scan" className="v0-btn-action" style={{ justifyContent: 'center', padding: '12px 18px', fontSize: '0.875rem' }}>
+              <ScanFace size={18} /> Coba Scan Wajah Sekarang
             </Link>
-            <Link to="/transactions" className="btn btn-ghost flex-1">
-              Riwayat Tagihan <ArrowRight size={16} />
-            </Link>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <Link to="/chatbot" className="v0-profile-chip" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}>
+                <MessageSquare size={15} /> Chat AI
+              </Link>
+              <Link to="/transactions" className="v0-profile-chip" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}>
+                Riwayat Tagihan <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .payment-success-page {
-          padding-bottom: 120px;
-          display: flex;
-          justify-content: center;
-          width: 100%;
-        }
-
-        .success-card {
-          width: 100%;
-          max-width: 540px;
-          padding: var(--space-2xl);
-          border-radius: var(--radius-2xl);
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          text-align: center;
-          box-shadow: var(--shadow-lg);
-        }
-
-        .crown-badge-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-bottom: var(--space-lg);
-          position: relative;
-        }
-
-        .crown-circle {
-          width: 84px;
-          height: 84px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #f59e0b, #d97706);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          box-shadow: 0 8px 30px rgba(217, 119, 6, 0.25);
-          animation: pulseCrown 3s infinite ease-in-out;
-        }
-
-        .crown-circle-glow {
-          background: linear-gradient(135deg, #0ea5e9, #0284c7);
-          box-shadow: 0 8px 30px rgba(14, 165, 233, 0.25);
-        }
-
-        .crown-icon-animated {
-          filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
-        }
-
-        @keyframes pulseCrown {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-
-        .sparkle-badge {
-          margin-top: 12px;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.8125rem;
-          font-weight: 700;
-          color: var(--color-primary);
-          background: #e0f2fe;
-          padding: 4px 14px;
-          border-radius: var(--radius-full);
-          border: 1px solid #bae6fd;
-        }
-
-        .success-title {
-          font-size: 1.5rem;
-          font-weight: 800;
-          margin-bottom: 8px;
-          color: var(--color-primary);
-          font-family: var(--font-heading);
-        }
-
-        .success-subtitle {
-          font-size: 0.875rem;
-          color: var(--color-text-muted);
-          margin-bottom: var(--space-xl);
-          line-height: 1.5;
-        }
-
-        .receipt-box {
-          background: var(--color-surface-bg, #f8fafc);
-          border: 1px solid #e2e8f0;
-          border-radius: var(--radius-xl);
-          padding: var(--space-md) var(--space-lg);
-          margin-bottom: var(--space-lg);
-          text-align: left;
-          font-size: 0.875rem;
-        }
-
-        .receipt-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px dashed #e2e8f0;
-        }
-        .receipt-row:last-child { border-bottom: none; }
-
-        .receipt-label { color: var(--color-text-muted); font-size: 0.8125rem; }
-        .receipt-value { font-weight: 700; color: var(--color-text-main); }
-        .receipt-value.code { font-family: monospace; font-size: 0.8125rem; color: var(--color-primary); }
-        .receipt-value.highlight { color: var(--color-primary); font-family: var(--font-heading); font-weight: 800; }
-
-        .badge-success {
-          background: #dcfce7;
-          color: #15803d;
-          border: 1px solid #bbf7d0;
-          padding: 2px 10px;
-          border-radius: 12px;
-          font-weight: 700;
-          font-size: 0.75rem;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .benefits-card {
-          text-align: left;
-          background: #f0f9ff;
-          border: 1px solid #bae6fd;
-          border-radius: var(--radius-xl);
-          padding: var(--space-md) var(--space-lg);
-          margin-bottom: var(--space-lg);
-        }
-        .benefits-card h3 { font-size: 0.875rem; color: var(--color-primary); margin-bottom: 12px; font-weight: 700; font-family: var(--font-heading); }
-        .benefits-card ul { list-style: none; padding: 0; margin: 0; }
-        .benefits-card li {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 0.8125rem;
-          color: var(--color-text-main);
-          margin-bottom: 8px;
-        }
-        .check-icon { color: #10b981; flex-shrink: 0; }
-
-        .bpom-disclaimer-box {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          background: #fffbeb;
-          border: 1px solid #fef3c7;
-          border-radius: var(--radius-lg);
-          padding: 12px 14px;
-          margin-bottom: var(--space-lg);
-          text-align: left;
-        }
-        .disclaimer-icon {
-          color: #d97706;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-        .bpom-disclaimer-box p {
-          margin: 0;
-          font-size: 0.75rem;
-          color: #92400e;
-          line-height: 1.45;
-        }
-        .bpom-disclaimer-box strong {
-          color: #78350f;
-        }
-
-        .action-grid { display: flex; flex-direction: column; gap: 12px; }
-        .secondary-actions { display: flex; gap: 12px; }
-        .flex-1 { flex: 1; }
-      `}</style>
     </div>
   )
 }

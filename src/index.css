@@ -1817,3 +1817,128 @@ a:hover { opacity: 0.8; }
   opacity: 0.9;
 }
 
+/* 7. Celebration & Receipt Components (Section 5.10 DRY Pattern) */
+.v0-celebrate-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-gold), #d97706);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin: 0 auto 12px;
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.25);
+}
+.v0-celebrate-circle.glow {
+  background: linear-gradient(135deg, var(--color-teal), var(--color-teal-hover));
+  box-shadow: 0 8px 24px rgba(31, 157, 151, 0.25);
+}
+.v0-celebrate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-teal);
+  background: var(--color-teal-soft);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(31, 157, 151, 0.2);
+  margin-bottom: 16px;
+}
+.v0-receipt-box {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin: 20px 0;
+  text-align: left;
+}
+.v0-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+.v0-receipt-row:last-child {
+  border-bottom: none;
+}
+.v0-receipt-label {
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+}
+.v0-receipt-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.v0-receipt-val.code {
+  font-family: monospace;
+  font-size: 0.8125rem;
+  color: var(--color-teal);
+}
+.v0-receipt-val.highlight {
+  color: var(--color-teal);
+  font-weight: 800;
+}
+.v0-benefits-card {
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.v0-benefits-card h3 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0 0 12px 0;
+}
+.v0-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.v0-benefits-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.8125rem;
+  color: var(--color-ink-soft);
+  line-height: 1.4;
+}
+.v0-benefits-icon {
+  color: var(--color-status-optimal);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.v0-disclaimer-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--color-status-attention-soft);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+.v0-disclaimer-icon {
+  color: var(--color-status-attention);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.v0-disclaimer-box p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-ink-soft);
+  line-height: 1.45;
+}
+
+
