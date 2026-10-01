@@ -1715,44 +1715,45 @@ export default function ChatbotPage() {
         .chat-input-bar {
           position: sticky;
           bottom: 0;
-          padding: 10px 20px 8px 20px;
-          background: #ffffff;
-          border-top: 1px solid #e2e8f0;
+          padding: 12px 20px 10px 20px;
+          background: var(--color-surface, #ffffff);
+          border-top: 1px solid var(--color-border, #e2e8f0);
           flex-shrink: 0;
           z-index: 10;
         }
 
         .chat-medical-disclaimer {
-          margin: 6px 0 0 0;
+          margin: 8px 0 0 0;
           font-size: 0.6875rem;
-          color: #94a3b8;
+          color: var(--color-ink-muted, #64748b);
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 5px;
+          gap: 6px;
           text-align: center;
           user-select: none;
         }
 
         .chat-medical-disclaimer .disclaimer-icon {
-          color: #f59e0b;
+          color: var(--color-status-attention, #f59e0b);
           flex-shrink: 0;
         }
 
         .input-wrap {
           display: flex;
           align-items: flex-end;
-          gap: 8px;
-          background: #f8fafc;
-          border: 1px solid #cbd5e1;
-          border-radius: 20px;
+          gap: 10px;
+          background: var(--color-surface-muted, #f8fafc);
+          border: 1px solid var(--color-border, #cbd5e1);
+          border-radius: var(--radius-lg, 16px);
           padding: 6px 8px 6px 14px;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
         .input-wrap:focus-within {
-          border-color: #0f6784;
-          box-shadow: 0 0 0 2px rgba(15, 103, 132, 0.12);
+          border-color: var(--color-teal, #0f6784);
+          background: var(--color-surface, #ffffff);
+          box-shadow: 0 0 0 3px var(--color-teal-soft, rgba(15, 103, 132, 0.12));
         }
 
         .input-wrap textarea {
@@ -1762,17 +1763,17 @@ export default function ChatbotPage() {
           font-size: 0.875rem;
           font-family: inherit;
           outline: none;
-          color: #0f172a;
+          color: var(--color-ink, #0f172a);
           resize: none;
           max-height: 140px;
           min-height: 24px;
           line-height: 1.5;
-          padding: 4px 0;
+          padding: 6px 0;
           overflow-y: auto;
         }
 
         .input-wrap textarea::placeholder {
-          color: #94a3b8;
+          color: var(--color-ink-muted, #94a3b8);
         }
 
         /* In-Chat Insufficient Credits Paywall Card */
@@ -1878,45 +1879,54 @@ export default function ChatbotPage() {
           border-radius: 50%;
           background: transparent;
           border: none;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: color 0.2s;
+          padding: 6px;
+          border-radius: var(--radius-sm, 6px);
+          transition: color 0.2s, background 0.2s;
         }
 
         .attach-btn:hover {
-          color: #0f6784;
+          color: var(--color-teal, #0f6784);
+          background: var(--color-surface-muted, #f1f5f9);
         }
 
         .send-btn {
-          width: 36px;
-          height: 36px;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
-          background: #0f6784;
+          background: var(--color-teal, #0f6784);
           color: #ffffff;
           border: none;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: background 0.2s ease;
+          transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+          box-shadow: 0 2px 8px rgba(15, 103, 132, 0.25);
+          flex-shrink: 0;
         }
 
-        .send-btn:hover {
-          background: #0b4f5c;
+        .send-btn:hover:not(:disabled) {
+          background: var(--color-teal-hover, #0d5870);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(15, 103, 132, 0.35);
         }
 
         .send-btn:disabled {
-          background: #cbd5e1;
+          background: var(--color-border-hover, #cbd5e1);
+          color: var(--color-ink-muted, #94a3b8);
+          box-shadow: none;
           cursor: not-allowed;
         }
 
         .chat-credit-warning-strip {
-          background: #fffbeb;
-          border: 1px solid #fde68a;
-          border-radius: 12px;
+          background: var(--color-status-attention-soft, #fffbeb);
+          border: 1px solid var(--color-status-attention-border, #fde68a);
+          border-radius: var(--radius-md, 12px);
           padding: 8px 14px;
           margin-bottom: 8px;
           display: flex;
@@ -1924,7 +1934,7 @@ export default function ChatbotPage() {
           justify-content: space-between;
           gap: 12px;
           font-size: 0.8125rem;
-          color: #92400e;
+          color: var(--color-status-attention, #92400e);
           animation: fadeIn 0.2s ease;
         }
 
@@ -1936,7 +1946,7 @@ export default function ChatbotPage() {
         }
 
         .warning-coin-icon {
-          color: #d97706;
+          color: var(--color-status-attention, #d97706);
           flex-shrink: 0;
         }
 
@@ -1953,56 +1963,31 @@ export default function ChatbotPage() {
           gap: 4px;
           font-size: 0.75rem;
           font-weight: 700;
-          padding: 5px 10px;
-          border-radius: 6px;
+          padding: 5px 12px;
+          border-radius: var(--radius-sm, 6px);
           cursor: pointer;
           border: none;
           transition: all 0.15s;
+          font-family: inherit;
         }
 
         .strip-btn-mission {
-          background: #fef3c7;
-          color: #b45309;
-          border: 1px solid #fde68a;
+          background: var(--color-surface, #ffffff);
+          color: var(--color-status-attention, #b45309);
+          border: 1px solid var(--color-status-attention-border, #fde68a);
         }
 
         .strip-btn-mission:hover {
-          background: #fde68a;
+          background: var(--color-status-attention-soft, #fef3c7);
         }
 
         .strip-btn-upgrade {
-          background: #0f6784;
+          background: var(--color-teal, #0f6784);
           color: #ffffff;
         }
 
         .strip-btn-upgrade:hover {
-          background: #0b4d63;
-        }
-
-        .chat-util-left, .chat-util-right {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .util-memory-btn {
-          background: #f0fdf4;
-          color: #166534;
-          border: 1px solid #bbf7d0;
-        }
-
-        .util-memory-btn:hover {
-          background: #dcfce7;
-        }
-
-        .util-reset-btn {
-          background: #fff1f2;
-          color: #be123c;
-          border: 1px solid #fecdd3;
-        }
-
-        .util-reset-btn:hover {
-          background: #ffe4e6;
+          background: var(--color-teal-hover, #0d5870);
         }
 
         .clinical-memory-drawer {
