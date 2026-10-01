@@ -1737,3 +1737,112 @@ a:hover { opacity: 0.8; }
   opacity: 0.5;
 }
 
+/* Coin History Ledger (RFC 020 Alignment) */
+.ch-balance-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ch-balance-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ch-balance-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  display: block;
+}
+.ch-history-card {
+  padding: 20px 24px;
+}
+.ch-filter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ch-filter-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ch-ledger-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ch-ledger-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+  transition: border-color 0.15s ease;
+}
+.ch-ledger-item:hover {
+  border-color: var(--color-border);
+}
+.ch-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ch-icon-circle.credit {
+  background: var(--color-status-optimal-soft);
+  color: var(--color-status-optimal);
+}
+.ch-icon-circle.debit {
+  background: var(--color-status-alert-soft);
+  color: var(--color-status-alert);
+}
+.ch-ledger-info {
+  flex: 1;
+  min-width: 0;
+}
+.ch-ledger-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 2px 0;
+}
+.ch-ledger-date {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+  display: block;
+}
+.ch-ledger-amount {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+}
+.ch-ledger-amount.credit {
+  color: var(--color-status-optimal);
+}
+.ch-ledger-amount.debit {
+  color: var(--color-status-alert);
+}
+.ch-status-text {
+  text-align: center;
+  color: var(--color-ink-muted);
+  font-size: 0.875rem;
+  padding: 32px 0;
+}
+
