@@ -1398,8 +1398,17 @@ export default function ChatbotPage() {
           background: none;
           border: none;
           font-size: 1.25rem;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           cursor: pointer;
+          border-radius: var(--radius-sm, 6px);
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .drawer-close-btn:hover {
+          color: var(--color-ink, #0f172a);
+          background: var(--color-surface-muted, #f1f5f9);
         }
 
         .drawer-body {
@@ -1413,7 +1422,7 @@ export default function ChatbotPage() {
 
         .empty-history-text {
           font-size: 0.8125rem;
-          color: #94a3b8;
+          color: var(--color-ink-muted, #94a3b8);
           text-align: center;
           margin-top: 24px;
         }
@@ -1423,20 +1432,20 @@ export default function ChatbotPage() {
           align-items: center;
           gap: 10px;
           padding: 10px 12px;
-          border-radius: 10px;
+          border-radius: var(--radius-md, 10px);
           cursor: pointer;
           font-size: 0.875rem;
-          color: #334155;
+          color: var(--color-ink, #334155);
           transition: background 0.2s ease;
         }
 
         .history-session-item:hover {
-          background: #f1f5f9;
+          background: var(--color-surface-muted, #f1f5f9);
         }
 
         .history-session-item.active {
-          background: #eaf4fa;
-          color: #0f6784;
+          background: var(--color-teal-soft, #f0fdf4);
+          color: var(--color-teal, #0f6784);
           font-weight: 600;
         }
 
@@ -1450,7 +1459,7 @@ export default function ChatbotPage() {
         .delete-session-btn {
           background: none;
           border: none;
-          color: #94a3b8;
+          color: var(--color-ink-muted, #94a3b8);
           cursor: pointer;
           padding: 4px;
           opacity: 0;
@@ -1462,7 +1471,7 @@ export default function ChatbotPage() {
         }
 
         .delete-session-btn:hover {
-          color: #ef4444;
+          color: var(--color-status-alert, #ef4444);
         }
 
         /* MAIN CHAT SCROLL AREA */
@@ -1481,7 +1490,7 @@ export default function ChatbotPage() {
           width: 5px;
         }
         .chat-scroll-area::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
+          background: var(--color-border-hover, #cbd5e1);
           border-radius: 4px;
         }
 
@@ -1490,11 +1499,11 @@ export default function ChatbotPage() {
           max-width: 540px;
           margin: 40px auto 0;
           text-align: center;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 20px;
+          background: var(--color-surface, #ffffff);
+          border: 1px solid var(--color-border, #e2e8f0);
+          border-radius: var(--radius-xl, 20px);
           padding: 32px 24px;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
         }
 
         .welcome-avatar-icon {
@@ -1785,9 +1794,9 @@ export default function ChatbotPage() {
 
         /* In-Chat Insufficient Credits Paywall Card */
         .in-chat-insufficient-card {
-          background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-          border: 1px solid #fde68a;
-          border-radius: 16px;
+          background: var(--color-status-attention-soft, #fffbeb);
+          border: 1px solid var(--color-status-attention-border, #fde68a);
+          border-radius: var(--radius-lg, 16px);
           padding: 16px;
           max-width: 440px;
           box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);
@@ -1805,7 +1814,7 @@ export default function ChatbotPage() {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: #f59e0b;
+          background: var(--color-status-attention, #f59e0b);
           color: #ffffff;
           display: flex;
           align-items: center;
@@ -1816,24 +1825,25 @@ export default function ChatbotPage() {
         .insufficient-card-header h4 {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #92400e;
+          color: var(--color-status-attention, #92400e);
           margin: 0;
+          font-family: var(--font-heading, inherit);
         }
 
         .insufficient-cost-tag {
           font-size: 0.72rem;
           font-weight: 600;
-          color: #b45309;
+          color: var(--color-status-attention, #b45309);
           background: rgba(245, 158, 11, 0.15);
           padding: 2px 8px;
-          border-radius: 10px;
+          border-radius: var(--radius-full, 9999px);
           display: inline-block;
           margin-top: 2px;
         }
 
         .insufficient-card-desc {
           font-size: 0.825rem;
-          color: #78350f;
+          color: var(--color-ink, #78350f);
           line-height: 1.45;
           margin: 0 0 14px 0;
         }
@@ -1852,32 +1862,33 @@ export default function ChatbotPage() {
           justify-content: center;
           gap: 6px;
           padding: 8px 12px;
-          border-radius: 10px;
+          border-radius: var(--radius-md, 10px);
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.15s ease;
           border: none;
+          font-family: inherit;
         }
 
         .insufficient-act-btn.mission-btn {
-          background: #ffffff;
-          color: #0f6784;
-          border: 1px solid #cbd5e1;
+          background: var(--color-surface, #ffffff);
+          color: var(--color-teal, #0f6784);
+          border: 1px solid var(--color-border, #cbd5e1);
         }
 
         .insufficient-act-btn.mission-btn:hover {
-          background: #f1f5f9;
-          border-color: #0f6784;
+          background: var(--color-surface-muted, #f1f5f9);
+          border-color: var(--color-teal, #0f6784);
         }
 
         .insufficient-act-btn.upgrade-btn {
-          background: #0f6784;
+          background: var(--color-teal, #0f6784);
           color: #ffffff;
         }
 
         .insufficient-act-btn.upgrade-btn:hover {
-          background: #0d546c;
+          background: var(--color-teal-hover, #0d5870);
         }
 
         .attach-btn {
@@ -2002,9 +2013,9 @@ export default function ChatbotPage() {
         }
 
         .uupdp-compliance-card {
-          background: #f0fdfa;
-          border: 1px solid #ccfbf1;
-          border-radius: 10px;
+          background: var(--color-teal-soft, #f0fdfa);
+          border: 1px solid var(--color-teal-light, #ccfbf1);
+          border-radius: var(--radius-md, 10px);
           padding: 12px;
           margin-bottom: 16px;
         }
@@ -2015,13 +2026,13 @@ export default function ChatbotPage() {
           gap: 5px;
           font-size: 11px;
           font-weight: 700;
-          color: #0f766e;
+          color: var(--color-teal, #0f766e);
           margin-bottom: 6px;
         }
 
         .uupdp-compliance-card p {
           font-size: 12px;
-          color: #334155;
+          color: var(--color-ink, #334155);
           line-height: 1.5;
           margin: 0 0 8px 0;
         }
@@ -2032,16 +2043,16 @@ export default function ChatbotPage() {
           gap: 12px;
           font-size: 11px;
           font-weight: 600;
-          color: #0d9488;
+          color: var(--color-teal, #0d9488);
         }
 
         /* Sources Accordion (Web Search Results) */
         .sources-accordion {
           margin-top: 6px;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
+          border: 1px solid var(--color-border, #e2e8f0);
+          border-radius: var(--radius-md, 10px);
           overflow: hidden;
-          background: #f8fafc;
+          background: var(--color-surface-muted, #f8fafc);
           font-size: 0.78rem;
           max-width: 480px;
         }
@@ -2055,14 +2066,14 @@ export default function ChatbotPage() {
           border: none;
           padding: 8px 12px;
           font-size: 0.78rem;
-          color: #0f766e;
+          color: var(--color-teal, #0f766e);
           cursor: pointer;
           font-weight: 600;
           text-align: left;
         }
 
         .sources-accordion-toggle:hover {
-          background: #f0fdfa;
+          background: var(--color-teal-soft, #f0fdfa);
         }
 
         .sources-chevron {
@@ -2072,7 +2083,7 @@ export default function ChatbotPage() {
         }
 
         .sources-list {
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid var(--color-border, #e2e8f0);
           display: flex;
           flex-direction: column;
           gap: 0;
@@ -2084,7 +2095,7 @@ export default function ChatbotPage() {
           padding: 8px 12px;
           text-decoration: none;
           color: inherit;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid var(--color-border-subtle, #f1f5f9);
           transition: background 0.15s;
         }
 
@@ -2093,13 +2104,13 @@ export default function ChatbotPage() {
         }
 
         .source-card:hover {
-          background: #f0fdfa;
+          background: var(--color-teal-soft, #f0fdfa);
         }
 
         .source-num {
           font-size: 0.7rem;
           font-weight: 700;
-          color: #0f766e;
+          color: var(--color-teal, #0f766e);
           min-width: 24px;
           padding-top: 1px;
         }
@@ -2114,7 +2125,7 @@ export default function ChatbotPage() {
         .source-title {
           font-size: 0.78rem;
           font-weight: 600;
-          color: #1e293b;
+          color: var(--color-ink, #1e293b);
           display: -webkit-box;
           -webkit-line-clamp: 1;
           -webkit-box-orient: vertical;
@@ -2123,7 +2134,7 @@ export default function ChatbotPage() {
 
         .source-snippet {
           font-size: 0.72rem;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           line-height: 1.35;
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -2133,7 +2144,7 @@ export default function ChatbotPage() {
 
         .source-url {
           font-size: 0.68rem;
-          color: #0f766e;
+          color: var(--color-teal, #0f766e);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -2141,9 +2152,9 @@ export default function ChatbotPage() {
 
         /* Consent Banner */
         .memory-consent-banner {
-          background: #f0fdfa;
-          border: 1px solid #99f6e4;
-          border-radius: 12px;
+          background: var(--color-teal-soft, #f0fdfa);
+          border: 1px solid var(--color-teal-light, #99f6e4);
+          border-radius: var(--radius-md, 12px);
           padding: 12px 16px;
           margin: 10px 16px 0 16px;
           display: flex;
@@ -2162,13 +2173,13 @@ export default function ChatbotPage() {
           align-items: center;
           gap: 6px;
           font-size: 0.8125rem;
-          color: #0f766e;
+          color: var(--color-teal, #0f766e);
           margin-bottom: 4px;
         }
 
         .consent-content p {
           font-size: 0.75rem;
-          color: #334155;
+          color: var(--color-ink, #334155);
           line-height: 1.4;
           margin: 0;
         }
@@ -2181,36 +2192,36 @@ export default function ChatbotPage() {
         }
 
         .consent-btn-accept {
-          background: #0f6784;
+          background: var(--color-teal, #0f6784);
           color: #ffffff;
           border: none;
           font-size: 0.75rem;
           font-weight: 700;
           padding: 6px 14px;
-          border-radius: 8px;
+          border-radius: var(--radius-md, 8px);
           cursor: pointer;
           transition: background 0.15s;
         }
 
         .consent-btn-accept:hover {
-          background: #0b4d63;
+          background: var(--color-teal-hover, #0b4d63);
         }
 
         .consent-btn-dismiss {
-          background: #f1f5f9;
-          color: #64748b;
-          border: 1px solid #cbd5e1;
+          background: var(--color-surface, #ffffff);
+          color: var(--color-ink-muted, #64748b);
+          border: 1px solid var(--color-border, #cbd5e1);
           font-size: 0.75rem;
           font-weight: 600;
           padding: 6px 12px;
-          border-radius: 8px;
+          border-radius: var(--radius-md, 8px);
           cursor: pointer;
           transition: all 0.15s;
         }
 
         .consent-btn-dismiss:hover {
-          background: #e2e8f0;
-          color: #334155;
+          background: var(--color-surface-muted, #f1f5f9);
+          color: var(--color-ink, #334155);
         }
 
         /* Consent Toggle in Drawer */
@@ -2219,30 +2230,30 @@ export default function ChatbotPage() {
           justify-content: space-between;
           align-items: center;
           padding: 10px 12px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
+          background: var(--color-surface-muted, #f8fafc);
+          border: 1px solid var(--color-border, #e2e8f0);
+          border-radius: var(--radius-md, 8px);
           margin-bottom: 14px;
         }
 
         .consent-status-label {
           font-size: 0.75rem;
-          color: #475569;
+          color: var(--color-ink-muted, #475569);
         }
 
         .consent-toggle-btn {
           font-size: 0.6875rem;
           font-weight: 700;
           padding: 4px 10px;
-          border-radius: 6px;
+          border-radius: var(--radius-sm, 6px);
           cursor: pointer;
           border: none;
           transition: all 0.15s;
         }
 
         .consent-toggle-btn.btn-disable {
-          background: #fee2e2;
-          color: #b91c1c;
+          background: var(--color-status-alert-soft, #fee2e2);
+          color: var(--color-status-alert, #b91c1c);
         }
 
         .consent-toggle-btn.btn-disable:hover {
@@ -2250,8 +2261,8 @@ export default function ChatbotPage() {
         }
 
         .consent-toggle-btn.btn-enable {
-          background: #dcfce7;
-          color: #15803d;
+          background: var(--color-status-optimal-soft, #dcfce7);
+          color: var(--color-status-optimal, #15803d);
         }
 
         .consent-toggle-btn.btn-enable:hover {
@@ -2260,9 +2271,9 @@ export default function ChatbotPage() {
 
         /* Scan History Consent Card Styling (RFC 006) */
         .scan-consent-card {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
+          background: var(--color-surface-muted, #f8fafc);
+          border: 1px solid var(--color-border, #e2e8f0);
+          border-radius: var(--radius-md, 10px);
           padding: 12px 14px;
           margin-bottom: 16px;
         }
@@ -2280,22 +2291,22 @@ export default function ChatbotPage() {
           gap: 8px;
           font-size: 0.8125rem;
           font-weight: 700;
-          color: #0f172a;
+          color: var(--color-ink, #0f172a);
         }
 
         .scan-consent-title .text-violet-icon {
-          color: #7c3aed;
+          color: var(--color-teal, #0f766e);
         }
 
         .scan-consent-desc {
           font-size: 0.72rem;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           line-height: 1.45;
           margin: 0 0 10px 0;
         }
 
         .scan-sub-options {
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid var(--color-border, #e2e8f0);
           padding-top: 10px;
           display: flex;
           flex-direction: column;
@@ -2308,7 +2319,7 @@ export default function ChatbotPage() {
           align-items: center;
           font-size: 0.75rem;
           font-weight: 500;
-          color: #334155;
+          color: var(--color-ink, #334155);
           cursor: pointer;
           user-select: none;
         }
@@ -2316,7 +2327,7 @@ export default function ChatbotPage() {
         .scan-checkbox {
           width: 17px;
           height: 17px;
-          accent-color: #7c3aed;
+          accent-color: var(--color-teal, #0f766e);
           cursor: pointer;
         }
 
@@ -2335,7 +2346,7 @@ export default function ChatbotPage() {
           padding: 8px 14px;
           font-size: 0.75rem;
           font-weight: 600;
-          border-radius: 10px;
+          border-radius: var(--radius-md, 10px);
           border: none;
           cursor: pointer;
           color: #ffffff;
@@ -2344,18 +2355,18 @@ export default function ChatbotPage() {
         }
 
         .chat-action-cta-btn.face-scan-cta {
-          background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-          box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+          background: linear-gradient(135deg, var(--color-teal, #0f6784) 0%, var(--color-teal-hover, #0b4f5c) 100%);
+          box-shadow: 0 2px 8px rgba(15, 103, 132, 0.25);
         }
 
         .chat-action-cta-btn.face-scan-cta:hover {
-          background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
+          background: linear-gradient(135deg, var(--color-teal-hover, #0b4f5c) 0%, #083b45 100%);
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+          box-shadow: 0 4px 12px rgba(15, 103, 132, 0.35);
         }
 
         .chat-action-cta-btn.ingredient-scan-cta {
-          background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+          background: linear-gradient(135deg, var(--color-status-optimal, #059669) 0%, #0d9488 100%);
           box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
         }
 
@@ -2375,19 +2386,19 @@ export default function ChatbotPage() {
         .memories-section-header h4 {
           font-size: 13px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-ink, #1e293b);
           margin: 0;
         }
 
         .clear-all-memories-btn {
           font-size: 11px;
-          color: #e11d48;
+          color: var(--color-status-alert, #e11d48);
           background: none;
           border: none;
           cursor: pointer;
           font-weight: 600;
           padding: 2px 6px;
-          border-radius: 4px;
+          border-radius: var(--radius-sm, 4px);
         }
 
         .clear-all-memories-btn:hover {
@@ -2397,9 +2408,9 @@ export default function ChatbotPage() {
         .empty-memories-box {
           text-align: center;
           padding: 24px 12px;
-          background: #f8fafc;
-          border-radius: 10px;
-          border: 1px dashed #cbd5e1;
+          background: var(--color-surface-muted, #f8fafc);
+          border-radius: var(--radius-md, 10px);
+          border: 1px dashed var(--color-border, #cbd5e1);
         }
 
         .clinical-memories-list {
@@ -2409,15 +2420,15 @@ export default function ChatbotPage() {
         }
 
         .clinical-memory-card {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
+          background: var(--color-surface, #ffffff);
+          border: 1px solid var(--color-border, #e2e8f0);
+          border-radius: var(--radius-md, 10px);
           padding: 12px;
           transition: all 0.15s ease;
         }
 
         .clinical-memory-card:hover {
-          border-color: #cbd5e1;
+          border-color: var(--color-border-hover, #cbd5e1);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
         }
 
@@ -2432,18 +2443,18 @@ export default function ChatbotPage() {
           font-size: 10px;
           font-weight: 700;
           padding: 2px 7px;
-          border-radius: 999px;
+          border-radius: var(--radius-full, 999px);
           letter-spacing: 0.03em;
         }
 
         .memory-type-badge.type-allergy {
-          background: #fee2e2;
-          color: #b91c1c;
+          background: var(--color-status-alert-soft, #fee2e2);
+          color: var(--color-status-alert, #b91c1c);
         }
 
         .memory-type-badge.type-sensitivity {
-          background: #fef3c7;
-          color: #b45309;
+          background: var(--color-status-attention-soft, #fef3c7);
+          color: var(--color-status-attention, #b45309);
         }
 
         .memory-type-badge.type-treatment_reaction {
@@ -2452,17 +2463,17 @@ export default function ChatbotPage() {
         }
 
         .memory-type-badge.type-preference {
-          background: #e0f2fe;
-          color: #0369a1;
+          background: var(--color-teal-soft, #e0f2fe);
+          color: var(--color-teal, #0369a1);
         }
 
         .delete-memory-btn {
           background: none;
           border: none;
-          color: #94a3b8;
+          color: var(--color-ink-muted, #94a3b8);
           cursor: pointer;
           padding: 4px;
-          border-radius: 4px;
+          border-radius: var(--radius-sm, 4px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2470,20 +2481,20 @@ export default function ChatbotPage() {
         }
 
         .delete-memory-btn:hover {
-          color: #ef4444;
+          color: var(--color-status-alert, #ef4444);
           background: #fee2e2;
         }
 
         .memory-entity-name {
           font-size: 13px;
           font-weight: 700;
-          color: #0f172a;
+          color: var(--color-ink, #0f172a);
           margin-bottom: 3px;
         }
 
         .memory-fact-text {
           font-size: 12px;
-          color: #64748b;
+          color: var(--color-ink-muted, #64748b);
           line-height: 1.4;
         }
 
