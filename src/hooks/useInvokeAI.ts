@@ -102,6 +102,7 @@ export function useInvokeAI() {
         session_id: req.session_id,
         message_count: req.message_count,
         idempotency_key: clientOperationId,
+        client_operation_id: clientOperationId,
         force_reanalysis: req.force_reanalysis ?? false,
       }
 
@@ -189,8 +190,18 @@ export function useInvokeAI() {
         if ((fnError as any).context) {
           try {
             const errBody = await (fnError as any).context.clone().json()
-            if (errBody?.error) msg = errBody.error
-            if (errBody?.code === 'INSUFFICIENT_CREDITS' || (fnError as any).context?.status === 402) {
+            if (typeof errBody?.error === 'object' && errBody.error?.message) {
+              msg = errBody.error.message
+            } else if (typeof errBody?.error === 'string') {
+              msg = errBody.error
+            } else if (typeof errBody?.message === 'string') {
+              msg = errBody.message
+            }
+            if (
+              errBody?.code === 'INSUFFICIENT_CREDITS' ||
+              errBody?.error?.error_code === 'INSUFFICIENT_CREDITS' ||
+              (fnError as any).context?.status === 402
+            ) {
               isCreditErr = true
             }
           } catch {}
@@ -201,14 +212,33 @@ export function useInvokeAI() {
           }
         }
 
+        // Defense-in-depth: intercept any raw vendor strings leaking through
+        if (msg.includes('Gemini API error') || msg.includes('{"error"') || msg.includes('UNAVAILABLE')) {
+          msg = 'Layanan AI sedang mengalami antrean padat sesaat. Silakan coba kembali dalam 15–20 detik. Saldo Credit kamu aman.'
+        }
+
         updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
         return null
       }
 
-      if (!data?.success) {
+      if (!data?.success && !data?.ok) {
         console.error('[useInvokeAI] Edge Function Logical Error:', data)
-        const isCreditErr = data?.code === 'INSUFFICIENT_CREDITS' || data?.error?.toLowerCase().includes('credit')
-        updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : (data?.error ?? 'Terjadi kesalahan saat memproses data.'))
+        const isCreditErr =
+          data?.code === 'INSUFFICIENT_CREDITS' ||
+          data?.error?.error_code === 'INSUFFICIENT_CREDITS' ||
+          (typeof data?.error === 'string' && data.error.toLowerCase().includes('credit'))
+        let msg = 'Terjadi kesalahan saat memproses data.'
+        if (typeof data?.error === 'object' && data.error?.message) {
+          msg = data.error.message
+        } else if (typeof data?.error === 'string') {
+          msg = data.error
+        }
+
+        if (msg.includes('Gemini API error') || msg.includes('{"error"') || msg.includes('UNAVAILABLE')) {
+          msg = 'Layanan AI sedang mengalami antrean padat sesaat. Silakan coba kembali dalam 15–20 detik. Saldo Credit kamu aman.'
+        }
+
+        updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
         return null
       }
 
