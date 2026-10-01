@@ -28,6 +28,8 @@ const TransactionHistoryPage = lazy(() => import('@/pages/app/TransactionHistory
 const CoinHistoryPage = lazy(() => import('@/pages/app/CoinHistoryPage'))
 const PaymentSuccessPage = lazy(() => import('@/pages/app/PaymentSuccessPage'))
 const ProfilePage = lazy(() => import('@/pages/app/ProfilePage'))
+const ProfileSkinPage = lazy(() => import('@/pages/profile/ProfileSkinPage'))
+const ProfileBillingPage = lazy(() => import('@/pages/profile/ProfileBillingPage'))
 const PrivacyCenterPage = lazy(() => import('@/pages/app/PrivacyCenterPage'))
 
 // Lazy load admin portal & routes
@@ -111,6 +113,8 @@ export default function App() {
           <Route path="/coin-history" element={<CoinHistoryPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/skin" element={<ProfileSkinPage />} />
+          <Route path="/profile/billing" element={<ProfileBillingPage />} />
           <Route path="/privacy-center" element={<PrivacyCenterPage />} />
           <Route path="/wallet" element={<Navigate to="/pricing" replace />} />
         </Route>
