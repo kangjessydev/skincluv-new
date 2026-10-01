@@ -576,21 +576,23 @@ a:hover { opacity: 0.8; }
 
 
 /* ============================================================
-   ProfilePage — v0-profile-* Design System
-   Aligned with DashboardPage tokens (Plus Jakarta Sans, teal palette)
+   Shell & Page Standard Layout (Section 5.9 AGENTS.md)
    ============================================================ */
+.v0-page-container,
 .v0-profile-page {
-  padding: 38px 44px 80px;
-  max-width: 1120px;
-  margin: 0 auto;
+  padding: 32px 40px 80px;
+  max-width: 1240px;
   width: 100%;
+  margin-left: 0;
+  margin-right: auto;
   animation: fadeIn 0.3s ease;
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
+  .v0-page-container,
   .v0-profile-page {
-    padding: 24px 16px 60px;
+    padding: 20px 16px 60px;
   }
 }
 
@@ -1092,7 +1094,9 @@ a:hover { opacity: 0.8; }
 }
 .v0-profile-form-container {
   max-width: 760px;
-  margin: 0 auto;
+  width: 100%;
+  margin-left: 0;
+  margin-right: auto;
 }
 .v0-profile-form-section-title {
   font-size: 0.875rem;
@@ -1204,10 +1208,20 @@ a:hover { opacity: 0.8; }
    Global shared scan-history classes (migrated from inline <style>)
    ============================================================ */
 
-/* ── Page layout ── */
 .skincluv-scan-history-page {
-  width: 100%; max-width: 1000px; margin: 0 auto;
-  padding: 24px 16px 60px; font-family: var(--font-body); box-sizing: border-box;
+  width: 100%;
+  max-width: 1240px;
+  margin-left: 0;
+  margin-right: auto;
+  padding: 32px 40px 80px;
+  font-family: var(--font-body);
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .skincluv-scan-history-page {
+    padding: 20px 16px 60px;
+  }
 }
 .page-header-box { margin-bottom: 24px; }
 

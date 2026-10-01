@@ -244,3 +244,31 @@ Tabel ini adalah **sumber kebenaran tunggal** untuk penamaan class UI di area ak
 - [ ] Formulir single-column memiliki batas `max-width: 760px` di desktop
 - [ ] Lolos verifikasi build: `tsc --noEmit` & `vite build` 0 error
 
+---
+
+### 5.9 Shell & Page Layout Contract: Standarisasi Kontainer Konten Aplikasi
+
+> **Latar Belakang**: Aplikasi Skincluv menggunakan shell berbasis **Sidebar Kiri (264px)** + **Top Navbar (78px)** + **Main Content Area (`.v0-shell-page-content`)**. Seluruh halaman aplikasi adalah tamu di dalam Main Content Area tersebut. Inkonsistensi padding dan penggunaan `margin: 0 auto` pada kontainer sempit menyebabkan konten melompat-lompat dan terlempar ke tengah layar desktop. Aturan di bawah ini mengunci konsistensi tata letak seluruh halaman.
+
+#### 1. Baseline Anchor Point Kiri (Left-Anchor Discipline)
+- **Anchor Point Kiri Wajib Konsisten**: Di layar desktop, garis tepi kiri konten (tombol back, judul halaman, tab, kartu) **WAJIB SELALU SEJAJAR** di semua halaman, yaitu tepat pada offset padding standar (`40px` dari sisi kanan sidebar).
+- **Larangan `margin: 0 auto` pada Kontainer Halaman Sempit**: Dilarang menggunakan `margin: 0 auto` pada root wrapper halaman atau form sempit (`max-width: 600px - 760px`) karena akan membuat konten melayang jauh ke tengah monitor ultrawide/desktop dan merusak alur pandang mata dari sidebar. Gunakan `margin-right: auto; margin-left: 0;` agar lebar tetap proporsional namun tepi kiri tetap terkunci sejajar.
+
+#### 2. Spesifikasi Standar Kontainer Halaman (`.v0-page-container`)
+Setiap halaman standar di dalam `.v0-shell-page-content` wajib menggunakan spesifikasi padding baku:
+- **Desktop (>= 769px)**:
+  - `padding: 32px 40px 80px;` (Padding atas 32px dari navbar, horizontal 40px, bawah 80px untuk scroll lega).
+  - `max-width: 1240px;` (Batas lebar maksimal kanvas).
+  - `box-sizing: border-box; width: 100%;`
+- **Mobile / Tablet (<= 768px)**:
+  - `padding: 20px 16px 60px;`
+  - `width: 100%;`
+
+#### 3. Klasifikasi Tata Letak Konten Halaman
+| Tipe Halaman | Contoh Halaman | Aturan Lebar & Perataan |
+| :--- | :--- | :--- |
+| **Tipe A: Full Canvas / Grid** | Dashboard, Scan History, Missions, Profile Hub | `max-width: 1240px; width: 100%;` (Grid 2-3 kolom responsif). |
+| **Tipe B: Focused Ledger & Forms** | Riwayat Transaksi, Mutasi Koin, Edit Profil Kulit | `max-width: 760px; width: 100%; margin-right: auto; margin-left: 0;` (Terkunci di anchor kiri, tidak melar berlebihan). |
+| **Tipe C: Full-Bleed Viewport** | Chatbot (/chatbot), Camera Viewfinder HUD | Viewport penuh edge-to-edge tanpa padding luar shell standar. |
+
+

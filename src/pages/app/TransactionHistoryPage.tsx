@@ -40,7 +40,8 @@ export default function TransactionHistoryPage() {
     return true
   })
   return (
-    <div className="v0-profile-page v0-profile-form-container animate-fade-in">
+    <div className="v0-page-container animate-fade-in">
+      <div className="v0-profile-form-container">
       <div className="tx-page-header">
         <Link to="/profile/billing" className="v0-profile-back-link">
           <ArrowLeft size={16} /> Kembali ke Billing & Langganan
@@ -135,6 +136,7 @@ export default function TransactionHistoryPage() {
             )
           })
         )}
+        </div>
       </div>
     </div>
   )
