@@ -39,43 +39,58 @@ export default function TransactionHistoryPage() {
     if (filter === 'expired') return inv.status === 'EXPIRED' || inv.status === 'FAILED'
     return true
   })
-
   return (
-    <div className="transactions-page animate-fade-in">
-      <div className="transactions-header">
-        <Link to="/profile" className="back-link">
-          <ArrowLeft size={18} /> Kembali ke Profil
+    <div className="v0-profile-page v0-profile-form-container animate-fade-in">
+      <div className="tx-page-header">
+        <Link to="/profile/billing" className="v0-profile-back-link">
+          <ArrowLeft size={16} /> Kembali ke Billing & Langganan
         </Link>
-        <h1>Riwayat Transaksi</h1>
-        <p className="page-subtitle">Daftar tagihan & pembayaran paket langganan kamu.</p>
+        <div className="v0-profile-form-header" style={{ marginTop: '12px' }}>
+          <h1 className="v0-profile-form-main-title">Riwayat Tagihan & Transaksi</h1>
+          <p className="v0-profile-form-main-sub">Daftar tagihan & status pembayaran paket langganan kamu.</p>
+        </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="filter-tabs">
-        <button className={`tab-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
+      <div className="tx-filter-row">
+        <button
+          type="button"
+          className={`v0-profile-chip ${filter === 'all' ? 'active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
           Semua ({invoices.length})
         </button>
-        <button className={`tab-btn ${filter === 'unpaid' ? 'active' : ''}`} onClick={() => setFilter('unpaid')}>
+        <button
+          type="button"
+          className={`v0-profile-chip ${filter === 'unpaid' ? 'active' : ''}`}
+          onClick={() => setFilter('unpaid')}
+        >
           Belum Dibayar ({invoices.filter(i => i.status === 'UNPAID').length})
         </button>
-        <button className={`tab-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>
+        <button
+          type="button"
+          className={`v0-profile-chip ${filter === 'paid' ? 'active' : ''}`}
+          onClick={() => setFilter('paid')}
+        >
           Lunas ({invoices.filter(i => i.status === 'PAID').length})
         </button>
       </div>
 
       {/* Transactions List */}
-      <div className="invoice-list">
+      <div className="tx-list">
         {loading ? (
-          <div className="loading-state">
-            <RefreshCw size={24} className="animate-spin text-brand" />
-            <p>Memuat riwayat transaksi...</p>
+          <div className="v0-profile-card tx-loading-state">
+            <RefreshCw size={24} className="animate-spin text-teal" />
+            <p className="v0-profile-hub-sub">Memuat riwayat transaksi...</p>
           </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="empty-state glass-card">
-            <ShoppingBag size={48} className="empty-icon" />
-            <h3>Belum Ada Transaksi</h3>
-            <p>Kamu belum memiliki riwayat transaksi di Skincluv.</p>
-            <Link to="/pricing" className="btn btn-primary btn-sm mt-md">Upgrade ke PRO</Link>
+          <div className="v0-profile-card tx-empty-state">
+            <ShoppingBag size={44} className="tx-empty-icon" />
+            <h3 className="v0-profile-hub-title">Belum Ada Transaksi</h3>
+            <p className="v0-profile-hub-sub">Kamu belum memiliki riwayat transaksi di Skincluv.</p>
+            <Link to="/pricing" className="v0-profile-save-btn" style={{ textDecoration: 'none', marginTop: '12px' }}>
+              Upgrade ke PRO
+            </Link>
           </div>
         ) : (
           filteredInvoices.map(inv => {
@@ -86,32 +101,32 @@ export default function TransactionHistoryPage() {
             })
 
             return (
-              <div key={inv.id} className="invoice-card glass-card">
-                <div className="card-top">
+              <div key={inv.id} className="v0-profile-card tx-card">
+                <div className="tx-card-top">
                   <div>
-                    <span className="merchant-ref">{inv.merchant_ref}</span>
-                    <span className="created-date">{dateFormatted}</span>
+                    <span className="tx-ref">{inv.merchant_ref}</span>
+                    <span className="tx-date">{dateFormatted}</span>
                   </div>
                   {isPaid ? (
-                    <span className="badge badge-success"><CheckCircle2 size={12} /> LUNAS</span>
+                    <span className="tx-badge success"><CheckCircle2 size={12} /> LUNAS</span>
                   ) : isUnpaid ? (
-                    <span className="badge badge-warning"><Clock size={12} /> BELUM DIBAYAR</span>
+                    <span className="tx-badge warning"><Clock size={12} /> BELUM DIBAYAR</span>
                   ) : (
-                    <span className="badge badge-danger">KADALUARSA</span>
+                    <span className="tx-badge danger">KADALUARSA</span>
                   )}
                 </div>
 
-                <div className="card-body">
-                  <div className="plan-name">
-                    <CreditCard size={18} className="plan-icon" />
+                <div className="tx-card-body">
+                  <div className="tx-plan-info">
+                    <CreditCard size={20} className="tx-plan-icon" />
                     <div>
-                      <h4>Skincluv PRO — 1 Bulan</h4>
-                      <span className="price-tag">Rp {inv.amount_idr?.toLocaleString('id-ID')}</span>
+                      <h4 className="tx-plan-title">Skincluv PRO — 1 Bulan</h4>
+                      <span className="tx-price-tag">Rp {inv.amount_idr?.toLocaleString('id-ID')}</span>
                     </div>
                   </div>
                   
                   {isUnpaid && (
-                    <Link to={`/checkout/${inv.merchant_ref}`} className="btn btn-primary btn-sm btn-pay">
+                    <Link to={`/checkout/${inv.merchant_ref}`} className="tx-pay-btn">
                       Bayar Sekarang <ExternalLink size={14} />
                     </Link>
                   )}
@@ -121,44 +136,6 @@ export default function TransactionHistoryPage() {
           })
         )}
       </div>
-
-      <style>{`
-        .transactions-page { padding-bottom: 120px; max-width: 600px; margin: 0 auto; }
-        .transactions-header { margin-bottom: var(--space-lg); }
-        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--color-brand-300); font-size: 0.875rem; text-decoration: none; margin-bottom: 4px; }
-        .transactions-header h1 { font-size: 1.5rem; margin: 0; }
-        .page-subtitle { color: var(--color-text-muted); font-size: 0.875rem; margin-top: 2px; }
-
-        .filter-tabs { display: flex; gap: 8px; margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: 4px; }
-        .tab-btn {
-          padding: 8px 16px; border-radius: var(--radius-full); background: rgba(255,255,255,0.05);
-          border: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 0.8125rem;
-          font-weight: 600; cursor: pointer; transition: all 0.2s; whitespace: nowrap;
-        }
-        .tab-btn:hover { color: white; background: rgba(255,255,255,0.1); }
-        .tab-btn.active { background: var(--color-brand-500); color: white; border-color: var(--color-brand-400); }
-
-        .invoice-list { display: flex; flex-direction: column; gap: var(--space-md); }
-        .loading-state, .empty-state { text-align: center; padding: 48px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .empty-icon { color: var(--color-text-muted); opacity: 0.5; }
-
-        .invoice-card { padding: var(--space-lg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); }
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); padding-bottom: 12px; border-bottom: 1px dashed var(--color-border); }
-        .merchant-ref { font-family: monospace; font-size: 0.8125rem; font-weight: 700; color: var(--color-brand-300); display: block; }
-        .created-date { font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-top: 2px; }
-
-        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
-        .badge-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .badge-success { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-
-        .card-body { display: flex; justify-content: space-between; align-items: center; }
-        .plan-name { display: flex; align-items: center; gap: 12px; }
-        .plan-icon { color: var(--color-brand-400); }
-        .plan-name h4 { font-size: 0.9375rem; margin: 0 0 2px 0; }
-        .price-tag { font-size: 0.875rem; font-weight: 700; color: #FBBF24; }
-        .btn-pay { gap: 6px; text-decoration: none; }
-      `}</style>
     </div>
   )
 }

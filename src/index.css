@@ -1606,3 +1606,120 @@ a:hover { opacity: 0.8; }
   margin: 0;
   line-height: 1.5;
 }
+
+/* Transaction & Billing History (RFC 020 Alignment) */
+.tx-page-header {
+  margin-bottom: 20px;
+}
+.tx-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tx-card {
+  padding: 18px 20px;
+}
+.tx-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--color-border);
+}
+.tx-ref {
+  font-family: monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-teal);
+  display: block;
+}
+.tx-date {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+  display: block;
+  margin-top: 2px;
+}
+.tx-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tx-badge.success {
+  background: var(--color-status-optimal-soft);
+  color: var(--color-status-optimal);
+}
+.tx-badge.warning {
+  background: var(--color-status-attention-soft);
+  color: var(--color-status-attention);
+}
+.tx-badge.danger {
+  background: var(--color-status-alert-soft);
+  color: var(--color-status-alert);
+}
+.tx-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tx-plan-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tx-plan-icon {
+  color: var(--color-teal);
+  flex-shrink: 0;
+}
+.tx-plan-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0 0 2px 0;
+}
+.tx-price-tag {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+.tx-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  background: var(--color-teal);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+.tx-pay-btn:hover {
+  opacity: 0.9;
+}
+.tx-empty-state, .tx-loading-state {
+  text-align: center;
+  padding: 48px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.tx-empty-icon {
+  color: var(--color-ink-muted);
+  opacity: 0.5;
+}
+
