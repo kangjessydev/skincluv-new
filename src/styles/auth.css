@@ -7,6 +7,11 @@
 
 /* ─── AUTH SHELL & LAYOUT (AuthLayout) ─── */
 .claude-auth-root {
+  --color-teal-dark: #0b4f5c;
+  --color-teal-900: #0a3e48;
+  --color-teal-100: #dceeea;
+  --color-peach: #e8a87c;
+  --color-peach-dark: #b96a3d;
   font-family: var(--font-body, 'Inter', sans-serif);
   background: #ffffff;
   color: var(--color-ink, #1a2b2b);
@@ -732,4 +737,17 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto;
+}
+
+/* ─── AUTH HELPER UTILITIES ─── */
+.auth-form-panel .mx-auto,
+.claude-auth-root .mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auth-form-panel.py-5,
+.claude-auth-root .py-5 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
