@@ -3,6 +3,7 @@
 
 import { Link } from 'react-router-dom'
 import { Sparkles, ShieldCheck, Heart, Eye, Target, ArrowRight, Award, BookOpen } from 'lucide-react'
+import '@/styles/public-pages.css'
 
 export default function AboutPage() {
   return (
@@ -68,151 +69,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <style>{`
-        .about-page {
-          background: var(--color-surface-bg, #f8fafc);
-          padding-bottom: 80px;
-        }
 
-        .about-container {
-          max-width: 1120px;
-          margin: 0 auto;
-          padding: 0 var(--space-lg, 24px);
-        }
-
-        /* HERO */
-        .about-hero {
-          padding: 72px 0 56px;
-          text-align: center;
-          background: linear-gradient(180deg, #ffffff 0%, var(--color-surface-bg, #f8fafc) 100%);
-        }
-
-        .about-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.75rem;
-          font-weight: 800;
-          letter-spacing: 0.05em;
-          color: var(--color-primary, #0f6784);
-          background: #e0f2fe;
-          border: 1px solid #bae6fd;
-          padding: 4px 12px;
-          border-radius: var(--radius-full, 9999px);
-          margin-bottom: 16px;
-        }
-
-        .about-hero h1 {
-          font-family: var(--font-heading, sans-serif);
-          font-size: 2.5rem;
-          font-weight: 800;
-          color: var(--color-text-main, #0f172a);
-          line-height: 1.2;
-          max-width: 840px;
-          margin: 0 auto 20px;
-        }
-
-        @media (max-width: 640px) {
-          .about-hero h1 {
-            font-size: 1.875rem;
-          }
-        }
-
-        .about-hero-desc {
-          font-size: 1.0625rem;
-          color: var(--color-text-muted, #64748b);
-          line-height: 1.7;
-          max-width: 760px;
-          margin: 0 auto;
-        }
-
-        /* VALUES */
-        .about-values-section {
-          padding: 40px 0 60px;
-        }
-
-        .values-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 24px;
-        }
-
-        @media (min-width: 768px) {
-          .values-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-
-        .value-card {
-          background: #ffffff;
-          border: 1px solid var(--color-secondary-container, #e2e8f0);
-          border-radius: var(--radius-xl, 16px);
-          padding: 32px 24px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .value-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 12px;
-          background: #e0f2fe;
-          color: var(--color-primary, #0f6784);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 20px;
-        }
-
-        .value-card h3 {
-          font-family: var(--font-heading, sans-serif);
-          font-size: 1.125rem;
-          font-weight: 800;
-          color: var(--color-text-main, #0f172a);
-          margin: 0 0 10px 0;
-        }
-
-        .value-card p {
-          font-size: 0.875rem;
-          color: var(--color-text-muted, #64748b);
-          line-height: 1.6;
-          margin: 0;
-        }
-
-        /* MISSION */
-        .mission-content-box {
-          background: #ffffff;
-          border: 1px solid var(--color-secondary-container, #e2e8f0);
-          border-radius: var(--radius-2xl, 20px);
-          padding: 48px 36px;
-          box-shadow: 0 8px 24px rgba(15, 103, 132, 0.04);
-        }
-
-        .mission-text h2 {
-          font-family: var(--font-heading, sans-serif);
-          font-size: 1.75rem;
-          font-weight: 800;
-          color: var(--color-text-main, #0f172a);
-          margin: 0 0 16px 0;
-        }
-
-        .mission-text p {
-          font-size: 0.9375rem;
-          color: var(--color-text-muted, #64748b);
-          line-height: 1.7;
-          margin: 0 0 16px 0;
-          max-width: 840px;
-        }
-
-        .mission-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 28px;
-        }
-      `}</style>
     </div>
   )
 }

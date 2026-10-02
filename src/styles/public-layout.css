@@ -1,0 +1,279 @@
+/**
+ * ============================================================================
+ * PUBLIC LAYOUT STYLES (Skincluv Design System)
+ * ============================================================================
+ * Styles for the public shell, navbar (desktop & mobile drawer), and footer.
+ */
+
+.public-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-bg, #f8fafc);
+  color: var(--color-text-main, #0f172a);
+  font-family: var(--font-body, 'Inter', sans-serif);
+}
+
+/* NAVBAR */
+.public-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-secondary-container, #e2e8f0);
+  height: 64px;
+}
+
+.public-nav-container {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-lg, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md, 16px);
+}
+
+.public-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--color-primary, #0f6784);
+}
+
+.public-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md, 10px);
+  background: linear-gradient(135deg, var(--color-primary, #0f6784), #0284c7);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 103, 132, 0.25);
+}
+
+.public-brand-text {
+  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.text-highlight {
+  color: #0284c7;
+}
+
+.public-nav-menu {
+  display: none;
+  align-items: center;
+  gap: 24px;
+}
+
+@media (min-width: 840px) {
+  .public-nav-menu {
+    display: flex;
+  }
+}
+
+.public-nav-menu a {
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #64748b);
+  transition: color 0.15s ease;
+  padding: 6px 0;
+}
+
+.public-nav-menu a:hover,
+.public-nav-menu a.active {
+  color: var(--color-primary, #0f6784);
+}
+
+.public-nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* MAIN CONTENT */
+.public-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* FOOTER */
+.public-footer {
+  background: #ffffff;
+  border-top: 1px solid var(--color-secondary-container, #e2e8f0);
+  padding: 60px 0 32px;
+  margin-top: auto;
+}
+
+.public-footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg, 24px);
+}
+
+.footer-top-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+@media (min-width: 768px) {
+  .footer-top-grid {
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 32px;
+  }
+}
+
+.footer-col h4 {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-main, #0f172a);
+  margin: 0 0 16px 0;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-col ul a {
+  text-decoration: none;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+  transition: color 0.15s ease;
+}
+
+.footer-col ul a:hover {
+  color: var(--color-primary, #0f6784);
+  text-decoration: underline;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.public-brand-icon-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--color-primary, #0f6784);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-brand-title {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 800;
+  font-size: 1.125rem;
+  color: var(--color-primary, #0f6784);
+}
+
+.footer-brand-title span {
+  color: #0284c7;
+}
+
+.footer-bio {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  max-width: 340px;
+}
+
+.footer-security-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.icon-shield {
+  color: #0284c7;
+}
+
+.badge-status-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  padding: 4px 8px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.badge-status-online::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.footer-divider {
+  height: 1px;
+  background: var(--color-secondary-container, #e2e8f0);
+  margin-bottom: 24px;
+}
+
+.footer-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.copyright-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #64748b);
+  margin: 0;
+}
+
+.medical-footnote {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.medical-footnote strong {
+  color: var(--color-text-muted, #64748b);
+}
