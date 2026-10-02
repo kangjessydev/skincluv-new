@@ -3,6 +3,7 @@
 // Uses global CSS tokens from index.css
 
 import { type ReactNode, type HTMLAttributes } from 'react'
+import '@/styles/ui-components.css'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   /** Visual variant */
@@ -18,24 +19,6 @@ const SIZE_MAP = {
   sm: '16px',
   md: '24px',
   lg: '32px',
-}
-
-const VARIANT_STYLES: Record<string, string> = {
-  default: `
-    background: var(--color-surface);
-    border: var(--hairline);
-    box-shadow: var(--shadow-card);
-  `,
-  tinted: `
-    background: var(--color-teal-soft);
-    border: 1px solid rgba(31, 157, 151, 0.15);
-    box-shadow: none;
-  `,
-  flat: `
-    background: var(--color-surface-muted);
-    border: var(--hairline);
-    box-shadow: none;
-  `,
 }
 
 export function Card({
@@ -62,28 +45,6 @@ export function Card({
       {...rest}
     >
       {children}
-
-      <style>{`
-        .skincluv-card[data-variant="default"] {
-          background: var(--color-surface);
-          border: var(--hairline);
-          box-shadow: var(--shadow-card);
-        }
-        .skincluv-card[data-variant="tinted"] {
-          background: var(--color-teal-soft);
-          border: 1px solid rgba(31, 157, 151, 0.15);
-          box-shadow: none;
-        }
-        .skincluv-card[data-variant="flat"] {
-          background: var(--color-surface-muted);
-          border: var(--hairline);
-          box-shadow: none;
-        }
-        .skincluv-card--hoverable:hover {
-          box-shadow: var(--shadow-lg);
-          transform: translateY(-2px);
-        }
-      `}</style>
     </div>
   )
 }

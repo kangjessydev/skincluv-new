@@ -3,6 +3,7 @@
 // Digunakan saat data sedang di-fetch, mencegah layout shift
 
 import { type CSSProperties } from 'react'
+import '@/styles/ui-components.css'
 
 interface SkeletonProps {
   /** Lebar skeleton — default 100% */
@@ -25,35 +26,17 @@ export function Skeleton({
   style,
 }: SkeletonProps) {
   return (
-    <>
-      <span
-        className={`skincluv-skeleton ${className}`}
-        style={{
-          display: 'block',
-          width: typeof width === 'number' ? `${width}px` : width,
-          height: typeof height === 'number' ? `${height}px` : height,
-          borderRadius: radius,
-          ...style,
-        }}
-        aria-hidden="true"
-      />
-      <style>{`
-        .skincluv-skeleton {
-          background: linear-gradient(
-            90deg,
-            var(--color-border-soft) 25%,
-            #eaf2f8 50%,
-            var(--color-border-soft) 75%
-          );
-          background-size: 200% 100%;
-          animation: skincluv-shimmer 1.6s infinite;
-        }
-        @keyframes skincluv-shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
-    </>
+    <span
+      className={`skincluv-skeleton ${className}`}
+      style={{
+        display: 'block',
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
+        borderRadius: radius,
+        ...style,
+      }}
+      aria-hidden="true"
+    />
   )
 }
 

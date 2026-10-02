@@ -1,0 +1,448 @@
+/**
+ * ============================================================================
+ * UI COMPONENTS STYLES (Skincluv Design System)
+ * ============================================================================
+ * Modular styles for reusable UI atoms & molecules:
+ * - PageLoader & LoadingScreen
+ * - SkeletonLoader
+ * - Card (Atomic container)
+ * - ErrorBoundary
+ * - SkinRegionCropper
+ * - FormattedMarkdown
+ */
+
+/* ----------------------------------------------------------------------------
+ * 1. PAGE LOADER & LOADING SCREEN
+ * ------------------------------------------------------------------------- */
+.page-loader-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 45vh;
+  width: 100%;
+}
+
+.page-loader-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(15, 103, 132, 0.15);
+  border-top-color: var(--skincluv-teal, #0f6784);
+  border-radius: 50%;
+  animation: page-loader-spin 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes page-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  background: var(--gradient-dark);
+}
+
+.loading-logo {
+  width: 80px;
+  height: 80px;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  box-shadow: var(--shadow-glow);
+}
+
+.loading-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+
+/* ----------------------------------------------------------------------------
+ * 2. SKELETON LOADER
+ * ------------------------------------------------------------------------- */
+.skincluv-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border-soft) 25%,
+    #eaf2f8 50%,
+    var(--color-border-soft) 75%
+  );
+  background-size: 200% 100%;
+  animation: skincluv-shimmer 1.6s infinite;
+}
+
+@keyframes skincluv-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+
+/* ----------------------------------------------------------------------------
+ * 3. CARD (ATOMIC CONTAINER)
+ * ------------------------------------------------------------------------- */
+.skincluv-card[data-variant="default"] {
+  background: var(--color-surface);
+  border: var(--hairline);
+  box-shadow: var(--shadow-card);
+}
+
+.skincluv-card[data-variant="tinted"] {
+  background: var(--color-teal-soft);
+  border: 1px solid rgba(31, 157, 151, 0.15);
+  box-shadow: none;
+}
+
+.skincluv-card[data-variant="flat"] {
+  background: var(--color-surface-muted);
+  border: var(--hairline);
+  box-shadow: none;
+}
+
+.skincluv-card--hoverable:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+
+/* ----------------------------------------------------------------------------
+ * 4. ERROR BOUNDARY
+ * ------------------------------------------------------------------------- */
+.error-boundary-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: var(--color-surface-bg);
+  font-family: var(--font-body);
+}
+
+.error-boundary-card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-secondary-container);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-2xl);
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 16px 32px rgba(0, 101, 145, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.error-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-boundary-card h2 {
+  font-size: 1.25rem;
+  font-family: var(--font-heading);
+  margin: 0;
+}
+
+.error-boundary-card p {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.error-details {
+  background: var(--color-surface-container-low);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
+  color: var(--color-error);
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.error-actions {
+  display: flex;
+  gap: var(--space-sm);
+  width: 100%;
+  margin-top: var(--space-xs);
+}
+
+.error-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+
+/* ----------------------------------------------------------------------------
+ * 5. SKIN REGION CROPPER
+ * ------------------------------------------------------------------------- */
+.skin-region-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-secondary-container);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.skin-region-card:hover {
+  border-color: var(--color-primary-container);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.15);
+}
+
+.skin-region-card.is-selected {
+  border-color: var(--color-primary);
+  background: rgba(238, 246, 252, 0.9);
+  box-shadow: 0 4px 18px rgba(14, 165, 233, 0.22);
+}
+
+.crop-thumbnail-box {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-secondary-container);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crop-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.crop-fallback-icon {
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.region-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.region-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.region-label {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.region-location {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
+.region-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-main);
+  margin: 2px 0 0 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.severity-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+
+.severity-high {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.severity-medium {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.severity-low {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+
+/* ----------------------------------------------------------------------------
+ * 6. FORMATTED MARKDOWN
+ * ------------------------------------------------------------------------- */
+.formatted-markdown-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.fmt-block-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fmt-h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f6784;
+  margin: 12px 0 4px 0;
+  line-height: 1.3;
+}
+
+.fmt-h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f6784;
+  margin: 10px 0 4px 0;
+  line-height: 1.3;
+}
+
+.fmt-h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f6784;
+  margin: 8px 0 2px 0;
+  line-height: 1.4;
+}
+
+.fmt-paragraph {
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.65;
+}
+
+.fmt-bold {
+  font-weight: 700;
+  color: #0f6784;
+}
+
+.fmt-italic {
+  font-style: italic;
+  color: #334155;
+}
+
+.fmt-code {
+  background: #f1f5f9;
+  color: #0f6784;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.fmt-hr {
+  border: none;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 12px 0;
+}
+
+.fmt-ol,
+.fmt-ul {
+  margin: 6px 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fmt-ol {
+  list-style-type: decimal;
+}
+
+.fmt-ul {
+  list-style-type: disc;
+}
+
+.fmt-li {
+  color: #1e293b;
+  line-height: 1.6;
+}
+
+.fmt-table-wrapper {
+  overflow-x: auto;
+  margin: 8px 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.fmt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.fmt-table th {
+  background: #eaf4fa;
+  color: #0f6784;
+  font-weight: 700;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.fmt-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.fmt-table tr:last-child td {
+  border-bottom: none;
+}

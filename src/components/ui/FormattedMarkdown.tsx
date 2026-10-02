@@ -2,6 +2,7 @@
 // Comprehensive Rich Text & Markdown Engine for AI Chatbot Responses
 
 import React from 'react'
+import '@/styles/ui-components.css'
 
 interface FormattedMarkdownProps {
   content: string
@@ -237,133 +238,7 @@ export default function FormattedMarkdown({
         )
       })}
 
-      {/* RICH TEXT MS WORD CSS STYLING */}
-      <style>{`
-        .formatted-markdown-root {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          color: #1e293b;
-          font-size: 0.9375rem;
-          line-height: 1.7;
-          word-break: break-word;
-        }
 
-        .fmt-block-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .fmt-h1 {
-          font-size: 1.25rem;
-          font-weight: 800;
-          color: #0f6784;
-          margin: 12px 0 4px 0;
-          line-height: 1.3;
-        }
-
-        .fmt-h2 {
-          font-size: 1.125rem;
-          font-weight: 700;
-          color: #0f6784;
-          margin: 10px 0 4px 0;
-          line-height: 1.3;
-        }
-
-        .fmt-h3 {
-          font-size: 1rem;
-          font-weight: 700;
-          color: #0f6784;
-          margin: 8px 0 2px 0;
-          line-height: 1.4;
-        }
-
-        .fmt-paragraph {
-          margin: 0;
-          color: #1e293b;
-          line-height: 1.65;
-        }
-
-        .fmt-bold {
-          font-weight: 700;
-          color: #0f6784;
-        }
-
-        .fmt-italic {
-          font-style: italic;
-          color: #334155;
-        }
-
-        .fmt-code {
-          background: #f1f5f9;
-          color: #0f6784;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-family: monospace;
-          font-size: 0.875rem;
-        }
-
-        .fmt-hr {
-          border: none;
-          height: 1px;
-          background: #e2e8f0;
-          margin: 12px 0;
-        }
-
-        .fmt-ol, .fmt-ul {
-          margin: 6px 0;
-          padding-left: 22px;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .fmt-ol {
-          list-style-type: decimal;
-        }
-
-        .fmt-ul {
-          list-style-type: disc;
-        }
-
-        .fmt-li {
-          color: #1e293b;
-          line-height: 1.6;
-        }
-
-        .fmt-table-wrapper {
-          overflow-x: auto;
-          margin: 8px 0;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-        }
-
-        .fmt-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.875rem;
-        }
-
-        .fmt-table th {
-          background: #eaf4fa;
-          color: #0f6784;
-          font-weight: 700;
-          padding: 8px 12px;
-          text-align: left;
-          border-bottom: 1px solid #cbd5e1;
-        }
-
-        .fmt-table td {
-          padding: 8px 12px;
-          border-bottom: 1px solid #f1f5f9;
-          color: #334155;
-        }
-
-        .fmt-table tr:last-child td {
-          border-bottom: none;
-        }
-      `}</style>
     </div>
   )
 }
