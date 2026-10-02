@@ -141,6 +141,11 @@
   }
 }
 
+.brand-col {
+  display: flex;
+  flex-direction: column;
+}
+
 .footer-col h4 {
   font-family: var(--font-heading, sans-serif);
   font-size: 0.875rem;

@@ -746,3 +746,20 @@
 .popular-links span {
   color: #cbd5e1;
 }
+
+.text-success {
+  color: var(--color-status-optimal, #16a34a);
+}
+
+.inline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.about-mission-section {
+  width: 100%;
+}
+
+.contact-form-panel {
+  width: 100%;
+}

@@ -41,8 +41,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--color-primary-fixed);
-  color: var(--color-on-primary-container);
+  background: var(--color-primary-container, #eaf8f7);
+  color: var(--color-primary, #1f9d97);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 14px;
@@ -120,8 +120,8 @@
 
 .badge-live {
   margin-left: auto;
-  background: var(--color-success-soft);
-  color: var(--color-success);
+  background: var(--color-status-optimal-soft, #f0fdf4);
+  color: var(--color-status-optimal, #166534);
   font-size: 0.6875rem;
   font-weight: 800;
   padding: 2px 8px;
@@ -236,8 +236,8 @@
 .feature-icon-wrap {
   width: 44px;
   height: 44px;
-  background: var(--color-primary-fixed);
-  color: var(--color-primary);
+  background: var(--color-primary-container, #eaf8f7);
+  color: var(--color-primary, #1f9d97);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
@@ -305,8 +305,8 @@
 .step-icon-wrap {
   width: 52px;
   height: 52px;
-  background: var(--color-primary-fixed);
-  color: var(--color-primary);
+  background: var(--color-primary-container, #eaf8f7);
+  color: var(--color-primary, #1f9d97);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -383,4 +383,9 @@
   margin: 0;
   opacity: 0.9;
   max-width: 480px;
+}
+
+.inline {
+  display: inline-block;
+  vertical-align: middle;
 }
