@@ -684,3 +684,12 @@
     margin: 10px;
   }
 }
+
+.inline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.text-\[10px\] {
+  font-size: 10px;
+}

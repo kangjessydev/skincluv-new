@@ -424,3 +424,10 @@
 .log-type-error .log-msg {
   color: #b91c1c;
 }
+
+/* Status Banner Icon Utilities */
+.banner-icon-green { color: #16a34a; flex-shrink: 0; }
+.banner-icon-amber { color: #d97706; flex-shrink: 0; }
+.banner-icon-red { color: #dc2626; flex-shrink: 0; }
+.banner-icon-blue { color: #2563eb; flex-shrink: 0; }
+.text-violet-600 { color: #7c3aed; }

@@ -1007,3 +1007,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+.inline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.text-\[11px\] {
+  font-size: 11px;
+}
+
+.mb-1\.5 {
+  margin-bottom: 0.375rem;
+}
