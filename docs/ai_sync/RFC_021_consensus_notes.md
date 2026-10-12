@@ -82,7 +82,7 @@ export interface AIErrorDTO {
 
 ## 5. Rencana Pelaksanaan Bertahap (Mikro-Fase)
 - [x] **Langkah 1**: Dokumentasi Konsensus Resmi Dewan AI (`RFC_021_consensus_notes.md`).
-- [ ] **Langkah 2**: Refactoring `supabase/functions/_shared/aiProviders.ts` (Full Jitter Retry, Deadline 9s, Model Failover 3.5 ➔ 3.6 ➔ 2.5, Dynamic Thinking Config).
-- [ ] **Langkah 3**: Refactoring `supabase/functions/invoke-ai/index.ts` (Sanitizer Error Mapper, Credit Status `RELEASED` vs `PENDING`, Zero-Leakage).
-- [ ] **Langkah 4**: Refactoring `src/hooks/useInvokeAI.ts` & Frontend Handlers (Penanganan `AIClientError` dan `client_operation_id`).
-- [ ] **Langkah 5**: Validasi Compiler & Verification (`tsc -b && vite build`).
+- [x] **Langkah 2**: Refactoring `supabase/functions/_shared/aiProviders.ts` (Full Jitter Retry, Deadline 9s, Model Failover 3.5 ➔ 3.6 ➔ 2.5, Dynamic Thinking Config).
+- [x] **Langkah 3**: Refactoring `supabase/functions/invoke-ai/index.ts` (Sanitizer Error Mapper, Credit Status `RELEASED` vs `PENDING`, Zero-Leakage).
+- [x] **Langkah 4**: Refactoring `src/hooks/useInvokeAI.ts` & Frontend Handlers (Penanganan `AIClientError` dan `client_operation_id` - Commit `bbeb05e`).
+- [x] **Langkah 5**: Validasi Compiler & Verification (`tsc -b && vite build` lulus 0 error).
