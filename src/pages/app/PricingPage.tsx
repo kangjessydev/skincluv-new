@@ -1,9 +1,14 @@
+// src/pages/app/PricingPage.tsx
+// Halaman Pilihan Paket Sahabat Skincluv (100% Cluv Micro-Framework Standard)
+// Kepatuhan: Invarian 13 (No overclaim), Invarian 18 (Prepaid pricing integrity), Invarian 19 (Non-therapeutic)
+
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Crown, CheckCircle2, Sparkles, ShieldCheck, ArrowLeft, HeartHandshake } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Crown, CheckCircle2, Sparkles, ShieldCheck, HeartHandshake, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 
 export interface Tier {
   id?: string
@@ -17,20 +22,20 @@ export interface Tier {
   is_active?: boolean
 }
 
-// Fallback jika proses pengambilan data database sedang berlangsung
+// Fallback jika database belum merespons
 const DEFAULT_TIERS: Tier[] = [
   {
     slug: 'free',
-    name: 'Free / Starter',
+    name: 'Mulai Santai (Free)',
     price_idr: 0,
     original_price_idr: 0,
     promo_badge: 'Selalu Gratis',
     is_popular: false,
     features_list: [
-      '0 Kuota Bawaan (Akses via Credits)',
-      'Dapatkan Credits Gratis dari Misi Harian',
-      'Scan Wajah & Cek Komposisi Produk',
-      'Chatbot Konsultasi Standar'
+      'Dapatkan Credits gratis dari misi harian tanpa batas',
+      'Observasi visual kondisi kulit wajah via AI',
+      'Cek komposisi botol skincare sebelum membeli',
+      'Curhat ringan dan tanya jawab perawatan dasar ke Skinsistant'
     ]
   },
   {
@@ -38,15 +43,14 @@ const DEFAULT_TIERS: Tier[] = [
     name: 'Skincluv GLOW',
     price_idr: 25000,
     original_price_idr: 50000,
-    promo_badge: 'Ramah Kantong',
+    promo_badge: 'Teman Harian Rutin',
     is_popular: false,
     features_list: [
-      '100 Universal AI Uses / 30 Hari',
-      'Satu Kuota Bersama: Bebas Dipakai Scan Maupun Chat',
-      'Chatbot Konsultasi Ramah (Cepat & Edukatif)',
-      'Analisis Kondisi Wajah & Komposisi Skincare',
-      'Riwayat Scan Tersimpan Multi-Sesi',
-      'Cadangan AI Credits Misi Tetap Utuh'
+      '100x kuota Universal AI (bebas dipakai scan atau curhat)',
+      'Satu kuota fleksibel tanpa batas harian yang kaku',
+      'Skinsistant AI responsif dengan penjelasan edukatif',
+      'Riwayat perkembangan kulit tersimpan multi-sesi',
+      'Cadangan AI Credits dari misi harian tetap utuh tersimpan'
     ]
   },
   {
@@ -54,25 +58,26 @@ const DEFAULT_TIERS: Tier[] = [
     name: 'Skincluv PRO',
     price_idr: 49000,
     original_price_idr: 99000,
-    promo_badge: 'Rekomendasi Utama',
+    promo_badge: 'Paling Mengerti Kulitmu',
     is_popular: true,
     features_list: [
-      '500 Universal AI Uses / 30 Hari (Terasa Unlimited)',
-      'Chatbot Skincare Expert (Analisis Lebih Dalam & Presisi)',
-      'Pencarian Web Terverifikasi (Tavily Grounding)',
-      'Analisis Layering Bahan Aktif Pagi & Malam',
-      'Evaluasi Kompatibilitas Skin Barrier & pH Formula',
-      'Deep Memory (Ingatan Lintas Sesi Percakapan)',
-      'Prioritas Respon AI Cepat & Responsif',
-      'Badge Eksklusif PRO di Profil'
+      '500x kuota Universal AI (sangat longgar, terasa unlimited)',
+      'Deep Memory: AI mengingat riwayat curhat & perubahan kulitmu',
+      'Cek kecocokan layering bahan aktif pagi & malam',
+      'Pencarian literatur ilmiah bahan skincare terverifikasi (Tavily)',
+      'Evaluasi kompatibilitas skin barrier & pH formula produk',
+      'Prioritas komputasi AI kilat & badge sahabat PRO eksklusif'
     ]
   }
 ]
 
 export default function PricingPage() {
   const navigate = useNavigate()
-  const { subscription } = useAuthStore()
+  const { user, subscription } = useAuthStore()
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
+
+  // Initialize buttery-smooth scroll reveal observer
+  useScrollReveal()
 
   const isPro = isActivePremium(subscription)
   const isGlow = isActiveGlow(subscription)
@@ -93,10 +98,9 @@ export default function PricingPage() {
         }
 
         if (data && data.length > 0) {
-          // Normalisasi slug dan format nama
           const mappedTiers: Tier[] = data.map((t) => {
             let formattedName = t.name
-            if (t.slug === 'free') formattedName = 'Free / Starter'
+            if (t.slug === 'free') formattedName = 'Mulai Santai (Free)'
             else if (t.slug === 'glow') formattedName = 'Skincluv GLOW'
             else if (t.slug === 'premium' || t.slug === 'pro') formattedName = 'Skincluv PRO'
 
@@ -115,179 +119,216 @@ export default function PricingPage() {
     fetchTiers()
   }, [])
 
+  const handleSelectPlan = (planSlug: string) => {
+    if (!user) {
+      if (planSlug === 'free') {
+        navigate('/register')
+      } else {
+        navigate(`/register?plan=${planSlug}`)
+      }
+      return
+    }
+
+    if (planSlug === 'free') return
+    navigate(`/checkout?plan=${planSlug}`)
+  }
+
   return (
-    <div className="v0-page-container animate-fade-in">
-      <div style={{ marginBottom: '16px' }}>
-        <button type="button" className="v0-back-link" onClick={() => navigate(-1)}>
-          <ArrowLeft size={16} /> Kembali
-        </button>
-      </div>
+    <div className="cluv-page cluv-surface-public">
+      <section className="cluv-section">
+        <div className="cluv-container">
+          {/* HEADER CERITA PAKET */}
+          <header className="cluv-section-header cluv-reveal">
+            <div className="cluv-badge is-teal cluv-mb-3">
+              <Sparkles size={14} />
+              <span>Pilihan Paket Sahabat</span>
+            </div>
+            <h1 className="cluv-title-hero">Pilih Cara Nyamanmu Merawat Diri</h1>
+            <p className="cluv-lead cluv-mt-3">
+              Sekali bayar untuk 30 hari penuh ketenangan. Tanpa perpanjangan otomatis diam-diam, tanpa jebakan kartu kredit.
+            </p>
+          </header>
 
-      <div className="v0-profile-form-header" style={{ marginBottom: '28px', textAlign: 'left' }}>
-        <span className="v0-celebrate-badge" style={{ marginBottom: '8px' }}>
-          <Sparkles size={14} /> PAKET AKSES 30 HARI
-        </span>
-        <h1 className="v0-profile-form-main-title" style={{ fontSize: '1.75rem' }}>Pilih Paket Akses Skincluv</h1>
-        <p className="v0-profile-form-main-sub">Pilih paket terbaik untuk perawatan kulit harian tanpa rasa cemas. Sekali bayar, tanpa auto-debit.</p>
-      </div>
+          {/* GRID PAKET */}
+          <div className="cluv-grid cols-3 cluv-reveal-group">
+            {tiers.map((tier) => {
+              const isTierFree = tier.slug === 'free'
+              const isTierGlow = tier.slug === 'glow'
+              const isTierPro = tier.slug === 'premium' || tier.slug === 'pro'
 
-      <div className="v0-tier-grid">
-        {tiers.map((tier) => {
-          const isTierFree = tier.slug === 'free'
-          const isTierGlow = tier.slug === 'glow'
-          const isTierPro = tier.slug === 'premium' || tier.slug === 'pro'
+              const hasOriginalPrice =
+                typeof tier.original_price_idr === 'number' &&
+                tier.original_price_idr > tier.price_idr &&
+                tier.original_price_idr > 0
 
-          const hasOriginalPrice =
-            typeof tier.original_price_idr === 'number' &&
-            tier.original_price_idr > tier.price_idr &&
-            tier.original_price_idr > 0
+              const discountPct = hasOriginalPrice
+                ? Math.round(((tier.original_price_idr! - tier.price_idr) / tier.original_price_idr!) * 100)
+                : 0
 
-          const discountPct = hasOriginalPrice
-            ? Math.round(((tier.original_price_idr! - tier.price_idr) / tier.original_price_idr!) * 100)
-            : 0
+              let subtitle = 'Paling pas untuk mulai membiasakan diri mendengarkan sinyal kulit'
+              if (isTierGlow) subtitle = 'Paling pas untuk evaluasi mingguan & curhat skincare tanpa ragu'
+              else if (isTierPro) subtitle = 'Pengalaman AI terlengkap, paling peka, dan terasa tanpa batas'
 
-          const isCardActive =
-            (isTierFree && isFree) ||
-            (isTierGlow && isGlow) ||
-            (isTierPro && isPro)
+              const features = tier.features_list && tier.features_list.length > 0
+                ? tier.features_list
+                : []
 
-          let subtitle = 'Mulai gratis menggunakan Credits dari misi harian'
-          if (isTierGlow) subtitle = 'Paling pas untuk pelajar & pemula perawatan rutin'
-          else if (isTierPro) subtitle = 'Pengalaman AI Terlengkap, Lebih Pintar & Terasa Unlimited'
-
-          const features = tier.features_list && tier.features_list.length > 0
-            ? tier.features_list
-            : []
-
-          return (
-            <div
-              key={tier.slug}
-              className={`v0-profile-card v0-tier-card ${isTierPro ? 'featured' : ''} ${isCardActive ? 'active-current' : ''}`}
-            >
-              {/* Promo Badge */}
-              {tier.promo_badge && (
-                <div className="v0-tier-badge-pos">
-                  <span className={`v0-badge ${isTierPro ? 'optimal' : isTierGlow ? 'warning' : 'neutral'}`} style={isTierPro ? { background: 'var(--color-teal)', color: '#fff' } : undefined}>
-                    {isTierPro ? <Crown size={12} /> : isTierGlow ? <HeartHandshake size={12} /> : <Sparkles size={12} />}
-                    <span>{tier.promo_badge.toUpperCase()}</span>
-                  </span>
-                </div>
-              )}
-
-              <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 4px', color: 'var(--color-ink)' }}>{tier.name}</h3>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--color-ink-muted)', marginBottom: '12px', minHeight: '36px', lineHeight: 1.45 }}>{subtitle}</p>
-
-                {/* Strikethrough & Discount Pill */}
-                {hasOriginalPrice && (
-                  <div className="v0-tier-discount-wrap">
-                    <del className="v0-tier-orig-price">
-                      Rp {tier.original_price_idr!.toLocaleString('id-ID')}
-                    </del>
-                    <span className="v0-tier-discount-pill">Hemat {discountPct}%</span>
+              return (
+                <div
+                  key={tier.slug}
+                  className={`cluv-card ${isTierPro ? 'is-highlight is-interactive' : ''}`}
+                >
+                  {/* Badge Status / Promo */}
+                  <div className="cluv-mb-4">
+                    <span className={`cluv-badge ${isTierPro ? 'is-gold' : isTierGlow ? 'is-teal' : 'is-slate'}`}>
+                      {isTierPro ? <Crown size={12} /> : isTierGlow ? <HeartHandshake size={12} /> : <Sparkles size={12} />}
+                      <span>{tier.promo_badge || (isTierPro ? 'Favorit Sahabat' : isTierGlow ? 'Ramah Kantong' : 'Akses Awal')}</span>
+                    </span>
                   </div>
-                )}
 
-                <div className="v0-tier-price">
-                  Rp {tier.price_idr.toLocaleString('id-ID')} <span>/ 30 hari</span>
-                </div>
+                  {/* Nama Paket & Deskripsi */}
+                  <h3 className="cluv-title-card cluv-mb-2">{tier.name}</h3>
+                  <p className="cluv-body cluv-pricing-desc cluv-mb-4">{subtitle}</p>
 
-                <div className="v0-tier-tagline">
-                  {isTierFree ? 'Selalu gratis • Tanpa syarat kartu' : 'Sekali bayar. Selesai. Tanpa auto-debit.'}
+                  {/* Harga & Diskon */}
+                  <div className="cluv-mb-5 cluv-pb-4 cluv-border-b">
+                    <div className="cluv-price-discount-slot">
+                      {hasOriginalPrice ? (
+                        <>
+                          <del className="cluv-caption cluv-text-muted">Rp {tier.original_price_idr!.toLocaleString('id-ID')}</del>
+                          <span className="cluv-badge is-gold is-sm">Hemat {discountPct}%</span>
+                        </>
+                      ) : (
+                        <span className="cluv-badge is-slate is-sm">Bebas Biaya</span>
+                      )}
+                    </div>
+
+                    <div className="cluv-price-val">
+                      {tier.price_idr === 0 ? (
+                        <span>Rp 0 <span className="cluv-price-period">/ gratis selamanya</span></span>
+                      ) : (
+                        <span>Rp {tier.price_idr.toLocaleString('id-ID')} <span className="cluv-price-period">/ 30 hari</span></span>
+                      )}
+                    </div>
+
+                    <div className="cluv-micro cluv-text-teal cluv-font-bold cluv-mt-2">
+                      {isTierFree ? 'Tanpa syarat kartu • Pakai Credits dari misi harian' : 'Sekali bayar via QRIS / VA • Tanpa auto-debit'}
+                    </div>
+                  </div>
+
+                  {/* Daftar Fitur Ramah Sahabat */}
+                  <ul className="cluv-feature-list cluv-mb-6">
+                    {features.map((feat, idx) => (
+                      <li key={idx} className="cluv-feature-item">
+                        <CheckCircle2 size={16} className="cluv-text-teal" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Tombol Aksi */}
+                  <div className="cluv-mt-auto">
+                    {isTierFree ? (
+                      user ? (
+                        <button type="button" className="cluv-btn is-secondary is-md is-block" disabled>
+                          {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar (Bawaan)'}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="cluv-btn is-secondary is-md is-block"
+                          onClick={() => handleSelectPlan('free')}
+                        >
+                          <span>Mulai Gratis Sekarang</span>
+                          <ArrowRight size={14} />
+                        </button>
+                      )
+                    ) : isTierGlow ? (
+                      user && isGlow ? (
+                        <div className="cluv-btn is-outline is-md is-block is-static">
+                          <ShieldCheck size={16} />
+                          <span>Paket GLOW Aktif</span>
+                        </div>
+                      ) : user && isPro ? (
+                        <button type="button" className="cluv-btn is-secondary is-md is-block" disabled>
+                          Sudah Termasuk di PRO
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="cluv-btn is-secondary is-md is-block"
+                          onClick={() => handleSelectPlan('glow')}
+                        >
+                          <span>Beli GLOW (Rp {tier.price_idr.toLocaleString('id-ID')})</span>
+                          <ArrowRight size={14} />
+                        </button>
+                      )
+                    ) : isTierPro ? (
+                      user && isPro ? (
+                        <div className="cluv-btn is-primary is-md is-block is-static">
+                          <ShieldCheck size={16} />
+                          <span>Paket PRO Aktif</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="cluv-btn is-primary is-md is-block"
+                          onClick={() => handleSelectPlan('pro')}
+                        >
+                          <Crown size={15} />
+                          <span>Pilih PRO (Rp {tier.price_idr.toLocaleString('id-ID')})</span>
+                          <ArrowRight size={14} />
+                        </button>
+                      )
+                    ) : null}
+                  </div>
                 </div>
+              )
+            })}
+          </div>
+
+          {/* KOTAK TRANSPARANSI & BEBAS CEMAS */}
+          <div className="cluv-card cluv-reveal cluv-mt-8 cluv-max-w-lg cluv-mx-auto">
+            <div className="cluv-flex-row cluv-gap-3 cluv-mb-5">
+              <div className="cluv-card-icon-wrap is-sm">
+                <ShieldCheck size={20} />
               </div>
-
-              {/* Dynamic Feature Bullets */}
-              <ul className="v0-tier-features">
-                {features.map((feat, idx) => (
-                  <li key={idx}>
-                    <CheckCircle2 size={16} style={{ color: 'var(--color-status-optimal)', flexShrink: 0, marginTop: 2 }} />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Action Buttons */}
-              <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
-                {isTierFree ? (
-                  <button type="button" className="v0-tier-btn-disabled" disabled>
-                    {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar (Bawaan)'}
-                  </button>
-                ) : isTierGlow ? (
-                  isGlow ? (
-                    <button type="button" className="v0-tier-btn-active" disabled>
-                      <ShieldCheck size={16} /> Paket GLOW Aktif
-                    </button>
-                  ) : isPro ? (
-                    <button
-                      type="button"
-                      className="v0-tier-btn-disabled"
-                      disabled
-                      title="Kamu sedang aktif di paket PRO yang lebih tinggi"
-                    >
-                      Sudah Termasuk di Paket PRO
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="v0-tier-btn-secondary"
-                      onClick={() => navigate('/checkout?plan=glow')}
-                    >
-                      Beli GLOW Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
-                    </button>
-                  )
-                ) : isTierPro ? (
-                  isPro ? (
-                    <button type="button" className="v0-tier-btn-active" disabled>
-                      <ShieldCheck size={16} /> Paket PRO Aktif
-                    </button>
-                  ) : isGlow ? (
-                    <button
-                      type="button"
-                      className="v0-tier-btn-primary"
-                      onClick={() => navigate('/checkout?plan=pro')}
-                    >
-                      <Crown size={16} /> Upgrade ke PRO Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="v0-tier-btn-primary"
-                      onClick={() => navigate('/checkout?plan=pro')}
-                    >
-                      <Crown size={16} /> Beli PRO Pass (Rp {tier.price_idr.toLocaleString('id-ID')})
-                    </button>
-                  )
-                ) : null}
+              <div>
+                <h3 className="cluv-title-card cluv-m-0">Transaksi Tenang, Transparan, &amp; Tanpa Jebakan</h3>
+                <p className="cluv-caption cluv-text-muted">Komitmen privasi dan etika pembayaran resmi Skincluv</p>
               </div>
             </div>
-          )
-        })}
-      </div>
 
-      {/* Trust & Transparency FAQ Box (Kimi Review) */}
-      <div className="v0-profile-card" style={{ marginTop: '36px', padding: '28px' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-ink)', textAlign: 'center', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <ShieldCheck size={20} style={{ color: 'var(--color-teal)' }} /> Transaksi Nyaman & Bebas Cemas
-        </h3>
-        <div className="v0-qa-grid">
-          <div className="v0-qa-card">
-            <h4>Q: Apakah saldo saya akan terpotong otomatis tiap bulan?</h4>
-            <p>
-              <strong>Tidak, tidak akan — titik.</strong> Skincluv memakai sistem <strong>Prepaid Pass</strong>: kamu bayar sekali untuk 30 hari akses via Tripay (QRIS / Virtual Account / Minimarket). Kami tidak menyimpan rekening dan tidak bisa menarik dana otomatis. Perpanjangan hanya terjadi jika kamu membeli lagi atas keputusanmu sendiri.
-            </p>
-          </div>
-          <div className="v0-qa-card">
-            <h4>Q: Kalau 30 hari habis, akun saya bagaimana?</h4>
-            <p>
-              Tenang, tidak ada yang hilang! Akunmu otomatis kembali ke <strong>Free Tier</strong> (bisa lanjut scan gratis dengan Credits dari misi harian). Semua riwayat foto scan dan catatan profil kulitmu tetap tersimpan aman.
-            </p>
+            <div className="cluv-grid cols-2 cluv-gap-6 cluv-mb-5">
+              <div>
+                <h4 className="cluv-font-bold cluv-text-dark cluv-mb-2">
+                  Q: Apakah saldo saya akan terpotong otomatis tiap bulan?
+                </h4>
+                <p className="cluv-body cluv-line-relaxed">
+                  <strong>Sama sekali tidak.</strong> Skincluv memakai sistem <strong>Prepaid Pass sekali bayar</strong> melalui payment gateway resmi Tripay (QRIS / Virtual Account / Alfamart / Indomaret). Kami tidak menyimpan rekening atau kartu kreditmu, sehingga tidak ada yang bisa ditarik diam-diam.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="cluv-font-bold cluv-text-dark cluv-mb-2">
+                  Q: Kalau 30 hari berakhir, bagaimana dengan akun dan data saya?
+                </h4>
+                <p className="cluv-body cluv-line-relaxed">
+                  <strong>Tenang, tidak ada yang hilang!</strong> Akunmu otomatis kembali ke <strong>Paket Gratis</strong> dan tetap bisa lanjut scan menggunakan Credits dari misi harian. Seluruh riwayat foto scan dan catatan profil kulitmu tetap tersimpan aman seutuhnya.
+                </p>
+              </div>
+            </div>
+
+            {/* Legal Disclaimer Note (Invarian 19: Non-Therapeutic Product Claim Boundary) */}
+            <div className="cluv-card-note">
+              <ShieldCheck size={18} className="cluv-text-teal" />
+              <p className="cluv-caption cluv-line-normal">
+                <strong>Penyangkalan Medis:</strong> Skincluv adalah perangkat lunak edukasi analitik kosmetik independen, bukan fasilitas telemedisin klinis dan bukan apotek. Hasil observasi adalah panduan perawatan preventif mandiri, bukan diagnosis medis spesialis kulit (UU Kesehatan No. 17/2023).
+              </p>
+            </div>
           </div>
         </div>
-        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--color-ink-muted)', marginTop: '20px', fontStyle: 'italic' }}>
-          Skincluv adalah alat bantu edukasi & perawatan kulit berbasis AI — bukan pengganti konsultasi dokter spesialis dermatologi.
-        </p>
-      </div>
+      </section>
     </div>
   )
 }

@@ -1,0 +1,116 @@
+/* src/styles/cluv/components/badges.css
+   =============================================================================
+   Skincluv Universal Badge Component (.cluv-badge, .cluv-dot)
+   =============================================================================
+   Soft, rounded pill badge with refined typography (Sentence Case, not screaming uppercase).
+*/
+
+.cluv-badge,
+.public-badge,
+.chapter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 0.75rem; /* Refined 12px for cute, balanced visual hierarchy */
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none; /* Sentence case, sweet and friendly */
+  color: var(--cluv-teal-dark, #127a75);
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+  padding: 4px 12px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  width: fit-content;
+  user-select: none;
+  line-height: 1.35;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+}
+
+.cluv-badge.is-sm {
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  gap: 4px;
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+ * COLOR MODIFIERS (.is-*)
+ * ============================================================================= */
+/* 1. Teal / Mint (Default) */
+.cluv-badge.is-teal,
+.cluv-badge.teal {
+  color: #127a75;
+  background: #e6f6f5;
+  border-color: #bceae7;
+}
+
+/* 2. Gold / Amber / Honey */
+.cluv-badge.is-gold,
+.cluv-badge.gold,
+.public-badge.gold {
+  color: #b45309;
+  background: #fef8ee;
+  border-color: #fae0b8;
+}
+
+/* 3. Rose / Pink / Sweet Heart */
+.cluv-badge.is-rose,
+.cluv-badge.rose,
+.public-badge.rose {
+  color: #be185d;
+  background: #fdf2f4;
+  border-color: #fbcfe8;
+}
+
+/* 4. Purple / Lavender / Night */
+.cluv-badge.is-purple,
+.cluv-badge.purple,
+.night-badge {
+  color: #7c3aed;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+/* Night surface special treatment for purple badge */
+.night-surface .cluv-badge.is-purple,
+.night-surface .night-badge {
+  background: rgba(124, 58, 237, 0.22);
+  color: #c4b5fd;
+  border-color: rgba(196, 181, 253, 0.35);
+}
+
+/* 5. Slate / Neutral */
+.cluv-badge.is-slate,
+.cluv-badge.slate,
+.public-badge.slate {
+  color: var(--cluv-neutral-600, #475569);
+  background: var(--cluv-neutral-100, #f1f5f9);
+  border-color: var(--cluv-neutral-200, #e2e8f0);
+}
+
+/* =============================================================================
+ * INDICATOR DOT (.cluv-dot)
+ * ============================================================================= */
+.cluv-dot,
+.public-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cluv-teal, #1f9d97);
+  flex-shrink: 0;
+}
+
+.cluv-dot.is-pulse,
+.cluv-dot.pulse,
+.public-dot.pulse {
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.25);
+  animation: cluvPulse 2s infinite;
+}
+
+@keyframes cluvPulse {
+  0% { box-shadow: 0 0 0 0 rgba(31, 157, 151, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(31, 157, 151, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 157, 151, 0); }
+}

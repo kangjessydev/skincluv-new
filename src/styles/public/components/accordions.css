@@ -1,0 +1,68 @@
+/* src/styles/public/components/accordions.css
+   Canonical Accordion Component (.public-accordion)
+   Smooth chevron rotation, comfortable padding, clean borders.
+*/
+
+.public-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.public-accordion-item {
+  background: var(--pub-bg-surface);
+  border: 1.5px solid var(--pub-border-card);
+  border-radius: var(--pub-radius-card-sm);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.public-accordion-item:hover {
+  border-color: var(--pub-color-teal-line);
+}
+
+.public-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(16px, 2.5vw, 22px);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--pub-font);
+  font-size: clamp(0.9375rem, 1.2vw + 0.4rem, 1.0625rem);
+  font-weight: 800;
+  color: var(--pub-text-main);
+  transition: color 0.15s ease;
+}
+
+.public-accordion-trigger:hover {
+  color: var(--pub-color-teal);
+}
+
+.public-accordion-chevron {
+  color: var(--pub-text-faint);
+  transition: transform 0.25s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.public-accordion-chevron.rotate {
+  transform: rotate(180deg);
+  color: var(--pub-color-teal);
+}
+
+.public-accordion-body {
+  padding: 0 clamp(16px, 2.5vw, 22px) clamp(16px, 2.5vw, 22px);
+  font-family: var(--pub-font);
+  font-size: 0.9375rem;
+  color: var(--pub-text-muted);
+  line-height: 1.65;
+}
+
+.public-accordion-body p {
+  margin: 0;
+}

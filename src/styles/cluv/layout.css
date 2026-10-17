@@ -1,0 +1,725 @@
+/* src/styles/cluv/layout.css
+   =============================================================================
+   Skincluv Universal Layout System (.cluv-section, .cluv-container, .cluv-grid, .cluv-btn-group)
+   =============================================================================
+   Standardized layout containers, responsive grid, section spacing, and button groups
+   inspired by WordPress/Elementor container disciplines and Bootstrap layout primitives.
+*/
+
+/* =============================================================================
+ * 0. PAGE ROOT (.cluv-page) — Canonical Page Canvas Container
+ * ============================================================================= */
+.cluv-page,
+.public-page {
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.cluv-page.is-centered {
+  align-items: center;
+  justify-content: center;
+}
+
+/* =============================================================================
+ * 1. SECTIONS (.cluv-section)
+ * ============================================================================= */
+.cluv-section,
+.landing-section {
+  width: 100%;
+  padding: clamp(40px, 5vw, 64px) 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.cluv-section.is-dense {
+  padding: clamp(24px, 3vw, 36px) 0;
+}
+
+.cluv-section.is-spacious {
+  padding: clamp(52px, 6vw, 84px) 0;
+}
+
+.cluv-section.is-alt,
+.landing-section.alt-surface {
+  background-color: var(--cluv-neutral-100, #f1f5f9);
+}
+
+.cluv-section.is-dark,
+.landing-section.night-surface {
+  background-color: #111e2f;
+  color: #ffffff;
+}
+
+.cluv-section.is-dark h1,
+.cluv-section.is-dark h2,
+.cluv-section.is-dark h3,
+.landing-section.night-surface h1,
+.landing-section.night-surface h2,
+.landing-section.night-surface h3 {
+  color: #ffffff;
+}
+
+/* =============================================================================
+ * 2. CONTAINERS (.cluv-container) — Elementor / WordPress Inspired
+ * ============================================================================= */
+.cluv-container,
+.public-container,
+.landing-container {
+  width: 100%;
+  max-width: 1200px; /* Standard Boxed (presisi sejajar Navbar, Konten, & Footer) */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(16px, 3.5vw, 32px);
+  padding-right: clamp(16px, 3.5vw, 32px);
+  box-sizing: border-box;
+}
+
+/* Narrow Container: Focused forms, single column reading, terms, checkout */
+.cluv-container.is-narrow,
+.landing-container.is-narrow {
+  max-width: 720px;
+}
+
+/* Small / Reading Container: Single-column FAQ, centered essay, focused reading */
+.cluv-container.is-sm,
+.cluv-container.is-reading,
+.landing-container.is-sm {
+  max-width: 860px;
+}
+
+/* Medium Container: Balanced 2-column contact, FAQ & feature splits */
+.cluv-container.is-md,
+.cluv-container.is-medium,
+.landing-container.is-md {
+  max-width: 1040px;
+}
+
+/* Wide Container: Dashboards, wide telemetry tables, media galleries */
+.cluv-container.is-wide,
+.landing-container.is-wide {
+  max-width: 1360px;
+}
+
+/* Fluid Container: Edge-to-edge full width dengan safe-gutter padding */
+.cluv-container.is-fluid,
+.landing-container.is-fluid {
+  max-width: 100%;
+}
+
+/* =============================================================================
+ * 3. BUTTON GROUP (.cluv-btn-group) — Bootstrap Inspired
+ * ============================================================================= */
+.cluv-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.cluv-btn-group.is-center {
+  justify-content: center;
+}
+
+.cluv-btn-group.is-right {
+  justify-content: flex-end;
+}
+
+.cluv-btn-group.is-compact {
+  gap: 8px;
+}
+
+/* Mobile full-width stack helper */
+@media (max-width: 640px) {
+  .cluv-btn-group.is-stack-mobile {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .cluv-btn-group.is-stack-mobile .cluv-btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
+
+
+/* =============================================================================
+ * 4. RESPONSIVE GRID (.cluv-grid)
+ * ============================================================================= */
+.cluv-grid {
+  display: grid;
+  width: 100%;
+  gap: clamp(16px, 2.5vw, 24px);
+  box-sizing: border-box;
+}
+
+.cluv-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.cluv-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.cluv-grid.cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Auto-fit card grid for variable items */
+.cluv-grid.is-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+/* Grid Breakpoints */
+@media (max-width: 992px) {
+  .cluv-grid.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cluv-grid.cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .cluv-grid.cols-2,
+  .cluv-grid.cols-3,
+  .cluv-grid.cols-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================================================
+ * 5. TWO-COLUMN DOCUMENT LAYOUT (.cluv-doc-layout)
+ * Sticky Sidebar (Desktop >= 880px) + Fluid Article Canvas
+ * ============================================================================= */
+.cluv-doc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 3vw, 36px);
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 880px) {
+  .cluv-doc-layout {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+.cluv-doc-sidebar {
+  position: sticky;
+  top: 96px;
+}
+
+.cluv-doc-article {
+  padding: clamp(20px, 4vw, 44px);
+}
+
+.cluv-doc-section {
+  scroll-margin-top: 100px;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--cluv-neutral-200);
+}
+
+.cluv-doc-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Document TOC Link Items (Desktop Sidebar) */
+.cluv-doc-toc-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--cluv-radius-md, 10px);
+  border: none;
+  background: transparent;
+  color: var(--cluv-neutral-700);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cluv-doc-toc-link:hover {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-900);
+}
+
+.cluv-doc-toc-link.is-active {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 800;
+}
+
+.cluv-doc-toc-link svg {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.cluv-doc-toc-link.is-active svg {
+  opacity: 1;
+  color: var(--cluv-teal);
+}
+
+/* Mobile Drawer TOC Link Items */
+.cluv-drawer-toc-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--cluv-radius-md, 12px);
+  border: 1.5px solid var(--cluv-neutral-200);
+  background: var(--cluv-neutral-50, #f8fafc);
+  color: var(--cluv-neutral-800);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cluv-drawer-toc-link:hover {
+  background: #ffffff;
+  border-color: var(--cluv-neutral-300);
+}
+
+.cluv-drawer-toc-link.is-active {
+  background: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal);
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 800;
+}
+
+/* =============================================================================
+ * 6. FLOATING ACTION BUTTON (.cluv-fab)
+ * Ergonomic floating trigger (bottom-right) with safe-area support
+ * ============================================================================= */
+.cluv-fab {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  z-index: 1040;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  min-width: 48px;
+  padding: 0 18px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  background: var(--cluv-teal);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 28px -6px rgba(31, 157, 151, 0.45);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cluv-fab:hover {
+  background: var(--cluv-teal-hover);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 34px -6px rgba(31, 157, 151, 0.55);
+}
+
+.cluv-fab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.cluv-fab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: var(--cluv-teal-dark, #127a75);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* =============================================================================
+ * 7. SLIDE-OVER DRAWER PRIMITIVE (.cluv-drawer-backdrop, .cluv-drawer)
+ * Full-height offcanvas panel sliding smoothly from right
+ * ============================================================================= */
+.cluv-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 27, 42, 0.48);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.cluv-drawer-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.cluv-drawer {
+  background: var(--cluv-current-card-bg, #ffffff);
+  width: 100%;
+  max-width: 380px;
+  height: 100%;
+  height: 100dvh;
+  box-shadow: -10px 0 40px rgba(10, 25, 45, 0.2);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.cluv-drawer-backdrop.is-open .cluv-drawer {
+  transform: translateX(0);
+}
+
+.cluv-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cluv-neutral-200);
+  flex-shrink: 0;
+}
+
+.cluv-drawer-title {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+.cluv-drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cluv-neutral-100, #f1f5f9);
+  color: var(--cluv-neutral-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cluv-drawer-close:hover {
+  background: var(--cluv-neutral-200);
+  color: var(--cluv-neutral-900);
+}
+
+.cluv-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* =============================================================================
+ * 8. AUTHENTICATION SHELL & SPLIT-SCREEN PRIMITIVES (.cluv-auth-*)
+ * ============================================================================= */
+.cluv-auth-shell {
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  background: var(--cluv-current-surface, #ffffff);
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+}
+
+/* 8.1 Split-Screen Grid Layout */
+.cluv-auth-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+@media (min-width: 1200px) {
+  .cluv-auth-split {
+    grid-template-columns: 1.15fr 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .cluv-auth-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 8.2 Left Column: Visual Editorial Showcase */
+.cluv-auth-showcase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(32px, 4vw, 56px);
+  overflow: hidden;
+  background: #0f1f1d;
+  color: #ffffff;
+}
+
+@media (max-width: 960px) {
+  .cluv-auth-showcase {
+    display: none;
+  }
+}
+
+.cluv-auth-showcase-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+  filter: saturate(1.1) brightness(0.85);
+  z-index: 1;
+}
+
+.cluv-auth-showcase-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 31, 29, 0.75) 0%,
+    rgba(15, 31, 29, 0.35) 45%,
+    rgba(15, 31, 29, 0.9) 100%
+  );
+  z-index: 2;
+}
+
+.cluv-auth-showcase-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.cluv-auth-showcase-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--cluv-radius-lg, 20px);
+  padding: 24px 28px;
+  max-width: 460px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+}
+
+.cluv-auth-showcase-quote {
+  font-family: inherit;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 16px;
+}
+
+/* 8.3 Right Column: Auth Main Pane */
+.cluv-auth-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(32px, 5vw, 64px) clamp(20px, 4vw, 48px);
+  background: var(--cluv-current-card-bg, #ffffff);
+  min-height: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.cluv-auth-form-wrap {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: auto 0;
+}
+
+/* Mobile Canopy & Sheet Curve Primitives */
+.cluv-auth-mobile-canopy {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .cluv-auth-main {
+    padding: 0;
+    justify-content: flex-start;
+    background: #0f1f1d;
+  }
+
+  .cluv-auth-mobile-canopy {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 170px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .cluv-auth-mobile-canopy-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.65;
+    filter: saturate(1.1) brightness(0.85);
+    z-index: 1;
+  }
+
+  .cluv-auth-mobile-canopy-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(15, 31, 29, 0.55) 0%,
+      rgba(15, 31, 29, 0.85) 100%
+    );
+    z-index: 2;
+  }
+
+  .cluv-auth-mobile-canopy-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+
+  .cluv-auth-form-wrap {
+    background: var(--cluv-current-card-bg, #ffffff);
+    border-radius: 28px 28px 0 0;
+    margin-top: -24px;
+    padding: 24px 20px 48px;
+    box-sizing: border-box;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.14);
+    position: relative;
+    z-index: 4;
+    min-height: calc(100dvh - 146px);
+  }
+
+  .cluv-auth-form-wrap::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--cluv-neutral-200);
+    border-radius: 9999px;
+    margin: 0 auto 16px;
+  }
+}
+
+/* Legacy container & card support if needed */
+.cluv-auth-container {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  margin: auto 0;
+}
+
+.cluv-auth-card {
+  width: 100%;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 20px);
+  padding: clamp(20px, 3.5vw, 26px);
+  box-shadow: var(--cluv-shadow-sm);
+  box-sizing: border-box;
+}
+
+.cluv-auth-brand-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--cluv-neutral-200);
+}
+
+.cluv-auth-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cluv-auth-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--cluv-radius-md, 12px);
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cluv-auth-brand-name {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--cluv-neutral-900);
+}
+
+.cluv-auth-brand-name.is-white {
+  color: #ffffff;
+}
+
+
+
+

@@ -1,0 +1,34 @@
+/* src/styles/cluv/index.css
+   =============================================================================
+   Skincluv Universal Design System & Micro-Framework (.cluv-*)
+   =============================================================================
+   Single source of truth for all universal components shared across Public,
+   App, and Admin surfaces.
+
+   Architecture:
+   - Tokens: Brand, colors, radii, shadows
+   - Surfaces: Contextual surface cascades (.cluv-surface-public, .cluv-surface-app, .cluv-surface-admin)
+   - Typography: Ergonomic scale (.cluv-title-hero, .cluv-title-section, .cluv-body, etc.)
+   - Components: Buttons, Cards, Trust Strip, Badges, Accordions, Forms
+*/
+
+/* 1. Core Foundations */
+@import './tokens.css';
+@import './surfaces.css';
+@import './layout.css';
+@import './typography.css';
+@import './animations.css';
+@import './utilities.css';
+
+/* 2. Universal Molecular Components */
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/trust-strip.css';
+@import './components/badges.css';
+@import './components/accordions.css';
+@import './components/forms.css';
+@import './components/alerts.css';
+@import './components/spinners.css';
+@import './components/dividers.css';
+@import './components/modals.css';
+

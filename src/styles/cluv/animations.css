@@ -1,0 +1,260 @@
+/* src/styles/cluv/animations.css
+   =============================================================================
+   Skincluv Universal Micro-Animations (.cluv-animate-*, .cluv-reveal)
+   =============================================================================
+   Delightful, buttery-smooth entrance animations, scroll reveals, and hover lifts.
+*/
+
+/* =============================================================================
+ * 1. KEYFRAME DEFINITIONS
+ * ============================================================================= */
+@keyframes cluvFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cluvFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cluvFloatSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes cluvPulseSoft {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.92;
+  }
+}
+
+@keyframes cluvSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cluvSlideUpSheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+ * 2. LOAD-TIME ENTRANCE ANIMATIONS
+ * ============================================================================= */
+.cluv-animate-fade,
+.animate-fade-in {
+  animation: cluvFadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cluv-animate-float {
+  animation: cluvFloatSoft 4.5s ease-in-out infinite;
+}
+
+.cluv-animate-pulse {
+  animation: cluvPulseSoft 3s ease-in-out infinite;
+}
+
+.cluv-animate-spin {
+  animation: cluvSpin 1s linear infinite;
+}
+
+/* Load-time Stagger Delays */
+.cluv-stagger-1 { animation-delay: 0.08s; }
+.cluv-stagger-2 { animation-delay: 0.16s; }
+.cluv-stagger-3 { animation-delay: 0.24s; }
+.cluv-stagger-4 { animation-delay: 0.32s; }
+
+/* =============================================================================
+ * 3. SCROLL REVEAL PRISMS (.cluv-reveal, .cluv-reveal-group)
+ * ============================================================================= */
+/* Single Element Scroll Reveal: Dreamy, Gentle, and Serene */
+.cluv-reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 1.05s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 1.05s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.cluv-reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Directional Modifiers */
+.cluv-reveal.is-left {
+  transform: translateX(-32px);
+}
+.cluv-reveal.is-left.is-revealed {
+  transform: translateX(0);
+}
+
+.cluv-reveal.is-right {
+  transform: translateX(32px);
+}
+.cluv-reveal.is-right.is-revealed {
+  transform: translateX(0);
+}
+
+.cluv-reveal.is-zoom {
+  transform: scale(0.92);
+}
+.cluv-reveal.is-zoom.is-revealed {
+  transform: scale(1);
+}
+
+/* Staggered Children Reveal Group (Cards, Grids, Steps) */
+.cluv-reveal-group > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 1.0s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 1.0s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.cluv-reveal-group.is-revealed > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cluv-reveal-group.is-revealed > *:nth-child(1) { transition-delay: 0.08s; }
+.cluv-reveal-group.is-revealed > *:nth-child(2) { transition-delay: 0.22s; }
+.cluv-reveal-group.is-revealed > *:nth-child(3) { transition-delay: 0.36s; }
+.cluv-reveal-group.is-revealed > *:nth-child(4) { transition-delay: 0.50s; }
+.cluv-reveal-group.is-revealed > *:nth-child(5) { transition-delay: 0.64s; }
+.cluv-reveal-group.is-revealed > *:nth-child(6) { transition-delay: 0.78s; }
+
+
+/* =============================================================================
+ * 4. HOVER LIFTS & MICRO-INTERACTIONS
+ * ============================================================================= */
+.cluv-hover-lift {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cluv-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -10px rgba(26, 45, 66, 0.11);
+}
+
+.cluv-hover-scale {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cluv-hover-scale:hover {
+  transform: scale(1.03);
+}
+
+/* =============================================================================
+ * 5. AMBIENT FLOATING DECORATIONS (.cluv-ambient-layer, .cluv-ambient-decor)
+ * ============================================================================= */
+.cluv-ambient-layer,
+.ambient-skincare-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cluv-ambient-decor,
+.ambient-decor {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.cluv-ambient-decor.is-cloud-left,
+.decor-cloud-1 {
+  top: 60px;
+  left: 2%;
+  opacity: 0.75;
+}
+
+.cluv-ambient-decor.is-star-mid,
+.decor-star-1 {
+  top: 120px;
+  left: 45%;
+  opacity: 0.65;
+}
+
+.cluv-ambient-decor.is-cloud-right,
+.decor-cloud-2 {
+  top: 200px;
+  right: 1.5%;
+  opacity: 0.7;
+}
+
+.cluv-ambient-decor.is-heart-bottom,
+.decor-heart-1 {
+  top: 420px;
+  left: 4%;
+  opacity: 0.6;
+}
+
+.cluv-delay-1 {
+  animation-delay: 1.2s;
+}
+
+.cluv-delay-2 {
+  animation-delay: 2s;
+}
+
+.cluv-delay-3 {
+  animation-delay: 3s;
+}
+
+/* =============================================================================
+ * 5. ACCESSIBILITY: REDUCED MOTION PREFERENCE
+ * ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .cluv-animate-fade,
+  .animate-fade-in,
+  .cluv-animate-float,
+  .cluv-animate-pulse,
+  .cluv-animate-spin,
+  .cluv-hover-scale:hover,
+  .cluv-hover-lift:hover,
+  .cluv-reveal,
+  .cluv-reveal-group > * {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

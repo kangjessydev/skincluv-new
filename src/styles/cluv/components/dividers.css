@@ -1,0 +1,52 @@
+/* src/styles/cluv/components/dividers.css
+   =============================================================================
+   Skincluv Universal Divider Component (.cluv-divider)
+   =============================================================================
+*/
+
+.cluv-divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--cluv-current-border, var(--cluv-neutral-200));
+  border: none;
+  margin: 24px 0;
+  box-sizing: border-box;
+}
+
+.cluv-divider.is-dashed {
+  background: transparent;
+  border-top: 1.5px dashed var(--cluv-current-border, var(--cluv-neutral-300));
+  height: 0;
+}
+
+.cluv-divider.has-text {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  background: transparent;
+  height: auto;
+  margin: 20px 0;
+}
+
+.cluv-divider.is-compact,
+.cluv-divider.has-text.is-compact {
+  margin: 12px 0;
+}
+
+.cluv-divider.has-text::before,
+.cluv-divider.has-text::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+}
+
+.cluv-divider-label {
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-400));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}

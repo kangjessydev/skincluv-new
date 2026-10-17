@@ -1,0 +1,71 @@
+/* src/styles/cluv/components/trust-strip.css
+   =============================================================================
+   Skincluv Universal Trust Strip Component (.cluv-trust-strip)
+   =============================================================================
+   Designed for reassuring micro-copy beneath CTA buttons, checkout screens,
+   and registration forms. Replaces plain unstyled text.
+*/
+
+.cluv-trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 18px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.cluv-trust-strip.is-left {
+  justify-content: flex-start;
+}
+
+.cluv-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.cluv-trust-icon {
+  color: var(--cluv-teal);
+  flex-shrink: 0;
+}
+
+.cluv-trust-dot {
+  color: var(--cluv-neutral-300);
+  font-size: 0.75rem;
+  user-select: none;
+  line-height: 1;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .cluv-trust-strip,
+  .cluv-trust-strip.is-left {
+    justify-content: center;
+    gap: 8px 14px;
+    margin-top: 16px;
+  }
+  .cluv-trust-item {
+    font-size: 0.78125rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .cluv-trust-strip,
+  .cluv-trust-strip.is-left {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .cluv-trust-dot {
+    display: none;
+  }
+}
+

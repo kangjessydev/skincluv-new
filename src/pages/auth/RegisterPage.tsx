@@ -1,9 +1,9 @@
 // src/pages/auth/RegisterPage.tsx
-// Harmonized with LoginPage Editorial Aesthetic — Pure Vanilla CSS
+// Halaman Pendaftaran Akun Skincluv (100% Cluv Micro-Framework)
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function RegisterPage() {
@@ -72,15 +72,15 @@ export default function RegisterPage() {
 
   if (registered) {
     return (
-      <div className="login-form-container success-container">
-        <div className="success-icon-badge">
-          <CheckCircle2 size={32} />
+      <div className="cluv-flex-col cluv-items-center cluv-text-center cluv-py-4">
+        <div className="cluv-card-icon-wrap is-teal cluv-mb-3">
+          <CheckCircle2 size={28} className="cluv-text-teal" />
         </div>
-        <h1>Akun Berhasil Dibuat</h1>
-        <p className="sub success-desc">
-          Cek email Anda di <strong>{email}</strong> untuk tautan konfirmasi. Setelah dikonfirmasi, Anda dapat langsung masuk.
+        <h1 className="cluv-title-section cluv-mb-2">Akun Berhasil Dibuat</h1>
+        <p className="cluv-body cluv-mb-5">
+          Kami telah mengirimkan tautan konfirmasi ke <strong>{email}</strong>. Silakan periksa kotak masuk atau folder spam Anda untuk mengaktifkan akun.
         </p>
-        <Link to="/login" className="btn-submit-email success-btn">
+        <Link to="/login" className="cluv-btn is-primary is-block is-md">
           Masuk Sekarang
         </Link>
       </div>
@@ -88,113 +88,111 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="login-form-container">
-      {/* KEMBALI LINK */}
-      <Link to="/" className="kembali">
-        &#8592; Kembali
-      </Link>
-
-      {/* HEADER GROUP */}
-      <div className="group">
-        <div className="eyebrow">SKINCLUV</div>
-        <h1>Mulai perjalanan Anda</h1>
-        <p className="sub">Daftar untuk analisis kulit personal berbasis kecerdasan buatan.</p>
+    <div className="cluv-flex-col">
+      {/* EDITORIAL HEADER */}
+      <div className="cluv-mb-4">
+        <h1 className="cluv-title-section cluv-mb-1">
+          Mulai Cerita Kulitmu
+        </h1>
+        <p className="cluv-subtitle">
+          Daftar gratis untuk mulai membaca formula skincare dan memahami kondisi kulitmu tanpa rasa cemas.
+        </p>
       </div>
 
-      {/* ERROR ALERT BANNER */}
+      {/* ERROR ALERT */}
       {error && (
-        <div className="login-error-alert">
-          <AlertCircle size={16} className="shrink-0" />
-          <span>{error}</span>
+        <div className="cluv-alert is-danger cluv-mb-4">
+          <AlertCircle size={16} className="cluv-alert-icon" />
+          <div className="cluv-alert-content">
+            <span className="cluv-alert-message">{error}</span>
+          </div>
         </div>
       )}
 
-      {/* GOOGLE ACTION GROUP */}
-      <div className="group">
-        <button
-          onClick={handleGoogleRegister}
-          type="button"
-          disabled={googleLoading || isLoading}
-          className="btn-google"
-        >
-          {googleLoading ? (
-            <Loader2 size={18} className="animate-spin text-primary" />
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z" />
-              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z" />
-              <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z" />
-              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
-            </svg>
-          )}
-          <span>Daftar dengan Google</span>
-        </button>
-
-        <div className="trust">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" />
-            <path d="M9 12l2 2 4-4" />
+      {/* GOOGLE ACTION */}
+      <button
+        onClick={handleGoogleRegister}
+        type="button"
+        disabled={googleLoading || isLoading}
+        className="cluv-btn is-outline is-block is-md"
+      >
+        {googleLoading ? (
+          <Loader2 size={16} className="cluv-animate-spin cluv-text-teal" />
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 18 18">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z" />
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z" />
+            <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z" />
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
           </svg>
-          <span>Data kulit Anda aman dan terenkripsi</span>
-        </div>
+        )}
+        <span>Daftar dengan Google</span>
+      </button>
+
+      {/* PRIVACY TRUST STRIP */}
+      <div className="cluv-trust-strip is-left cluv-my-2">
+        <span className="cluv-trust-item">
+          <ShieldCheck size={13} className="cluv-trust-icon cluv-text-teal" />
+          <span className="cluv-micro">Privasi fotomu terlindungi penuh (UU PDP)</span>
+        </span>
       </div>
 
       {/* DIVIDER */}
-      <div className="auth-divider">
-        <span>atau daftar dengan email</span>
+      <div className="cluv-divider has-text is-compact">
+        <span className="cluv-divider-label">atau dengan email</span>
       </div>
 
       {/* FORM FIELDS */}
-      <form onSubmit={handleRegister} className="email-login-form">
-        <div className="form-input-group">
-          <label className="input-label">Nama Lengkap</label>
-          <div className="input-field-box">
-            <User size={14} className="field-icon" />
+      <form onSubmit={handleRegister} className="cluv-flex-col cluv-gap-4">
+        <div className="cluv-field">
+          <label className="cluv-label">Nama Lengkap</label>
+          <div className="cluv-input-wrap has-leading-icon">
+            <User size={16} className="cluv-input-icon is-leading" />
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Nama lengkap Anda"
-              className="text-input"
+              className="cluv-input"
               required
             />
           </div>
         </div>
 
-        <div className="form-input-group">
-          <label className="input-label">Email</label>
-          <div className="input-field-box">
-            <Mail size={14} className="field-icon" />
+        <div className="cluv-field">
+          <label className="cluv-label">Email</label>
+          <div className="cluv-input-wrap has-leading-icon">
+            <Mail size={16} className="cluv-input-icon is-leading" />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nama@email.com"
-              className="text-input"
+              className="cluv-input"
               required
             />
           </div>
         </div>
 
-        <div className="form-input-group">
-          <label className="input-label">Password</label>
-          <div className="input-field-box">
-            <Lock size={14} className="field-icon" />
+        <div className="cluv-field">
+          <label className="cluv-label">Password</label>
+          <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
+            <Lock size={16} className="cluv-input-icon is-leading" />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimal 8 karakter"
-              className="text-input"
+              className="cluv-input"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="toggle-password-btn"
-              aria-label="Tampilkan atau sembunyikan password"
+              className="cluv-input-icon is-trailing"
+              aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
             >
-              {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>
@@ -202,20 +200,31 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={isLoading || googleLoading}
-          className="btn-submit-email"
+          className="cluv-btn is-primary is-block is-md cluv-mt-2"
         >
-          {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Buat Akun Baru'}
+          {isLoading ? <Loader2 size={16} className="cluv-animate-spin" /> : 'Buat Akun Baru'}
         </button>
       </form>
 
       {/* LOGIN LINK */}
-      <p className="link-row">
-        Sudah punya akun? <Link to="/login">Masuk di sini</Link>
+      <p className="cluv-caption cluv-text-center cluv-mt-4">
+        Sudah punya akun?{' '}
+        <Link to="/login" className="cluv-link">
+          Masuk di sini
+        </Link>
       </p>
 
       {/* LEGAL DISCLAIMER FOOTER */}
-      <p className="legal">
-        Dengan mendaftar, Anda menyetujui <Link to="/terms">Syarat Layanan</Link> dan <Link to="/privacy">Kebijakan Privasi</Link>.
+      <p className="cluv-micro cluv-text-center cluv-text-muted cluv-mt-3">
+        Dengan mendaftar, Anda menyetujui{' '}
+        <Link to="/terms" className="cluv-link is-muted is-underline">
+          Syarat Layanan
+        </Link>{' '}
+        dan{' '}
+        <Link to="/privacy" className="cluv-link is-muted is-underline">
+          Kebijakan Privasi
+        </Link>
+        .
       </p>
     </div>
   )

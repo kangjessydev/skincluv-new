@@ -1,5 +1,5 @@
 // src/pages/auth/ResetPasswordPage.tsx
-// Halaman Pendaftaran Kata Sandi Baru Resmi Supabase Auth
+// Halaman Pendaftaran Kata Sandi Baru Resmi Supabase Auth (100% Cluv Micro-Framework)
 // Kepatuhan: Invarian 21 & Validasi Kompleksitas Sandi
 
 import { useState, useEffect } from 'react'
@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
 
     try {
       const { error: updateError } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       })
 
       if (updateError) {
@@ -73,64 +73,67 @@ export default function ResetPasswordPage() {
 
   if (sessionChecking) {
     return (
-      <div className="auth-form-panel text-center py-5">
-        <Loader2 size={32} className="animate-spin text-primary mx-auto mb-2" />
-        <p className="text-muted">Memeriksa izin sesi pemulihan...</p>
+      <div className="cluv-flex-col cluv-items-center cluv-text-center cluv-py-6">
+        <Loader2 size={32} className="cluv-animate-spin cluv-text-teal cluv-mb-3" />
+        <p className="cluv-caption cluv-text-muted">Memeriksa izin sesi pemulihan...</p>
       </div>
     )
   }
 
   return (
-    <div className="auth-form-panel animate-fade-in">
-      <div className="auth-header-group">
-        <div className="auth-eyebrow">KEAMANAN AKUN</div>
-        <h1>Atur Kata Sandi Baru</h1>
-        <p className="auth-sub">
+    <div className="cluv-flex-col">
+      {/* EDITORIAL HEADER */}
+      <div className="cluv-mb-4">
+        <h1 className="cluv-title-section cluv-mb-1">
+          Atur Kata Sandi Baru
+        </h1>
+        <p className="cluv-subtitle">
           Buat kata sandi baru yang kuat untuk melindungi akun dan riwayat konsultasi kulit Anda.
         </p>
       </div>
 
+      {/* ERROR ALERT */}
       {error && (
-        <div className="auth-alert-error">
-          <AlertCircle size={16} className="shrink-0" />
-          <span>{error}</span>
+        <div className="cluv-alert is-danger cluv-mb-4">
+          <AlertCircle size={16} className="cluv-alert-icon" />
+          <div className="cluv-alert-content">
+            <span className="cluv-alert-message">{error}</span>
+          </div>
         </div>
       )}
 
       {success ? (
-        <div className="reset-success-box animate-fade-in">
-          <div className="success-icon-wrap">
-            <CheckCircle2 size={36} />
+        <div className="cluv-flex-col cluv-items-center cluv-text-center cluv-py-4">
+          <div className="cluv-card-icon-wrap is-teal cluv-mb-3">
+            <CheckCircle2 size={28} className="cluv-text-teal" />
           </div>
-          <h3>Kata Sandi Berhasil Diperbarui!</h3>
-          <p>
+          <h2 className="cluv-title-card cluv-mb-2">Kata Sandi Berhasil Diperbarui!</h2>
+          <p className="cluv-body cluv-mb-4">
             Kata sandi akun Anda telah diperbarui dengan aman. Mengalihkan Anda ke ruang konsultasi...
           </p>
-          <div className="mt-3">
-            <Link to="/" className="btn btn-primary btn-sm">
-              <span>Masuk ke Dashboard</span>
-              <ArrowRight size={14} />
-            </Link>
-          </div>
+          <Link to="/" className="cluv-btn is-primary is-block is-md">
+            <span>Masuk ke Dashboard</span>
+            <ArrowRight size={16} />
+          </Link>
         </div>
       ) : (
-        <form onSubmit={handleUpdatePassword} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="new-password">Kata Sandi Baru (Min. 8 Karakter)</label>
-            <div className="input-field-wrap">
-              <Lock size={16} className="input-icon" />
+        <form onSubmit={handleUpdatePassword} className="cluv-flex-col cluv-gap-4">
+          <div className="cluv-field">
+            <label className="cluv-label">Kata Sandi Baru (Min. 8 Karakter)</label>
+            <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
+              <Lock size={16} className="cluv-input-icon is-leading" />
               <input
-                id="new-password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 placeholder="Masukkan kata sandi baru"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
+                className="cluv-input"
               />
               <button
                 type="button"
-                className="toggle-password-btn"
+                className="cluv-input-icon is-trailing"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label="Tampilkan sandi"
               >
@@ -139,28 +142,36 @@ export default function ResetPasswordPage() {
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirm-password">Konfirmasi Kata Sandi Baru</label>
-            <div className="input-field-wrap">
-              <Lock size={16} className="input-icon" />
+          <div className="cluv-field">
+            <label className="cluv-label">Konfirmasi Kata Sandi Baru</label>
+            <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
+              <Lock size={16} className="cluv-input-icon is-leading" />
               <input
-                id="confirm-password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 placeholder="Ulangi kata sandi baru"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
+                className="cluv-input"
               />
+              <button
+                type="button"
+                className="cluv-input-icon is-trailing"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label="Tampilkan sandi"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="btn btn-primary btn-block mt-3"
+            className="cluv-btn is-primary is-block is-md cluv-mt-2"
           >
-            {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Simpan Kata Sandi Baru'}
+            {isLoading ? <Loader2 size={16} className="cluv-animate-spin" /> : 'Simpan Kata Sandi Baru'}
           </button>
         </form>
       )}

@@ -1,0 +1,268 @@
+/* src/styles/cluv/components/buttons.css
+   =============================================================================
+   Skincluv Universal Button Component (.cluv-btn)
+   =============================================================================
+   Modular, accessible (>= 44px touch targets by default), responsive.
+   Supports modifier flags (.is-primary, .is-sm) as well as contextual surface cascades.
+*/
+
+.cluv-btn,
+.public-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: var(--cluv-current-radius-btn, var(--cluv-radius-md));
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  user-select: none;
+  line-height: 1;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .cluv-btn {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
+  }
+}
+
+
+/* =============================================================================
+ * 1. SIZES (DEFAULT MD: 44px min-height for mobile touch accessibility)
+ * ============================================================================= */
+.cluv-btn.is-sm,
+.cluv-btn.sm,
+.public-btn.sm {
+  height: 38px;
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 0.8125rem;
+  gap: 6px;
+}
+
+.cluv-btn.is-md,
+.cluv-btn.md,
+.cluv-btn:not(.is-sm):not(.sm):not(.is-lg):not(.lg),
+.public-btn.md,
+.public-btn:not(.sm):not(.lg) {
+  height: 46px;
+  min-height: 46px;
+  padding: 0 22px;
+  font-size: 0.9375rem;
+  gap: 8px;
+}
+
+.cluv-btn.is-lg,
+.cluv-btn.lg,
+.public-btn.lg {
+  height: 52px;
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 1.0625rem;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .cluv-btn.is-lg,
+  .cluv-btn.lg,
+  .public-btn.lg {
+    min-height: 48px;
+    height: auto;
+    padding: 12px 20px;
+    font-size: clamp(0.9375rem, 3.8vw, 1.0625rem);
+    gap: 8px;
+  }
+}
+
+
+.cluv-btn.is-block,
+.cluv-btn.block,
+.public-btn.block {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .cluv-btn.is-stack-mobile {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* =============================================================================
+ * 2. SHAPE MODIFIERS
+ * ============================================================================= */
+.cluv-btn.is-pill,
+.cluv-btn.pill {
+  border-radius: var(--cluv-radius-pill);
+}
+
+.cluv-btn.is-rounded,
+.cluv-btn.rounded {
+  border-radius: var(--cluv-radius-md);
+}
+
+/* =============================================================================
+ * 3. COLOR VARIANTS
+ * ============================================================================= */
+/* Primary */
+.cluv-btn.is-primary,
+.cluv-btn.primary,
+.public-btn.primary {
+  background: var(--cluv-teal);
+  color: #ffffff;
+  box-shadow: var(--cluv-shadow-glow);
+}
+
+.cluv-btn.is-primary:hover,
+.cluv-btn.primary:hover,
+.public-btn.primary:hover {
+  background: var(--cluv-teal-hover);
+  transform: translateY(-1.5px);
+  box-shadow: var(--cluv-shadow-glow-hover);
+}
+
+.cluv-btn.is-primary:active,
+.cluv-btn.primary:active,
+.public-btn.primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary */
+.cluv-btn.is-secondary,
+.cluv-btn.secondary,
+.public-btn.secondary {
+  background: #ffffff;
+  color: var(--cluv-neutral-800);
+  border-color: var(--cluv-neutral-200);
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-btn.is-secondary:hover,
+.cluv-btn.secondary:hover,
+.public-btn.secondary:hover {
+  background: var(--cluv-neutral-50);
+  border-color: var(--cluv-teal-line);
+  color: var(--cluv-teal-dark);
+  transform: translateY(-1.5px);
+  box-shadow: var(--cluv-shadow-md);
+}
+
+/* Outline */
+.cluv-btn.is-outline,
+.cluv-btn.outline,
+.public-btn.outline {
+  background: transparent;
+  border-color: var(--cluv-teal-line);
+  color: var(--cluv-teal-dark);
+}
+
+.cluv-btn.is-outline:hover,
+.cluv-btn.outline:hover,
+.public-btn.outline:hover {
+  background: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal);
+}
+
+/* Ghost */
+.cluv-btn.is-ghost,
+.cluv-btn.ghost,
+.public-btn.ghost {
+  background: transparent;
+  color: var(--cluv-neutral-600);
+  border-color: transparent;
+}
+
+.cluv-btn.is-ghost:hover,
+.cluv-btn.ghost:hover,
+.public-btn.ghost:hover {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-teal);
+}
+
+/* Danger */
+.cluv-btn.is-danger,
+.cluv-btn.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.cluv-btn.is-danger:hover,
+.cluv-btn.danger:hover {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+/* =============================================================================
+ * 4. CONTEXTUAL SURFACE CASCADE & OVERRIDES
+ * ============================================================================= */
+/* Public Surface: Soft Pill Styling */
+.cluv-surface-public .cluv-btn:not(.is-rounded) {
+  border-radius: var(--cluv-radius-pill);
+}
+
+/* Admin Surface: High Density & Sharp Radii */
+.cluv-surface-admin .cluv-btn,
+.cluv-btn.is-admin {
+  border-radius: var(--cluv-radius-sm);
+  font-family: var(--cluv-font-admin);
+  font-size: 0.8125rem;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 14px;
+  letter-spacing: -0.01em;
+  box-shadow: none;
+}
+
+.cluv-surface-admin .cluv-btn.is-sm,
+.cluv-btn.is-admin.is-sm {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+.cluv-surface-admin .cluv-btn.is-lg,
+.cluv-btn.is-admin.is-lg {
+  height: 42px;
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 0.875rem;
+}
+
+/* App Surface: Fresh Clinical Medium Radii */
+.cluv-surface-app .cluv-btn,
+.cluv-btn.is-app {
+  border-radius: var(--cluv-radius-md);
+  font-family: var(--cluv-font-app);
+}
+
+/* =============================================================================
+ * 5. DISABLED STATE
+ * ============================================================================= */
+.cluv-btn:disabled,
+.cluv-btn.is-disabled,
+.cluv-btn.disabled,
+.public-btn:disabled,
+.public-btn.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.cluv-btn.is-static {
+  cursor: default !important;
+  pointer-events: none;
+  transform: none !important;
+}
+

@@ -185,6 +185,8 @@ Jika sudah ada -> gunakan yang lama. Jangan buat implementasi paralel dengan nam
 
 ### 5.5 SOP Frontend & UI Design System: Doktrin *Search-Before-Create*
 
+> ⚡ **AI FAST SCAN REFERENCE**: Sebelum menulis JSX/TSX atau CSS, seluruh AI **WAJIB membaca cheat-sheet ringkas**: [docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md](file:///home/kangjessy/Documents/projects/skinscan/skincluv/docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md). File tersebut berisi kamus cepat seluruh class universal (`cluv-*`), snippet siap pakai, dan anti-hallucination checklist agar AI tidak perlu membuka file CSS berukuran besar!
+
 > **Prinsip Utama**: AI dilarang keras berasumsi atau membuat nama class CSS baru secara generatif dari nol (*self-contained bias*). Setiap komponen antarmuka yang akan dibuat **WAJIB** dicek terlebih dahulu apakah sudah memiliki padanan kanonikal di `src/index.css`.
 
 #### 1. Protokol Tiga Langkah: Reuse -> Extend -> Create
@@ -291,6 +293,94 @@ Setiap halaman baru atau yang sedang direfaktorisasi **WAJIB** memakai komponen 
 | **Daftar & Baris Ledger** | `.v0-ledger-list`, `.v0-ledger-item` | Baris transaksi/mutasi dengan icon status bundar (`.v0-ledger-icon`), detail judul & tanggal, serta nominal/badge. |
 | **Pill Badge Status** | `.v0-badge.success` / `.warning` / `.danger` | Menggunakan token CSS variabel soft background + solid ink. |
 | **Kartu Kosong (Empty State)** | `.v0-empty-state` | Ikon redup 44px, judul bold, teks penjelasan, tombol aksi. |
+
+---
+
+### 5.11 SOP Frontend Halaman Publik & Non-Login (`public-*`)
+
+> **Latar Belakang**: Halaman non-login (Landing, Tentang Kami, Paket, FAQ, Kontak, Dokumen Legal, 404, dan Auth Single Card) merepresentasikan wajah publik Skincluv. Seluruh antarmuka di area ini wajib mengikuti estetika **Option E (Warm Companion & Bestie Storytelling)** dan menggunakan sistem modular mandiri berbasis prefix kanonikal **`public-*`**. Dilarang menduplikasi class CSS untuk komponen yang identik. Rujukan lengkap terdapat pada [PUBLIC_DESIGN_SYSTEM.md](file:///home/kangjessy/Documents/projects/skinscan/skincluv/docs/frontend/PUBLIC_DESIGN_SYSTEM.md).
+
+#### 1. Doktrin *Search-Before-Create* di Area Non-Login
+1. **DILARANG KERAS** membuat class CSS berawalan nama halaman spesifik seperti `.faq-btn`, `.contact-card`, `.paket-box`, `.not-found-btn`, atau `.login-input`.
+2. AI **WAJIB** mengecek dan menggunakan komponen kanonikal dari kamus `public-*` di bawah ini.
+3. Seluruh styling publik wajib tersentralisasi di `src/styles/public/` dan diimpor melalui `src/styles/public/index.css`.
+
+#### 2. Kamus Komponen Kanonikal Publik (`public-*`)
+| Kategori | Class Kanonikal Wajib | Variasi / Modifier | Catatan & Perilaku |
+| :--- | :--- | :--- | :--- |
+| **Wrapper Halaman** | `.public-page` | - | Latar `#f7faff`, font Nunito, `min-height: 100dvh`. |
+| **Kontainer Konten** | `.public-container` | `.narrow` (max 480px) | Lebar maks 1140px, padding fluid `clamp(16px, 3.5vw, 32px)`. |
+| **Header Bab / Seksi** | `.public-section-header` | `.center`, `.left` | Berisi badge pill, H1/H2 fluid clamp, dan `.public-subtitle`. |
+| **Tombol Pill** | `.public-btn` | `.primary`, `.secondary`, `.outline`, `.ghost` | Radius `9999px`, Nunito 800, touch target min 46px. Ukuran: `.sm`, `.md`, `.lg`. |
+| **Kartu Awan (Cloud Card)**| `.public-card` | `.interactive` | Radius `28px`, border `1.5px solid #dce8f3`, soft shadow. Hover transform di `.interactive`. |
+| **Ikon Bundar Kartu** | `.public-card-icon-wrap` | - | Lingkaran 48px, latar `#e6f6f5`, ikon teal `#1f9d97`. |
+| **Badge / Label Pill** | `.public-badge` | - | Kapsul `9999px`, latar `#e6f6f5`, teks `#127a75`, border `#bceae7`. |
+| **Titik Indikator Badge** | `.public-dot` | - | Titik bulat 6px mint/teal aktif di samping teks badge. |
+| **Formulir & Input** | `.public-form-group`, `.public-input` | `.textarea`, `.error` | Radius `14px`, tinggi 48px, border `#dce8f3`, fokus teal ring. |
+| **Akordeon (FAQ/Rincian)** | `.public-accordion`, `.public-accordion-item` | `.trigger`, `.body` | Kartu buka-tutup dengan transisi halus rotasi chevron. |
+| **Banner Disclaimer/Info**| `.public-banner` | `.disclaimer`, `.info` | Banner batas kasih non-terapeutik atau info transparansi. |
+
+#### 3. Standar Responsif Fluid Multi-Device
+- **Fluid Typography**: Menggunakan rumus `font-size: clamp(...)` agar judul tidak jebol di HP compact (320px) dan proporsional di desktop ultrawide.
+- **Fluid Grid**: Menggunakan `grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr))` untuk menjamin nol bug horizontal scroll pada kartu.
+- **Dynamic Viewport**: Menggunakan `min-height: 100dvh` dengan fallback `100vh` untuk mengatasi dynamic URL bar pada mobile browser.
+- **Touch Targets**: Area sentuh tombol dan elemen interaktif minimal 44–48px demi kenyamanan navigasi jari di ponsel.
+
+---
+
+### 5.12 Universal Micro-Framework SOP (`cluv-*`) & Contextual Surface Cascades
+
+> **Latar Belakang & Filosofi Arsitektur**: Untuk mengatasi duplikasi style antar-area (Public, App, Admin), Skincluv menetapkan **Micro-Framework Universal** dengan prefix **`cluv-*`**. Komponen inti (Button, Card, Input, Badge, Accordion, Trust Strip) dapat digunakan di seluruh permukaan tanpa perlu menulis ulang styling. Rujukan lengkap terdapat pada [CLUV_DESIGN_SYSTEM.md](file:///home/kangjessy/Documents/projects/skinscan/skincluv/docs/frontend/CLUV_DESIGN_SYSTEM.md).
+
+#### 1. Aturan Tiga Pilar Micro-Framework
+1. **Universal Primitives (`cluv-*`)**: Semua komponen universal berawalan `.cluv-` (misal `.cluv-btn`, `.cluv-card`, `.cluv-trust-strip`, `.cluv-badge`, `.cluv-accordion`, `.cluv-input`).
+2. **Larangan Class Telanjang (Gunakan Modifier `is-*`)**:
+   - DILARANG menggunakan kata telanjang seperti `<button class="cluv-btn sm primary admin">` karena rawan tabrakan CSS dan ambigu saat debugging.
+   - WAJIB menggunakan format modifier `is-*`: `.is-primary`, `.is-secondary`, `.is-outline`, `.is-ghost`, `.is-sm`, `.is-md`, `.is-lg`, `.is-pill`.
+3. **Contextual Surface Cascades (`.cluv-surface-*`)**:
+   - Alih-alih menambahkan class `admin` di ratusan elemen admin (*developer fatigue*), wrapper layout halaman mengaktifkan persona lingkungannya:
+     - `.cluv-surface-public`: Mengaktifkan persona hangat (*Warm Companion*), font Nunito, radius rounded-pill lembut, dan soft glow.
+     - `.cluv-surface-app`: Mengaktifkan persona klinis segar (*Fresh Clinical*), font Plus Jakarta Sans, radius 12px.
+     - `.cluv-surface-admin`: Mengaktifkan persona produktivitas tinggi (*High-Density Admin*), font Inter, ukuran padat (36px button), radius 6px tegas, border crisp.
+   - Developer cukup menulis `<button class="cluv-btn is-primary is-sm">Simpan</button>`, dan tombol OTOMATIS menyesuaikan karakternya sesuai surface. Override manual (`.is-admin`, `.is-app`, `.is-public`) tetap didukung jika diperlukan.
+
+#### 2. Skala Hirarki Tipografi Kanonikal
+Semua teks wajib mematuhi skala hirarki baku ini untuk menjamin proporsi visual UI/UX yang harmonis:
+- **`.cluv-title-hero`**: `clamp(2rem, 3.8vw + 0.8rem, 3rem)` (H1 Hero utama).
+- **`.cluv-title-section`**: `clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem)` (H2 setiap babak/seksi halaman).
+- **`.cluv-title-card`**: `clamp(1.125rem, 1.2vw + 0.5rem, 1.25rem)` (H3 judul kartu fitur/bento/langkah).
+- **`.cluv-lead`**: `clamp(1.0625rem, 1.4vw + 0.4rem, 1.25rem)` (Paragraf pengantar / intro).
+- **`.cluv-body`**: `1rem` (16px), Line-height 1.65 (Teks bacaan utama).
+- **`.cluv-caption`**: `0.875rem` (14px) (Keterangan tambahan).
+- **`.cluv-micro`**: `0.75rem` (12px) (Fine-print, disclaimer, tag).
+
+#### 3. Reassurance Trust Strip (`.cluv-trust-strip`)
+Teks penenang di bawah tombol CTA (seperti `Gratis Pendaftaran • Tanpa Kartu Kredit • 100% Aman Privasi`) DILARANG ditulis menggunakan tag `<p>` polosan atau utility class abu-abu telanjang. Wajib menggunakan komponen baku:
+```html
+<div class="cluv-trust-strip">
+  <span class="cluv-trust-item"><CheckCircle2 class="cluv-trust-icon" /> Gratis Pendaftaran</span>
+  <span class="cluv-trust-dot">•</span>
+  <span class="cluv-trust-item"><CheckCircle2 class="cluv-trust-icon" /> Tanpa Kartu Kredit</span>
+  <span class="cluv-trust-dot">•</span>
+  <span class="cluv-trust-item"><ShieldCheck class="cluv-trust-icon" /> 100% Aman Privasi</span>
+</div>
+```
+
+#### 4. Standar Kontainer & Layout (.cluv-container, .cluv-grid, .cluv-btn-group)
+- **`.cluv-container`**: Default 1140px boxed untuk halaman publik/landing.
+- **`.cluv-container.is-narrow`**: 720px untuk form, checkout, artikel, dan auth.
+- **`.cluv-container.is-wide`**: 1360px untuk kanvas luas (Dashboard & Admin).
+- **`.cluv-container.is-fluid`**: 100% full-width.
+- **`.cluv-btn-group`**: Barisan tombol responsif (opsi: `.is-center`, `.is-right`, `.is-stack-mobile`).
+- **`.cluv-grid`**: Grid responsif otomatis (opsi: `.cols-2`, `.cols-3`, `.cols-4`, `.is-auto-fit`).
+
+#### 5. Komponen Pelengkap Wajib
+- **Feedback & Alert**: `.cluv-alert.is-info` / `.is-success` / `.is-warning` / `.is-danger`
+- **Loading State**: `.cluv-spinner` (lingkaran putar teal) & `.cluv-skeleton` (shimmer placeholder)
+- **Dividers**: `.cluv-divider` & `.cluv-divider.has-text`
+- **Dialogs**: `.cluv-modal-overlay` & `.cluv-modal-box`
+
+
 
 
 

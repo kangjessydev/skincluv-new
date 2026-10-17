@@ -1,0 +1,152 @@
+/* src/styles/cluv/components/alerts.css
+   =============================================================================
+   Skincluv Universal Alert / Banner Component (.cluv-alert)
+   =============================================================================
+*/
+
+.cluv-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-md));
+  border: 1.5px solid transparent;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.cluv-alert-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cluv-alert-content {
+  flex: 1;
+}
+
+.cluv-alert-title {
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.cluv-alert-message {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Compact / Small Alert Modifier */
+.cluv-alert.is-compact,
+.cluv-alert.is-sm {
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+}
+
+.cluv-alert.is-compact .cluv-alert-title,
+.cluv-alert.is-sm .cluv-alert-title {
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+.cluv-alert.is-compact .cluv-alert-message,
+.cluv-alert.is-sm .cluv-alert-message {
+  font-size: 0.8125rem;
+}
+
+/* 1. INFO ALERT (Teal / Sky Soft) */
+.cluv-alert.is-info {
+  background-color: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal-line);
+  color: var(--cluv-teal-dark);
+}
+
+.cluv-alert.is-info .cluv-alert-icon {
+  color: var(--cluv-teal);
+}
+
+/* 2. SUCCESS ALERT (Mint Green Soft) */
+.cluv-alert.is-success {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.cluv-alert.is-success .cluv-alert-icon {
+  color: #10b981;
+}
+
+/* 3. WARNING ALERT (Warm Amber Soft) */
+.cluv-alert.is-warning {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.cluv-alert.is-warning .cluv-alert-icon {
+  color: #f59e0b;
+}
+
+/* 4. DANGER / ERROR ALERT (Rose / Red Soft) */
+.cluv-alert.is-danger {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.cluv-alert.is-danger .cluv-alert-icon {
+  color: #ef4444;
+}
+
+/* =============================================================================
+ * 5. COLLAPSIBLE ALERT MODIFIER (.is-collapsible)
+ * Compact on mobile with toggle action, full display on desktop
+ * ============================================================================= */
+.cluv-alert.is-collapsible .cluv-alert-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.cluv-alert-toggle-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: inherit;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.cluv-alert-toggle-btn:hover {
+  opacity: 1;
+}
+
+.cluv-alert-toggle-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.cluv-alert.is-collapsible.is-expanded .cluv-alert-toggle-btn svg {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+  .cluv-alert-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .cluv-alert.is-collapsible.is-collapsed .cluv-alert-message {
+    display: none;
+  }
+}
+

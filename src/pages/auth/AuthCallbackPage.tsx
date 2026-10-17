@@ -66,43 +66,41 @@ export default function AuthCallbackPage() {
   }, [navigate, searchParams])
 
   return (
-    <div className="callback-container animate-fade-in">
-      <div className="callback-card">
-        {status === 'processing' && (
-          <>
-            <Loader2 size={44} className="animate-spin text-primary mx-auto mb-3" />
-            <h2>Memverifikasi Kredensial...</h2>
-            <p>Mohon tunggu sebentar, kami sedang mengamankan sesi akun Skincluv Anda.</p>
-          </>
-        )}
+    <div className="cluv-flex-col cluv-items-center cluv-text-center cluv-py-6">
+      {status === 'processing' && (
+        <>
+          <Loader2 size={40} className="cluv-animate-spin cluv-text-teal cluv-mb-3" />
+          <h2 className="cluv-title-card cluv-mb-1">Memverifikasi Kredensial...</h2>
+          <p className="cluv-body cluv-text-muted">Mohon tunggu sebentar, kami sedang mengamankan sesi akun Skincluv Anda.</p>
+        </>
+      )}
 
-        {status === 'success' && (
-          <>
-            <div className="callback-icon-success">
-              <CheckCircle2 size={44} />
-            </div>
-            <h2>Verifikasi Berhasil!</h2>
-            <p>Sesi Anda telah terotentikasi secara aman. Mengalihkan ke ruang akun...</p>
-          </>
-        )}
+      {status === 'success' && (
+        <>
+          <div className="cluv-card-icon-wrap is-teal cluv-mb-3">
+            <CheckCircle2 size={28} className="cluv-text-teal" />
+          </div>
+          <h2 className="cluv-title-card cluv-mb-1">Verifikasi Berhasil!</h2>
+          <p className="cluv-body cluv-text-muted">Sesi Anda telah terotentikasi secara aman. Mengalihkan ke ruang akun...</p>
+        </>
+      )}
 
-        {status === 'error' && (
-          <>
-            <div className="callback-icon-error">
-              <AlertCircle size={44} />
-            </div>
-            <h2>Tautan Tidak Valid</h2>
-            <p>{errorMessage}</p>
-            <button
-              className="btn btn-primary btn-sm mt-3"
-              onClick={() => navigate('/login', { replace: true })}
-            >
-              <span>Kembali ke Halaman Masuk</span>
-              <ArrowRight size={14} />
-            </button>
-          </>
-        )}
-      </div>
+      {status === 'error' && (
+        <>
+          <div className="cluv-card-icon-wrap is-rose cluv-mb-3">
+            <AlertCircle size={28} className="cluv-text-rose" />
+          </div>
+          <h2 className="cluv-title-card cluv-mb-1">Tautan Tidak Valid</h2>
+          <p className="cluv-body cluv-text-muted cluv-mb-4">{errorMessage}</p>
+          <button
+            className="cluv-btn is-primary is-md"
+            onClick={() => navigate('/login', { replace: true })}
+          >
+            <span>Kembali ke Halaman Masuk</span>
+            <ArrowRight size={16} />
+          </button>
+        </>
+      )}
     </div>
   )
 }

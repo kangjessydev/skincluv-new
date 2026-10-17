@@ -1,0 +1,67 @@
+/* src/styles/public/components/banners.css
+   Canonical Disclaimer & Trust Banner Component (.public-banner)
+   Non-therapeutic boundaries, prepaid transparency, and companion callouts.
+*/
+
+.public-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #ffffff;
+  border: 1.5px solid var(--pub-border-card);
+  border-radius: var(--pub-radius-cloud);
+  padding: clamp(20px, 3vw, 28px);
+  box-shadow: var(--pub-shadow-card);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.public-banner-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.public-banner-text {
+  font-family: var(--pub-font);
+  font-size: 0.9375rem;
+  color: var(--pub-text-muted);
+  line-height: 1.6;
+}
+
+.public-banner-text strong {
+  color: var(--pub-text-main);
+}
+
+.public-banner-text a {
+  color: var(--pub-color-teal);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* MODIFIER: DISCLAIMER MEDIS */
+.public-banner.disclaimer {
+  border-left: 5px solid var(--pub-color-teal);
+}
+
+.public-banner.disclaimer .public-banner-icon {
+  color: var(--pub-color-teal);
+}
+
+/* MODIFIER: PERINGATAN / ALERT */
+.public-banner.warning {
+  border-left: 5px solid #f59e0b;
+}
+
+.public-banner.warning .public-banner-icon {
+  color: #f59e0b;
+}
+
+/* MODIFIER: INFO HALUS */
+.public-banner.info {
+  background: var(--pub-color-teal-soft);
+  border-color: var(--pub-color-teal-line);
+}
+
+.public-banner.info .public-banner-icon {
+  color: var(--pub-color-teal);
+}

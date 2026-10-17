@@ -40,7 +40,7 @@ const navMainItems = [
 const navOtherItems = [
   { to: '/chatbot', icon: MessageCircle, label: 'Skinsistant AI', badge: 'AI' },
   { to: '/missions', icon: HeartPulse, label: 'Misi Glow' },
-  { to: '/pricing', icon: ShieldCheck, label: 'Paket & Langganan' },
+  { to: '/paket', icon: ShieldCheck, label: 'Paket Akses' },
   { to: '/faq', icon: CircleHelp, label: 'Bantuan & FAQ' },
 ]
 

@@ -1,0 +1,99 @@
+/* src/styles/cluv/typography.css
+   =============================================================================
+   Skincluv Universal Typography Hierarchy System
+   =============================================================================
+   Fluid, ergonomic scale for all viewports (Mobile 360px -> Desktop 1440px).
+   Solves visual hierarchy imbalances and awkward text sizes.
+*/
+
+/* 1. HERO TITLE: Main primary heading (H1) */
+.cluv-title-hero,
+.public-title-hero {
+  font-family: inherit;
+  font-size: clamp(2rem, 3.8vw + 0.8rem, 3rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+/* 2. SECTION TITLE: Distinct chapter / section heading (H2) */
+.cluv-title-section,
+.public-section-title {
+  font-family: inherit;
+  font-size: clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+/* 3. CARD TITLE: Heading inside cards, bento blocks, widgets (H3) */
+.cluv-title-card {
+  font-family: inherit;
+  font-size: clamp(1.125rem, 1.2vw + 0.5rem, 1.25rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+.cluv-title-card.is-sm {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+/* 4. LEAD PARAGRAPH: Engaging intro text below hero title (17px - 20px) */
+.cluv-lead {
+  font-family: inherit;
+  font-size: clamp(1.0625rem, 1.4vw + 0.4rem, 1.25rem);
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-600));
+  margin: 0;
+}
+
+/* 4.5. SUBTITLE: Balanced section header description (15px - 16px) */
+.cluv-subtitle {
+  font-family: inherit;
+  font-size: clamp(0.9375rem, 0.8vw + 0.4rem, 1rem);
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* 5. BODY TEXT: Everyday readable paragraph */
+.cluv-body {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-600));
+  margin: 0;
+}
+
+/* 6. CAPTION TEXT: Secondary descriptive / helper text */
+.cluv-caption {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  margin: 0;
+}
+
+/* 7. MICRO COPY: Badges, timestamps, fine print */
+.cluv-micro {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-400));
+  margin: 0;
+}

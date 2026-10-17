@@ -1,0 +1,68 @@
+/* src/styles/public/components/cards.css
+   Canonical Cloud Card Component (.public-card)
+   Clean white surface, 28px cloud radius, 1.5px subtle border, soft shadow.
+*/
+
+.public-card {
+  background: var(--pub-bg-surface);
+  border: 1.5px solid var(--pub-border-card);
+  border-radius: var(--pub-radius-cloud);
+  padding: clamp(24px, 4vw, 36px);
+  box-shadow: var(--pub-shadow-card);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* INTERACTIVE CARD (Hover lift) */
+.public-card.interactive {
+  cursor: pointer;
+}
+
+.public-card.interactive:hover {
+  border-color: var(--pub-color-teal-line);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -12px rgba(26, 45, 66, 0.1);
+}
+
+/* CARD ICON WRAPPER */
+.public-card-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--pub-color-teal-soft);
+  border: 1px solid var(--pub-color-teal-line);
+  color: var(--pub-color-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+}
+
+.public-card-icon-wrap.gold {
+  background: #fef8ee;
+  border-color: #fae0b8;
+  color: #d97706;
+}
+
+.public-card-icon-wrap.rose {
+  background: #fdf2f4;
+  border-color: #fbcfe8;
+  color: #db2777;
+}
+
+/* CARD TEXT ELEMENTS */
+.public-card p {
+  color: var(--pub-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.public-card-footer {
+  margin-top: auto;
+  padding-top: 20px;
+}

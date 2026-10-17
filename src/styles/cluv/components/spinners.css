@@ -1,0 +1,86 @@
+/* src/styles/cluv/components/spinners.css
+   =============================================================================
+   Skincluv Universal Loading Primitives (.cluv-spinner, .cluv-skeleton)
+   =============================================================================
+*/
+
+/* =============================================================================
+ * 1. CIRCULAR SPINNER (.cluv-spinner)
+ * ============================================================================= */
+.cluv-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--cluv-teal-line);
+  border-top-color: var(--cluv-teal);
+  border-radius: 50%;
+  animation: cluvSpin 0.75s linear infinite;
+  box-sizing: border-box;
+}
+
+.cluv-spinner.is-sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.cluv-spinner.is-lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+.cluv-spinner.is-white {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+}
+
+@keyframes cluvSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+ * 2. SHIMMER SKELETON (.cluv-skeleton)
+ * ============================================================================= */
+.cluv-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--cluv-neutral-200) 25%,
+    var(--cluv-neutral-100) 50%,
+    var(--cluv-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: cluvShimmer 1.5s infinite;
+  border-radius: var(--cluv-radius-sm);
+  display: block;
+}
+
+.cluv-skeleton.is-text {
+  height: 16px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.cluv-skeleton.is-title {
+  height: 24px;
+  margin-bottom: 12px;
+  width: 60%;
+  border-radius: 6px;
+}
+
+.cluv-skeleton.is-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.cluv-skeleton.is-card {
+  width: 100%;
+  height: 140px;
+  border-radius: var(--cluv-radius-lg);
+}
+
+@keyframes cluvShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

@@ -1,0 +1,105 @@
+/* src/styles/public/components/buttons.css
+   Canonical Pill Button Component (.public-btn)
+   Ergonomic minimum touch-target (>= 44px), Nunito 800, smooth hover lifts.
+*/
+
+.public-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--pub-font);
+  font-weight: 800;
+  text-decoration: none;
+  border-radius: var(--pub-radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* SIZES */
+.public-btn.sm {
+  height: 38px;
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 0.8125rem;
+}
+
+.public-btn.md,
+.public-btn:not(.sm):not(.lg) {
+  height: 46px;
+  min-height: 46px;
+  padding: 0 22px;
+  font-size: 0.9375rem;
+}
+
+.public-btn.lg {
+  height: 52px;
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 1rem;
+}
+
+.public-btn.block {
+  width: 100%;
+}
+
+/* COLOR VARIANTS */
+.public-btn.primary {
+  background: var(--pub-color-teal);
+  color: #ffffff;
+  box-shadow: var(--pub-shadow-btn);
+}
+
+.public-btn.primary:hover {
+  background: var(--pub-color-teal-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--pub-shadow-btn-hover);
+}
+
+.public-btn.secondary {
+  background: #ffffff;
+  color: var(--pub-text-main);
+  border-color: var(--pub-border-card);
+  box-shadow: 0 2px 8px rgba(26, 45, 66, 0.04);
+}
+
+.public-btn.secondary:hover {
+  background: var(--pub-bg-canvas);
+  border-color: var(--pub-color-teal-line);
+  color: var(--pub-color-teal);
+  transform: translateY(-1px);
+}
+
+.public-btn.outline {
+  background: transparent;
+  border-color: var(--pub-color-teal-line);
+  color: var(--pub-color-teal-dark);
+}
+
+.public-btn.outline:hover {
+  background: var(--pub-color-teal-soft);
+  border-color: var(--pub-color-teal);
+}
+
+.public-btn.ghost {
+  background: transparent;
+  color: var(--pub-text-muted);
+}
+
+.public-btn.ghost:hover {
+  background: var(--pub-color-teal-soft);
+  color: var(--pub-color-teal);
+}
+
+/* DISABLED STATE */
+.public-btn:disabled,
+.public-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}

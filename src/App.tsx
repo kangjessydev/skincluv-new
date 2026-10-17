@@ -4,6 +4,7 @@ import { useAuthInit } from '@/hooks/useAuthInit'
 import { useAuthStore } from '@/store/authStore'
 import AppLayout from '@/components/layout/AppLayout'
 import AuthLayout from '@/components/layout/AuthLayout'
+import ScrollToTop from '@/components/layout/ScrollToTop'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 import PageLoader from '@/components/ui/PageLoader'
 
@@ -72,7 +73,9 @@ export default function App() {
   }
 
   return (
-    <Suspense fallback={<PageLoader />}>
+    <>
+      <ScrollToTop />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public auth routes */}
         <Route element={<AuthLayout />}>
@@ -86,7 +89,8 @@ export default function App() {
         {/* Public regulatory, trust, & informational routes */}
         <Route element={<PublicLayout />}>
           {!user && <Route path="/" element={<LandingPage />} />}
-          {!user && <Route path="/pricing" element={<PricingPage />} />}
+          <Route path="/paket" element={<PricingPage />} />
+          <Route path="/pricing" element={<Navigate to="/paket" replace />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/refund-policy" element={<RefundPolicyPage />} />
@@ -106,7 +110,8 @@ export default function App() {
           <Route path="/chatbot" element={<ChatbotPage />} />
           <Route path="/chatbot/:sessionId" element={<ChatbotPage />} />
           <Route path="/missions" element={<MissionsPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/paket" element={<PricingPage />} />
+          <Route path="/pricing" element={<Navigate to="/paket" replace />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout/:reference" element={<CheckoutPage />} />
           <Route path="/transactions" element={<TransactionHistoryPage />} />
@@ -116,7 +121,7 @@ export default function App() {
           <Route path="/profile/skin" element={<ProfileSkinPage />} />
           <Route path="/profile/billing" element={<ProfileBillingPage />} />
           <Route path="/privacy-center" element={<PrivacyCenterPage />} />
-          <Route path="/wallet" element={<Navigate to="/pricing" replace />} />
+          <Route path="/wallet" element={<Navigate to="/paket" replace />} />
         </Route>
 
         {/* Protected admin routes */}
@@ -158,5 +163,6 @@ export default function App() {
         </Route>
       </Routes>
     </Suspense>
+    </>
   )
 }

@@ -12,3 +12,4 @@ export {
   EmptyChatHistory,
   EmptyScanHistory,
 } from './EmptyState'
+

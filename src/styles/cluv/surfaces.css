@@ -1,0 +1,56 @@
+/* src/styles/cluv/surfaces.css
+   =============================================================================
+   Skincluv Contextual Surface Cascade (.cluv-surface-*)
+   =============================================================================
+   Controls surface-wide typography, density, radii, and aesthetics.
+   Prevents developer fatigue: developers write standard .cluv-* primitives,
+   and the surface wrapper automatically adjusts their visual persona.
+*/
+
+/* 1. PUBLIC SURFACE (Warm, friendly, companion feel - Nunito, soft cloud cards) */
+.cluv-surface-public {
+  --cluv-current-font: var(--cluv-font-public);
+  --cluv-current-radius-card: var(--cluv-radius-cloud);
+  --cluv-current-radius-btn: var(--cluv-radius-pill);
+  --cluv-current-radius-field: 14px;
+  --cluv-current-bg: #f7faff;
+  --cluv-current-card-bg: #ffffff;
+  --cluv-current-border: #dce8f3;
+  --cluv-current-text: #1a2d42;
+  --cluv-current-text-muted: #556980;
+  font-family: var(--cluv-current-font);
+  color: var(--cluv-current-text);
+  background-color: var(--cluv-current-bg);
+}
+
+/* 2. APP SURFACE (Dynamic, fresh clinical - Plus Jakarta Sans, energetic balance) */
+.cluv-surface-app {
+  --cluv-current-font: var(--cluv-font-app);
+  --cluv-current-radius-card: var(--cluv-radius-lg);
+  --cluv-current-radius-btn: var(--cluv-radius-md);
+  --cluv-current-radius-field: var(--cluv-radius-md);
+  --cluv-current-bg: #f8fafc;
+  --cluv-current-card-bg: #ffffff;
+  --cluv-current-border: #e2e8f0;
+  --cluv-current-text: #0f172a;
+  --cluv-current-text-muted: #64748b;
+  font-family: var(--cluv-current-font);
+  color: var(--cluv-current-text);
+  background-color: var(--cluv-current-bg);
+}
+
+/* 3. ADMIN SURFACE (Crisp, dense, high productivity - Inter, tight padding, sharp borders) */
+.cluv-surface-admin {
+  --cluv-current-font: var(--cluv-font-admin);
+  --cluv-current-radius-card: var(--cluv-radius-sm);
+  --cluv-current-radius-btn: var(--cluv-radius-sm);
+  --cluv-current-radius-field: var(--cluv-radius-sm);
+  --cluv-current-bg: #f1f5f9;
+  --cluv-current-card-bg: #ffffff;
+  --cluv-current-border: #cbd5e1;
+  --cluv-current-text: #0f172a;
+  --cluv-current-text-muted: #475569;
+  font-family: var(--cluv-current-font);
+  color: var(--cluv-current-text);
+  background-color: var(--cluv-current-bg);
+}

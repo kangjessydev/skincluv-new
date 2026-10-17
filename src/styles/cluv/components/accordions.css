@@ -1,0 +1,109 @@
+/* src/styles/cluv/components/accordions.css
+   =============================================================================
+   Skincluv Universal Accordion Component (.cluv-accordion)
+   =============================================================================
+*/
+
+.cluv-accordion,
+.public-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.cluv-accordion-item,
+.public-accordion-item {
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-lg));
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cluv-accordion-item:hover,
+.public-accordion-item:hover {
+  border-color: var(--cluv-teal-line);
+}
+
+.cluv-accordion-trigger,
+.public-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(16px, 2.5vw, 22px);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: clamp(0.9375rem, 1.2vw + 0.4rem, 1.0625rem);
+  font-weight: 800;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  transition: color 0.15s ease;
+}
+
+.cluv-accordion-trigger:hover,
+.public-accordion-trigger:hover {
+  color: var(--cluv-teal);
+}
+
+.cluv-accordion-chevron,
+.public-accordion-chevron {
+  color: var(--cluv-neutral-400);
+  transition: transform 0.25s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cluv-accordion-chevron.rotate,
+.public-accordion-chevron.rotate {
+  transform: rotate(180deg);
+  color: var(--cluv-teal);
+}
+
+.cluv-accordion-body,
+.public-accordion-body {
+  padding: 0 clamp(16px, 2.5vw, 22px) clamp(16px, 2.5vw, 22px);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-600));
+  line-height: 1.65;
+}
+
+.cluv-accordion-body p,
+.public-accordion-body p {
+  margin: 0;
+}
+
+.cluv-accordion-body strong,
+.public-accordion-body strong {
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  font-weight: 700;
+}
+
+.cluv-accordion-body a,
+.public-accordion-body a {
+  color: var(--cluv-teal);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.cluv-accordion-body a:hover,
+.public-accordion-body a:hover {
+  color: var(--cluv-teal-dark, #0d5f5b);
+}
+
+.cluv-accordion-body code,
+.public-accordion-body code {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #0d5f5b);
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--cluv-radius-sm, 6px);
+  font-size: 0.8125rem;
+  font-family: inherit;
+}

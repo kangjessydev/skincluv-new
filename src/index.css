@@ -3,6 +3,12 @@
    Human-Proportioned Plus Jakarta Sans & Fresh Blue/Teal Palette
    ============================================================ */
 
+/* Universal Cluv Micro-Framework (`cluv-*`) */
+@import './styles/cluv/index.css';
+
+/* Canonical Public Design System (`public-*`) */
+@import './styles/public/index.css';
+
 /* ---- CSS Variables & Master Design Tokens ---- */
 :root {
   /* Typography Families */

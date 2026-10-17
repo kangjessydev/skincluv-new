@@ -1,6 +1,6 @@
 // src/pages/auth/ForgotPasswordPage.tsx
-// Halaman Permintaan Reset Password Resmi Supabase Auth
-// Kepatuhan: Invarian 21 & Anti-Enumeration Security Checklist (ChatGPT Audit)
+// Halaman Permintaan Reset Password Resmi Supabase Auth (100% Cluv Micro-Framework)
+// Kepatuhan: Invarian 21 & Anti-Enumeration Security Checklist
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -29,11 +29,11 @@ export default function ForgotPasswordPage() {
       const redirectUrl = `${origin}/auth/callback?type=recovery`
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: redirectUrl
+        redirectTo: redirectUrl,
       })
 
       if (resetError) {
-        // Jangan membocorkan apakah email terdaftar atau tidak ke penyerang
+        // Jangan membocorkan status pendaftaran email ke penyerang (Anti-Enumeration)
         console.warn('Supabase reset error:', resetError.message)
       }
 
@@ -58,68 +58,80 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="auth-form-panel animate-fade-in">
-      <Link to="/login" className="back-link">
-        <ArrowLeft size={16} /> Kembali ke Halaman Masuk
-      </Link>
+    <div className="cluv-flex-col">
+      {/* NAV BACK LINK */}
+      <div className="cluv-mb-3">
+        <Link to="/login" className="cluv-link cluv-caption cluv-flex-row cluv-items-center cluv-gap-1">
+          <ArrowLeft size={14} />
+          <span>Kembali ke Halaman Masuk</span>
+        </Link>
+      </div>
 
-      <div className="auth-header-group">
-        <div className="auth-eyebrow">PEMULIHAN AKUN</div>
-        <h1>Lupa Kata Sandi?</h1>
-        <p className="auth-sub">
-          Masukkan alamat email yang terdaftar pada akun Skincluv Anda. Kami akan mengirimkan tautan pemulihan kata sandi yang aman.
+      {/* EDITORIAL HEADER */}
+      <div className="cluv-mb-4">
+        <h1 className="cluv-title-section cluv-mb-1">
+          Lupa Kata Sandi?
+        </h1>
+        <p className="cluv-subtitle">
+          Masukkan alamat email akun Skincluv Anda. Kami akan mengirimkan tautan pemulihan kata sandi yang aman.
         </p>
       </div>
 
+      {/* ERROR ALERT */}
       {error && (
-        <div className="auth-alert-error">
-          <AlertCircle size={16} className="shrink-0" />
-          <span>{error}</span>
+        <div className="cluv-alert is-danger cluv-mb-4">
+          <AlertCircle size={16} className="cluv-alert-icon" />
+          <div className="cluv-alert-content">
+            <span className="cluv-alert-message">{error}</span>
+          </div>
         </div>
       )}
 
       {submitted ? (
-        <div className="reset-success-box animate-fade-in">
-          <div className="success-icon-wrap">
-            <CheckCircle2 size={36} />
+        <div className="cluv-flex-col cluv-items-center cluv-text-center cluv-py-2">
+          <div className="cluv-card-icon-wrap is-teal cluv-mb-3">
+            <CheckCircle2 size={28} className="cluv-text-teal" />
           </div>
-          <h3>Instruksi Telah Dikirim</h3>
-          <p>
-            Jika alamat email <strong>{email}</strong> terdaftar di sistem kami, Anda akan menerima pesan berisi tautan pemulihan kata sandi dalam beberapa menit.
-          </p>
-          <p className="spam-hint">
-            Tidak menemukan email? Periksa folder <em>Spam</em> atau <em>Promosi</em> di kotak masuk Anda.
+          <h2 className="cluv-title-card cluv-mb-2">Instruksi Telah Dikirim</h2>
+          <p className="cluv-body cluv-mb-3">
+            Jika alamat email <strong>{email}</strong> terdaftar di sistem kami, Anda akan menerima tautan pemulihan kata sandi dalam beberapa menit.
           </p>
 
-          <div className="resend-action-row">
-            {cooldown > 0 ? (
-              <span className="cooldown-text">Kirim ulang tersedia dalam {cooldown} detik</span>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={handleResetRequest}
-                disabled={isLoading}
-              >
-                Kirim Ulang Tautan
-              </button>
-            )}
+          <div className="cluv-card-note cluv-mb-4 cluv-text-left">
+            <p className="cluv-micro cluv-text-muted">
+              💡 Tidak menemukan email? Periksa folder <em>Spam</em> atau tab <em>Promosi</em> di kotak masuk Anda.
+            </p>
           </div>
+
+          {cooldown > 0 ? (
+            <p className="cluv-micro cluv-text-muted">
+              Kirim ulang tersedia dalam {cooldown} detik
+            </p>
+          ) : (
+            <button
+              type="button"
+              className="cluv-btn is-outline is-sm"
+              onClick={handleResetRequest}
+              disabled={isLoading}
+            >
+              Kirim Ulang Tautan
+            </button>
+          )}
         </div>
       ) : (
-        <form onSubmit={handleResetRequest} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="reset-email">Alamat Email Terdaftar</label>
-            <div className="input-field-wrap">
-              <Mail size={16} className="input-icon" />
+        <form onSubmit={handleResetRequest} className="cluv-flex-col cluv-gap-4">
+          <div className="cluv-field">
+            <label className="cluv-label">Alamat Email Terdaftar</label>
+            <div className="cluv-input-wrap has-leading-icon">
+              <Mail size={16} className="cluv-input-icon is-leading" />
               <input
-                id="reset-email"
                 type="email"
                 required
                 placeholder="nama@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                className="cluv-input"
               />
             </div>
           </div>
@@ -127,16 +139,19 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="btn btn-primary btn-block mt-3"
+            className="cluv-btn is-primary is-block is-md cluv-mt-2"
           >
-            {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Kirim Tautan Pemulihan'}
+            {isLoading ? <Loader2 size={16} className="cluv-animate-spin" /> : 'Kirim Tautan Pemulihan'}
           </button>
         </form>
       )}
 
-      <div className="auth-footer-security">
-        <ShieldCheck size={14} className="text-primary" />
-        <span>Tautan pemulihan dilindungi enkripsi kriptografis dan kedaluwarsa dalam 1 jam.</span>
+      {/* FOOTER SECURITY */}
+      <div className="cluv-trust-strip is-left cluv-mt-5">
+        <span className="cluv-trust-item">
+          <ShieldCheck size={13} className="cluv-trust-icon cluv-text-teal" />
+          <span className="cluv-micro">Tautan pemulihan dilindungi enkripsi kriptografis (kedaluwarsa 1 jam)</span>
+        </span>
       </div>
     </div>
   )

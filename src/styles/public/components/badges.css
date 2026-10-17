@@ -1,0 +1,60 @@
+/* src/styles/public/components/badges.css
+   Canonical Pill Badge & Indicator Dot (.public-badge, .public-dot)
+*/
+
+.public-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--pub-font);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pub-color-teal-dark);
+  background: var(--pub-color-teal-soft);
+  border: 1px solid var(--pub-color-teal-line);
+  padding: 4px 14px;
+  border-radius: var(--pub-radius-pill);
+  width: fit-content;
+  user-select: none;
+}
+
+/* COLOR MODIFIERS */
+.public-badge.gold {
+  color: #b45309;
+  background: #fef8ee;
+  border-color: #fae0b8;
+}
+
+.public-badge.rose {
+  color: #be185d;
+  background: #fdf2f4;
+  border-color: #fbcfe8;
+}
+
+.public-badge.slate {
+  color: var(--pub-text-muted);
+  background: var(--pub-bg-subtle);
+  border-color: var(--pub-border-card);
+}
+
+/* INDICATOR DOT */
+.public-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pub-color-teal);
+  flex-shrink: 0;
+}
+
+.public-dot.pulse {
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.25);
+  animation: publicPulse 2s infinite;
+}
+
+@keyframes publicPulse {
+  0% { box-shadow: 0 0 0 0 rgba(31, 157, 151, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(31, 157, 151, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 157, 151, 0); }
+}

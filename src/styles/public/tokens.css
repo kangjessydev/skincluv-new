@@ -1,0 +1,38 @@
+/* src/styles/public/tokens.css
+   Option E (Warm Companion) Design Tokens for Public Surfaces
+   Nunito typography, soft sky canvas, soft teal brand accents, cloud card radii.
+*/
+
+:root {
+  /* Canvas & Text */
+  --pub-bg-canvas: #f7faff;
+  --pub-bg-surface: #ffffff;
+  --pub-bg-subtle: #edf5fc;
+  --pub-text-main: #1a2d42;
+  --pub-text-muted: #556980;
+  --pub-text-faint: #7b8ea3;
+
+  /* Brand Accents */
+  --pub-color-teal: #1f9d97;
+  --pub-color-teal-hover: #198782;
+  --pub-color-teal-dark: #127a75;
+  --pub-color-teal-soft: #e6f6f5;
+  --pub-color-teal-line: #bceae7;
+  --pub-color-peach: #fbb090;
+
+  /* Borders & Shadows */
+  --pub-border-card: #dce8f3;
+  --pub-border-subtle: #edf5fc;
+  --pub-shadow-card: 0 10px 30px -10px rgba(26, 45, 66, 0.06);
+  --pub-shadow-btn: 0 4px 14px rgba(31, 157, 151, 0.28);
+  --pub-shadow-btn-hover: 0 6px 18px rgba(31, 157, 151, 0.35);
+
+  /* Radii */
+  --pub-radius-cloud: 28px;
+  --pub-radius-card-sm: 20px;
+  --pub-radius-field: 14px;
+  --pub-radius-pill: 9999px;
+
+  /* Typography */
+  --pub-font: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
