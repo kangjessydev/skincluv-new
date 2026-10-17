@@ -1,0 +1,802 @@
+/* src/styles/cluv/app/shell.css
+   =============================================================================
+   Skincluv Sweet App Shell (.cluv-app-shell) — 100% Cluv Micro-Framework
+   =============================================================================
+   Filosofi: "Sahabat Meja Rias" (Warm Companion & Bestie Storytelling).
+   - Tipografi: 100% Nunito, ramah, membulat, spasi lega, tanpa ALL CAPS kaku.
+   - Desktop: Sidebar paten 250px + Topbar lega 68px dengan Profile Card hangat.
+   - Mobile: Topbar ringkas + Bottom Bar 5 menu ramah jempol (dengan FAB Scan tengah)
+     + Drawer samping untuk menu sekunder. Profil di topbar disembunyikan di mobile.
+*/
+
+/* 1. Main Shell Wrapper */
+.cluv-app-shell {
+  height: 100dvh;
+  width: 100%;
+  background: var(--cluv-current-bg, #f7faff);
+  color: var(--cluv-current-text, #1a2d42);
+  font-family: var(--cluv-font-app, 'Nunito', sans-serif);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.cluv-shell-grid {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* =============================================================================
+ * 2. DESKTOP SIDEBAR (Tenang, Manis, Paten 250px)
+ * ============================================================================= */
+.cluv-sidebar {
+  width: 250px;
+  height: 100dvh;
+  background: #ffffff;
+  border-right: 1px solid var(--cluv-current-border, #dce8f3);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 24px 18px 20px;
+  overflow: hidden;
+  z-index: 40;
+}
+
+/* Brand Row: Pure, Warm, Sparkling */
+.cluv-sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+  height: 42px;
+}
+
+.cluv-sidebar-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cluv-sidebar-brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal, #1f9d97);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(31, 157, 151, 0.15);
+}
+
+.cluv-sidebar-brand-text {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+.cluv-sidebar-brand-text span {
+  color: var(--cluv-teal, #1f9d97);
+}
+
+/* Mobile Close Button in Drawer (Hidden on Desktop) */
+.cluv-sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #f1f8fc;
+  border: 1px solid #dce8f3;
+  color: var(--cluv-current-text-muted, #556980);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.cluv-sidebar-close-btn:hover {
+  background: var(--cluv-rose-soft, #fdf2f4);
+  color: var(--cluv-rose, #f43f5e);
+  border-color: var(--cluv-rose-line, #fbcfe8);
+}
+
+/* Mobile Drawer Profile Header Card (Only visible inside mobile drawer) */
+.cluv-drawer-mobile-user-card {
+  display: none;
+}
+
+/* Scrollable Nav Area */
+.cluv-sidebar-nav-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: none;
+}
+
+.cluv-sidebar-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Section Title: Humanist Sentence Case (No ALL CAPS, No High Density Tracking) */
+.cluv-sidebar-section-title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--cluv-current-text-muted, #556980);
+  margin: 18px 0 8px 10px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* Nav Link Item: Soft, Pill-Curved, Breathable */
+.cluv-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 14px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #334a60;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.cluv-sidebar-item:hover {
+  background: #f1f8fc;
+  color: var(--cluv-current-text, #1a2d42);
+  transform: translateX(2px);
+}
+
+.cluv-sidebar-item.is-active,
+.cluv-sidebar-item.active {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(31, 157, 151, 0.08);
+}
+
+.cluv-sidebar-badge {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  background: #eff6ff;
+  color: var(--cluv-status-info, #3b82f6);
+  border: 1px solid #bfdbfe;
+}
+
+/* Sidebar Pinned Bottom: Sweet Trust Reassurance (Clean & Calm) */
+.cluv-sidebar-pinned {
+  flex-shrink: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--cluv-current-border, #dce8f3);
+  margin-top: 8px;
+}
+
+.cluv-sidebar-trust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  font-size: 0.78125rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, #556980);
+  background: #f7faff;
+  border: 1px solid var(--cluv-current-border, #dce8f3);
+  transition: all 0.15s ease;
+}
+
+.cluv-sidebar-trust-icon {
+  color: var(--cluv-teal, #1f9d97);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * 3. MAIN CONTENT COLUMN & TOPBAR
+ * ============================================================================= */
+.cluv-shell-main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Topbar Header (68px, Airy, Glass Blur, Warm Border) */
+.cluv-topbar {
+  height: 68px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--cluv-current-border, #dce8f3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  flex-shrink: 0;
+}
+
+.cluv-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cluv-topbar-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f7faff;
+  border: 1px solid #dce8f3;
+  color: var(--cluv-current-text, #1a2d42);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.cluv-topbar-burger:hover {
+  background: #edf5fc;
+}
+
+.cluv-topbar-page-context {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =============================================================================
+ * TOPBAR RIGHT CLUSTER (Unified 38px Rhythm)
+ * ============================================================================= */
+.cluv-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 1. Universal AI Credits Clean Cloud Pill (38px Height, Pure White Surface) */
+.cluv-topbar-credits-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid var(--cluv-current-border, #dce8f3);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  padding: 0 14px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(26, 45, 66, 0.04);
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.cluv-topbar-credits-btn:hover {
+  background: #f7faff;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(26, 45, 66, 0.08);
+}
+
+.cluv-credits-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.cluv-topbar-credits-btn:hover .cluv-credits-icon {
+  transform: scale(1.15);
+}
+
+.cluv-credits-num {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  letter-spacing: -0.01em;
+}
+
+.cluv-credits-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, #556980);
+}
+
+/* 2. Notification Bell (38px Circle) */
+.cluv-topbar-bell-btn {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--cluv-current-border, #dce8f3);
+  color: var(--cluv-current-text-muted, #556980);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.cluv-topbar-bell-btn:hover {
+  background: #f7faff;
+  color: var(--cluv-current-text, #1a2d42);
+  border-color: #cbd5e1;
+}
+
+.cluv-topbar-bell-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cluv-rose, #f43f5e);
+  border: 1.5px solid #ffffff;
+}
+
+/* Hairline Divider */
+.cluv-topbar-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--cluv-current-border, #dce8f3);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * 3. DESKTOP PROFILE TRIGGER (Option A: 38px Circle with Gemini Gradient for PRO)
+ * ============================================================================= */
+.cluv-topbar-profile-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cluv-topbar-profile-avatar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+  background: transparent;
+  border: none;
+}
+
+/* PRO Member: Iridescent Glowing Gradient Ring (Gemini Style) */
+.cluv-topbar-profile-avatar-btn.is-pro {
+  background: linear-gradient(135deg, #1f9d97 0%, #fb7185 50%, #f59e0b 100%);
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.22), 0 1px 4px rgba(31, 157, 151, 0.18);
+}
+
+.cluv-topbar-profile-avatar-btn.is-pro:hover {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35), 0 2px 8px rgba(31, 157, 151, 0.25);
+}
+
+.cluv-topbar-profile-avatar-btn.is-pro .cluv-topbar-avatar {
+  border: 2px solid #ffffff;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+/* FREE Member: Clean, Calm Slate Ring */
+.cluv-topbar-profile-avatar-btn.is-free {
+  border: 1px solid var(--cluv-current-border, #dce8f3);
+  box-shadow: 0 1px 3px rgba(26, 45, 66, 0.04);
+}
+
+.cluv-topbar-profile-avatar-btn.is-free:hover {
+  border-color: #cbd5e1;
+  background: #f7faff;
+  transform: translateY(-1px);
+}
+
+.cluv-topbar-profile-avatar-btn.is-free .cluv-topbar-avatar {
+  background: #f1f8fc;
+  color: #334a60;
+  border: none;
+}
+
+.cluv-topbar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-family: var(--cluv-font-app, 'Nunito', sans-serif);
+  box-sizing: border-box;
+}
+
+/* Dropdown Menu Popover: Sweet Cloud Card (20px radius) */
+.cluv-topbar-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 250px;
+  background: #ffffff;
+  border: 1px solid var(--cluv-current-border, #dce8f3);
+  border-radius: var(--cluv-radius-xl, 20px);
+  box-shadow: var(--cluv-shadow-lg);
+  padding: 10px;
+  z-index: 60;
+  box-sizing: border-box;
+  animation: cluvDropdownPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cluvDropdownPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cluv-dropdown-user-info {
+  padding: 10px 12px;
+  background: #f7faff;
+  border-radius: 14px;
+  margin-bottom: 6px;
+}
+
+.cluv-dropdown-name {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cluv-dropdown-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 10px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.cluv-dropdown-badge.is-pro {
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+}
+
+.cluv-dropdown-badge.is-free {
+  color: var(--cluv-teal-dark, #127a75);
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-dropdown-sep {
+  height: 1px;
+  background: var(--cluv-current-border, #dce8f3);
+  margin: 6px 0;
+}
+
+.cluv-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334a60;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cluv-dropdown-item:hover {
+  background: #f1f8fc;
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+.cluv-dropdown-item.is-admin {
+  color: var(--cluv-status-info, #3b82f6);
+  font-weight: 700;
+}
+
+.cluv-dropdown-item.is-danger {
+  color: var(--cluv-status-danger, #ef4444);
+}
+
+.cluv-dropdown-item.is-danger:hover {
+  background: var(--cluv-rose-soft, #fdf2f4);
+}
+
+/* Page Content Viewport */
+.cluv-shell-page-content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 32px 40px 80px;
+  box-sizing: border-box;
+}
+
+/* Mobile Backdrop Overlay */
+.cluv-shell-backdrop {
+  display: none;
+}
+
+/* Mobile Bottom Navigation Bar */
+.cluv-mobile-bottom-bar {
+  display: none;
+}
+
+/* =============================================================================
+ * RESPONSIVE BREAKPOINTS (TABLET & MOBILE)
+ * ============================================================================= */
+@media (max-width: 1024px) {
+  .cluv-shell-grid {
+    display: block;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .cluv-shell-main {
+    height: 100dvh;
+    overflow-y: auto;
+  }
+
+  /* Slide-over Sidebar Drawer */
+  .cluv-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 55;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 50px rgba(26, 45, 66, 0.25);
+    width: 290px;
+  }
+
+  .cluv-sidebar.is-mobile-open {
+    transform: translateX(0);
+  }
+
+  .cluv-topbar-burger {
+    display: flex;
+  }
+
+  .cluv-sidebar-close-btn {
+    display: flex;
+  }
+
+  /* Drawer Top User Banner */
+  .cluv-drawer-mobile-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    background: #f7faff;
+    border: 1px solid #dce8f3;
+    border-radius: 16px;
+  }
+
+  .cluv-drawer-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--cluv-teal-soft, #e6f6f5);
+    color: var(--cluv-teal-dark, #127a75);
+    font-size: 1rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+  }
+
+  .cluv-drawer-user-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cluv-drawer-user-name {
+    font-size: 0.9375rem;
+    font-weight: 800;
+    color: var(--cluv-current-text, #1a2d42);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cluv-drawer-user-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--cluv-teal, #1f9d97);
+  }
+
+  /* Backdrop Overlay */
+  .cluv-shell-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 45, 66, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .cluv-shell-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  /* =========================================================================
+   * TOPBAR DI MOBILE: Ringkas, Lega, Tanpa Penumpukan Profil!
+   * ========================================================================= */
+  .cluv-topbar {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  /* Profile Menu disembunyikan di Topbar Mobile (sudah ada di tab Bottom Bar) */
+  .cluv-topbar-profile-wrap {
+    display: none !important;
+  }
+
+  .cluv-topbar-divider {
+    display: none !important;
+  }
+
+  .cluv-topbar-credits-btn {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+  }
+
+  .cluv-topbar-bell-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cluv-shell-page-content {
+    padding: 16px 16px 96px; /* Extra bottom padding for comfortable thumb bar */
+  }
+
+  /* =========================================================================
+   * MOBILE BOTTOM NAVIGATION BAR: Ramah Jempol, 5 Destinasi Utama
+   * ========================================================================= */
+  .cluv-mobile-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--cluv-current-border, #dce8f3);
+    z-index: 45;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: content-box;
+    box-shadow: 0 -4px 16px rgba(26, 45, 66, 0.05);
+  }
+
+  .cluv-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    height: 100%;
+    color: var(--cluv-current-text-muted, #556980);
+    text-decoration: none;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+
+  .cluv-bottom-nav-item.is-active,
+  .cluv-bottom-nav-item.active {
+    color: var(--cluv-teal, #1f9d97);
+    font-weight: 800;
+  }
+
+  .cluv-bottom-nav-icon {
+    transition: transform 0.15s ease;
+  }
+
+  .cluv-bottom-nav-item.is-active .cluv-bottom-nav-icon {
+    transform: translateY(-1px);
+  }
+
+  /* Center Floating Action Button (Scan Wajah) */
+  .cluv-bottom-nav-item.is-center-fab {
+    position: relative;
+    color: var(--cluv-teal-dark, #127a75);
+  }
+
+  .cluv-bottom-nav-fab-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    background: var(--cluv-teal, #1f9d97);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(31, 157, 151, 0.4);
+    margin-top: -16px;
+    border: 3px solid #ffffff;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cluv-bottom-nav-item.is-center-fab.is-active .cluv-bottom-nav-fab-icon {
+    background: var(--cluv-teal-dark, #127a75);
+    transform: scale(1.05);
+  }
+}

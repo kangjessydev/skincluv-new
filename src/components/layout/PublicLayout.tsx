@@ -71,7 +71,7 @@ export default function PublicLayout() {
           {/* Primary CTA & Quiet Sign-in */}
           <div className="public-nav-cta">
             {user ? (
-              <Link to="/" className="nav-btn-primary">
+              <Link to="/dashboard" className="nav-btn-primary">
                 <LayoutDashboard size={15} />
                 <span>Dashboard</span>
               </Link>
@@ -166,7 +166,7 @@ export default function PublicLayout() {
           {/* Mobile Drawer Action Buttons (Opsi 1: Horizontal Row Masuk + Mulai Cerita) */}
           <div className="mobile-drawer-cta-group">
             {user ? (
-              <Link to="/" className="btn-mobile-primary" onClick={closeMenu}>
+              <Link to="/dashboard" className="btn-mobile-primary" onClick={closeMenu}>
                 <LayoutDashboard size={16} />
                 <span>Buka Dashboard</span>
               </Link>

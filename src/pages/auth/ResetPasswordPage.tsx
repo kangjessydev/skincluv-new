@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
 
       setSuccess(true)
       setTimeout(() => {
-        navigate('/', { replace: true })
+        navigate('/dashboard', { replace: true })
       }, 2000)
     } catch (err: any) {
       setError(err?.message || 'Gagal memperbarui kata sandi. Coba lagi.')

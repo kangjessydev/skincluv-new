@@ -80,3 +80,46 @@
 > Edge function `invoke-ai` berhasil di-deploy ke Supabase Cloud (v11, size 70 kB).  
 > **Sebelumnya:** Edge function di cloud adalah versi v10 (Agustus) yang belum memiliki kode lampiran gambar ke Gemini, sehingga Gemini menganalisis tanpa menerima gambar sama sekali (mengakibatkan halusinasi produk pasar Glad2Glow 22 bahan).  
 > **Sekarang:** Foto kemasan dikirim secara utuh via base64 `inlineData` langsung ke mata Gemini Vision.
+
+---
+
+## [v3.1.0] — 2026-10-17
+**Scope:** Standarisasi App Shell (Sidebar, Topbar, Mobile Bar) & Dashboard ke Cluv Micro-Framework (`cluv-*`)
+
+### 🧭 1. Pemisahan Routing Kanonikal
+- **`/`**: Eksklusif untuk Halaman Publik / Landing Page (lengkap dengan smart CTA: "Buka Dashboard" jika sudah login, "Mulai Sekarang" jika belum).
+- **`/dashboard`**: Rute resmi kanonikal untuk App Dashboard.
+- Seluruh flow login, registrasi, recovery kata sandi, dan auth callback diarahkan konsisten ke `/dashboard`.
+
+### 🌸 2. Komponen Primitif Baru Cluv Framework
+Dibuat di `src/styles/cluv/` dan didokumentasikan di `CLUV_FRAMEWORK_CHEATSHEET.md`:
+- `src/styles/cluv/components/stats.css`: `.cluv-stat-card`, `.cluv-stat-grid`
+- `src/styles/cluv/components/score-ring.css`: `.cluv-score-ring` (SVG radial progress ring)
+- `src/styles/cluv/components/checklist.css`: `.cluv-check-item`, `.cluv-checklist-group`
+- `src/styles/cluv/components/tabs.css`: `.cluv-tabs`, `.cluv-tab-btn`
+
+### 🛋️ 3. Sweet Shell Architecture (`src/styles/cluv/app/shell.css` & `AppLayout.tsx`)
+- **Estetika Teman Meja Rias**: Didesain ramah, manis, hangat, dan tenang (bukan dashboard tech B2B SaaS yang kaku).
+- **Penyatuan Tipografi ke Nunito**: Mengganti `--cluv-font-app` dari font tech geometris *Plus Jakarta Sans* ke font membulat hangat **`Nunito`** di `tokens.css` dan `surfaces.css`.
+- **Hirarki Humanis (No ALL CAPS Kaku)**: Mengganti label seksi kaku `MENU UTAMA` & `LAINNYA` (all-caps + letter-spacing rapat) menjadi teks alami *Sentence case*: `Menu Utama` dan `Eksplorasi Lainnya` (Nunito 13px bold ramah).
+- **Desktop Sidebar Paten 250px**: Menghapus sistem collapse 72px yang rumit dan menyebabkan tumpang tindih tombol menu & silang.
+- **Demarkasi Jelas Desktop vs Mobile pada Topbar**:
+  - **Desktop (Layar Lebar)**: Seluruh elemen cluster kanan memiliki **ritme tinggi seragam 38px**:
+    - *Credits Pill (Clean Cloud Pill)*: Kapsul 38px berlatar putih bersih (`#ffffff`), border halus `#dce8f3` (seragam dengan lonceng), ikon petir emas hangat, angka kredit hitam tinta tebal (`1.395`), dan label tipis `Credits`. Sangat tenang, menyatu, dan bebas dari warna ngejreng.
+    - *Lonceng*: Lingkaran 38px berbingkai halus `#dce8f3` dengan dot merah pastel.
+    - *Profil (Opsi A + Gemini Glowing Gradient Ring)*: **Avatar bulat 38px bersih**:
+      - Akun PRO: Dihiasi **Glowing Iridescent Ring** (`linear-gradient(135deg, #1f9d97, #fb7185, #f59e0b)`) dengan jeda putih 2px yang berkilau mewah ala Google Gemini Advanced.
+      - Akun Free: Border tenang slate-sejuk (`#dce8f3`).
+      - Popover Cloud Card (20px radius) saat diklik menampilkan detail akun lengkap tanpa menjejali header.
+  - **Mobile (Layar HP)**: Menu profil di Topbar **disembunyikan total** agar header HP lega dan tidak menumpuk. Navigasi profil di mobile berpusat di tab Profil bawah dan drawer samping.
+- **Pembersihan Badge Privasi Sidebar**: Menghapus tumpukan emoji bunga `🌸` di sebelah ikon perisai. Menggunakan satu ikon perisai teal halus + teks `Privasi terlindungi · UU PDP` di atas latar milky pill yang sejuk.
+- **Mobile Bottom Navigation Bar dengan Center FAB**: Navigasi bawah 5 menu ramah jempol (`<= 768px`) dengan tombol tengah **Scan Wajah** berupa Floating Action Button (FAB) teal berkilau yang menonjol dan ergonomis.
+- **Mobile Drawer User Card**: Banner profil manis di bagian atas drawer saat hamburger dibuka di mobile.
+
+### 🗑️ 4. Penghapusan Legacy CSS
+- Menghapus total `src/styles/app-layout.css` dan `src/styles/dashboard.css` via `git rm`.
+- Refaktor `DashboardPage.tsx` 100% menggunakan token dan class Cluv Framework.
+
+### 🧪 5. Verifikasi Kualitas
+- `npx tsc -b`: **0 error**
+- `npm run build`: Berhasil tanpa warning dalam **2.22 detik**

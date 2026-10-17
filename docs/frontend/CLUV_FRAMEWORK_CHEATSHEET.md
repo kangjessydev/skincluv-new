@@ -50,6 +50,10 @@
 | **Modals** | `.cluv-modal-overlay` | - | `.cluv-modal-box` (`.is-sm`, `.is-lg`)<br>`.cluv-modal-header`<br>`.cluv-modal-title`<br>`.cluv-modal-close`<br>`.cluv-modal-body`<br>`.cluv-modal-footer` | Pop-up konfirmasi dan dialog interaktif dengan backdrop blur. |
 | **Auth Shell** | `.cluv-auth-shell` | - | `.cluv-auth-split`<br>`.cluv-auth-showcase`<br>`.cluv-auth-showcase-bg`<br>`.cluv-auth-showcase-card`<br>`.cluv-auth-main`<br>`.cluv-auth-form-wrap`<br>`.cluv-auth-mobile-header` | Layout Split-Screen Editorial otentikasi (Sisi Kiri: Visual Meja Rias Warmth; Sisi Kanan: Form Frameless Lapang; Mobile: Full-width Native). |
 | **Inline Links** | `.cluv-link` | `.is-muted`<br>`.is-underline` | - | Tautan teks sebaris teal dengan transisi hover underline yang mulus (100% pengganti inline link styling). |
+| **Stat & Metric Cards** | `.cluv-stat-card`<br>`.cluv-stat-grid` | `.cols-2`<br>`.cols-4`<br>`.is-interactive` | `.cluv-stat-header`<br>`.cluv-stat-label`<br>`.cluv-stat-icon` (`.is-teal`, `.is-rose`, `.is-gold`, `.is-purple`, `.is-blue`)<br>`.cluv-stat-val`<br>`.cluv-stat-meta` (`.is-positive`, `.is-alert`) | Ringkasan metrik angka (Saldo Credits, Skor Kulit, Total Scan, Misi Selesai). |
+| **Score Ring Gauge** | `.cluv-score-ring` | `.is-sm`<br>`.is-lg` | `.cluv-score-svg`<br>`.cluv-score-bg-circle`<br>`.cluv-score-fg-circle` (`.is-optimal`, `.is-good`, `.is-attention`, `.is-alert`)<br>`.cluv-score-center`<br>`.cluv-score-val`<br>`.cluv-score-max` | Gauge skor melingkar SVG (0–100) observasi kondisi wajah di Dashboard & Hasil Scan. |
+| **Checklist & Routines** | `.cluv-checklist-group`<br>`.cluv-check-item` | `.is-checked` | `.cluv-check-box`<br>`.cluv-check-info`<br>`.cluv-check-title`<br>`.cluv-check-meta`<br>`.cluv-check-action` | Baris rutinitas skincare pagi/malam dan kartu misi harian interaktif. |
+| **Tabs & Subnav** | `.cluv-tabs` | `.is-full` | `.cluv-tab-btn` (`.is-active`)<br>`.cluv-tab-badge` | Segmented tab navigasi horizontal untuk filter riwayat scan dan sub-halaman. |
 | **Status Cues** | `.cluv-status-cue` | - | `.cluv-status-cue-number`<br>`.cluv-status-cue-badge` | Visual penanda status numerik besar (404, 500, empty state) dengan icon badge mengambang di tengah. |
 | **Ambient Decorations** | `.cluv-ambient-layer` | - | `.cluv-ambient-decor`<br>`.is-cloud-left`<br>`.is-star-mid`<br>`.is-cloud-right`<br>`.is-heart-bottom`<br>`.cluv-delay-[1-3]` | Layer stiker ambient mengambang lembut untuk hero cerita tanpa mengganggu interaksi konten. |
 
@@ -272,7 +276,74 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
   </div>
 </div>
 ```
-*(Aturan CSS: Drawer memakai `min-height: 380px` agar tidak bantet saat item sedikit, `max-height: min(560px, calc(100dvh - 32px))`, `transform-origin: 90% 10px` dari tombol hamburger, dan fade mask `.has-scroll-down` hanya aktif dinamis saat konten melebihi layar).*
 
+---
 
+### F. Pola Standar Komponen App Surface (`.cluv-surface-app`)
 
+#### 1. Metric Stat Grid & Stat Card
+```tsx
+<div className="cluv-stat-grid cols-4">
+  <div className="cluv-stat-card is-interactive">
+    <div className="cluv-stat-header">
+      <span className="cluv-stat-label">AI Credits</span>
+      <div className="cluv-stat-icon is-gold">
+        <Coins size={18} />
+      </div>
+    </div>
+    <div className="cluv-stat-val">25</div>
+    <div className="cluv-stat-meta is-positive">+5 dari misi hari ini</div>
+  </div>
+</div>
+```
+
+#### 2. Biometric Score Ring Gauge (Observasi Kondisi Kulit)
+```tsx
+<div className="cluv-score-ring is-md">
+  <svg className="cluv-score-svg" viewBox="0 0 80 80">
+    <circle className="cluv-score-bg-circle" cx="40" cy="40" r="34" strokeWidth="6" />
+    <circle
+      className="cluv-score-fg-circle is-optimal"
+      cx="40"
+      cy="40"
+      r="34"
+      strokeWidth="6"
+      strokeDasharray={213.6}
+      strokeDashoffset={213.6 - (213.6 * Math.min(Math.max(score, 0), 100)) / 100}
+    />
+  </svg>
+  <div className="cluv-score-center">
+    <span className="cluv-score-val">{score}</span>
+    <span className="cluv-score-max">/100</span>
+  </div>
+</div>
+```
+
+#### 3. Checklist Rutinitas Skincare & Misi Harian
+```tsx
+<div className="cluv-checklist-group">
+  <div className={`cluv-check-item ${done ? 'is-checked' : ''}`} onClick={toggle}>
+    <div className="cluv-check-box">
+      {done && <Check size={14} strokeWidth={3} />}
+    </div>
+    <div className="cluv-check-info">
+      <p className="cluv-check-title">Cleanser Lembut (pH Balance)</p>
+      <span className="cluv-check-meta">Pagi · 2 menit</span>
+    </div>
+  </div>
+</div>
+```
+
+#### 4. Segmented Tabs & Subnav
+```tsx
+<div className="cluv-tabs">
+  <button className={`cluv-tab-btn ${activeTab === 'face' ? 'is-active' : ''}`} onClick={() => setActiveTab('face')}>
+    <span>Scan Wajah</span>
+    <span className="cluv-tab-badge">12</span>
+  </button>
+  <button className={`cluv-tab-btn ${activeTab === 'ingredient' ? 'is-active' : ''}`} onClick={() => setActiveTab('ingredient')}>
+    <span>Scan Komposisi</span>
+    <span className="cluv-tab-badge">5</span>
+  </button>
+</div>
+```

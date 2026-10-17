@@ -1,17 +1,14 @@
 // src/components/layout/AppLayout.tsx
-// Skincluv Fresh Tech App Shell (100% v0.dev Human Proportions & Plus Jakarta Sans)
-// Responsive Desktop Sidebar (264px) + Top Navbar (78px) + Mobile Drawer + Bottom Bar
+// Skincluv Universal App Shell (100% Cluv Micro-Framework)
+// Desktop Responsive Sidebar (260px / 72px) + Sticky Topbar (64px) + Mobile Drawer Backdrop + Thumb-Friendly Mobile Bottom Bar
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Sparkles,
   FlaskConical,
   MessageCircle,
   ShieldCheck,
-  UserRound,
-  MoreHorizontal,
-  Search,
   Bell,
   Zap,
   Menu,
@@ -24,14 +21,14 @@ import {
   Receipt,
   LogOut,
   User,
+  ChevronDown,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
-import '@/styles/app-layout.css'
 
 const navMainItems = [
-  { to: '/', icon: Home, label: 'Beranda' },
+  { to: '/dashboard', icon: Home, label: 'Beranda' },
   { to: '/face-scan', icon: ScanFace, label: 'Scan Wajah' },
   { to: '/ingredient-scan', icon: FlaskConical, label: 'Scan Komposisi' },
   { to: '/scan-history', icon: CalendarDays, label: 'Riwayat Scan' },
@@ -44,13 +41,39 @@ const navOtherItems = [
   { to: '/faq', icon: CircleHelp, label: 'Bantuan & FAQ' },
 ]
 
+const mobileBottomNavItems = [
+  { to: '/dashboard', icon: Home, label: 'Beranda' },
+  { to: '/ingredient-scan', icon: FlaskConical, label: 'Komposisi' },
+  { to: '/face-scan', icon: ScanFace, label: 'Scan Wajah', isCenterFab: true },
+  { to: '/chatbot', icon: MessageCircle, label: 'Skinsistant' },
+  { to: '/profile', icon: User, label: 'Profil' },
+]
+
+function getPageContextTitle(pathname: string): string {
+  if (pathname === '/dashboard') return 'Beranda'
+  if (pathname.startsWith('/face-scan')) return 'Scan Wajah AI'
+  if (pathname.startsWith('/ingredient-scan')) return 'Scan Komposisi'
+  if (pathname.startsWith('/scan-history')) return 'Riwayat Scan'
+  if (pathname.startsWith('/chatbot')) return 'Skinsistant AI'
+  if (pathname.startsWith('/missions')) return 'Misi Glow'
+  if (pathname.startsWith('/paket') || pathname.startsWith('/pricing')) return 'Paket Akses'
+  if (pathname.startsWith('/transactions')) return 'Riwayat Tagihan'
+  if (pathname.startsWith('/coin-history')) return 'Riwayat AI Credits'
+  if (pathname.startsWith('/profile/skin')) return 'Profil Kondisi Kulit'
+  if (pathname.startsWith('/profile/billing')) return 'Paket & Langganan'
+  if (pathname.startsWith('/profile')) return 'Profil Saya'
+  if (pathname.startsWith('/privacy-center')) return 'Pusat Privasi & Data'
+  if (pathname.startsWith('/faq')) return 'Pusat Bantuan'
+  return 'Beranda'
+}
+
 export default function AppLayout() {
   const { coinBalance, profile, subscription, isAdmin, userRoles, reset } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const userDropdownRef = useRef<HTMLDivElement>(null)
 
   const canAccessAdmin =
     isAdmin ||
@@ -68,7 +91,26 @@ export default function AppLayout() {
         .join('')
         .substring(0, 2)
         .toUpperCase()
-    : 'PE'
+    : 'SC'
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setIsUserDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+    setIsUserDropdownOpen(false)
+  }, [location.pathname])
 
   const handleSignOut = async () => {
     try {
@@ -81,233 +123,260 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="v0-app-shell">
-      <div className={`v0-shell-inner ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        {/* ===================== SIDEBAR ===================== */}
-        <aside className={`v0-shell-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+    <div className="cluv-app-shell cluv-surface-app">
+      {/* Mobile Drawer Backdrop Overlay */}
+      <div
+        className={`cluv-shell-backdrop ${isMobileMenuOpen ? 'is-open' : ''}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+        aria-hidden={!isMobileMenuOpen}
+      />
+
+      <div className="cluv-shell-grid">
+        {/* ===================== DESKTOP & MOBILE SIDEBAR ===================== */}
+        <aside className={`cluv-sidebar ${isMobileMenuOpen ? 'is-mobile-open' : ''}`}>
 
           {/* Brand Header */}
-          <div className="v0-sidebar-brand-row">
-            <Link to="/" className="v0-brand-link" onClick={() => setIsMobileMenuOpen(false)}>
-              <span className="v0-brand-icon-box">
+          <div className="cluv-sidebar-brand-row">
+            <Link to="/dashboard" className="cluv-sidebar-brand-link" onClick={() => setIsMobileMenuOpen(false)}>
+              <span className="cluv-sidebar-brand-icon">
                 <Sparkles size={20} strokeWidth={2.5} />
               </span>
-              {!isSidebarCollapsed && (
-                <span className="v0-brand-text">
-                  skincluv<span className="v0-brand-dot">.</span>
-                </span>
-              )}
+              <span className="cluv-sidebar-brand-text">
+                skincluv<span>.</span>
+              </span>
             </Link>
-            {/* Desktop collapse toggle */}
+
+            {/* Mobile close button (Hidden on desktop via CSS) */}
             <button
-              className="v0-sidebar-collapse-btn"
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              aria-label={isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
-              title={isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
-            >
-              <Menu size={18} />
-            </button>
-            {/* Mobile close button */}
-            <button
-              className="v0-sidebar-close-btn"
+              type="button"
+              className="cluv-sidebar-close-btn"
               onClick={() => setIsMobileMenuOpen(false)}
-              aria-label="Tutup menu"
+              aria-label="Tutup navigasi"
             >
-              <X size={22} />
+              <X size={20} />
             </button>
           </div>
 
-          {/* ---- SCROLLABLE NAV AREA ---- */}
-          <div className="v0-sidebar-scroll-area">
-            {/* Section: Menu Utama */}
-            {!isSidebarCollapsed && <p className="v0-nav-section-title">MENU UTAMA</p>}
-            <nav className="v0-nav-group">
-              {navMainItems.map(({ to, icon: Icon, label }) => {
-                const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)
-                return (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`v0-sidebar-item ${isActive ? 'active' : ''}`}
-                    end={to === '/'}
-                    title={isSidebarCollapsed ? label : ''}
-                  >
-                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                    {!isSidebarCollapsed && <span>{label}</span>}
-                  </NavLink>
-                )
-              })}
-            </nav>
-
-            {/* Section: Lainnya */}
-            {!isSidebarCollapsed && <p className="v0-nav-section-title v0-mt-section">LAINNYA</p>}
-            {isSidebarCollapsed && <div className="v0-collapsed-section-divider" />}
-            <nav className="v0-nav-group">
-              {navOtherItems.map(({ to, icon: Icon, label, badge }) => {
-                const isActive = location.pathname.startsWith(to)
-                return (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`v0-sidebar-item ${isActive ? 'active' : ''}`}
-                    title={isSidebarCollapsed ? label : ''}
-                  >
-                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                    {!isSidebarCollapsed && <span>{label}</span>}
-                    {badge && !isSidebarCollapsed && <span className="v0-sidebar-badge">{badge}</span>}
-                  </NavLink>
-                )
-              })}
-            </nav>
-          </div>
-          {/* ---- END SCROLLABLE NAV AREA ---- */}
-
-          {/* ---- PINNED BOTTOM: Trust + Profile ---- */}
-          <div className="v0-sidebar-pinned-bottom">
-            {/* Trust Strip — slim one-line, always visible */}
-            {!isSidebarCollapsed ? (
-              <div className="v0-trust-strip" title="Privasi biometrik & data klinis selalu terlindungi sesuai UU PDP">
-                <ShieldCheck size={14} strokeWidth={2.2} className="v0-trust-strip-icon" />
-                <span className="v0-trust-strip-text">Data & privasi terlindungi · UU PDP</span>
-              </div>
-            ) : (
-              <div className="v0-sidebar-trust-icon-only" title="Data kamu aman — Privasi terlindungi sesuai UU PDP">
-                <ShieldCheck size={16} strokeWidth={2.2} />
-              </div>
-            )}
-
-            {/* Profile Strip */}
-            <div className="v0-sidebar-profile-wrapper">
-              <button
-                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                className="v0-sidebar-profile-btn"
-                title={isSidebarCollapsed ? fullUserName : ''}
-              >
-                <span className="v0-sidebar-avatar-circle">
-                  <UserRound size={19} />
-                </span>
-                {!isSidebarCollapsed && (
-                  <>
-                    <span className="v0-sidebar-profile-meta">
-                      <span className="v0-profile-name-text">{fullUserName}</span>
-                      <span className="v0-profile-role-text">{isPro ? '⭐️ PRO Member' : 'Free Member'}</span>
-                    </span>
-                    <MoreHorizontal size={18} className="v0-profile-more-icon" />
-                  </>
-                )}
-              </button>
-
-              {/* Dropdown Popover */}
-              {isUserDropdownOpen && (
-                <div className="v0-dropdown-popover">
-                  <div className="v0-popover-header">
-                    <span className="v0-popover-name">{fullUserName}</span>
-                    <span className="v0-popover-plan">{isPro ? '⭐️ PRO Subscriber' : 'Free Member'}</span>
-                  </div>
-                  <div className="v0-popover-sep" />
-                  <Link
-                    to="/profile"
-                    className="v0-popover-item"
-                    onClick={() => setIsUserDropdownOpen(false)}
-                  >
-                    <User size={16} />
-                    <span>Profil Saya</span>
-                  </Link>
-                  <Link
-                    to="/transactions"
-                    className="v0-popover-item"
-                    onClick={() => setIsUserDropdownOpen(false)}
-                  >
-                    <Receipt size={16} />
-                    <span>Riwayat Tagihan</span>
-                  </Link>
-                  {canAccessAdmin && (
-                    <Link
-                      to="/admin"
-                      className="v0-popover-item v0-admin-item"
-                      onClick={() => setIsUserDropdownOpen(false)}
-                    >
-                      <ShieldCheck size={16} />
-                      <span>Admin Control Center</span>
-                    </Link>
-                  )}
-                  <div className="v0-popover-sep" />
-                  <button
-                    onClick={() => {
-                      setIsUserDropdownOpen(false)
-                      handleSignOut()
-                    }}
-                    className="v0-popover-item v0-logout-item"
-                  >
-                    <LogOut size={16} />
-                    <span>Keluar Akun</span>
-                  </button>
-                </div>
-              )}
+          {/* Mobile Drawer Top User Banner */}
+          <div className="cluv-drawer-mobile-user-card">
+            <div className="cluv-drawer-avatar">{userInitials}</div>
+            <div className="cluv-drawer-user-info">
+              <span className="cluv-drawer-user-name">{fullUserName}</span>
+              <span className="cluv-drawer-user-badge">{isPro ? '⭐️ PRO Member' : '🌸 Free Member'}</span>
             </div>
           </div>
-          {/* ---- END PINNED BOTTOM ---- */}
+
+          {/* Scrollable Nav Area */}
+          <div className="cluv-sidebar-nav-scroll">
+            {/* Menu Utama (Humanist Sentence Case) */}
+            <p className="cluv-sidebar-section-title">Menu Utama</p>
+            {navMainItems.map(({ to, icon: Icon, label }) => {
+              const isActive = to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to)
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`cluv-sidebar-item ${isActive ? 'is-active' : ''}`}
+                  end={to === '/dashboard'}
+                >
+                  <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+                  <span>{label}</span>
+                </NavLink>
+              )
+            })}
+
+            {/* Eksplorasi Lainnya */}
+            <p className="cluv-sidebar-section-title">Eksplorasi Lainnya</p>
+            {navOtherItems.map(({ to, icon: Icon, label, badge }) => {
+              const isActive = location.pathname.startsWith(to)
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`cluv-sidebar-item ${isActive ? 'is-active' : ''}`}
+                >
+                  <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+                  <span>{label}</span>
+                  {badge && <span className="cluv-sidebar-badge">{badge}</span>}
+                </NavLink>
+              )
+            })}
+          </div>
+
+          {/* Pinned Bottom: Sweet Trust Strip (Clean Single Icon) */}
+          <div className="cluv-sidebar-pinned">
+            <div className="cluv-sidebar-trust" title="Privasi biometrik & data klinis terlindungi sesuai UU PDP No. 27/2022">
+              <ShieldCheck size={16} strokeWidth={2.2} className="cluv-sidebar-trust-icon" />
+              <span>Privasi terlindungi · UU PDP</span>
+            </div>
+          </div>
 
         </aside>
 
-        {/* ===================== MAIN CONTENT COLUMN ===================== */}
-        <section className="v0-shell-main">
-          {/* Top Navbar Header (78px) */}
-          <header className="v0-shell-header">
-            <button
-              className="v0-header-burger-btn"
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Buka menu navigasi"
-            >
-              <Menu size={22} />
-            </button>
+        {/* ===================== MAIN CONTENT & TOPBAR ===================== */}
+        <section className="cluv-shell-main">
+          {/* Topbar Header (68px, Airy, Glass Blur) */}
+          <header className="cluv-topbar">
+            <div className="cluv-topbar-left">
+              {/* Mobile Hamburger Drawer Trigger */}
+              <button
+                type="button"
+                className="cluv-topbar-burger"
+                onClick={() => setIsMobileMenuOpen(true)}
+                aria-label="Buka menu navigasi"
+              >
+                <Menu size={22} />
+              </button>
 
-            {/* Search Box */}
-            <div className="v0-header-search-wrap">
-              <Search size={18} className="v0-header-search-icon" />
-              <input
-                className="v0-header-search-field"
-                placeholder="Cari fitur, produk, atau jurnal..."
-                aria-label="Cari"
-              />
+              {/* Breadcrumb / Page Context Title */}
+              <div className="cluv-topbar-page-context">
+                <span>{getPageContextTitle(location.pathname)}</span>
+              </div>
             </div>
 
-            {/* Right Header Cluster */}
-            <div className="v0-header-right-cluster">
-              {/* Credits Pill */}
+            {/* Topbar Right Cluster (All 38px Unified Height) */}
+            <div className="cluv-topbar-right">
+              {/* Universal AI Credits Clean Cloud Pill (38px) */}
               <button
+                type="button"
                 onClick={() => navigate('/pricing')}
-                className="v0-header-credits-pill"
-                title="Kelola AI Credits"
+                className="cluv-topbar-credits-btn"
+                title="Kelola AI Credits Anda"
               >
-                <Zap size={14} className="v0-header-zap-icon" />
-                <span>{coinBalance?.balance ?? 0} Credits</span>
+                <Zap size={14} className="cluv-credits-icon" fill="currentColor" />
+                <span className="cluv-credits-num">{coinBalance?.balance ?? 0}</span>
+                <span className="cluv-credits-label">Credits</span>
               </button>
 
-              {/* Notification Bell */}
-              <button className="v0-header-bell-btn" aria-label="Notifikasi">
-                <Bell size={20} />
-                <span className="v0-header-bell-dot" />
+              {/* Notification Bell (38px Circle) */}
+              <button type="button" className="cluv-topbar-bell-btn" aria-label="Notifikasi">
+                <Bell size={18} />
+                <span className="cluv-topbar-bell-dot" />
               </button>
 
-              <div className="v0-header-divider" />
+              <div className="cluv-topbar-divider" />
 
-              {/* Profile Topbar Pill */}
-              <button onClick={() => navigate('/profile')} className="v0-header-profile-btn">
-                <span className="v0-header-profile-avatar">{userInitials}</span>
-                <span className="v0-header-profile-name">{userName}</span>
-              </button>
+              {/* Desktop Profile Avatar Trigger (Option A: Clean 38px Circle with Gemini Gradient for PRO) */}
+              <div className="cluv-topbar-profile-wrap" ref={userDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                  className={`cluv-topbar-profile-avatar-btn ${isPro ? 'is-pro' : 'is-free'}`}
+                  aria-expanded={isUserDropdownOpen}
+                  aria-haspopup="true"
+                  title={`${fullUserName} (${isPro ? 'PRO Member' : 'Free Member'})`}
+                  aria-label={`Menu Akun: ${fullUserName}`}
+                >
+                  <span className="cluv-topbar-avatar">{userInitials}</span>
+                </button>
+
+                {/* Popover Dropdown Menu */}
+                {isUserDropdownOpen && (
+                  <div className="cluv-topbar-dropdown" role="menu">
+                    <div className="cluv-dropdown-user-info">
+                      <span className="cluv-dropdown-name">{fullUserName}</span>
+                      <span className={`cluv-dropdown-badge ${isPro ? 'is-pro' : 'is-free'}`}>
+                        {isPro ? '⭐️ PRO Member' : 'Free Member'}
+                      </span>
+                    </div>
+
+                    <div className="cluv-dropdown-sep" />
+
+                    <Link
+                      to="/profile"
+                      className="cluv-dropdown-item"
+                      role="menuitem"
+                      onClick={() => setIsUserDropdownOpen(false)}
+                    >
+                      <User size={15} />
+                      <span>Profil Saya</span>
+                    </Link>
+
+                    <Link
+                      to="/transactions"
+                      className="cluv-dropdown-item"
+                      role="menuitem"
+                      onClick={() => setIsUserDropdownOpen(false)}
+                    >
+                      <Receipt size={15} />
+                      <span>Riwayat Tagihan</span>
+                    </Link>
+
+                    {canAccessAdmin && (
+                      <Link
+                        to="/admin"
+                        className="cluv-dropdown-item is-admin"
+                        role="menuitem"
+                        onClick={() => setIsUserDropdownOpen(false)}
+                      >
+                        <ShieldCheck size={15} />
+                        <span>Admin Control Center</span>
+                      </Link>
+                    )}
+
+                    <div className="cluv-dropdown-sep" />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserDropdownOpen(false)
+                        handleSignOut()
+                      }}
+                      className="cluv-dropdown-item is-danger"
+                      role="menuitem"
+                    >
+                      <LogOut size={15} />
+                      <span>Keluar Akun</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 
           {/* Page Body Router Outlet */}
-          <main className="v0-shell-page-content">
+          <main className="cluv-shell-page-content">
             <Outlet />
           </main>
         </section>
       </div>
+
+      {/* ===================== MOBILE BOTTOM NAVIGATION BAR ===================== */}
+      {/* Thumb-friendly ergonomics on phone screens with Center FAB */}
+      <nav className="cluv-mobile-bottom-bar" aria-label="Navigasi Bawah">
+        {mobileBottomNavItems.map(({ to, icon: Icon, label, isCenterFab }) => {
+          const isActive = to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to)
+          
+          if (isCenterFab) {
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={`cluv-bottom-nav-item is-center-fab ${isActive ? 'is-active' : ''}`}
+              >
+                <div className="cluv-bottom-nav-fab-icon">
+                  <Icon size={22} strokeWidth={2.4} />
+                </div>
+                <span>{label}</span>
+              </NavLink>
+            )
+          }
+
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              className={`cluv-bottom-nav-item ${isActive ? 'is-active' : ''}`}
+              end={to === '/dashboard'}
+            >
+              <Icon size={20} className="cluv-bottom-nav-icon" strokeWidth={isActive ? 2.5 : 2} />
+              <span>{label}</span>
+            </NavLink>
+          )
+        })}
+      </nav>
     </div>
   )
 }

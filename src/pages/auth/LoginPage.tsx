@@ -10,12 +10,12 @@ import { useAuthStore } from '@/store/authStore'
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string })?.from || '/'
+  const from = (location.state as { from?: string })?.from || '/dashboard'
   const { user, isLoading: isAuthLoading } = useAuthStore()
 
   useEffect(() => {
     if (user && !isAuthLoading) {
-      navigate(from, { replace: true })
+      navigate(from === '/' ? '/dashboard' : from, { replace: true })
     }
   }, [user, isAuthLoading, from, navigate])
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     try {
       const origin = window.location.origin
-      const redirectTarget = from === '/' ? `${origin}/` : `${origin}${from}`
+      const redirectTarget = from === '/' || from === '/dashboard' ? `${origin}/dashboard` : `${origin}${from}`
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -70,7 +70,7 @@ export default function LoginPage() {
             : error.message
         )
       } else {
-        navigate(from, { replace: true })
+        navigate(from === '/' ? '/dashboard' : from, { replace: true })
       }
     } catch (err: any) {
       setError(err?.message || 'Gagal masuk ke akun.')

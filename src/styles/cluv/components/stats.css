@@ -1,0 +1,130 @@
+/* src/styles/cluv/components/stats.css
+   =============================================================================
+   Skincluv Universal Metric & Stat Cards (.cluv-stat-card)
+   =============================================================================
+   Compact metric containers used for score indicators, quotas, balances,
+   and daily summary widgets across App and Admin surfaces.
+*/
+
+/* Stat Grid (Responsive Auto-Fit) */
+.cluv-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.cluv-stat-grid.cols-2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.cluv-stat-grid.cols-4 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
+/* Stat Card Root */
+.cluv-stat-card {
+  position: relative;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-lg));
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--cluv-shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-sizing: border-box;
+}
+
+.cluv-stat-card.is-interactive {
+  cursor: pointer;
+}
+
+.cluv-stat-card.is-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cluv-shadow-md);
+  border-color: var(--cluv-teal-line);
+}
+
+/* Top Header in Stat Card (Label + Icon) */
+.cluv-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cluv-stat-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cluv-neutral-500);
+}
+
+/* Icon Box inside Stat Card */
+.cluv-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
+  flex-shrink: 0;
+}
+
+.cluv-stat-icon.is-teal {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+}
+
+.cluv-stat-icon.is-rose {
+  background: var(--cluv-rose-soft);
+  color: var(--cluv-rose);
+}
+
+.cluv-stat-icon.is-gold {
+  background: var(--cluv-gold-soft);
+  color: var(--cluv-gold);
+}
+
+.cluv-stat-icon.is-purple {
+  background: var(--cluv-purple-soft);
+  color: var(--cluv-purple);
+}
+
+.cluv-stat-icon.is-blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+/* Metric Value */
+.cluv-stat-val {
+  font-size: clamp(1.5rem, 2.2vw, 1.875rem);
+  font-weight: 800;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+/* Subtitle / Micro Meta info below the value */
+.cluv-stat-meta {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cluv-stat-meta.is-positive {
+  color: var(--cluv-status-success);
+}
+
+.cluv-stat-meta.is-alert {
+  color: var(--cluv-status-danger);
+}

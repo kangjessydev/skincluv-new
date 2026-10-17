@@ -52,7 +52,7 @@ export default function AuthCallbackPage() {
             navigate('/reset-password', { replace: true })
           } else {
             // Konfirmasi pendaftaran akun atau OAuth exchange
-            navigate('/', { replace: true })
+            navigate('/dashboard', { replace: true })
           }
         }, 1200)
       } catch (err: any) {

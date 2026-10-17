@@ -1,0 +1,356 @@
+/* src/styles/cluv/app/dashboard.css
+   =============================================================================
+   Skincluv App Surface: Dashboard Specific Layout & Visualization
+   =============================================================================
+   Domain-specific layout styles for /dashboard in compliance with AGENTS.md.
+   100% tokenized via var(--cluv-*), zero inline styling, zero hardcoded hex.
+*/
+
+/* 1. Dashboard Layout Container */
+.cluv-dashboard-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1240px;
+  margin-left: 0;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* 2. Top Greeting Cluster */
+.cluv-dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cluv-dashboard-credits-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cluv-gold-soft);
+  border: 1px solid var(--cluv-gold-line);
+  color: var(--cluv-gold);
+  border-radius: var(--cluv-radius-pill);
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.cluv-dashboard-credits-btn:hover {
+  background: #fef3c7;
+  transform: translateY(-1px);
+}
+
+.cluv-dashboard-credits-btn.is-empty {
+  background: var(--cluv-rose-soft);
+  border-color: var(--cluv-rose-line);
+  color: var(--cluv-rose);
+}
+
+/* 3. Quick Scan Shortcuts (2-Column Action Tiles) */
+.cluv-quick-scan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+
+.cluv-quick-tile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-lg));
+  box-shadow: var(--cluv-shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  border-left: 4px solid transparent;
+}
+
+.cluv-quick-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cluv-shadow-md);
+}
+
+.cluv-quick-tile.is-face:hover {
+  border-left-color: var(--cluv-teal);
+}
+
+.cluv-quick-tile.is-ingredient:hover {
+  border-left-color: var(--cluv-status-info);
+}
+
+.cluv-quick-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.cluv-quick-tile-icon.is-teal {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+}
+
+.cluv-quick-tile-icon.is-blue {
+  background: #eff6ff;
+  color: var(--cluv-status-info);
+}
+
+.cluv-quick-tile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-quick-tile-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+.cluv-quick-tile-sub {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+}
+
+.cluv-quick-tile-arrow {
+  color: var(--cluv-neutral-400);
+  transition: transform 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cluv-quick-tile:hover .cluv-quick-tile-arrow {
+  color: var(--cluv-teal);
+  transform: translateX(3px);
+}
+
+/* 4. Skin Assessment Hero Card */
+.cluv-assessment-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.cluv-assessment-notes {
+  flex: 1;
+  min-width: 240px;
+}
+
+.cluv-assessment-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* 5. Compact Mission Strip */
+.cluv-mission-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-md));
+  box-shadow: var(--cluv-shadow-sm);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cluv-mission-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cluv-mission-track {
+  width: 120px;
+  height: 6px;
+  background: var(--cluv-neutral-200);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.cluv-mission-bar {
+  height: 100%;
+  background: var(--cluv-teal);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* 6. Middle Grid (Chart 1.55fr + Insight 1fr) */
+.cluv-middle-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .cluv-middle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scan Bar Chart */
+.cluv-bars-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  height: 160px;
+  padding: 16px 8px 0;
+  box-sizing: border-box;
+}
+
+.cluv-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.cluv-bar-track {
+  position: relative;
+  width: 100%;
+  max-width: 38px;
+  height: 120px;
+  background: var(--cluv-neutral-100);
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: visible;
+}
+
+.cluv-bar-pillar {
+  width: 100%;
+  background: var(--cluv-neutral-300);
+  border-radius: 8px 8px 0 0;
+  transition: height 0.4s ease, background 0.2s ease;
+}
+
+.cluv-bar-pillar.is-latest {
+  background: var(--cluv-teal);
+}
+
+.cluv-bar-tooltip {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cluv-neutral-800);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.cluv-bar-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-500);
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* 7. Bottom Grid (Routine 1fr + Recent Scans 1.55fr) */
+.cluv-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.55fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .cluv-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Recent Scan Rows */
+.cluv-recent-scan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cluv-recent-scan-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--cluv-radius-md);
+  border: 1px solid var(--cluv-neutral-200);
+  background: var(--cluv-current-card-bg, #ffffff);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.cluv-recent-scan-item:hover {
+  background: var(--cluv-neutral-50);
+  border-color: var(--cluv-teal-line);
+}
+
+.cluv-recent-scan-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.cluv-recent-scan-icon.is-teal {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+}
+
+.cluv-recent-scan-icon.is-blue {
+  background: #eff6ff;
+  color: var(--cluv-status-info);
+}
+
+.cluv-recent-scan-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-recent-scan-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-800);
+  display: block;
+}
+
+.cluv-recent-scan-time {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-400);
+  display: block;
+  margin-top: 1px;
+}

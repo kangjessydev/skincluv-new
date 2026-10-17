@@ -31,4 +31,11 @@
 @import './components/spinners.css';
 @import './components/dividers.css';
 @import './components/modals.css';
+@import './components/stats.css';
+@import './components/score-ring.css';
+@import './components/checklist.css';
+@import './components/tabs.css';
+
+/* 3. App Surface Shell */
+@import './app/shell.css';
 

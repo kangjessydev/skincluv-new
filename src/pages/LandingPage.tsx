@@ -23,11 +23,14 @@ import {
   CheckCircle2,
   Scan,
   MessageCircle,
+  LayoutDashboard,
 } from 'lucide-react'
 import '@/styles/landing.css'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { useAuthStore } from '@/store/authStore'
 
 export default function LandingPage() {
+  const { user } = useAuthStore()
   // Initialize scroll reveal observer
   useScrollReveal()
 
@@ -101,10 +104,17 @@ export default function LandingPage() {
               </p>
 
               <div className="cluv-btn-group is-stack-mobile cluv-mt-6">
-                <Link to="/register" className="cluv-btn is-primary is-lg">
-                  <Heart size={16} />
-                  <span>Yuk, Mulai Cerita Kulitmu</span>
-                </Link>
+                {user ? (
+                  <Link to="/dashboard" className="cluv-btn is-primary is-lg">
+                    <LayoutDashboard size={16} />
+                    <span>Buka Dashboard</span>
+                  </Link>
+                ) : (
+                  <Link to="/register" className="cluv-btn is-primary is-lg">
+                    <Heart size={16} />
+                    <span>Yuk, Mulai Cerita Kulitmu</span>
+                  </Link>
+                )}
                 <Link to="/about" className="cluv-btn is-secondary is-lg">
                   <Smile size={16} />
                   <span>Kenapa Kami Berbeda?</span>
@@ -655,11 +665,19 @@ export default function LandingPage() {
               Kulit butuh waktu alami 28 hari untuk bernapas dan beregenerasi. Tarik napas lega, rawat dirimu dengan penuh kelembutan mulai hari ini.
             </p>
             <div className="cluv-btn-group is-center is-stack-mobile">
-              <Link to="/register" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '420px' }}>
-                <Heart size={16} />
-                <span>Yuk, Mulai Cerita Kulitmu</span>
-                <ArrowRight size={16} />
-              </Link>
+              {user ? (
+                <Link to="/dashboard" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '420px' }}>
+                  <LayoutDashboard size={16} />
+                  <span>Buka Dashboard Saya</span>
+                  <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <Link to="/register" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '420px' }}>
+                  <Heart size={16} />
+                  <span>Yuk, Mulai Cerita Kulitmu</span>
+                  <ArrowRight size={16} />
+                </Link>
+              )}
             </div>
             
             {/* Reassurance Micro-Copy Trust Strip */}

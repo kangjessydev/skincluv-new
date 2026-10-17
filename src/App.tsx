@@ -79,8 +79,8 @@ export default function App() {
       <Routes>
         {/* Public auth routes */}
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" replace />} />
+          <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" replace />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
@@ -88,7 +88,7 @@ export default function App() {
 
         {/* Public regulatory, trust, & informational routes */}
         <Route element={<PublicLayout />}>
-          {!user && <Route path="/" element={<LandingPage />} />}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/paket" element={<PricingPage />} />
           <Route path="/pricing" element={<Navigate to="/paket" replace />} />
           <Route path="/terms" element={<TermsPage />} />
@@ -102,8 +102,9 @@ export default function App() {
 
         {/* Protected app routes */}
         <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/beranda-2" element={<Navigate to="/" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/beranda-2" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/app" element={<Navigate to="/dashboard" replace />} />
           <Route path="/face-scan" element={<FaceScanPage />} />
           <Route path="/scan-history" element={<ScanHistoryPage />} />
           <Route path="/ingredient-scan" element={<IngredientScanPage />} />

@@ -1,0 +1,95 @@
+/* src/styles/cluv/components/score-ring.css
+   =============================================================================
+   Skincluv Biometric Circular Score Gauge (.cluv-score-ring)
+   =============================================================================
+   Universal SVG score ring used in Dashboard, Face Scan, and Scan History.
+   Adheres to RFC 012 & 017: Defensible non-therapeutic clinical observation gauge.
+*/
+
+.cluv-score-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+}
+
+.cluv-score-ring.is-sm {
+  width: 60px;
+  height: 60px;
+}
+
+.cluv-score-ring.is-lg {
+  width: 110px;
+  height: 110px;
+}
+
+.cluv-score-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.cluv-score-bg-circle {
+  fill: none;
+  stroke: var(--cluv-neutral-200, #e2e8f0);
+}
+
+.cluv-score-fg-circle {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease;
+}
+
+.cluv-score-fg-circle.is-optimal {
+  stroke: var(--cluv-teal, #1f9d97);
+}
+
+.cluv-score-fg-circle.is-good {
+  stroke: var(--cluv-status-info, #3b82f6);
+}
+
+.cluv-score-fg-circle.is-attention {
+  stroke: var(--cluv-gold, #d97706);
+}
+
+.cluv-score-fg-circle.is-alert {
+  stroke: var(--cluv-status-danger, #ef4444);
+}
+
+/* Center Content */
+.cluv-score-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.cluv-score-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  letter-spacing: -0.03em;
+}
+
+.cluv-score-ring.is-sm .cluv-score-val {
+  font-size: 1.125rem;
+}
+
+.cluv-score-ring.is-lg .cluv-score-val {
+  font-size: 2.125rem;
+}
+
+.cluv-score-max {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-400);
+  margin-top: 2px;
+}

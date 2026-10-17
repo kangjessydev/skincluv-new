@@ -1,0 +1,100 @@
+/* src/styles/cluv/components/checklist.css
+   =============================================================================
+   Skincluv Interactive Checklist & Routine Item (.cluv-check-item)
+   =============================================================================
+   Card rows used for daily skincare routines, gamified missions,
+   and completed task tracking.
+*/
+
+.cluv-checklist-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.cluv-check-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-md));
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  background: var(--cluv-current-card-bg, #ffffff);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+  box-sizing: border-box;
+  text-align: left;
+  width: 100%;
+}
+
+.cluv-check-item:hover {
+  border-color: var(--cluv-teal-line);
+  background: var(--cluv-neutral-50);
+}
+
+/* Checked / Completed State */
+.cluv-check-item.is-checked {
+  background: var(--cluv-neutral-50);
+  border-color: var(--cluv-neutral-200);
+}
+
+.cluv-check-item.is-checked .cluv-check-title {
+  text-decoration: line-through;
+  color: var(--cluv-neutral-400);
+}
+
+/* Checkbox Trigger Button */
+.cluv-check-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 2px solid var(--cluv-neutral-300);
+  background: transparent;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.cluv-check-item:hover .cluv-check-box {
+  border-color: var(--cluv-teal);
+}
+
+.cluv-check-item.is-checked .cluv-check-box {
+  background: var(--cluv-teal);
+  border-color: var(--cluv-teal);
+}
+
+/* Text Content Area */
+.cluv-check-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-check-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--cluv-current-text, var(--cluv-neutral-800));
+  margin: 0;
+  line-height: 1.35;
+  transition: color 0.15s ease;
+}
+
+.cluv-check-meta {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Optional Reward Badge / Action Slot */
+.cluv-check-action {
+  flex-shrink: 0;
+  margin-left: 8px;
+}

@@ -23,17 +23,17 @@
   background-color: var(--cluv-current-bg);
 }
 
-/* 2. APP SURFACE (Dynamic, fresh clinical - Plus Jakarta Sans, energetic balance) */
+/* 2. APP SURFACE (Warm Companion Skincare Personal Area - Nunito, soft cloud cards, pill actions) */
 .cluv-surface-app {
   --cluv-current-font: var(--cluv-font-app);
-  --cluv-current-radius-card: var(--cluv-radius-lg);
-  --cluv-current-radius-btn: var(--cluv-radius-md);
-  --cluv-current-radius-field: var(--cluv-radius-md);
-  --cluv-current-bg: #f8fafc;
+  --cluv-current-radius-card: var(--cluv-radius-xl, 24px);
+  --cluv-current-radius-btn: var(--cluv-radius-pill, 9999px);
+  --cluv-current-radius-field: 14px;
+  --cluv-current-bg: #f7faff;
   --cluv-current-card-bg: #ffffff;
-  --cluv-current-border: #e2e8f0;
-  --cluv-current-text: #0f172a;
-  --cluv-current-text-muted: #64748b;
+  --cluv-current-border: #dce8f3;
+  --cluv-current-text: #1a2d42;
+  --cluv-current-text-muted: #556980;
   font-family: var(--cluv-current-font);
   color: var(--cluv-current-text);
   background-color: var(--cluv-current-bg);

@@ -1,0 +1,85 @@
+/* src/styles/cluv/components/tabs.css
+   =============================================================================
+   Skincluv Segmented Tabs & Subnav (.cluv-tabs)
+   =============================================================================
+   Horizontal segment tab controls for sub-views, category filters,
+   and history switching.
+*/
+
+.cluv-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--cluv-neutral-100, #f1f5f9);
+  border-radius: 12px;
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+
+.cluv-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.cluv-tabs.is-full {
+  display: flex;
+  width: 100%;
+}
+
+.cluv-tabs.is-full .cluv-tab-btn {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+}
+
+/* Tab Button */
+.cluv-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-600);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1;
+  user-select: none;
+  text-decoration: none;
+}
+
+.cluv-tab-btn:hover {
+  color: var(--cluv-neutral-900);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Active State */
+.cluv-tab-btn.is-active,
+.cluv-tab-btn.active {
+  background: #ffffff;
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Badge inside Tab */
+.cluv-tab-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: var(--cluv-neutral-200);
+  color: var(--cluv-neutral-600);
+}
+
+.cluv-tab-btn.is-active .cluv-tab-badge {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+}
