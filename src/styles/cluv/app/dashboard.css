@@ -21,27 +21,18 @@
 /* 2. Desktop Greeting Header */
 .cluv-dashboard-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin: 0;
 }
 
 .cluv-dashboard-title {
-  margin: 4px 0 0;
+  margin: 0;
 }
 
 .cluv-dashboard-subtitle {
-  margin: 4px 0 0;
-}
-
-/* 2. Desktop Greeting Header (Full width column flow) */
-.cluv-dashboard-header {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 2px;
-  margin-bottom: 24px;
+  margin: 0;
 }
 
 /* Desktop Hero Grid: Observasi Wajah (1.55fr) + Keamanan Skincare (1fr) */
@@ -49,6 +40,7 @@
   display: grid;
   grid-template-columns: 1.55fr 1fr;
   gap: 20px;
+  align-items: start;
 }
 
 .cluv-hero-face-card {
@@ -61,48 +53,53 @@
   border-color: #dbeafe;
 }
 
-/* Lab Metrics Strip */
+/* Lab Metrics Badges (Compact, non-stretching row) */
 .cluv-lab-metrics-strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 14px;
-  padding-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--cluv-neutral-200, #e2e8f0);
 }
 
-.cluv-lab-metric-box {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 12px;
+.cluv-lab-metric-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-700, #334155);
   background: var(--cluv-neutral-50, #f8fafc);
   border: 1px solid var(--cluv-neutral-200, #e2e8f0);
-  border-radius: var(--cluv-radius-md, 10px);
+  border-radius: var(--cluv-radius-md, 8px);
+  line-height: 1.25;
 }
 
-.cluv-lab-metric-box.is-teal {
+.cluv-lab-metric-badge strong {
+  font-weight: 700;
+  color: var(--cluv-current-text, #0f172a);
+}
+
+.cluv-lab-metric-badge.is-teal {
   background: var(--cluv-teal-soft, #e6f6f5);
   border-color: var(--cluv-teal-line, #bceae7);
-}
-
-.cluv-lab-metric-box.is-blue {
-  background: #eff6ff;
-  border-color: #dbeafe;
-}
-
-.cluv-lab-metric-num {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--cluv-current-text, #1a2d42);
-  margin-top: 2px;
-}
-
-.cluv-lab-metric-num.is-teal {
   color: var(--cluv-teal-dark, #127a75);
 }
 
-.cluv-lab-metric-num.is-blue {
-  color: var(--cluv-status-info, #3b82f6);
+.cluv-lab-metric-badge.is-teal strong {
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-lab-metric-badge.is-blue {
+  background: #eff6ff;
+  border-color: #dbeafe;
+  color: var(--cluv-status-info, #2563eb);
+}
+
+.cluv-lab-metric-badge.is-blue strong {
+  color: var(--cluv-status-info, #2563eb);
 }
 
 @media (max-width: 900px) {

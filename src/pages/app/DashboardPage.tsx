@@ -200,11 +200,13 @@ export default function DashboardPage() {
           1. DESKTOP VIEW (> 640px): Greeting Header + Weather Banner + Hero Grid
           ===================================================================== */}
       <header className="cluv-dashboard-header">
-        <h1 className="cluv-title-section">Selamat {timeOfDay}, {firstName} ✨</h1>
-        <p className="cluv-subtitle cluv-mt-1">{todayFormatted}</p>
+        <div>
+          <h1 className="cluv-title-section">Selamat {timeOfDay}, {firstName} ✨</h1>
+          <p className="cluv-subtitle cluv-mt-1">{todayFormatted}</p>
+        </div>
 
         {/* Skinsistant AI Companion Weather Banner (Full Width under date) */}
-        <div className="cluv-weather-bubble cluv-mt-3" aria-label="Saran Cuaca & Proteksi Kulit">
+        <div className="cluv-weather-bubble" aria-label="Saran Cuaca & Proteksi Kulit">
           <div className="cluv-weather-bubble-icon">
             <Bot size={18} />
           </div>
@@ -307,7 +309,7 @@ export default function DashboardPage() {
           </div>
 
           {skinAssessment?.has_face_scan && (
-            <div className="cluv-flex-between cluv-items-center cluv-mt-auto cluv-pt-2">
+            <div className="cluv-flex-between cluv-items-center cluv-pt-3 cluv-border-t">
               <span className="cluv-caption cluv-text-muted">Konsultasikan perkembangan ini</span>
               <button onClick={() => navigate('/chatbot')} className="cluv-btn is-ghost is-sm">
                 <MessageCircle size={14} />
@@ -331,22 +333,17 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Lab Metrics Micro-Cards */}
+            {/* Lab Metrics Badges (Compact Inline Badges) */}
             <div className="cluv-lab-metrics-strip">
-              <div className="cluv-lab-metric-box">
-                <span className="cluv-caption cluv-text-muted">Produk Diuji</span>
-                <span className="cluv-lab-metric-num">{productSummary.total_products_scanned}</span>
-              </div>
-              <div className="cluv-lab-metric-box is-teal">
-                <span className="cluv-caption cluv-text-muted">Formula Aman</span>
-                <span className="cluv-lab-metric-num is-teal">{productSummary.safe_products_count}</span>
-              </div>
-              <div className="cluv-lab-metric-box is-blue">
-                <span className="cluv-caption cluv-text-muted">Skor Keamanan</span>
-                <span className="cluv-lab-metric-num is-blue">
-                  {productSummary.avg_safety_score !== null ? `${productSummary.avg_safety_score}/100` : '-'}
-                </span>
-              </div>
+              <span className="cluv-lab-metric-badge">
+                Produk Diuji: <strong>{productSummary.total_products_scanned}</strong>
+              </span>
+              <span className="cluv-lab-metric-badge is-teal">
+                Formula Aman: <strong>{productSummary.safe_products_count}</strong>
+              </span>
+              <span className="cluv-lab-metric-badge is-blue">
+                Skor Keamanan: <strong>{productSummary.avg_safety_score !== null ? `${productSummary.avg_safety_score}/100` : '-'}</strong>
+              </span>
             </div>
 
             <p className="cluv-body cluv-mt-3 cluv-line-relaxed">
@@ -356,7 +353,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="cluv-flex-between cluv-items-center cluv-mt-auto cluv-pt-2">
+          <div className="cluv-flex-between cluv-items-center cluv-pt-3 cluv-border-t">
             <span className="cluv-caption cluv-text-muted">
               {productSummary.total_products_scanned > 0 ? `${productSummary.total_products_scanned} produk terdaftar` : 'Belum ada produk'}
             </span>
