@@ -148,7 +148,29 @@ Dibuat di `src/styles/cluv/` dan didokumentasikan di `CLUV_FRAMEWORK_CHEATSHEET.
   - Menggunakan modifier kanonikal baru `.cluv-card-strip.is-gold` untuk strip proteksi sunscreen harian.
   - Komponen checklist rutinitas harian responsif dengan transisi checklist mulus dan area sentuh jempol ergonomis (min-height 48px).
 
-### 🧪 7. Verifikasi Kualitas
+### 👑 7. Hero Skin Passport & Wallet Card + Ultra-Airy Mobile Topbar
+- **Pembersihan Total Topbar Mobile**:
+  - Saldo kredit di topbar mobile **dilepas total** (`display: none !important` di `shell.css`) sehingga topbar HP hanya menyisakan Brand Logo `skincluv.` di kiri dan Lonceng Notifikasi di kanan. Sangat lega, bersih, dan tidak sumpek.
+- **Hero Skin Passport & Wallet Card (`.cluv-passport-card`)**:
+  - Menghadirkan kartu paspor personal terintegrasi ala Oura / Lemon8 di bagian paling atas:
+    - **Header**: Avatar pengguna (dengan Gemini Iridescent Glowing Ring untuk PRO / slate-sejuk untuk Free) + Sapaan ramah `Selamat Pagi, Jessy ✨` + Badge Membership (`PRO Member ✨` / `Free Explorer`) + Dompet Kredit (`⚡ 1.395 Credits`) + Tombol Top-up `+ Isi`.
+    - **Hairline Divider**: Garis pemisah halus 1px.
+    - **Body Observasi Kulit Terkini**:
+      - Gauge melingkar SVG terpusat (skor `82 / 100`).
+      - Badge status ringkas terkurasi (`Optimal` / `Baik` / `Perhatian` / `Waspada`) mencegah pemotongan teks pada layar sempit.
+      - Badge Tipe Kulit (`Tipe: Kombinasi`) dan Indikator Tren (`↗ +3 poin` / `Stabil`).
+      - Kalimat observasi personal dari AI.
+      - Waktu observasi terakhir (`Dipindai pada 1 Okt, 18:32`).
+    - **Aksi Cepat Interaktif**: 2 tombol langsung (`[🔍 Pindai Ulang]` dan `[💬 Tanya Skinsistant]`).
+- **Widget Keamanan Skincare (Pemeriksaan Bahan)**:
+  - Mengubah kartu tengah kanan menjadi laboratorium mini komposisi produk yang nyata mengonsumsi data `product_summary`:
+    - Jumlah produk diuji (`productSummary.total_products_scanned`).
+    - Jumlah formula aman bebas iritan (`productSummary.safe_products_count`).
+    - Skor keamanan rata-rata (`avg_safety_score`).
+    - Tombol aksi: `Pindai Produk Baru` (`/ingredient-scan`).
+
+### 🧪 8. Verifikasi Kualitas
 - `npx tsc -b`: **0 error**
-- `npm run build`: Berhasil tanpa warning dalam **3.10 detik**
+- `npm run build`: Berhasil tanpa warning dalam **2.97 detik**
+
 

@@ -20,10 +20,13 @@ import {
   Clock,
   X,
   Bot,
+  Zap,
+  MessageCircle,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { Badge, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
+import { isActivePremium } from '@/utils/subscriptionHelpers'
 import '@/styles/cluv/app/dashboard.css'
 
 const initialRoutine = [
@@ -53,7 +56,7 @@ export default function DashboardPage() {
   }
 
   const skinAssessment = data?.skin_assessment
-  const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0 }
+  const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0, avg_safety_score: null }
   const missions = data?.missions ?? { completed: 0, total: 1 }
   const recentScans = data?.recent_scans ?? []
   const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
@@ -91,6 +94,26 @@ export default function DashboardPage() {
       })
     : null
 
+  const isPro = isActivePremium(subscription)
+  const userInitials = profile?.full_name
+    ? profile.full_name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase()
+    : 'SC'
+
+  const cleanStatusLabel = (status?: string): string => {
+    if (!status) return 'Optimal'
+    const s = status.toLowerCase()
+    if (s.includes('optimal') || s.includes('sehat')) return 'Optimal'
+    if (s.includes('baik')) return 'Baik'
+    if (s.includes('perhatian') || s.includes('waspada')) return 'Perhatian'
+    if (s.includes('kritis') || s.includes('bahaya') || s.includes('peringatan')) return 'Waspada'
+    return 'Normal'
+  }
+
   const getStatusVariant = (status?: string): 'optimal' | 'attention' | 'alert' | 'neutral' => {
     if (!status) return 'neutral'
     const s = status.toLowerCase()
@@ -125,16 +148,149 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* TOP GREETING ROW */}
-      <div className="cluv-dashboard-header">
-        <div>
-          <p className="cluv-caption cluv-text-muted">{todayFormatted}</p>
-          <h1 className="cluv-title-section cluv-mt-1 cluv-dashboard-title">Selamat {timeOfDay}, {firstName}</h1>
-          <p className="cluv-body cluv-text-muted cluv-mt-1 cluv-dashboard-subtitle">Ringkasan kondisi kulit dan akses cepat perawatan harianmu.</p>
+      {/* 1. HERO SKIN PASSPORT & WALLET CARD (All-in-One Personal Health & Wallet Hero) */}
+      {loading ? (
+        <div className="cluv-passport-card">
+          <div className="cluv-flex-between cluv-items-center">
+            <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+              <Skeleton height={42} width={42} radius="50%" />
+              <div>
+                <Skeleton height={18} width={140} />
+                <div className="cluv-mb-1" />
+                <Skeleton height={12} width={80} radius="100px" />
+              </div>
+            </div>
+            <Skeleton height={32} width={120} radius="100px" />
+          </div>
+          <div className="cluv-passport-divider" />
+          <div className="cluv-flex-row cluv-gap-4 cluv-items-center">
+            <Skeleton height={70} width={70} radius="50%" />
+            <div className="cluv-flex-1">
+              <Skeleton height={16} width={180} />
+              <div className="cluv-mb-2" />
+              <SkeletonText lines={2} />
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="cluv-passport-card">
+          {/* Top Row: User Avatar + Name + Tier + Wallet */}
+          <div className="cluv-passport-header">
+            <div className="cluv-passport-user">
+              <div className={`cluv-passport-avatar ${isPro ? 'is-pro' : 'is-free'}`}>
+                <div className="cluv-passport-avatar-inner">
+                  {userInitials}
+                </div>
+              </div>
+              <div className="cluv-passport-user-info">
+                <h2 className="cluv-passport-greeting">Selamat {timeOfDay}, {firstName} ✨</h2>
+                <span className={`cluv-passport-badge ${isPro ? 'is-pro' : 'is-free'}`}>
+                  {isPro ? 'PRO Member ✨' : 'Free Explorer'}
+                </span>
+              </div>
+            </div>
 
-      {/* QUICK SCAN SHORTCUTS (Desktop 2-Column Tiles) */}
+            <div className="cluv-passport-wallet">
+              <div className="cluv-passport-credits-pill">
+                <Zap size={14} className="cluv-passport-credits-icon" fill="#f59e0b" />
+                <span>{(coinBalance ?? 0).toLocaleString()}</span>
+                <span className="cluv-caption cluv-text-muted">Credits</span>
+              </div>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="cluv-passport-topup-btn"
+                aria-label="Isi ulang credits"
+              >
+                <span>+ Isi</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="cluv-passport-divider" />
+
+          {/* Body: Score Gauge + Diagnosis + Direct AI Actions */}
+          {skinAssessment?.has_face_scan ? (
+            <div className="cluv-passport-body">
+              {/* Circular Score Ring */}
+              <div className="cluv-score-ring is-md">
+                <svg className="cluv-score-svg" viewBox="0 0 80 80">
+                  <circle
+                    className="cluv-score-bg-circle"
+                    cx="40"
+                    cy="40"
+                    r="34"
+                    strokeWidth="6"
+                  />
+                  <circle
+                    className={`cluv-score-fg-circle is-${getStatusVariant(skinAssessment.latest_status)}`}
+                    cx="40"
+                    cy="40"
+                    r="34"
+                    strokeWidth="6"
+                    strokeDasharray={213.6}
+                    strokeDashoffset={213.6 - (213.6 * Math.min(Math.max(skinAssessment.latest_score || 0, 0), 100)) / 100}
+                  />
+                </svg>
+                <div className="cluv-score-center">
+                  <span className="cluv-score-val">{skinAssessment.latest_score ?? '-'}</span>
+                  <span className="cluv-score-max">/100</span>
+                </div>
+              </div>
+
+              {/* Assessment Summary & AI Quote */}
+              <div className="cluv-passport-details">
+                <div className="cluv-passport-chips">
+                  <Badge variant={getStatusVariant(skinAssessment.latest_status)} dot size="sm">
+                    {cleanStatusLabel(skinAssessment.latest_status)}
+                  </Badge>
+                  {skinAssessment.skin_type && (
+                    <span className="cluv-badge is-slate is-sm">
+                      Tipe: {skinAssessment.skin_type}
+                    </span>
+                  )}
+                  {skinAssessment.trend_label && (
+                    <span className="cluv-badge is-teal is-sm">
+                      {skinAssessment.trend_label}
+                    </span>
+                  )}
+                </div>
+
+                <p className="cluv-passport-note">
+                  "{skinAssessment.analysis_notes || 'Kondisi kulit terjaga dengan baik. Lanjutkan hidrasi dan proteksi UV harian.'}"
+                </p>
+
+                {lastScanDate && (
+                  <span className="cluv-passport-time">Observasi terakhir · {lastScanDate}</span>
+                )}
+
+                {/* Quick Action CTAs */}
+                <div className="cluv-passport-actions">
+                  <button
+                    onClick={() => navigate('/face-scan')}
+                    className="cluv-passport-action-btn is-primary"
+                  >
+                    <ScanFace size={14} />
+                    <span>Pindai Ulang</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/chatbot')}
+                    className="cluv-passport-action-btn is-subtle"
+                  >
+                    <MessageCircle size={14} />
+                    <span>Tanya Skinsistant</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="cluv-text-center cluv-py-4">
+              <EmptyFaceScan onScan={() => navigate('/face-scan')} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 2. QUICK SCAN SHORTCUTS (Desktop 2-Column Tiles) */}
       <div className="cluv-quick-scan-grid">
         <button
           onClick={() => navigate('/face-scan')}
@@ -165,7 +321,7 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* MOBILE 4-ITEM SQUIRCLE SHORTCUTS (Visible on mobile <= 640px) */}
+      {/* 3. MOBILE 4-ITEM SQUIRCLE SHORTCUTS (Visible on mobile <= 640px) */}
       <div className="cluv-mobile-shortcuts" aria-label="Akses Cepat Mobile">
         <button
           onClick={() => navigate('/face-scan')}
@@ -207,105 +363,6 @@ export default function DashboardPage() {
           <span className="cluv-mobile-shortcut-label">Tanya AI</span>
         </button>
       </div>
-
-      {/* LATEST SKIN ASSESSMENT (Primary Value Proposition) */}
-      {loading ? (
-        <div className="cluv-card">
-          <Skeleton height={24} width={180} />
-          <div className="cluv-flex-row cluv-gap-4 cluv-items-center cluv-mt-3">
-            <Skeleton height={80} width={80} radius="50%" />
-            <div className="cluv-flex-1">
-              <Skeleton height={18} width="40%" />
-              <div className="cluv-mb-2" />
-              <SkeletonText lines={2} />
-            </div>
-          </div>
-        </div>
-      ) : skinAssessment?.has_face_scan ? (
-        <section className="cluv-card">
-          <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-            <div>
-              <div className="cluv-flex-row cluv-gap-2 cluv-items-center">
-                <span className="cluv-caption cluv-text-muted cluv-font-bold">OBSERVASI KULIT TERAKHIR</span>
-                {skinAssessment.latest_status && (
-                  <Badge variant={getStatusVariant(skinAssessment.latest_status)} dot size="sm">
-                    {skinAssessment.latest_status}
-                  </Badge>
-                )}
-              </div>
-              <h2 className="cluv-title-card cluv-mt-1">
-                Observasi Visual {skinAssessment.skin_type ? `· ${skinAssessment.skin_type}` : ''}
-              </h2>
-              {lastScanDate && (
-                <p className="cluv-caption cluv-text-muted cluv-mt-1">Dipindai pada {lastScanDate}</p>
-              )}
-            </div>
-            <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
-              <span>Riwayat</span>
-              <ArrowUpRight size={14} />
-            </button>
-          </div>
-
-          <div className="cluv-assessment-body">
-            {/* Circular Score Ring */}
-            <div className="cluv-score-ring is-md">
-              <svg className="cluv-score-svg" viewBox="0 0 80 80">
-                <circle
-                  className="cluv-score-bg-circle"
-                  cx="40"
-                  cy="40"
-                  r="34"
-                  strokeWidth="6"
-                />
-                <circle
-                  className={`cluv-score-fg-circle is-${getStatusVariant(skinAssessment.latest_status)}`}
-                  cx="40"
-                  cy="40"
-                  r="34"
-                  strokeWidth="6"
-                  strokeDasharray={213.6}
-                  strokeDashoffset={213.6 - (213.6 * Math.min(Math.max(skinAssessment.latest_score || 0, 0), 100)) / 100}
-                />
-              </svg>
-              <div className="cluv-score-center">
-                <span className="cluv-score-val">{skinAssessment.latest_score ?? '-'}</span>
-                <span className="cluv-score-max">/100</span>
-              </div>
-            </div>
-
-            {/* Assessment Notes & Meta */}
-            <div className="cluv-assessment-notes">
-              <p className="cluv-body cluv-m-0">
-                {skinAssessment.analysis_notes || 'Kondisi kulit terjaga dengan baik. Lanjutkan hidrasi dan proteksi UV harian.'}
-              </p>
-              <div className="cluv-assessment-chips">
-                {skinAssessment.trend_label && (
-                  <span className="cluv-badge is-teal is-sm">
-                    {skinAssessment.trend_label}
-                  </span>
-                )}
-                {skinAssessment.skin_type && (
-                  <span className="cluv-badge is-slate is-sm">
-                    Tipe: {skinAssessment.skin_type}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => navigate('/chatbot')}
-                className="cluv-assessment-chat-cta"
-              >
-                <Sparkles size={13} />
-                <span>Konsultasikan ke Skinsistant</span>
-                <ChevronRight size={13} />
-              </button>
-            </div>
-          </div>
-        </section>
-      ) : (
-        <section className="cluv-card cluv-text-center cluv-py-6">
-          <EmptyFaceScan onScan={() => navigate('/face-scan')} />
-        </section>
-      )}
 
       {/* COMPACT MISSION STRIP */}
       <div className="cluv-mission-strip">
@@ -411,37 +468,52 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Insight / Analysis Notes Card */}
+        {/* Ringkasan Komposisi & Keamanan Bahan Skincare */}
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
               <div>
-                <span className="cluv-caption cluv-text-muted cluv-font-bold">INSIGHT KULITMU</span>
-                <h2 className="cluv-title-card cluv-mt-1">
-                  {skinAssessment?.has_face_scan ? 'Catatan Observasi AI' : 'Mulai dari sini'}
-                </h2>
+                <span className="cluv-caption cluv-text-muted cluv-font-bold">KEAMANAN SKINCARE</span>
+                <h2 className="cluv-title-card cluv-mt-1">Pemeriksaan Bahan</h2>
               </div>
-              <div className="cluv-stat-icon is-teal">
-                <Sparkles size={18} />
+              <div className="cluv-stat-icon is-blue">
+                <FlaskConical size={18} />
               </div>
             </div>
 
+            <div className="cluv-flex-row cluv-gap-4 cluv-mt-3 cluv-border-b cluv-pb-3 cluv-flex-wrap">
+              <div className="cluv-flex-col">
+                <span className="cluv-caption cluv-text-muted">Produk Diuji</span>
+                <span className="cluv-title-card cluv-mt-1">{productSummary.total_products_scanned}</span>
+              </div>
+              <div className="cluv-flex-col">
+                <span className="cluv-caption cluv-text-muted">Formula Aman</span>
+                <span className="cluv-title-card cluv-text-teal cluv-mt-1">{productSummary.safe_products_count}</span>
+              </div>
+              {productSummary.avg_safety_score !== null && (
+                <div className="cluv-flex-col">
+                  <span className="cluv-caption cluv-text-muted">Skor Keamanan</span>
+                  <span className="cluv-title-card cluv-mt-1">{productSummary.avg_safety_score}/100</span>
+                </div>
+              )}
+            </div>
+
             <p className="cluv-body cluv-mt-3 cluv-line-relaxed">
-              {skinAssessment?.analysis_notes
-                ? skinAssessment.analysis_notes
-                : 'Lakukan Analisis Kulit AI pertamamu. Skinsistant AI akan menyediakan observasi kondisi kulitmu secara ramah berdasarkan foto wajah.'}
+              {productSummary.total_products_scanned > 0
+                ? 'Produk skincare yang kamu gunakan terpantau ramah bagi skin barrier. Pastikan urutan pemakaian dan layering bahan aktif tidak bertabrakan.'
+                : 'Pindai label komposisi produk (serum, toner, sunscreen) untuk mendeteksi bahan komedogenik atau iritan berbahaya.'}
             </p>
           </div>
 
           <div className="cluv-flex-between cluv-items-center cluv-border-t cluv-pt-3 cluv-mt-4">
             <span className="cluv-caption cluv-text-muted">
-              {skinAssessment?.has_face_scan ? `Total ${scanCounts.total} scan` : 'Belum ada scan'}
+              {productSummary.total_products_scanned > 0 ? `${productSummary.total_products_scanned} produk terdaftar` : 'Belum ada produk'}
             </span>
             <button
-              onClick={() => navigate(skinAssessment?.has_face_scan ? '/chatbot' : '/face-scan')}
+              onClick={() => navigate('/ingredient-scan')}
               className="cluv-btn is-ghost is-sm"
             >
-              <span>{skinAssessment?.has_face_scan ? 'Tanya Skinsistant' : 'Mulai Scan'}</span>
+              <span>{productSummary.total_products_scanned > 0 ? 'Pindai Produk Baru' : 'Mulai Pindai'}</span>
               <ChevronRight size={14} />
             </button>
           </div>

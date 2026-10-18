@@ -612,10 +612,9 @@
     display: none !important;
   }
 
+  /* Credits pill is moved to Member Passport Card on mobile to keep topbar ultra-airy */
   .cluv-topbar-credits-btn {
-    padding: 0 12px;
-    font-size: 0.8125rem;
-    height: 36px;
+    display: none !important;
   }
 
   .cluv-topbar-bell-btn {
