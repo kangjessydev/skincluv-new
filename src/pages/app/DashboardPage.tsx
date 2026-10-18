@@ -49,6 +49,40 @@ function getTimeOfDayGreeting(): string {
   return 'malam'
 }
 
+function getEnvironmentalWeather() {
+  const hour = new Date().getHours()
+  if (hour >= 4 && hour < 11) {
+    return {
+      temp: '26°C',
+      uvIndex: 'UV 3.2 (Sedang)',
+      timeLabel: 'Pagi Hari',
+      tip: 'Pagi yang cerah bestie! Sebelum keluar, aplikasikan sunscreen SPF 50 ya :)',
+    }
+  }
+  if (hour >= 11 && hour < 15) {
+    return {
+      temp: '31°C',
+      uvIndex: 'UV 7.8 (Tinggi)',
+      timeLabel: 'Siang Hari',
+      tip: 'Siang ini terik banget loh bestie! Sampai 31 derajat. Jangan lupa re-apply sunscreen ya! :)',
+    }
+  }
+  if (hour >= 15 && hour < 18) {
+    return {
+      temp: '29°C',
+      uvIndex: 'UV 2.0 (Teduh)',
+      timeLabel: 'Sore Hari',
+      tip: 'Matahari mulai teduh bestie. Tetap hidrasi kulit setelah seharian beraktivitas!',
+    }
+  }
+  return {
+    temp: '25°C',
+    uvIndex: 'UV 0.0 (Malam)',
+    timeLabel: 'Malam Hari',
+    tip: 'Malam ini sejuk bestie. Waktunya regenerasi sel kulit dengan double cleansing & moisturizer!',
+  }
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { profile, subscription, coinBalance } = useAuthStore()
@@ -59,8 +93,11 @@ export default function DashboardPage() {
   const activeRoutine = isNight ? eveningRoutine : morningRoutine
 
   const [mobileVariant, setMobileVariant] = useState<'A' | 'B'>('A')
+  const [weatherVariant, setWeatherVariant] = useState<'pill' | 'bubble' | 'routine'>('pill')
   const [checked, setChecked] = useState(activeRoutine.map((item) => item.done))
   const [showExpiryBanner, setShowExpiryBanner] = useState(true)
+
+  const weather = getEnvironmentalWeather()
 
   const toggleRoutine = (index: number) => {
     setChecked((items) => items.map((item, itemIndex) => (itemIndex === index ? !item : item)))
@@ -350,23 +387,82 @@ export default function DashboardPage() {
           2. MOBILE VIEW (<= 640px): OPSI A (Menyatu) vs OPSI B (Cardless)
           ===================================================================== */}
       <div className="cluv-mobile-dashboard">
-        {/* Interactive Preview Switcher (Untuk menguji Opsi A vs Opsi B) */}
-        <div className="cluv-mobile-preview-switcher" aria-label="Pemilih Opsi Desain">
-          <button
-            type="button"
-            onClick={() => setMobileVariant('A')}
-            className={`cluv-preview-toggle-btn ${mobileVariant === 'A' ? 'is-active' : ''}`}
-          >
-            Opsi A: Menyatu
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileVariant('B')}
-            className={`cluv-preview-toggle-btn ${mobileVariant === 'B' ? 'is-active' : ''}`}
-          >
-            Opsi B: Cardless
-          </button>
+        {/* Interactive Preview Switchers (Untuk menguji Layout & Cuaca Langsung) */}
+        <div className="cluv-flex-col cluv-gap-1 cluv-mb-1">
+          <div className="cluv-mobile-preview-switcher" aria-label="Pemilih Opsi Desain">
+            <span className="cluv-caption cluv-text-muted cluv-font-bold">Layout:</span>
+            <button
+              type="button"
+              onClick={() => setMobileVariant('A')}
+              className={`cluv-preview-toggle-btn ${mobileVariant === 'A' ? 'is-active' : ''}`}
+            >
+              Opsi A (Menyatu)
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileVariant('B')}
+              className={`cluv-preview-toggle-btn ${mobileVariant === 'B' ? 'is-active' : ''}`}
+            >
+              Opsi B (Cardless)
+            </button>
+          </div>
+
+          <div className="cluv-mobile-preview-switcher" aria-label="Pemilih Konsep Cuaca">
+            <span className="cluv-caption cluv-text-muted cluv-font-bold">Cuaca:</span>
+            <button
+              type="button"
+              onClick={() => setWeatherVariant('pill')}
+              className={`cluv-preview-toggle-btn ${weatherVariant === 'pill' ? 'is-active' : ''}`}
+            >
+              1. Micro Pill
+            </button>
+            <button
+              type="button"
+              onClick={() => setWeatherVariant('bubble')}
+              className={`cluv-preview-toggle-btn ${weatherVariant === 'bubble' ? 'is-active' : ''}`}
+            >
+              2. AI Bubble
+            </button>
+            <button
+              type="button"
+              onClick={() => setWeatherVariant('routine')}
+              className={`cluv-preview-toggle-btn ${weatherVariant === 'routine' ? 'is-active' : ''}`}
+            >
+              3. Di Rutinitas
+            </button>
+          </div>
         </div>
+
+        {/* WEATHER CONCEPT 1: MICRO WEATHER PILL */}
+        {weatherVariant === 'pill' && (
+          <div className="cluv-weather-pill" title="Kondisi cuaca & proteksi UV real-time">
+            <span className="cluv-weather-pill-tag">
+              <SunMedium size={13} />
+              <span>{weather.temp} · {weather.uvIndex}</span>
+            </span>
+            <span className="cluv-weather-pill-divider" />
+            <p className="cluv-weather-pill-text">{weather.tip}</p>
+          </div>
+        )}
+
+        {/* WEATHER CONCEPT 2: SKINSISTANT AI WEATHER BUBBLE */}
+        {weatherVariant === 'bubble' && (
+          <div className="cluv-weather-bubble">
+            <div className="cluv-weather-bubble-icon">
+              <Bot size={16} />
+            </div>
+            <div className="cluv-weather-bubble-content">
+              <div className="cluv-weather-bubble-header">
+                <span className="cluv-weather-bubble-title">Skinsistant AI · Cuaca Hari Ini</span>
+                <span className="cluv-weather-bubble-tag">
+                  <SunMedium size={11} />
+                  <span>{weather.temp} · {weather.uvIndex}</span>
+                </span>
+              </div>
+              <p className="cluv-weather-bubble-text">"{weather.tip}"</p>
+            </div>
+          </div>
+        )}
 
         {/* VARIANT A: POCKET MENYATU DI DALAM KARTU SKIN BENTO */}
         {mobileVariant === 'A' && (
@@ -732,7 +828,15 @@ export default function DashboardPage() {
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
               <div>
-                <h2 className="cluv-title-card">{isNight ? 'Rutinitas Malam 🌙' : 'Rutinitas Pagi ☀️'}</h2>
+                <div className="cluv-flex-row cluv-gap-2 cluv-items-center">
+                  <h2 className="cluv-title-card">{isNight ? 'Rutinitas Malam 🌙' : 'Rutinitas Pagi ☀️'}</h2>
+                  {weatherVariant === 'routine' && (
+                    <span className="cluv-badge is-gold is-sm">
+                      <SunMedium size={12} />
+                      <span>{weather.temp} · {weather.uvIndex}</span>
+                    </span>
+                  )}
+                </div>
                 <p className="cluv-caption cluv-text-muted cluv-mt-1">
                   {isNight ? '3 langkah · sekitar 7 menit' : '3 langkah · sekitar 5 menit'}
                 </p>
@@ -741,6 +845,18 @@ export default function DashboardPage() {
                 <MoreHorizontal size={18} />
               </button>
             </div>
+
+            {/* Weather Tip Strip in Routine Card (When concept 3 is active) */}
+            {weatherVariant === 'routine' && (
+              <div className="cluv-card-strip is-gold cluv-mt-3">
+                <div className="cluv-card-icon-wrap is-gold is-sm">
+                  <SunMedium size={15} />
+                </div>
+                <p className="cluv-caption cluv-m-0">
+                  "{weather.tip}"
+                </p>
+              </div>
+            )}
 
             <div className="cluv-checklist-group cluv-mt-3">
               {activeRoutine.map((item, index) => (
