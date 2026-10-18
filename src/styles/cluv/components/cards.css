@@ -94,6 +94,18 @@
   color: #db2777;
 }
 
+.cluv-card-icon-wrap.is-blue {
+  background: #eff6ff;
+  border-color: #dbeafe;
+  color: var(--cluv-status-info, #2563eb);
+}
+
+.cluv-card-icon-wrap.is-purple {
+  background: var(--cluv-purple-soft, #faf5ff);
+  border-color: var(--cluv-purple-line, #e9d5ff);
+  color: var(--cluv-purple, #8b5cf6);
+}
+
 /* Typography Inside Card */
 .cluv-card h3,
 .public-card h3 {

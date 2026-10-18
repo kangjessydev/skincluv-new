@@ -23,6 +23,15 @@ Dokumen skill ini adalah **sumber kebenaran tunggal (Single Source of Truth)** d
 4. **Strict Frontend Boundary**:
    - Frontend HANYA mengurus antarmuka, UX, interaksi, dan konsumsi API.
    - **Dilarang keras menyentuh backend** (SQL migration, Supabase schema, Edge Functions). Semua kebutuhan data/API baru dicatat di `kerja hari ini/changelog.md` untuk dikerjakan oleh tim backend.
+5. **Anti-Renaming Illusion (DILARANG HANYA GANTI NAMA PREFIX)**:
+   - **DILARANG KERAS** sekadar me-rename selector CSS lama (misal: `v0-card` -> `cluv-card`, `v0-recent-scan-*` -> `cluv-recent-scan-*`) sementara aturan CSS di baliknya masih memakai style lama yang kusam/kaku!
+   - Setiap elemen yang dimigrasikan ke Cluv **WAJIB bermutasi menjadi desain Cluv yang sesungguhnya**:
+     - Memakai primitive resmi Cluv (`src/styles/cluv/components/cards.css`, `checklist.css`, `stats.css`, dll).
+     - Permukaan bersih `#ffffff` tanpa gradien aneh vertikal peninggalan v0.
+     - Border 1.5px crisp `var(--cluv-neutral-200)` dengan hover soft aqua line `var(--cluv-teal-line)`.
+     - Ikon Lucide dibungkus wadah resmi `.cluv-card-icon-wrap` (pastel wash: teal, blue, gold, purple).
+     - Radius membulat elegan `var(--cluv-radius-lg, 16px)` hingga `var(--cluv-radius-xl, 20px)`.
+     - Seluruh baris CSS warisan v0 lama yang sudah tidak terpakai wajib dihapus bersih!
 
 ---
 

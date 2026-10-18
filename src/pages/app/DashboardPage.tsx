@@ -227,12 +227,17 @@ export default function DashboardPage() {
       {/* Desktop Hero Grid (2-Column 1.55fr : 1fr) */}
       <div className="cluv-desktop-hero-grid">
         {/* Observasi Kulit Terkini */}
-        <section className="cluv-card cluv-hero-face-card cluv-flex-col cluv-gap-4">
+        <section className="cluv-card cluv-flex-col cluv-gap-4">
           <div>
             <div className="cluv-flex-between cluv-items-center">
-              <div>
-                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Observasi Visual</span>
-                <h2 className="cluv-title-card cluv-mt-1">Kondisi Kulit Terkini</h2>
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                <div className="cluv-card-icon-wrap is-sm">
+                  <ScanFace size={20} />
+                </div>
+                <div>
+                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Observasi Visual AI</span>
+                  <h2 className="cluv-title-card cluv-mt-1">Kondisi Kulit Terkini</h2>
+                </div>
               </div>
               {skinAssessment?.has_face_scan && (
                 <button onClick={() => navigate('/face-scan')} className="cluv-btn is-outline is-sm">
@@ -322,15 +327,17 @@ export default function DashboardPage() {
         </section>
 
         {/* Keamanan Komposisi Skincare (Lab) */}
-        <section className="cluv-card cluv-hero-lab-card cluv-flex-col cluv-gap-4">
+        <section className="cluv-card cluv-flex-col cluv-gap-4">
           <div>
             <div className="cluv-flex-between cluv-items-center">
-              <div>
-                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Keamanan Skincare</span>
-                <h2 className="cluv-title-card cluv-mt-1">Pemeriksaan Bahan</h2>
-              </div>
-              <div className="cluv-stat-icon is-blue">
-                <FlaskConical size={18} />
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                <div className="cluv-card-icon-wrap is-sm is-blue">
+                  <FlaskConical size={20} />
+                </div>
+                <div>
+                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Keamanan Skincare</span>
+                  <h2 className="cluv-title-card cluv-mt-1">Pemeriksaan Bahan</h2>
+                </div>
               </div>
             </div>
 
@@ -542,13 +549,18 @@ export default function DashboardPage() {
         {/* Scan Score Trend Chart — RFC 019 guardrail: ≥3 titik data */}
         <section className="cluv-card">
           <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-            <div>
-              <h2 className="cluv-title-card">Tren Analisis Kulit</h2>
-              <p className="cluv-caption cluv-text-muted cluv-mt-1">
-                {hasEnoughTrendData
-                  ? `${recentScans.length} scan terakhir · skor wajah`
-                  : `${recentScans.length} scan — butuh minimal 3 untuk melihat tren`}
-              </p>
+            <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+              <div className="cluv-card-icon-wrap is-sm">
+                <CalendarDays size={18} />
+              </div>
+              <div>
+                <h2 className="cluv-title-card">Tren Analisis Kulit</h2>
+                <p className="cluv-caption cluv-text-muted cluv-mt-1">
+                  {hasEnoughTrendData
+                    ? `${recentScans.length} scan terakhir · skor wajah`
+                    : `${recentScans.length} scan — butuh minimal 3 untuk melihat tren`}
+                </p>
+              </div>
             </div>
             <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
               <span>Riwayat</span>
@@ -620,11 +632,16 @@ export default function DashboardPage() {
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-              <div>
-                <h2 className="cluv-title-card">{isNight ? 'Rutinitas Malam 🌙' : 'Rutinitas Pagi ☀️'}</h2>
-                <p className="cluv-caption cluv-text-muted cluv-mt-1">
-                  {isNight ? '3 langkah · regenerasi barrier' : '3 langkah · proteksi harian'}
-                </p>
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                <div className={`cluv-card-icon-wrap is-sm ${isNight ? 'is-purple' : 'is-gold'}`}>
+                  {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
+                </div>
+                <div>
+                  <h2 className="cluv-title-card">{isNight ? 'Rutinitas Malam 🌙' : 'Rutinitas Pagi ☀️'}</h2>
+                  <p className="cluv-caption cluv-text-muted cluv-mt-1">
+                    {isNight ? '3 langkah · regenerasi barrier' : '3 langkah · proteksi harian'}
+                  </p>
+                </div>
               </div>
               <div className="cluv-flex-col cluv-items-end">
                 <span className="cluv-badge is-teal is-sm">
@@ -676,9 +693,14 @@ export default function DashboardPage() {
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-              <div>
-                <h2 className="cluv-title-card">Riwayat Scan Terakhir</h2>
-                <p className="cluv-caption cluv-text-muted cluv-mt-1">Analisis terbaru dari akun kamu</p>
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                <div className="cluv-card-icon-wrap is-sm">
+                  <HeartPulse size={18} />
+                </div>
+                <div>
+                  <h2 className="cluv-title-card">Riwayat Scan Terakhir</h2>
+                  <p className="cluv-caption cluv-text-muted cluv-mt-1">Analisis terbaru dari akun kamu</p>
+                </div>
               </div>
               <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
                 <span>Lihat semua</span>
@@ -742,12 +764,14 @@ export default function DashboardPage() {
         {/* Kolom Kanan: Ritme Sirkadian & 1-Tap AI Prompt Chips */}
         <section className="cluv-card cluv-circadian-card">
           <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-            <div>
-              <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ritme Biologis Kulit</span>
-              <h2 className="cluv-title-card cluv-mt-1">Fokus Sirkadian</h2>
-            </div>
-            <div className="cluv-stat-icon is-teal">
-              <Sparkles size={18} />
+            <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+              <div className="cluv-card-icon-wrap is-sm is-gold">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ritme Biologis Kulit</span>
+                <h2 className="cluv-title-card cluv-mt-1">Fokus Sirkadian</h2>
+              </div>
             </div>
           </div>
 
