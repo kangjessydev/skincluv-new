@@ -140,6 +140,12 @@
   color: var(--cluv-current-text, #1a2d42);
 }
 
+.cluv-credit-capsule-val svg {
+  color: var(--cluv-amber, #f59e0b);
+  fill: var(--cluv-amber, #f59e0b);
+  flex-shrink: 0;
+}
+
 .cluv-credit-capsule-divider {
   width: 1px;
   height: 14px;

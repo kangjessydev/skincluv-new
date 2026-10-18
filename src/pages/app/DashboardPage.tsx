@@ -419,7 +419,7 @@ export default function DashboardPage() {
               title="Isi ulang credits"
             >
               <span className="cluv-credit-capsule-val">
-                <Zap size={12} fill="#f59e0b" color="#f59e0b" />
+                <Zap size={12} />
                 <span>{availableCredits}</span>
               </span>
               <span className="cluv-credit-capsule-divider" />
