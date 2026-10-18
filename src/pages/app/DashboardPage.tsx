@@ -151,6 +151,7 @@ export default function DashboardPage() {
 
   const isPro = isActivePremium(subscription)
   const availableCredits = (coinBalance?.balance ?? 0).toLocaleString()
+  const [desktopVariant, setDesktopVariant] = useState<'clean' | 'bento'>('clean')
 
   const cleanStatusLabel = (status?: string): string => {
     if (!status) return 'Optimal'
@@ -197,41 +198,51 @@ export default function DashboardPage() {
       )}
 
       {/* =====================================================================
-          1. DESKTOP VIEW (> 640px): Greeting Header + 2-Column Hero Grid
+          1. DESKTOP VIEW (> 640px): Greeting Header + Hero Grid
           ===================================================================== */}
       <header className="cluv-dashboard-header">
         <div>
-          <span className="cluv-caption cluv-text-muted cluv-font-bold cluv-uppercase">Ringkasan Hari Ini</span>
-          <h1 className="cluv-title-page cluv-dashboard-title">Selamat {timeOfDay}, {firstName} ✨</h1>
-          <p className="cluv-caption cluv-text-muted cluv-dashboard-subtitle">{todayFormatted}</p>
-        </div>
-
-        {/* Desktop Skinsistant AI Weather Companion */}
-        <div className="cluv-desktop-weather-card">
-          <div className="cluv-desktop-weather-avatar">
-            <Bot size={18} />
-          </div>
-          <div className="cluv-desktop-weather-content">
-            <div className="cluv-desktop-weather-header">
-              <span className="cluv-desktop-weather-brand">Skinsistant AI · Rekomendasi Cuaca</span>
+          <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ringkasan Hari Ini</span>
+          <h1 className="cluv-title-section cluv-mt-1">Selamat {timeOfDay}, {firstName} ✨</h1>
+          {desktopVariant === 'clean' ? (
+            <div className="cluv-flex-row cluv-gap-2 cluv-items-center cluv-mt-1">
+              <span className="cluv-subtitle">{todayFormatted}</span>
+              <span className="cluv-text-muted">·</span>
               <span className="cluv-badge is-gold is-sm">
                 <SunMedium size={12} />
                 <span>{weather.temp} · {weather.uvIndex}</span>
               </span>
             </div>
-            <p className="cluv-desktop-weather-tip">"{weather.tip}"</p>
-          </div>
+          ) : (
+            <p className="cluv-subtitle cluv-mt-1">{todayFormatted}</p>
+          )}
+        </div>
+
+        {/* Live Interactive Preview Switcher on Desktop */}
+        <div className="cluv-desktop-preview-switcher" aria-label="Pilih Opsi Tampilan Desktop">
+          <button
+            onClick={() => setDesktopVariant('clean')}
+            className={`cluv-desktop-toggle-btn ${desktopVariant === 'clean' ? 'is-active' : ''}`}
+          >
+            Opsi 1: Clean & Tag
+          </button>
+          <button
+            onClick={() => setDesktopVariant('bento')}
+            className={`cluv-desktop-toggle-btn ${desktopVariant === 'bento' ? 'is-active' : ''}`}
+          >
+            Opsi 2: Bento Grid 3-Card
+          </button>
         </div>
       </header>
 
-      {/* Desktop Hero 2-Column Grid (Observasi Wajah 1.55fr + Lab Skincare 1fr) */}
-      <div className="cluv-desktop-hero-grid">
+      {/* Desktop Hero Grid (Opsi 1: 2-Column 1.55fr:1fr vs Opsi 2: 3-Column 1.35fr:1fr:0.9fr) */}
+      <div className={`cluv-desktop-hero-grid ${desktopVariant === 'bento' ? 'is-three-col' : ''}`}>
         {/* Observasi Kulit Terkini */}
         <section className="cluv-card cluv-hero-face-card cluv-flex-col cluv-justify-between">
           <div>
-            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
+            <div className="cluv-flex-between cluv-items-center">
               <div>
-                <span className="cluv-caption cluv-text-muted cluv-font-bold cluv-uppercase">Observasi Visual</span>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Observasi Visual</span>
                 <h2 className="cluv-title-card cluv-mt-1">Kondisi Kulit Terkini</h2>
               </div>
               {skinAssessment?.has_face_scan && (
@@ -310,7 +321,7 @@ export default function DashboardPage() {
           </div>
 
           {skinAssessment?.has_face_scan && (
-            <div className="cluv-flex-between cluv-items-center cluv-border-t cluv-pt-3 cluv-mt-4">
+            <div className="cluv-flex-between cluv-items-center cluv-mt-4">
               <span className="cluv-caption cluv-text-muted">Konsultasikan perkembangan ini</span>
               <button onClick={() => navigate('/chatbot')} className="cluv-btn is-ghost is-sm">
                 <MessageCircle size={14} />
@@ -324,9 +335,9 @@ export default function DashboardPage() {
         {/* Keamanan Komposisi Skincare (Lab) */}
         <section className="cluv-card cluv-hero-lab-card cluv-flex-col cluv-justify-between">
           <div>
-            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
+            <div className="cluv-flex-between cluv-items-center">
               <div>
-                <span className="cluv-caption cluv-text-muted cluv-font-bold cluv-uppercase">Keamanan Skincare</span>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Keamanan Skincare</span>
                 <h2 className="cluv-title-card cluv-mt-1">Pemeriksaan Bahan</h2>
               </div>
               <div className="cluv-stat-icon is-blue">
@@ -359,7 +370,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="cluv-flex-between cluv-items-center cluv-border-t cluv-pt-3 cluv-mt-4">
+          <div className="cluv-flex-between cluv-items-center cluv-mt-4">
             <span className="cluv-caption cluv-text-muted">
               {productSummary.total_products_scanned > 0 ? `${productSummary.total_products_scanned} produk terdaftar` : 'Belum ada produk'}
             </span>
@@ -372,6 +383,39 @@ export default function DashboardPage() {
             </button>
           </div>
         </section>
+
+        {/* OPSI 2 ONLY: Dedicated Bento Weather & Skinsistant AI Card */}
+        {desktopVariant === 'bento' && (
+          <section className="cluv-desktop-bento-weather-card">
+            <div>
+              <div className="cluv-flex-between cluv-items-center">
+                <div className="cluv-bento-weather-avatar">
+                  <Bot size={22} />
+                </div>
+                <span className="cluv-badge is-gold is-sm">
+                  <SunMedium size={12} />
+                  <span>{weather.temp} · {weather.uvIndex}</span>
+                </span>
+              </div>
+
+              <div className="cluv-mt-3">
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Skinsistant AI</span>
+                <h3 className="cluv-title-card cluv-mt-1">Cuaca &amp; Proteksi</h3>
+                <p className="cluv-bento-weather-quote">
+                  "{weather.tip}"
+                </p>
+              </div>
+            </div>
+
+            <div className="cluv-flex-between cluv-items-center cluv-mt-4">
+              <span className="cluv-micro cluv-text-muted">Pantau indeks UV harian</span>
+              <button onClick={() => navigate('/chatbot')} className="cluv-btn is-ghost is-sm">
+                <span>Tanya AI</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </section>
+        )}
       </div>
 
       {/* Desktop 4-Column Bento Action Tiles */}
@@ -702,6 +746,19 @@ export default function DashboardPage() {
                 <MoreHorizontal size={18} />
               </button>
             </div>
+
+            {/* In Opsi 1: Skinsistant Weather Advice is positioned contextually above the routine */}
+            {desktopVariant === 'clean' && (
+              <div className="cluv-card-strip is-gold cluv-mt-3">
+                <div className="cluv-card-icon-wrap is-gold is-sm">
+                  <SunMedium size={16} />
+                </div>
+                <div className="cluv-card-strip-main">
+                  <span className="cluv-micro cluv-text-gold cluv-font-bold cluv-uppercase">Saran Cuaca Hari Ini</span>
+                  <p className="cluv-caption cluv-m-0">"{weather.tip}"</p>
+                </div>
+              </div>
+            )}
 
             <div className="cluv-checklist-group cluv-mt-3">
               {activeRoutine.map((item, index) => (
