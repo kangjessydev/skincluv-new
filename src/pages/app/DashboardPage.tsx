@@ -227,9 +227,9 @@ export default function DashboardPage() {
       {/* Desktop Hero Grid (2-Column 1.55fr : 1fr) */}
       <div className="cluv-desktop-hero-grid">
         {/* Observasi Kulit Terkini */}
-        <section className="cluv-card cluv-flex-col cluv-gap-4">
+        <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
-            <div className="cluv-flex-between cluv-items-center">
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
                 <div className="cluv-card-icon-wrap is-sm">
                   <ScanFace size={20} />
@@ -248,7 +248,7 @@ export default function DashboardPage() {
             </div>
 
             {loading ? (
-              <div className="cluv-flex-row cluv-gap-4 cluv-items-center cluv-py-4">
+              <div className="cluv-flex-row cluv-gap-4 cluv-items-center cluv-py-6">
                 <Skeleton height={80} width={80} radius="50%" />
                 <div className="cluv-flex-1">
                   <Skeleton height={18} width={160} />
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : skinAssessment?.has_face_scan ? (
-              <div className="cluv-flex-row cluv-gap-4 cluv-items-start cluv-mt-4">
+              <div className="cluv-flex-row cluv-gap-4 cluv-items-start cluv-mt-5">
                 {/* Biometric Circular Score Ring (Top Anchored) */}
                 <div className="cluv-score-ring is-md cluv-flex-shrink-0">
                   <svg className="cluv-score-svg" viewBox="0 0 80 80">
@@ -296,26 +296,26 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <p className="cluv-body cluv-mt-2 cluv-line-relaxed cluv-text-muted cluv-desktop-note-clamp">
+                  <p className="cluv-body cluv-mt-3 cluv-line-relaxed cluv-text-muted cluv-desktop-note-clamp">
                     "{skinAssessment.analysis_notes || 'Kondisi skin barrier terpantau terjaga. Pertahankan hidrasi harian dan proteksi UV.'}"
                   </p>
 
                   {lastScanDate && (
-                    <span className="cluv-caption cluv-text-muted cluv-mt-1 cluv-block">
+                    <span className="cluv-caption cluv-text-muted cluv-mt-2 cluv-block">
                       Analisis terakhir · {lastScanDate}
                     </span>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="cluv-py-4">
+              <div className="cluv-py-6">
                 <EmptyFaceScan onScan={() => navigate('/face-scan')} />
               </div>
             )}
           </div>
 
           {skinAssessment?.has_face_scan && (
-            <div className="cluv-flex-between cluv-items-center cluv-pt-3 cluv-border-t">
+            <div className="cluv-flex-between cluv-items-center cluv-pt-4 cluv-border-t cluv-mt-6">
               <span className="cluv-caption cluv-text-muted">Konsultasikan perkembangan ini</span>
               <button onClick={() => navigate('/chatbot')} className="cluv-btn is-ghost is-sm">
                 <MessageCircle size={14} />
@@ -327,9 +327,9 @@ export default function DashboardPage() {
         </section>
 
         {/* Keamanan Komposisi Skincare (Lab) */}
-        <section className="cluv-card cluv-flex-col cluv-gap-4">
+        <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
-            <div className="cluv-flex-between cluv-items-center">
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
                 <div className="cluv-card-icon-wrap is-sm is-blue">
                   <FlaskConical size={20} />
@@ -354,14 +354,14 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <p className="cluv-body cluv-mt-3 cluv-line-relaxed">
+            <p className="cluv-body cluv-mt-4 cluv-line-relaxed">
               {productSummary.total_products_scanned > 0
                 ? 'Produk skincare yang kamu gunakan terpantau ramah bagi skin barrier. Pastikan urutan pemakaian dan layering bahan aktif tidak bertabrakan.'
                 : 'Pindai label komposisi produk (serum, toner, sunscreen) untuk mendeteksi bahan komedogenik atau iritan berbahaya.'}
             </p>
           </div>
 
-          <div className="cluv-flex-between cluv-items-center cluv-pt-3 cluv-border-t">
+          <div className="cluv-flex-between cluv-items-center cluv-pt-4 cluv-border-t cluv-mt-6">
             <span className="cluv-caption cluv-text-muted">
               {productSummary.total_products_scanned > 0 ? `${productSummary.total_products_scanned} produk terdaftar` : 'Belum ada produk'}
             </span>
@@ -547,73 +547,75 @@ export default function DashboardPage() {
       {/* MIDDLE GRID: TREN KULIT (1.55fr) + RUTINITAS AM/PM (1fr) */}
       <div className="cluv-middle-grid">
         {/* Scan Score Trend Chart — RFC 019 guardrail: ≥3 titik data */}
-        <section className="cluv-card">
-          <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-            <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
-              <div className="cluv-card-icon-wrap is-sm">
-                <CalendarDays size={18} />
+        <section className="cluv-card cluv-flex-col cluv-justify-between">
+          <div>
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                <div className="cluv-card-icon-wrap is-sm">
+                  <CalendarDays size={18} />
+                </div>
+                <div>
+                  <h2 className="cluv-title-card">Tren Analisis Kulit</h2>
+                  <p className="cluv-caption cluv-text-muted cluv-mt-1">
+                    {hasEnoughTrendData
+                      ? `${recentScans.length} scan terakhir · skor wajah`
+                      : `${recentScans.length} scan — butuh minimal 3 untuk melihat tren`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="cluv-title-card">Tren Analisis Kulit</h2>
-                <p className="cluv-caption cluv-text-muted cluv-mt-1">
-                  {hasEnoughTrendData
-                    ? `${recentScans.length} scan terakhir · skor wajah`
-                    : `${recentScans.length} scan — butuh minimal 3 untuk melihat tren`}
-                </p>
-              </div>
-            </div>
-            <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
-              <span>Riwayat</span>
-              <ArrowUpRight size={14} />
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="cluv-flex-row cluv-gap-3 cluv-items-end cluv-bars-skeleton">
-              {[60, 80, 45, 95, 70, 88, 75].map((h, i) => (
-                <Skeleton key={i} height={`${h}%`} width="100%" radius="8px 8px 0 0" />
-              ))}
-            </div>
-          ) : hasEnoughTrendData ? (
-            <div className="cluv-bars-row">
-              {faceTrend.map((point, index, arr) => {
-                const isLatest = index === arr.length - 1
-                const scoreVal = point.score ?? 0
-                const dateLabel = new Date(point.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-                return (
-                  <div key={point.id} className="cluv-bar-col">
-                    <div className="cluv-bar-track">
-                      <div
-                        className={`cluv-bar-pillar ${isLatest ? 'is-latest' : ''}`}
-                        style={{ height: `${scoreVal}%` }}
-                      />
-                      {isLatest && (
-                        <span className="cluv-bar-tooltip">{scoreVal}</span>
-                      )}
-                    </div>
-                    <span className="cluv-bar-label">
-                      {dateLabel.split(' ')[0]} {dateLabel.split(' ')[1] ?? ''}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="cluv-text-center cluv-py-6">
-              <CalendarDays size={32} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
-              <h4 className="cluv-title-card cluv-mt-2">Belum cukup data tren</h4>
-              <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-empty-desc">
-                Lakukan setidaknya 3 Analisis Kulit AI untuk melihat grafik perkembangan kulitmu.
-              </p>
-              <button onClick={() => navigate('/face-scan')} className="cluv-btn is-primary is-sm cluv-mt-4">
-                <ScanFace size={15} />
-                <span>Mulai Analisis</span>
+              <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
+                <span>Riwayat</span>
+                <ArrowUpRight size={14} />
               </button>
             </div>
-          )}
+
+            {loading ? (
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-end cluv-bars-skeleton">
+                {[60, 80, 45, 95, 70, 88, 75].map((h, i) => (
+                  <Skeleton key={i} height={`${h}%`} width="100%" radius="8px 8px 0 0" />
+                ))}
+              </div>
+            ) : hasEnoughTrendData ? (
+              <div className="cluv-bars-row">
+                {faceTrend.map((point, index, arr) => {
+                  const isLatest = index === arr.length - 1
+                  const scoreVal = point.score ?? 0
+                  const dateLabel = new Date(point.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+                  return (
+                    <div key={point.id} className="cluv-bar-col">
+                      <div className="cluv-bar-track">
+                        <div
+                          className={`cluv-bar-pillar ${isLatest ? 'is-latest' : ''}`}
+                          style={{ height: `${scoreVal}%` }}
+                        />
+                        {isLatest && (
+                          <span className="cluv-bar-tooltip">{scoreVal}</span>
+                        )}
+                      </div>
+                      <span className="cluv-bar-label">
+                        {dateLabel.split(' ')[0]} {dateLabel.split(' ')[1] ?? ''}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="cluv-text-center cluv-py-6">
+                <CalendarDays size={32} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
+                <h4 className="cluv-title-card cluv-mt-2">Belum cukup data tren</h4>
+                <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-empty-desc">
+                  Lakukan setidaknya 3 Analisis Kulit AI untuk melihat grafik perkembangan kulitmu.
+                </p>
+                <button onClick={() => navigate('/face-scan')} className="cluv-btn is-primary is-sm cluv-mt-4">
+                  <ScanFace size={15} />
+                  <span>Mulai Analisis</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Scan count summary pills */}
-          <div className="cluv-flex-row cluv-gap-2 cluv-mt-4 cluv-border-t cluv-pt-3 cluv-flex-wrap">
+          <div className="cluv-flex-row cluv-gap-2.5 cluv-mt-6 cluv-border-t cluv-pt-4 cluv-flex-wrap">
             <span className="cluv-badge is-teal is-sm">
               <ScanFace size={13} /> <span>{scanCounts.face_total} Wajah</span>
             </span>
@@ -631,7 +633,7 @@ export default function DashboardPage() {
         {/* Dynamic Rutinitas Harian dengan Embedded Progress Bar */}
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
-            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
                 <div className={`cluv-card-icon-wrap is-sm ${isNight ? 'is-purple' : 'is-gold'}`}>
                   {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
@@ -658,7 +660,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="cluv-checklist-group cluv-mt-3">
+            <div className="cluv-checklist-group cluv-mt-5">
               {activeRoutine.map((item, index) => (
                 <button
                   key={item.title}
@@ -677,13 +679,15 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate('/missions')}
-            className="cluv-btn is-ghost is-sm cluv-mt-3 cluv-justify-center"
-          >
-            <span>Buka detail misi lengkap</span>
-            <ChevronRight size={14} />
-          </button>
+          <div className="cluv-mt-6 cluv-pt-4 cluv-border-t">
+            <button
+              onClick={() => navigate('/missions')}
+              className="cluv-btn is-ghost is-sm cluv-w-full cluv-justify-center"
+            >
+              <span>Buka detail misi lengkap</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </section>
       </div>
 
@@ -692,7 +696,7 @@ export default function DashboardPage() {
         {/* Kolom Kiri: Riwayat Scan Terakhir */}
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
-            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
                 <div className="cluv-card-icon-wrap is-sm">
                   <HeartPulse size={18} />
@@ -709,7 +713,7 @@ export default function DashboardPage() {
             </div>
 
             {loading ? (
-              <div className="cluv-flex-col cluv-gap-3 cluv-mt-3">
+              <div className="cluv-flex-col cluv-gap-3 cluv-mt-5">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="cluv-flex-row cluv-gap-3 cluv-items-center">
                     <Skeleton height={40} width={40} radius="10px" />
@@ -719,7 +723,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : recentScans.length > 0 ? (
-              <div className="cluv-recent-scan-list cluv-mt-3">
+              <div className="cluv-recent-scan-list cluv-mt-5">
                 {recentScans.slice(0, 5).map((scan) => (
                   <button
                     key={scan.id}
@@ -750,7 +754,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="cluv-flex-between cluv-items-center cluv-pt-3 cluv-border-t cluv-mt-3">
+          <div className="cluv-flex-between cluv-items-center cluv-pt-4 cluv-border-t cluv-mt-6">
             <span className="cluv-caption cluv-text-muted">
               {recentScans.length > 0 ? `${recentScans.length} scan tercatat` : 'Belum ada aktivitas'}
             </span>
@@ -762,75 +766,77 @@ export default function DashboardPage() {
         </section>
 
         {/* Kolom Kanan: Ritme Sirkadian & 1-Tap AI Prompt Chips */}
-        <section className="cluv-card cluv-circadian-card">
-          <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-            <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
-              <div className="cluv-card-icon-wrap is-sm is-gold">
-                <Sparkles size={18} />
+        <section className="cluv-card cluv-circadian-card cluv-flex-col cluv-justify-between">
+          <div>
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
+              <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                <div className="cluv-card-icon-wrap is-sm is-gold">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ritme Biologis Kulit</span>
+                  <h2 className="cluv-title-card cluv-mt-1">Fokus Sirkadian</h2>
+                </div>
+              </div>
+            </div>
+
+            {/* Sirkadian Phase Box */}
+            <div className={`cluv-circadian-phase ${isNight ? 'is-night' : 'is-day'} cluv-mt-5`}>
+              <div className="cluv-circadian-phase-icon">
+                {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
               </div>
               <div>
-                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ritme Biologis Kulit</span>
-                <h2 className="cluv-title-card cluv-mt-1">Fokus Sirkadian</h2>
+                <h3 className="cluv-circadian-phase-title">
+                  {isNight ? 'Fase Regenerasi Seluler (Malam)' : 'Fase Pertahanan Aktif (Siang)'}
+                </h3>
+                <p className="cluv-circadian-phase-desc">
+                  {isNight
+                    ? 'Sintesis kolagen dan perbaikan mikrolesi kulit memuncak saat tidur. Nutrisi skin barrier dengan hidrasi kaya lipid.'
+                    : 'Kulit aktif memblokir radikal bebas dan radiasi UV. Pastikan re-apply sunscreen dan hindari iritasi aktif berlebih.'}
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Sirkadian Phase Box */}
-          <div className={`cluv-circadian-phase ${isNight ? 'is-night' : 'is-day'}`}>
-            <div className="cluv-circadian-phase-icon">
-              {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
-            </div>
-            <div>
-              <h3 className="cluv-circadian-phase-title">
-                {isNight ? 'Fase Regenerasi Seluler (Malam)' : 'Fase Pertahanan Aktif (Siang)'}
-              </h3>
-              <p className="cluv-circadian-phase-desc">
-                {isNight
-                  ? 'Sintesis kolagen dan perbaikan mikrolesi kulit memuncak saat tidur. Nutrisi skin barrier dengan hidrasi kaya lipid.'
-                  : 'Kulit aktif memblokir radikal bebas dan radiasi UV. Pastikan re-apply sunscreen dan hindari iritasi aktif berlebih.'}
-              </p>
-            </div>
-          </div>
-
-          {/* 1-Tap AI Prompt Chips */}
-          <div>
-            <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Konsultasi AI Instan</span>
-            <div className="cluv-flex-col cluv-gap-2 cluv-mt-2">
-              {isNight ? (
-                <>
-                  <button
-                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana urutan layering skincare malam yang aman untuk skin barrier?'))}
-                    className="cluv-prompt-chip"
-                  >
-                    <span>🌙 Urutan layering produk malam ini?</span>
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Apakah aman menggunakan bahan aktif seperti retinol malam ini?'))}
-                    className="cluv-prompt-chip"
-                  >
-                    <span>💧 Aturan pakai bahan aktif malam?</span>
-                    <ChevronRight size={14} />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana cara re-apply sunscreen yang tepat di siang hari?'))}
-                    className="cluv-prompt-chip"
-                  >
-                    <span>☀️ Cara re-apply sunscreen siang ini?</span>
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bahan skincare apa yang melindungi kulit dari polusi dan radiasi UV?'))}
-                    className="cluv-prompt-chip"
-                  >
-                    <span>🛡️ Proteksi antioksidan di siang hari?</span>
-                    <ChevronRight size={14} />
-                  </button>
-                </>
-              )}
+            {/* 1-Tap AI Prompt Chips */}
+            <div className="cluv-mt-5">
+              <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Konsultasi AI Instan</span>
+              <div className="cluv-flex-col cluv-gap-2.5 cluv-mt-3">
+                {isNight ? (
+                  <>
+                    <button
+                      onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana urutan layering skincare malam yang aman untuk skin barrier?'))}
+                      className="cluv-prompt-chip"
+                    >
+                      <span>🌙 Urutan layering produk malam ini?</span>
+                      <ChevronRight size={14} />
+                    </button>
+                    <button
+                      onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Apakah aman menggunakan bahan aktif seperti retinol malam ini?'))}
+                      className="cluv-prompt-chip"
+                    >
+                      <span>💧 Aturan pakai bahan aktif malam?</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana cara re-apply sunscreen yang tepat di siang hari?'))}
+                      className="cluv-prompt-chip"
+                    >
+                      <span>☀️ Cara re-apply sunscreen siang ini?</span>
+                      <ChevronRight size={14} />
+                    </button>
+                    <button
+                      onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bahan skincare apa yang melindungi kulit dari polusi dan radiasi UV?'))}
+                      className="cluv-prompt-chip"
+                    >
+                      <span>🛡️ Proteksi antioksidan di siang hari?</span>
+                      <ChevronRight size={14} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </section>

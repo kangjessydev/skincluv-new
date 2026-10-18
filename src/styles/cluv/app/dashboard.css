@@ -129,10 +129,10 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--cluv-neutral-200, #e2e8f0);
+  gap: 10px;
+  margin-top: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
 }
 
 .cluv-lab-metric-badge {
@@ -199,10 +199,11 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  height: 160px;
-  padding: 16px 8px 0;
+  gap: 14px;
+  height: 195px;
+  padding: 38px 12px 10px;
   box-sizing: border-box;
+  margin: 16px 0 8px;
 }
 
 .cluv-bar-col {
@@ -217,53 +218,56 @@
 .cluv-bar-track {
   position: relative;
   width: 100%;
-  max-width: 32px;
-  height: 120px;
-  background: var(--cluv-neutral-100, #f1f5f9);
+  max-width: 28px;
+  height: 115px;
+  background: var(--cluv-teal-soft, #e6f6f5);
   border-radius: 9999px;
   display: flex;
   align-items: flex-end;
   overflow: visible;
+  transition: all 0.2s ease;
 }
 
 .cluv-bar-pillar {
   width: 100%;
-  background: var(--cluv-neutral-300, #cbd5e1);
+  background: var(--cluv-teal-line, #bceae7);
   border-radius: 9999px;
   transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
 }
 
 .cluv-bar-pillar.is-latest {
   background: linear-gradient(180deg, var(--cluv-teal) 0%, var(--cluv-teal-dark) 100%);
-  box-shadow: 0 4px 12px rgba(31, 157, 151, 0.32);
+  box-shadow: 0 4px 14px rgba(31, 157, 151, 0.35);
 }
 
 .cluv-bar-tooltip {
   position: absolute;
-  top: -26px;
+  top: -28px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--cluv-neutral-900, #0f172a);
   color: #ffffff;
   font-size: 0.6875rem;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 9999px;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  line-height: 1.2;
 }
 
 .cluv-bar-label {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--cluv-neutral-500);
-  margin-top: 8px;
+  margin-top: 10px;
   text-align: center;
+  line-height: 1.2;
 }
 
 .cluv-bars-skeleton {
-  height: 160px;
-  padding: 16px 0 0;
+  height: 195px;
+  padding: 38px 0 10px;
 }
 
 .cluv-empty-desc {
