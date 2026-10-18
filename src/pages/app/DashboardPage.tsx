@@ -205,12 +205,29 @@ export default function DashboardPage() {
           <h1 className="cluv-title-page cluv-dashboard-title">Selamat {timeOfDay}, {firstName} ✨</h1>
           <p className="cluv-caption cluv-text-muted cluv-dashboard-subtitle">{todayFormatted}</p>
         </div>
+
+        {/* Desktop Skinsistant AI Weather Companion */}
+        <div className="cluv-desktop-weather-card">
+          <div className="cluv-desktop-weather-avatar">
+            <Bot size={18} />
+          </div>
+          <div className="cluv-desktop-weather-content">
+            <div className="cluv-desktop-weather-header">
+              <span className="cluv-desktop-weather-brand">Skinsistant AI · Rekomendasi Cuaca</span>
+              <span className="cluv-badge is-gold is-sm">
+                <SunMedium size={12} />
+                <span>{weather.temp} · {weather.uvIndex}</span>
+              </span>
+            </div>
+            <p className="cluv-desktop-weather-tip">"{weather.tip}"</p>
+          </div>
+        </div>
       </header>
 
       {/* Desktop Hero 2-Column Grid (Observasi Wajah 1.55fr + Lab Skincare 1fr) */}
       <div className="cluv-desktop-hero-grid">
         {/* Observasi Kulit Terkini */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-card cluv-hero-face-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
               <div>
@@ -305,7 +322,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Keamanan Komposisi Skincare (Lab) */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-card cluv-hero-lab-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
               <div>
@@ -317,21 +334,22 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="cluv-flex-row cluv-gap-4 cluv-mt-3 cluv-border-b cluv-pb-3 cluv-flex-wrap">
-              <div className="cluv-flex-col">
+            {/* Lab Metrics Micro-Cards */}
+            <div className="cluv-lab-metrics-strip">
+              <div className="cluv-lab-metric-box">
                 <span className="cluv-caption cluv-text-muted">Produk Diuji</span>
-                <span className="cluv-title-card cluv-mt-1">{productSummary.total_products_scanned}</span>
+                <span className="cluv-lab-metric-num">{productSummary.total_products_scanned}</span>
               </div>
-              <div className="cluv-flex-col">
+              <div className="cluv-lab-metric-box is-teal">
                 <span className="cluv-caption cluv-text-muted">Formula Aman</span>
-                <span className="cluv-title-card cluv-text-teal cluv-mt-1">{productSummary.safe_products_count}</span>
+                <span className="cluv-lab-metric-num is-teal">{productSummary.safe_products_count}</span>
               </div>
-              {productSummary.avg_safety_score !== null && (
-                <div className="cluv-flex-col">
-                  <span className="cluv-caption cluv-text-muted">Skor Keamanan</span>
-                  <span className="cluv-title-card cluv-mt-1">{productSummary.avg_safety_score}/100</span>
-                </div>
-              )}
+              <div className="cluv-lab-metric-box is-blue">
+                <span className="cluv-caption cluv-text-muted">Skor Keamanan</span>
+                <span className="cluv-lab-metric-num is-blue">
+                  {productSummary.avg_safety_score !== null ? `${productSummary.avg_safety_score}/100` : '-'}
+                </span>
+              </div>
             </div>
 
             <p className="cluv-body cluv-mt-3 cluv-line-relaxed">
@@ -356,7 +374,7 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* Desktop 2-Column Bento Action Tiles */}
+      {/* Desktop 4-Column Bento Action Tiles */}
       <div className="cluv-quick-scan-grid">
         <button onClick={() => navigate('/face-scan')} className="cluv-quick-tile is-face">
           <div className="cluv-quick-tile-icon is-teal">
@@ -364,7 +382,7 @@ export default function DashboardPage() {
           </div>
           <div className="cluv-quick-tile-info">
             <h3 className="cluv-quick-tile-title">Scan Wajah AI</h3>
-            <p className="cluv-quick-tile-sub">Analisis kondisi kulit & skor visual</p>
+            <p className="cluv-quick-tile-sub">Analisis visual & skor barrier</p>
           </div>
           <ChevronRight size={18} className="cluv-quick-tile-arrow" />
         </button>
@@ -375,7 +393,29 @@ export default function DashboardPage() {
           </div>
           <div className="cluv-quick-tile-info">
             <h3 className="cluv-quick-tile-title">Scan Komposisi</h3>
-            <p className="cluv-quick-tile-sub">Analisis keamanan bahan skincare</p>
+            <p className="cluv-quick-tile-sub">Uji bahan komedogenik & iritan</p>
+          </div>
+          <ChevronRight size={18} className="cluv-quick-tile-arrow" />
+        </button>
+
+        <button onClick={() => navigate('/missions')} className="cluv-quick-tile is-mission">
+          <div className="cluv-quick-tile-icon is-gold">
+            <Sparkles size={22} strokeWidth={2.2} />
+          </div>
+          <div className="cluv-quick-tile-info">
+            <h3 className="cluv-quick-tile-title">Misi Glow Harian</h3>
+            <p className="cluv-quick-tile-sub">{missions.completed} dari {missions.total} rutinitas selesai</p>
+          </div>
+          <ChevronRight size={18} className="cluv-quick-tile-arrow" />
+        </button>
+
+        <button onClick={() => navigate('/chatbot')} className="cluv-quick-tile is-chat">
+          <div className="cluv-quick-tile-icon is-purple">
+            <MessageCircle size={22} strokeWidth={2.2} />
+          </div>
+          <div className="cluv-quick-tile-info">
+            <h3 className="cluv-quick-tile-title">Tanya Skinsistant</h3>
+            <p className="cluv-quick-tile-sub">Konsultasi AI cerdas 24/7</p>
           </div>
           <ChevronRight size={18} className="cluv-quick-tile-arrow" />
         </button>
