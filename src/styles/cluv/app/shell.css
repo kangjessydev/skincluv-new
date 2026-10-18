@@ -89,31 +89,6 @@
   color: var(--cluv-teal, #1f9d97);
 }
 
-/* Mobile Close Button in Drawer (Hidden on Desktop) */
-.cluv-sidebar-close-btn {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: #f1f8fc;
-  border: 1px solid #dce8f3;
-  color: var(--cluv-current-text-muted, #556980);
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.cluv-sidebar-close-btn:hover {
-  background: var(--cluv-rose-soft, #fdf2f4);
-  color: var(--cluv-rose, #f43f5e);
-  border-color: var(--cluv-rose-line, #fbcfe8);
-}
-
-/* Mobile Drawer Profile Header Card (Only visible inside mobile drawer) */
-.cluv-drawer-mobile-user-card {
-  display: none;
-}
 
 /* Scrollable Nav Area */
 .cluv-sidebar-nav-scroll {
@@ -247,23 +222,38 @@
   min-width: 0;
 }
 
-.cluv-topbar-burger {
+/* Mobile-Only Brand Logo in Topbar (Replaces Hamburger on Touch Viewports) */
+.cluv-topbar-mobile-brand {
   display: none;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: #f7faff;
-  border: 1px solid #dce8f3;
-  color: var(--cluv-current-text, #1a2d42);
-  cursor: pointer;
-  transition: all 0.18s ease;
-  flex-shrink: 0;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  user-select: none;
 }
 
-.cluv-topbar-burger:hover {
-  background: #edf5fc;
+.cluv-topbar-mobile-brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal, #1f9d97);
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(31, 157, 151, 0.15);
+}
+
+.cluv-topbar-mobile-brand-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+.cluv-topbar-mobile-brand-text span {
+  color: var(--cluv-teal, #1f9d97);
 }
 
 .cluv-topbar-page-context {
@@ -573,18 +563,14 @@
   box-sizing: border-box;
 }
 
-/* Mobile Backdrop Overlay */
-.cluv-shell-backdrop {
-  display: none;
-}
 
-/* Mobile Bottom Navigation Bar */
+/* Mobile Bottom Navigation Bar (Hidden on Desktop) */
 .cluv-mobile-bottom-bar {
   display: none;
 }
 
 /* =============================================================================
- * RESPONSIVE BREAKPOINTS (TABLET & MOBILE)
+ * RESPONSIVE BREAKPOINTS (TABLET & MOBILE) — No Hamburger Drawer!
  * ============================================================================= */
 @media (max-width: 1024px) {
   .cluv-shell-grid {
@@ -598,108 +584,26 @@
     overflow-y: auto;
   }
 
-  /* Slide-over Sidebar Drawer */
+  /* 1. Desktop sidebar is COMPLETELY hidden on mobile/tablet (No drawer!) */
   .cluv-sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 55;
-    transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 0 50px rgba(26, 45, 66, 0.25);
-    width: 290px;
+    display: none !important;
   }
 
-  .cluv-sidebar.is-mobile-open {
-    transform: translateX(0);
-  }
-
-  .cluv-topbar-burger {
-    display: flex;
-  }
-
-  .cluv-sidebar-close-btn {
-    display: flex;
-  }
-
-  /* Drawer Top User Banner */
-  .cluv-drawer-mobile-user-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    background: #f7faff;
-    border: 1px solid #dce8f3;
-    border-radius: 16px;
-  }
-
-  .cluv-drawer-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: var(--cluv-teal-soft, #e6f6f5);
-    color: var(--cluv-teal-dark, #127a75);
-    font-size: 1rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    flex-shrink: 0;
-  }
-
-  .cluv-drawer-user-info {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .cluv-drawer-user-name {
-    font-size: 0.9375rem;
-    font-weight: 800;
-    color: var(--cluv-current-text, #1a2d42);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .cluv-drawer-user-badge {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--cluv-teal, #1f9d97);
-  }
-
-  /* Backdrop Overlay */
-  .cluv-shell-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(26, 45, 66, 0.45);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 50;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-  }
-
-  .cluv-shell-backdrop.is-open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  /* =========================================================================
-   * TOPBAR DI MOBILE: Ringkas, Lega, Tanpa Penumpukan Profil!
-   * ========================================================================= */
+  /* 2. Topbar in Mobile: Pure & Clean (Brand Left + Credits & Bell Right) */
   .cluv-topbar {
     padding: 0 16px;
-    height: 60px;
+    height: 58px;
   }
 
-  /* Profile Menu disembunyikan di Topbar Mobile (sudah ada di tab Bottom Bar) */
+  .cluv-topbar-mobile-brand {
+    display: flex;
+  }
+
+  .cluv-topbar-page-context {
+    display: none;
+  }
+
+  /* Profile dropdown is hidden from topbar (accessible in Bottom Nav Profil tab) */
   .cluv-topbar-profile-wrap {
     display: none !important;
   }
@@ -709,8 +613,9 @@
   }
 
   .cluv-topbar-credits-btn {
-    padding: 6px 12px;
+    padding: 0 12px;
     font-size: 0.8125rem;
+    height: 36px;
   }
 
   .cluv-topbar-bell-btn {
@@ -719,12 +624,10 @@
   }
 
   .cluv-shell-page-content {
-    padding: 16px 16px 96px; /* Extra bottom padding for comfortable thumb bar */
+    padding: 16px 16px 96px; /* Room for thumb bottom bar */
   }
 
-  /* =========================================================================
-   * MOBILE BOTTOM NAVIGATION BAR: Ramah Jempol, 5 Destinasi Utama
-   * ========================================================================= */
+  /* 3. Mobile Bottom Navigation Bar (Thumb Friendly 5 Menus) */
   .cluv-mobile-bottom-bar {
     display: flex;
     align-items: center;
@@ -781,8 +684,8 @@
   }
 
   .cluv-bottom-nav-fab-icon {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     border-radius: 16px;
     background: var(--cluv-teal, #1f9d97);
     color: #ffffff;

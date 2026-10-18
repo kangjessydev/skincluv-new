@@ -238,6 +238,11 @@
   border-color: var(--cluv-current-border, var(--cluv-neutral-200));
 }
 
+.cluv-card-strip.is-gold {
+  background: var(--cluv-gold-soft, #fffbeb);
+  border-color: var(--cluv-gold-line, #fde68a);
+}
+
 .cluv-card-strip-main {
   display: flex;
   align-items: center;

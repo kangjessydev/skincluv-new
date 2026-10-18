@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Clock,
   X,
+  Bot,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData } from '@/hooks/useDashboardData'
@@ -128,12 +129,12 @@ export default function DashboardPage() {
       <div className="cluv-dashboard-header">
         <div>
           <p className="cluv-caption cluv-text-muted">{todayFormatted}</p>
-          <h1 className="cluv-title-section cluv-mt-1">Selamat {timeOfDay}, {firstName}</h1>
-          <p className="cluv-body cluv-text-muted cluv-mt-1">Ringkasan kondisi kulit dan akses cepat perawatan harianmu.</p>
+          <h1 className="cluv-title-section cluv-mt-1 cluv-dashboard-title">Selamat {timeOfDay}, {firstName}</h1>
+          <p className="cluv-body cluv-text-muted cluv-mt-1 cluv-dashboard-subtitle">Ringkasan kondisi kulit dan akses cepat perawatan harianmu.</p>
         </div>
       </div>
 
-      {/* QUICK SCAN SHORTCUTS (2 Primary Action Buttons) */}
+      {/* QUICK SCAN SHORTCUTS (Desktop 2-Column Tiles) */}
       <div className="cluv-quick-scan-grid">
         <button
           onClick={() => navigate('/face-scan')}
@@ -164,15 +165,58 @@ export default function DashboardPage() {
         </button>
       </div>
 
+      {/* MOBILE 4-ITEM SQUIRCLE SHORTCUTS (Visible on mobile <= 640px) */}
+      <div className="cluv-mobile-shortcuts" aria-label="Akses Cepat Mobile">
+        <button
+          onClick={() => navigate('/face-scan')}
+          className="cluv-mobile-shortcut-btn"
+        >
+          <div className="cluv-mobile-shortcut-icon is-teal">
+            <ScanFace size={22} strokeWidth={2.2} />
+          </div>
+          <span className="cluv-mobile-shortcut-label">Scan Wajah</span>
+        </button>
+
+        <button
+          onClick={() => navigate('/ingredient-scan')}
+          className="cluv-mobile-shortcut-btn"
+        >
+          <div className="cluv-mobile-shortcut-icon is-blue">
+            <FlaskConical size={22} strokeWidth={2.2} />
+          </div>
+          <span className="cluv-mobile-shortcut-label">Scan Bahan</span>
+        </button>
+
+        <button
+          onClick={() => navigate('/missions')}
+          className="cluv-mobile-shortcut-btn"
+        >
+          <div className="cluv-mobile-shortcut-icon is-amber">
+            <Sparkles size={22} strokeWidth={2.2} />
+          </div>
+          <span className="cluv-mobile-shortcut-label">Misi Glow</span>
+        </button>
+
+        <button
+          onClick={() => navigate('/chatbot')}
+          className="cluv-mobile-shortcut-btn"
+        >
+          <div className="cluv-mobile-shortcut-icon is-purple">
+            <Bot size={22} strokeWidth={2.2} />
+          </div>
+          <span className="cluv-mobile-shortcut-label">Tanya AI</span>
+        </button>
+      </div>
+
       {/* LATEST SKIN ASSESSMENT (Primary Value Proposition) */}
       {loading ? (
         <div className="cluv-card">
           <Skeleton height={24} width={180} />
           <div className="cluv-flex-row cluv-gap-4 cluv-items-center cluv-mt-3">
             <Skeleton height={80} width={80} radius="50%" />
-            <div style={{ flex: 1 }}>
+            <div className="cluv-flex-1">
               <Skeleton height={18} width="40%" />
-              <div style={{ height: 8 }} />
+              <div className="cluv-mb-2" />
               <SkeletonText lines={2} />
             </div>
           </div>
@@ -246,6 +290,14 @@ export default function DashboardPage() {
                   </span>
                 )}
               </div>
+              <button
+                onClick={() => navigate('/chatbot')}
+                className="cluv-assessment-chat-cta"
+              >
+                <Sparkles size={13} />
+                <span>Konsultasikan ke Skinsistant</span>
+                <ChevronRight size={13} />
+              </button>
             </div>
           </div>
         </section>
@@ -258,7 +310,7 @@ export default function DashboardPage() {
       {/* COMPACT MISSION STRIP */}
       <div className="cluv-mission-strip">
         <div className="cluv-mission-left">
-          <span className="cluv-stat-icon is-teal" style={{ width: 32, height: 32 }}>
+          <span className="cluv-stat-icon is-teal cluv-mission-icon">
             <Sparkles size={16} />
           </span>
           <span className="cluv-caption cluv-font-bold">Misi Hari Ini:</span>
@@ -300,7 +352,7 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="cluv-flex-row cluv-gap-3 cluv-items-end" style={{ height: 160, padding: '16px 0 0' }}>
+            <div className="cluv-flex-row cluv-gap-3 cluv-items-end cluv-bars-skeleton">
               {[60, 80, 45, 95, 70, 88, 75].map((h, i) => (
                 <Skeleton key={i} height={`${h}%`} width="100%" radius="8px 8px 0 0" />
               ))}
@@ -333,7 +385,7 @@ export default function DashboardPage() {
             <div className="cluv-text-center cluv-py-6">
               <CalendarDays size={32} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
               <h4 className="cluv-title-card cluv-mt-2">Belum cukup data tren</h4>
-              <p className="cluv-caption cluv-text-muted cluv-mt-1" style={{ maxWidth: 360, margin: '6px auto 0' }}>
+              <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-empty-desc">
                 Lakukan setidaknya 3 Analisis Kulit AI untuk melihat grafik perkembangan kulitmu.
               </p>
               <button onClick={() => navigate('/face-scan')} className="cluv-btn is-primary is-sm cluv-mt-4">
@@ -458,7 +510,7 @@ export default function DashboardPage() {
                 {[1, 2, 3].map(i => (
                   <div key={i} className="cluv-flex-row cluv-gap-3 cluv-items-center">
                     <Skeleton height={40} width={40} radius="10px" />
-                    <div style={{ flex: 1 }}><SkeletonText lines={2} /></div>
+                    <div className="cluv-flex-1"><SkeletonText lines={2} /></div>
                     <Skeleton height={20} width={40} radius="100px" />
                   </div>
                 ))}
@@ -496,7 +548,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Sunscreen Reminder Strip */}
-          <div className="cluv-card-strip cluv-mt-4" style={{ background: 'var(--cluv-neutral-50)' }}>
+          <div className="cluv-card-strip is-gold cluv-mt-4">
             <div className="cluv-card-icon-wrap is-gold is-sm">
               <SunMedium size={16} />
             </div>

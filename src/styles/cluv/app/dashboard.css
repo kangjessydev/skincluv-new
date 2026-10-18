@@ -53,7 +53,7 @@
   color: var(--cluv-rose);
 }
 
-/* 3. Quick Scan Shortcuts (2-Column Action Tiles) */
+/* 3. Quick Scan Shortcuts (Desktop 2-Column Tiles vs Mobile 4-Column Squircle App Grid) */
 .cluv-quick-scan-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
@@ -139,6 +139,11 @@
   transform: translateX(3px);
 }
 
+/* Mobile-Only App Shortcuts (4 Squircle Action Tiles, <= 640px) */
+.cluv-mobile-shortcuts {
+  display: none;
+}
+
 /* 4. Skin Assessment Hero Card */
 .cluv-assessment-body {
   display: flex;
@@ -159,6 +164,28 @@
   gap: 8px;
   margin-top: 10px;
   flex-wrap: wrap;
+}
+
+.cluv-assessment-chat-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark, #127a75);
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+  padding: 6px 12px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.cluv-assessment-chat-cta:hover {
+  background: #d4f2ef;
+  transform: translateY(-1px);
 }
 
 /* 5. Compact Mission Strip */
@@ -182,6 +209,11 @@
   flex-wrap: wrap;
 }
 
+.cluv-mission-icon {
+  width: 32px;
+  height: 32px;
+}
+
 .cluv-mission-track {
   width: 120px;
   height: 6px;
@@ -195,6 +227,16 @@
   background: var(--cluv-teal);
   border-radius: 9999px;
   transition: width 0.3s ease;
+}
+
+.cluv-bars-skeleton {
+  height: 160px;
+  padding: 16px 0 0;
+}
+
+.cluv-empty-desc {
+  max-width: 360px;
+  margin: 6px auto 0;
 }
 
 /* 6. Middle Grid (Chart 1.55fr + Insight 1fr) */
@@ -353,4 +395,131 @@
   color: var(--cluv-neutral-400);
   display: block;
   margin-top: 1px;
+}
+
+/* =============================================================================
+ * 8. RESPONSIVE ADAPTATIONS (MOBILE & TABLET VIEWPORT)
+ * ============================================================================= */
+@media (max-width: 640px) {
+  .cluv-dashboard-view {
+    gap: 16px;
+  }
+
+  /* Hide Desktop 2-Card Tile on Mobile */
+  .cluv-quick-scan-grid {
+    display: none !important;
+  }
+
+  /* Display 4-Item Squircle Mobile App Grid */
+  .cluv-mobile-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 2px 0 6px;
+  }
+
+  .cluv-mobile-shortcut-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease;
+  }
+
+  .cluv-mobile-shortcut-btn:active {
+    transform: scale(0.92);
+  }
+
+  .cluv-mobile-shortcut-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(26, 45, 66, 0.05);
+    border: 1px solid var(--cluv-neutral-200);
+    transition: all 0.18s ease;
+  }
+
+  .cluv-mobile-shortcut-icon.is-teal {
+    background: var(--cluv-teal-soft, #e6f6f5);
+    color: var(--cluv-teal, #1f9d97);
+    border-color: var(--cluv-teal-line, #bceae7);
+  }
+
+  .cluv-mobile-shortcut-icon.is-blue {
+    background: #eff6ff;
+    color: var(--cluv-status-info, #3b82f6);
+    border-color: #bfdbfe;
+  }
+
+  .cluv-mobile-shortcut-icon.is-amber {
+    background: #fffbeb;
+    color: var(--cluv-gold, #d97706);
+    border-color: var(--cluv-gold-line, #fde68a);
+  }
+
+  .cluv-mobile-shortcut-icon.is-purple {
+    background: #fbf5ff;
+    color: var(--cluv-purple, #9333ea);
+    border-color: #eed6ff;
+  }
+
+  .cluv-mobile-shortcut-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--cluv-current-text, #1a2d42);
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* Compact Header on Touch Screen */
+  .cluv-dashboard-header {
+    gap: 8px;
+  }
+
+  .cluv-dashboard-title {
+    font-size: 1.25rem !important;
+  }
+
+  /* Assessment Card Tuning */
+  .cluv-assessment-body {
+    gap: 16px;
+  }
+
+  .cluv-assessment-notes {
+    min-width: 100%;
+  }
+
+  /* Trend Chart Bar Spacing for Narrow Viewports */
+  .cluv-bars-row {
+    padding: 16px 2px 0;
+    gap: 4px;
+  }
+
+  .cluv-bar-track {
+    max-width: 30px;
+  }
+
+  .cluv-bar-label {
+    font-size: 0.625rem;
+  }
+
+  /* Mission Strip Compression */
+  .cluv-mission-strip {
+    padding: 12px 14px;
+  }
+
+  .cluv-mission-track {
+    width: 70px;
+  }
 }

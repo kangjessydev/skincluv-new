@@ -11,8 +11,6 @@ import {
   ShieldCheck,
   Bell,
   Zap,
-  Menu,
-  X,
   HeartPulse,
   CircleHelp,
   Home,
@@ -21,7 +19,6 @@ import {
   Receipt,
   LogOut,
   User,
-  ChevronDown,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -71,7 +68,6 @@ export default function AppLayout() {
   const { coinBalance, profile, subscription, isAdmin, userRoles, reset } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const userDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -82,7 +78,6 @@ export default function AppLayout() {
     )
 
   const isPro = isActivePremium(subscription)
-  const userName = profile?.full_name?.split(' ')[0] || 'Pengguna'
   const fullUserName = profile?.full_name || 'Pengguna Skincluv'
   const userInitials = profile?.full_name
     ? profile.full_name
@@ -106,9 +101,8 @@ export default function AppLayout() {
     }
   }, [])
 
-  // Close mobile drawer on route change
+  // Close dropdown on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false)
     setIsUserDropdownOpen(false)
   }, [location.pathname])
 
@@ -124,20 +118,13 @@ export default function AppLayout() {
 
   return (
     <div className="cluv-app-shell cluv-surface-app">
-      {/* Mobile Drawer Backdrop Overlay */}
-      <div
-        className={`cluv-shell-backdrop ${isMobileMenuOpen ? 'is-open' : ''}`}
-        onClick={() => setIsMobileMenuOpen(false)}
-        aria-hidden={!isMobileMenuOpen}
-      />
-
       <div className="cluv-shell-grid">
-        {/* ===================== DESKTOP & MOBILE SIDEBAR ===================== */}
-        <aside className={`cluv-sidebar ${isMobileMenuOpen ? 'is-mobile-open' : ''}`}>
+        {/* ===================== DESKTOP SIDEBAR (Permanent 250px) ===================== */}
+        <aside className="cluv-sidebar">
 
           {/* Brand Header */}
           <div className="cluv-sidebar-brand-row">
-            <Link to="/dashboard" className="cluv-sidebar-brand-link" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link to="/dashboard" className="cluv-sidebar-brand-link">
               <span className="cluv-sidebar-brand-icon">
                 <Sparkles size={20} strokeWidth={2.5} />
               </span>
@@ -145,25 +132,6 @@ export default function AppLayout() {
                 skincluv<span>.</span>
               </span>
             </Link>
-
-            {/* Mobile close button (Hidden on desktop via CSS) */}
-            <button
-              type="button"
-              className="cluv-sidebar-close-btn"
-              onClick={() => setIsMobileMenuOpen(false)}
-              aria-label="Tutup navigasi"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          {/* Mobile Drawer Top User Banner */}
-          <div className="cluv-drawer-mobile-user-card">
-            <div className="cluv-drawer-avatar">{userInitials}</div>
-            <div className="cluv-drawer-user-info">
-              <span className="cluv-drawer-user-name">{fullUserName}</span>
-              <span className="cluv-drawer-user-badge">{isPro ? '⭐️ PRO Member' : '🌸 Free Member'}</span>
-            </div>
           </div>
 
           {/* Scrollable Nav Area */}
@@ -176,7 +144,6 @@ export default function AppLayout() {
                 <NavLink
                   key={to}
                   to={to}
-                  onClick={() => setIsMobileMenuOpen(false)}
                   className={`cluv-sidebar-item ${isActive ? 'is-active' : ''}`}
                   end={to === '/dashboard'}
                 >
@@ -194,7 +161,6 @@ export default function AppLayout() {
                 <NavLink
                   key={to}
                   to={to}
-                  onClick={() => setIsMobileMenuOpen(false)}
                   className={`cluv-sidebar-item ${isActive ? 'is-active' : ''}`}
                 >
                   <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />
@@ -217,20 +183,20 @@ export default function AppLayout() {
 
         {/* ===================== MAIN CONTENT & TOPBAR ===================== */}
         <section className="cluv-shell-main">
-          {/* Topbar Header (68px, Airy, Glass Blur) */}
+          {/* Topbar Header (68px Desktop, 58px Mobile, Airy Glass Blur) */}
           <header className="cluv-topbar">
             <div className="cluv-topbar-left">
-              {/* Mobile Hamburger Drawer Trigger */}
-              <button
-                type="button"
-                className="cluv-topbar-burger"
-                onClick={() => setIsMobileMenuOpen(true)}
-                aria-label="Buka menu navigasi"
-              >
-                <Menu size={22} />
-              </button>
+              {/* Mobile Brand Logo (Replaces Hamburger on Mobile) */}
+              <Link to="/dashboard" className="cluv-topbar-mobile-brand" title="Skincluv Beranda">
+                <span className="cluv-topbar-mobile-brand-icon">
+                  <Sparkles size={18} strokeWidth={2.5} />
+                </span>
+                <span className="cluv-topbar-mobile-brand-text">
+                  skincluv<span>.</span>
+                </span>
+              </Link>
 
-              {/* Breadcrumb / Page Context Title */}
+              {/* Desktop Breadcrumb / Page Context Title */}
               <div className="cluv-topbar-page-context">
                 <span>{getPageContextTitle(location.pathname)}</span>
               </div>

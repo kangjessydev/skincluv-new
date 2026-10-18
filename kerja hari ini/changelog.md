@@ -113,13 +113,42 @@ Dibuat di `src/styles/cluv/` dan didokumentasikan di `CLUV_FRAMEWORK_CHEATSHEET.
       - Popover Cloud Card (20px radius) saat diklik menampilkan detail akun lengkap tanpa menjejali header.
   - **Mobile (Layar HP)**: Menu profil di Topbar **disembunyikan total** agar header HP lega dan tidak menumpuk. Navigasi profil di mobile berpusat di tab Profil bawah dan drawer samping.
 - **Pembersihan Badge Privasi Sidebar**: Menghapus tumpukan emoji bunga `🌸` di sebelah ikon perisai. Menggunakan satu ikon perisai teal halus + teks `Privasi terlindungi · UU PDP` di atas latar milky pill yang sejuk.
-- **Mobile Bottom Navigation Bar dengan Center FAB**: Navigasi bawah 5 menu ramah jempol (`<= 768px`) dengan tombol tengah **Scan Wajah** berupa Floating Action Button (FAB) teal berkilau yang menonjol dan ergonomis.
-- **Mobile Drawer User Card**: Banner profil manis di bagian atas drawer saat hamburger dibuka di mobile.
+- **Tahap 1 Mobile Shell Hardening (Zero-Drawer & Pure Ergonomics)**:
+  - **Eliminasi Hamburger & Drawer Samping**: Sidebar disembunyikan total di layar mobile/tablet (`<= 1024px`). Tidak ada tombol garis tiga, tidak ada backdrop blur drawer, dan tidak ada inkonsistensi navigasi.
+  - **Topbar Mobile Bersih & Anggun (58px)**: Kiri menampilkan Logo `skincluv.` manis dengan ikon bintang `<Sparkles />` (karena logo sidebar tersembunyi). Kanan menampilkan *Clean Cloud Credits Pill* + *Lonceng*. Profil di Topbar mobile ditiadakan.
+  - **Mobile Bottom Navigation Bar 5 Menu (Ergonomi Jempol)**:
+    1. Beranda (`Home`)
+    2. Komposisi (`FlaskConical`)
+    3. **Scan Wajah (Center FAB)**: Tombol tengah terangkat (*elevated 46px*) berlatar teal cerah dengan bayangan lembut
+    4. Skinsistant AI (`MessageCircle`)
+    5. Profil (`User`)
 
 ### 🗑️ 4. Penghapusan Legacy CSS
 - Menghapus total `src/styles/app-layout.css` dan `src/styles/dashboard.css` via `git rm`.
 - Refaktor `DashboardPage.tsx` 100% menggunakan token dan class Cluv Framework.
 
-### 🧪 5. Verifikasi Kualitas
+### 📱 6. Tahap 2: Konten Beranda Adaptif Desktop vs Mobile (`DashboardPage.tsx` & `dashboard.css`)
+- **Adaptasi Akses Cepat (Desktop 2-Tile Bento vs Mobile 4-Item Squircle Grid)**:
+  - **Desktop (`> 640px`)**: Menampilkan 2 kartu bento interaktif lapang (*Scan Wajah AI* & *Scan Komposisi*) dengan deskripsi lengkap, indikator aksen kiri saat hover, dan panah chevron.
+  - **Mobile (`<= 640px`)**: Menampilkan **4-Item Squircle App Grid** ala aplikasi mobile modern (Gojek / Apple Health / Lemon8) tepat di bawah greeting:
+    1. *Scan Wajah* (Squircle Teal + Camera Icon)
+    2. *Scan Bahan* (Squircle Blue + Flask Icon)
+    3. *Misi Glow* (Squircle Amber + Sparkles Icon)
+    4. *Tanya AI* (Squircle Purple + Bot Icon)
+  - Memberikan kenyamanan navigasi 1-tap menggunakan jempol tanpa perlu scrolling panjang.
+- **Hero Skin Assessment Card & AI Consultation CTA**:
+  - Skor melingkar SVG (`.cluv-score-ring`) dengan gauge dinamis sesuai status kulit (Optimal/Perhatian/Waspada).
+  - Ditambahkan chip aksi langsung: **"Konsultasikan ke Skinsistant →"** yang langsung menghubungkan observasi kulit terbaru ke Skinsistant AI (`/chatbot`).
+  - Responsif di layar sempit tanpa pemotongan teks atau overlapping badge.
+- **Tren Analisis Kulit (7-Pillar Bar Chart)**:
+  - Pilar vertikal progresif dengan skor dan tanggal scan, dengan pilar terakhir disorot teal + tooltip angka skor.
+  - Penyesuaian padding (`padding: 16px 2px 0`) dan celah dinamis (`gap: clamp(4px, 1.5vw, 8px)`) agar tidak terpotong pada layar HP 375px (iPhone SE).
+- **Sunscreen & Daily Routine Cards (100% Cluv Invariant Compliance)**:
+  - Menghapus seluruh inline styles (`style={{ background: ... }}` dan layout manual).
+  - Menggunakan modifier kanonikal baru `.cluv-card-strip.is-gold` untuk strip proteksi sunscreen harian.
+  - Komponen checklist rutinitas harian responsif dengan transisi checklist mulus dan area sentuh jempol ergonomis (min-height 48px).
+
+### 🧪 7. Verifikasi Kualitas
 - `npx tsc -b`: **0 error**
-- `npm run build`: Berhasil tanpa warning dalam **2.22 detik**
+- `npm run build`: Berhasil tanpa warning dalam **3.10 detik**
+
