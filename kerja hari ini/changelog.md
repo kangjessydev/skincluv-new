@@ -173,4 +173,52 @@ Dibuat di `src/styles/cluv/` dan didokumentasikan di `CLUV_FRAMEWORK_CHEATSHEET.
 - `npx tsc -b`: **0 error**
 - `npm run build`: Berhasil tanpa warning dalam **2.97 detik**
 
+---
+
+## 🎨 9. Tahap 3: Demarkasi Bersih Desktop vs Mobile + Dynamic Routine + Catatan Backend
+
+### 📱 1. Mobile First: Anti-Bloat & Ultra-Compact (~135px Card)
+- **Pocket Strip 44px (`.cluv-mobile-pocket-strip`)**:
+  - Menggabungkan sapaan ramah `Halo, {firstName} ✨`, badge tier (`PRO ✨` / `Free`), dan saldo kredit `⚡ {balance} Credits` beserta tombol `+ Isi` dalam satu baris ramping 44px di paling atas layar ponsel.
+  - Membebaskan topbar ponsel dari tombol saldo yang sempit, menjaga kanvas mobile tetap bersih dan bernafas lega.
+- **Perbaikan Bug Saldo `[object Object]`**:
+  - Memperbaiki bug pembacaan objek `coinBalance` dari Zustand store (`useAuthStore`) menjadi `(coinBalance?.balance ?? 0).toLocaleString()`.
+- **Kartu Observasi Kulit Mobile Kompak (`.cluv-mobile-skin-card`)**:
+  - Ukuran tinggi kartu dipangkas dari ~400px menjadi **~135px** (hanya memakan ~15% layar HP, bukan 60%).
+  - Menggunakan biometric score ring 60px (`.cluv-score-ring.is-sm`), chip status ringkas, dan paragraf catatan observasi yang dibatasi maksimal 2 baris (`-webkit-line-clamp: 2`).
+  - Dilengkapi 2 mini pill button interaktif (`[🔍 Pindai Ulang]` dan `[💬 Tanya AI]`).
+
+### 🖥️ 2. Desktop Layout: Eliminasi Redundansi & Grid 2-Kolom Seimbang
+- **Eliminasi Redundansi Avatar & Profil di Kartu Hero**:
+  - Mengingat topbar dan sidebar desktop sudah memuat identitas pengguna dan saldo kredit, kartu hero di desktop difokuskan 100% pada esensi analitik kesehatan kulit.
+  - Header desktop yang tenang: `Selamat {pagi/siang/sore/malam}, {firstName} ✨` beserta tanggal hari ini.
+- **Hero Grid 2-Kolom (1.55fr : 1fr)**:
+  - **Kolom Kiri (1.55fr)**: Kartu Observasi Kulit Terkini (`skin_assessment`) dengan score ring 80px, status kualitatif defensible, tipe kulit, label tren perkembangan, dan CTA konsultasi ke Skinsistant AI.
+  - **Kolom Kanan (1fr)**: Kartu Laboratorium Skincare (`product_summary`) dengan metrik produk diuji, formula aman ramah skin barrier, rata-rata skor keamanan, dan tombol pindai produk baru.
+- **Middle & Bottom Grids**:
+  - Tren Analisis Kulit (grafik 7 pilar vertikal) berdampingan dengan checklist rutinitas harian.
+  - Riwayat Scan Terakhir tertata rapi di bagian bawah lengkap dengan strip pengingat proteksi kulit.
+
+### ☀️🌙 3. Rutinitas Harian Adaptif AM / PM
+- **Otomatis Berpindah Berdasarkan Jam Lokal**:
+  - **Siang / Pagi (`< 17:00`)**: Menampilkan *Rutinitas Pagi ☀️* (Cleanser pH Balance, Serum Niacinamide/Hidrasi, Moisturizer + Sunscreen SPF 50) + strip pengingat re-apply sunscreen (`.cluv-card-strip.is-gold`).
+  - **Malam (`>= 17:00`)**: Menampilkan *Rutinitas Malam 🌙* (Double Cleansing Micellar/Oil, Active/Barrier Serum, Night Repair Moisturizer) + strip pengingat regenerasi skin barrier malam hari (`.cluv-card-strip.is-neutral`).
+
+---
+
+## 📌 Catatan & Rekomendasi untuk Tim Backend (Backend Task List)
+
+> ⚠️ **Penting**: Sesuai pembagian peran arsitektur, tim Frontend tidak mengubah skema basis data, RPC migration, atau Edge Functions. Catatan di bawah ini adalah panduan spesifikasi untuk dikerjakan oleh tim Backend:
+
+1. **Persistensi Checklist Rutinitas Pengguna (`user_routines` table)**:
+   - *Status Saat Ini (Frontend)*: Menggunakan state lokal React (`useState`) yang adaptif berdasarkan waktu (AM/PM).
+   - *Rekomendasi Backend*: Buat tabel `user_routines` atau kolom JSONB di `user_profiles` agar centang rutinitas harian pengguna tersimpan secara persisten lintas sesi dan terhubung dengan sistem streak koin/misi.
+2. **Koneksi Produk Skincare ke Analisis Interaksi Bahan (`ingredient_interactions`)**:
+   - *Status Saat Ini (Frontend)*: Menampilkan ringkasan agregat produk dari `product_summary` (`total_products_scanned`, `safe_products_count`, `avg_safety_score`).
+   - *Rekomendasi Backend*: Pada RPC `get_user_dashboard_summary()`, tambahkan flag peringatan dini jika ada produk yang baru di-scan memiliki tabrakan bahan aktif (*clashing ingredients*, misal AHA/BHA bertemu Retinol konsentrasi tinggi).
+3. **Endpoint Cache Hit Flag untuk Trend Line**:
+   - *Status Saat Ini*: Frontend menyaring tren dengan RFC 011 (`is_repeat = false`).
+   - *Rekomendasi Backend*: Pastikan RPC `get_user_dashboard_summary()` konsisten menerapkan `WHERE is_repeat = false` pada query `face_trend` agar median baseline 28 hari selalu steril dari duplikasi foto berulang.
+
+
 

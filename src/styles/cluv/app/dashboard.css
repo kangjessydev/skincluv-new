@@ -18,249 +18,186 @@
   box-sizing: border-box;
 }
 
-/* 2. Hero Skin Passport & Wallet Card (.cluv-passport-card) */
-.cluv-passport-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f7fcfa 100%);
-  border: 1px solid var(--cluv-current-border, #dce8f3);
-  border-radius: var(--cluv-current-radius-card, 22px);
-  box-shadow: 0 4px 20px rgba(31, 157, 151, 0.05), 0 1px 3px rgba(26, 45, 66, 0.04);
-  padding: 20px 24px;
-  box-sizing: border-box;
+/* 2. Desktop Greeting Header */
+.cluv-dashboard-header {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
-  position: relative;
-  overflow: hidden;
 }
 
-.cluv-passport-header {
+.cluv-dashboard-title {
+  margin: 4px 0 0;
+}
+
+.cluv-dashboard-subtitle {
+  margin: 4px 0 0;
+}
+
+/* Desktop Hero Grid: Observasi Wajah (1.55fr) + Keamanan Skincare (1fr) */
+.cluv-desktop-hero-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .cluv-desktop-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile-Only Dashboard View (Pocket Strip + Shortcuts + Compact Card) */
+.cluv-mobile-dashboard {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .cluv-dashboard-header,
+  .cluv-desktop-hero-grid {
+    display: none !important;
+  }
+
+  .cluv-mobile-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* Mobile Pocket Strip (Ultra-compact 44px) */
+.cluv-mobile-pocket-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.cluv-passport-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.cluv-passport-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  font-size: 1rem;
-  font-weight: 800;
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-
-.cluv-passport-avatar.is-pro {
-  background: linear-gradient(135deg, #1f9d97 0%, #fb7185 50%, #f59e0b 100%);
-  padding: 2px;
-  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.22);
-}
-
-.cluv-passport-avatar.is-pro .cluv-passport-avatar-inner {
-  background: var(--cluv-teal-soft, #e6f6f5);
-  color: var(--cluv-teal-dark, #127a75);
-  border: 2px solid #ffffff;
-}
-
-.cluv-passport-avatar.is-free {
+  background: var(--cluv-current-card-bg, #ffffff);
   border: 1px solid var(--cluv-current-border, #dce8f3);
-  background: #f1f8fc;
-  color: #334a60;
+  border-radius: var(--cluv-radius-md, 16px);
+  padding: 8px 14px;
+  box-shadow: var(--cluv-shadow-sm);
+  box-sizing: border-box;
+  gap: 10px;
 }
 
-.cluv-passport-avatar-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.cluv-passport-user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.cluv-passport-greeting {
-  font-size: 1.0625rem;
-  font-weight: 800;
-  color: var(--cluv-current-text, #1a2d42);
-  margin: 0;
-  line-height: 1.25;
-}
-
-.cluv-passport-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  width: fit-content;
-}
-
-.cluv-passport-badge.is-pro {
-  background: linear-gradient(135deg, #e6f6f5 0%, #fce7eb 100%);
-  color: #be123c;
-  border: 1px solid #fecdd3;
-}
-
-.cluv-passport-badge.is-free {
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-}
-
-/* Wallet Side */
-.cluv-passport-wallet {
+.cluv-mobile-pocket-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
-.cluv-passport-credits-pill {
-  display: inline-flex;
+.cluv-mobile-pocket-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  white-space: nowrap;
+}
+
+.cluv-mobile-pocket-right {
+  display: flex;
   align-items: center;
   gap: 6px;
-  background: #ffffff;
-  border: 1px solid var(--cluv-current-border, #dce8f3);
-  padding: 6px 12px;
-  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.cluv-mobile-credits-text {
   font-size: 0.8125rem;
   font-weight: 800;
   color: var(--cluv-current-text, #1a2d42);
-  box-shadow: 0 1px 3px rgba(26, 45, 66, 0.04);
-}
-
-.cluv-passport-credits-icon {
-  color: #f59e0b;
-}
-
-.cluv-passport-topup-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.cluv-mobile-topup-btn {
+  display: inline-flex;
+  align-items: center;
   background: var(--cluv-teal-soft, #e6f6f5);
   border: 1px solid var(--cluv-teal-line, #bceae7);
   color: var(--cluv-teal-dark, #127a75);
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.18s ease;
   text-decoration: none;
+  transition: all 0.15s ease;
 }
 
-.cluv-passport-topup-btn:hover {
-  background: #d4f2ef;
-  transform: translateY(-1px);
+.cluv-mobile-topup-btn:active {
+  transform: scale(0.95);
 }
 
-.cluv-passport-divider {
-  width: 100%;
-  height: 1px;
-  background: var(--cluv-neutral-200, #e2e8f0);
-}
-
-/* Passport Body: Score + Insights */
-.cluv-passport-body {
+/* Mobile Compact Skin Card (Max 145px height, no bloat) */
+.cluv-mobile-skin-card {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 14px;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1px solid var(--cluv-current-border, #dce8f3);
+  border-radius: var(--cluv-current-radius-card, 18px);
+  padding: 14px 16px;
+  box-shadow: var(--cluv-shadow-sm);
+  box-sizing: border-box;
 }
 
-.cluv-passport-details {
+.cluv-mobile-skin-details {
   flex: 1;
-  min-width: 220px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.cluv-passport-chips {
+.cluv-mobile-skin-chips {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-.cluv-passport-headline {
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: var(--cluv-current-text, #1a2d42);
-  margin: 0;
-}
-
-.cluv-passport-note {
-  font-size: 0.84375rem;
+.cluv-mobile-skin-punchline {
+  font-size: 0.8125rem;
   color: var(--cluv-current-text-muted, #556980);
-  line-height: 1.5;
+  line-height: 1.35;
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.cluv-passport-time {
-  font-size: 0.75rem;
-  color: var(--cluv-neutral-400);
-}
-
-/* Passport Quick Action Buttons */
-.cluv-passport-actions {
+.cluv-mobile-skin-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin-top: 4px;
-  flex-wrap: wrap;
 }
 
-.cluv-passport-action-btn {
+.cluv-mobile-action-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--cluv-radius-pill, 9999px);
-  font-size: 0.8125rem;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.18s ease;
   border: 1px solid transparent;
   text-decoration: none;
+  transition: all 0.15s ease;
 }
 
-.cluv-passport-action-btn.is-primary {
+.cluv-mobile-action-pill.is-primary {
   background: var(--cluv-teal, #1f9d97);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(31, 157, 151, 0.25);
 }
 
-.cluv-passport-action-btn.is-primary:hover {
-  background: var(--cluv-teal-dark, #127a75);
-  transform: translateY(-1px);
-}
-
-.cluv-passport-action-btn.is-subtle {
-  background: #ffffff;
+.cluv-mobile-action-pill.is-subtle {
+  background: var(--cluv-neutral-50, #f8fafc);
   border-color: var(--cluv-current-border, #dce8f3);
   color: var(--cluv-current-text, #1a2d42);
-}
-
-.cluv-passport-action-btn.is-subtle:hover {
-  background: var(--cluv-neutral-50);
-  border-color: var(--cluv-teal-line);
 }
 
 /* 3. Quick Scan Shortcuts (Desktop 2-Column Tiles vs Mobile 4-Column Squircle App Grid) */
@@ -733,31 +670,5 @@
     width: 70px;
   }
 
-  /* Passport Card Mobile Tuning */
-  .cluv-passport-card {
-    padding: 16px;
-    gap: 14px;
-    border-radius: 20px;
-  }
-
-  .cluv-passport-header {
-    gap: 8px;
-  }
-
-  .cluv-passport-body {
-    gap: 14px;
-  }
-
-  .cluv-passport-actions {
-    width: 100%;
-    gap: 8px;
-  }
-
-  .cluv-passport-action-btn {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 10px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-  }
 }
+
