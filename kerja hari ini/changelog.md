@@ -220,8 +220,26 @@ Dibuat di `src/styles/cluv/` dan didokumentasikan di `CLUV_FRAMEWORK_CHEATSHEET.
    - *Status Saat Ini*: Frontend menyaring tren dengan RFC 011 (`is_repeat = false`).
    - *Rekomendasi Backend*: Pastikan RPC `get_user_dashboard_summary()` konsisten menerapkan `WHERE is_repeat = false` pada query `face_trend` agar median baseline 28 hari selalu steril dari duplikasi foto berulang.
 4. **Integrasi Weather & UV Index API (Smart Environmental Tips)**:
-   - *Status Saat Ini (Frontend)*: UI mendukung 3 variasi dinamis (Micro Pill, AI Bubble, dan Routine Tag) dengan kalkulasi time-based local fallback otomatis.
-   - *Rekomendasi Backend*: Sediakan RPC / Edge Function yang mengonsumsi Weather API bebas auth/gratis (misal Open-Meteo atau WeatherAPI) berdasarkan koordinat IP pengguna untuk memasok suhu aktual (°C) dan Indeks UV real-time.
+   - *Status Saat Ini (Frontend)*: Menggunakan **Konsep 2 (Skinsistant AI Weather Companion Bubble)** yang menampilkan sapaan ramah robot AI bersuhu (°C) dan Indeks UV real-time dengan saran kontekstual skin-barrier harian (AM sunscreen, UV midday re-apply, afternoon hydration, night barrier recovery).
+   - *Rekomendasi Backend*: Sediakan RPC / Edge Function yang mengonsumsi Weather API bebas auth/gratis (misal Open-Meteo) berdasarkan estimasi lokasi reverse-IP pengguna untuk memasok suhu aktual (°C) dan Indeks UV real-time.
+
+---
+
+## 🏆 10. Finalisasi: Penguncian Layout Opsi A & Cuaca Konsep 2
+
+- **Layout Terpilih: Opsi A (Unified Bento Skin Card)**:
+  - Header sapaan ramah (`Halo, {firstName}`), avatar ring indikator status (`.is-pro` / `.is-free`), dan dompet kredit interaktif kapsul (`.cluv-credit-capsule: [ ⚡ 1.395 | + ]`) menyatu di bagian atas Bento Card Observasi Kulit.
+  - Memangkas ruang vertikal hingga ~50px dibanding floating card terpisah.
+- **Widget Cuaca Terpilih: Konsep 2 (Skinsistant AI Companion Bubble)**:
+  - Avatar Skinsistant AI (`<Bot />`), badge suhu + UV, serta kutipan tips personal bersahabat: *"Siang ini terik banget loh bestie! Sampai 30 derajat. Jangan lupa pake sunscreen ya! :)"*.
+- **Posisi Akses Cepat**:
+  - 4 Menu Squircle Pintas (*Scan Wajah, Scan Komposisi, Misi Glow, Tanya AI*) terkunci rapi tepat **di bawah** Bento Card Observasi Kulit.
+- **Pembersihan Kode**:
+  - Seluruh tombol switcher preview, state demo, dan style `.cluv-weather-pill` yang tidak terpilih telah dihapus bersih.
+- **Verifikasi**:
+  - `npx tsc -b`: 0 error
+  - `npm run build`: Selesai dalam 3.13 detik tanpa warning
+
 
 
 
