@@ -577,45 +577,132 @@
   transform: translateY(-1px);
 }
 
-/* 5. Compact Mission Strip */
-.cluv-mission-strip {
+/* 5. Embedded Routine Progress Track */
+.cluv-routine-progress-track {
+  width: 90px;
+  height: 5px;
+  background: var(--cluv-neutral-200, #e2e8f0);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.cluv-routine-progress-bar {
+  height: 100%;
+  background: var(--cluv-teal, #1f9d97);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  transition: width 0.3s ease;
+}
+
+/* 7. Bottom Bento Grid: Riwayat Scan (1.55fr) + Ritme Sirkadian & AI Prompts (1fr) */
+.cluv-bottom-bento-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .cluv-bottom-bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Circadian & Intelligent AI Companion Card */
+.cluv-circadian-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cluv-circadian-phase {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--cluv-radius-md, 12px);
+  box-sizing: border-box;
+}
+
+.cluv-circadian-phase.is-day {
+  background: #fffbeb;
+  border: 1px solid var(--cluv-gold-line, #fae0b8);
+}
+
+.cluv-circadian-phase.is-night {
+  background: var(--cluv-purple-soft, #f3e8ff);
+  border: 1px solid var(--cluv-purple-line, #e9d5ff);
+}
+
+.cluv-circadian-phase-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cluv-circadian-phase.is-day .cluv-circadian-phase-icon {
+  background: var(--cluv-gold, #d97706);
+  color: #ffffff;
+}
+
+.cluv-circadian-phase.is-night .cluv-circadian-phase-icon {
+  background: var(--cluv-purple, #8b5cf6);
+  color: #ffffff;
+}
+
+.cluv-circadian-phase-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, #0f172a);
+}
+
+.cluv-circadian-phase-desc {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-600, #475569);
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+/* 1-Tap AI Prompt Chips */
+.cluv-prompt-chip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
   background: var(--cluv-current-card-bg, #ffffff);
-  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
-  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-md));
-  box-shadow: var(--cluv-shadow-sm);
-  flex-wrap: wrap;
-  gap: 12px;
+  border: 1px solid var(--cluv-neutral-200, #e2e8f0);
+  border-radius: var(--cluv-radius-md, 10px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-700, #334155);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
 }
 
-.cluv-mission-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+.cluv-prompt-chip:hover {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal-line, #bceae7);
+  color: var(--cluv-teal-dark, #127a75);
+  transform: translateX(2px);
 }
 
-.cluv-mission-icon {
-  width: 32px;
-  height: 32px;
+.cluv-prompt-chip svg {
+  color: var(--cluv-neutral-400);
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
 }
 
-.cluv-mission-track {
-  width: 120px;
-  height: 6px;
-  background: var(--cluv-neutral-200);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.cluv-mission-bar {
-  height: 100%;
-  background: var(--cluv-teal);
-  border-radius: 9999px;
-  transition: width 0.3s ease;
+.cluv-prompt-chip:hover svg {
+  color: var(--cluv-teal-dark, #127a75);
+  transform: translateX(2px);
 }
 
 .cluv-bars-skeleton {

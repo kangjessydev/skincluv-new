@@ -2,7 +2,7 @@
 // 100% Faithful Port of Claude's Skinsistant AI Chatbot UI — Pure Vanilla CSS, Sticky Input & Zero Page Scroll
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Send,
   Sparkles,
@@ -112,9 +112,17 @@ export default function ChatbotPage() {
   const chatbotCost = getFeatureCreditCost('chatbot')
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < chatbotCost
 
+  const [searchParams] = useSearchParams()
   const [sessions, setSessions] = useState<Session[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
+
+  useEffect(() => {
+    const promptQuery = searchParams.get('q')
+    if (promptQuery && !inputText) {
+      setInputText(promptQuery)
+    }
+  }, [searchParams])
   const [isSending, setIsSending] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)

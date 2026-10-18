@@ -22,6 +22,7 @@ import {
   Bot,
   Zap,
   MessageCircle,
+  Moon,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData } from '@/hooks/useDashboardData'
@@ -368,52 +369,7 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* Desktop 4-Column Bento Action Tiles */}
-      <div className="cluv-quick-scan-grid">
-        <button onClick={() => navigate('/face-scan')} className="cluv-quick-tile is-face">
-          <div className="cluv-quick-tile-icon is-teal">
-            <ScanFace size={22} strokeWidth={2.2} />
-          </div>
-          <div className="cluv-quick-tile-info">
-            <h3 className="cluv-quick-tile-title">Scan Wajah AI</h3>
-            <p className="cluv-quick-tile-sub">Analisis visual & skor barrier</p>
-          </div>
-          <ChevronRight size={18} className="cluv-quick-tile-arrow" />
-        </button>
 
-        <button onClick={() => navigate('/ingredient-scan')} className="cluv-quick-tile is-ingredient">
-          <div className="cluv-quick-tile-icon is-blue">
-            <FlaskConical size={22} strokeWidth={2.2} />
-          </div>
-          <div className="cluv-quick-tile-info">
-            <h3 className="cluv-quick-tile-title">Scan Komposisi</h3>
-            <p className="cluv-quick-tile-sub">Uji bahan komedogenik & iritan</p>
-          </div>
-          <ChevronRight size={18} className="cluv-quick-tile-arrow" />
-        </button>
-
-        <button onClick={() => navigate('/missions')} className="cluv-quick-tile is-mission">
-          <div className="cluv-quick-tile-icon is-gold">
-            <Sparkles size={22} strokeWidth={2.2} />
-          </div>
-          <div className="cluv-quick-tile-info">
-            <h3 className="cluv-quick-tile-title">Misi Glow Harian</h3>
-            <p className="cluv-quick-tile-sub">{missions.completed} dari {missions.total} rutinitas selesai</p>
-          </div>
-          <ChevronRight size={18} className="cluv-quick-tile-arrow" />
-        </button>
-
-        <button onClick={() => navigate('/chatbot')} className="cluv-quick-tile is-chat">
-          <div className="cluv-quick-tile-icon is-purple">
-            <MessageCircle size={22} strokeWidth={2.2} />
-          </div>
-          <div className="cluv-quick-tile-info">
-            <h3 className="cluv-quick-tile-title">Tanya Skinsistant</h3>
-            <p className="cluv-quick-tile-sub">Konsultasi AI cerdas 24/7</p>
-          </div>
-          <ChevronRight size={18} className="cluv-quick-tile-arrow" />
-        </button>
-      </div>
 
       {/* =====================================================================
           2. MOBILE VIEW (<= 640px): AI Weather Companion + Unified Skin Bento
@@ -502,6 +458,9 @@ export default function DashboardPage() {
                       {skinAssessment.skin_type}
                     </span>
                   )}
+                  <span className="cluv-badge is-teal is-sm">
+                    {isNight ? 'Fokus: Barrier' : 'Fokus: Proteksi UV'}
+                  </span>
                 </div>
 
                 <p className="cluv-mobile-skin-punchline">
@@ -576,33 +535,8 @@ export default function DashboardPage() {
       </div>
 
       {/* =====================================================================
-          3. SHARED SECTIONS: Misi Hari Ini + Trend & Rutinitas + Riwayat Scan
+          3. SHARED SECTIONS: Trend & Rutinitas + Riwayat Scan & Sirkadian
           ===================================================================== */}
-      {/* COMPACT MISSION STRIP */}
-      <div className="cluv-mission-strip">
-        <div className="cluv-mission-left">
-          <span className="cluv-stat-icon is-teal cluv-mission-icon">
-            <Sparkles size={16} />
-          </span>
-          <span className="cluv-caption cluv-font-bold">Misi Hari Ini:</span>
-          <span className="cluv-caption">
-            <strong>{missions.completed}</strong> dari <strong>{missions.total}</strong> selesai
-          </span>
-          <div className="cluv-mission-track">
-            <div
-              className="cluv-mission-bar"
-              style={{
-                width: `${Math.min(100, Math.round((missions.completed / Math.max(missions.total, 1)) * 100))}%`,
-              }}
-            />
-          </div>
-        </div>
-        <button onClick={() => navigate('/missions')} className="cluv-btn is-ghost is-sm">
-          <span>Buka Misi</span>
-          <ChevronRight size={14} />
-        </button>
-      </div>
-
       {/* MIDDLE GRID: TREN KULIT (1.55fr) + RUTINITAS AM/PM (1fr) */}
       <div className="cluv-middle-grid">
         {/* Scan Score Trend Chart — RFC 019 guardrail: ≥3 titik data */}
@@ -682,19 +616,29 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Dynamic Rutinitas Harian (Pagi vs Malam) */}
+        {/* Dynamic Rutinitas Harian dengan Embedded Progress Bar */}
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
               <div>
                 <h2 className="cluv-title-card">{isNight ? 'Rutinitas Malam 🌙' : 'Rutinitas Pagi ☀️'}</h2>
                 <p className="cluv-caption cluv-text-muted cluv-mt-1">
-                  {isNight ? '3 langkah · sekitar 7 menit' : '3 langkah · sekitar 5 menit'}
+                  {isNight ? '3 langkah · regenerasi barrier' : '3 langkah · proteksi harian'}
                 </p>
               </div>
-              <button className="cluv-btn is-ghost is-sm" aria-label="Opsi rutinitas">
-                <MoreHorizontal size={18} />
-              </button>
+              <div className="cluv-flex-col cluv-items-end">
+                <span className="cluv-badge is-teal is-sm">
+                  {checked.filter(Boolean).length}/{activeRoutine.length} Selesai
+                </span>
+                <div className="cluv-routine-progress-track">
+                  <div
+                    className="cluv-routine-progress-bar"
+                    style={{
+                      width: `${Math.round((checked.filter(Boolean).length / Math.max(activeRoutine.length, 1)) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="cluv-checklist-group cluv-mt-3">
@@ -720,89 +664,153 @@ export default function DashboardPage() {
             onClick={() => navigate('/missions')}
             className="cluv-btn is-ghost is-sm cluv-mt-3 cluv-justify-center"
           >
-            <span>Lihat rutinitas lengkap</span>
+            <span>Buka detail misi lengkap</span>
             <ChevronRight size={14} />
           </button>
         </section>
       </div>
 
-      {/* BOTTOM SECTION: RIWAYAT SCAN TERAKHIR */}
-      <section className="cluv-card cluv-flex-col cluv-justify-between">
-        <div>
-          <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
-            <div>
-              <h2 className="cluv-title-card">Riwayat Scan Terakhir</h2>
-              <p className="cluv-caption cluv-text-muted cluv-mt-1">Analisis terbaru dari akun kamu</p>
+      {/* 4. BOTTOM BENTO GRID: Riwayat Scan (1.55fr) + Ritme Sirkadian & AI Prompts (1fr) */}
+      <div className="cluv-bottom-bento-grid">
+        {/* Kolom Kiri: Riwayat Scan Terakhir */}
+        <section className="cluv-card cluv-flex-col cluv-justify-between">
+          <div>
+            <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
+              <div>
+                <h2 className="cluv-title-card">Riwayat Scan Terakhir</h2>
+                <p className="cluv-caption cluv-text-muted cluv-mt-1">Analisis terbaru dari akun kamu</p>
+              </div>
+              <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
+                <span>Lihat semua</span>
+                <ArrowUpRight size={14} />
+              </button>
             </div>
-            <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
-              <span>Lihat semua</span>
-              <ArrowUpRight size={14} />
+
+            {loading ? (
+              <div className="cluv-flex-col cluv-gap-3 cluv-mt-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="cluv-flex-row cluv-gap-3 cluv-items-center">
+                    <Skeleton height={40} width={40} radius="10px" />
+                    <div className="cluv-flex-1"><SkeletonText lines={2} /></div>
+                    <Skeleton height={20} width={40} radius="100px" />
+                  </div>
+                ))}
+              </div>
+            ) : recentScans.length > 0 ? (
+              <div className="cluv-recent-scan-list cluv-mt-3">
+                {recentScans.slice(0, 5).map((scan) => (
+                  <button
+                    key={scan.id}
+                    onClick={() => navigate('/scan-history')}
+                    className="cluv-recent-scan-item"
+                  >
+                    <span className={`cluv-recent-scan-icon ${scan.type === 'face' ? 'is-teal' : 'is-blue'}`}>
+                      {scan.type === 'face' ? <ScanFace size={18} /> : <FlaskConical size={18} />}
+                    </span>
+                    <div className="cluv-recent-scan-info">
+                      <span className="cluv-recent-scan-title">{scan.title}</span>
+                      <span className="cluv-recent-scan-time">
+                        {new Date(scan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    {scan.score !== null && (
+                      <span className="cluv-badge is-teal is-sm">{scan.score}</span>
+                    )}
+                    <ChevronRight size={14} className="cluv-quick-tile-arrow" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="cluv-text-center cluv-py-6">
+                <HeartPulse size={28} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
+                <p className="cluv-caption cluv-text-muted cluv-mt-2">Riwayat scan belum ada</p>
+              </div>
+            )}
+          </div>
+
+          <div className="cluv-flex-between cluv-items-center cluv-pt-3 cluv-border-t cluv-mt-3">
+            <span className="cluv-caption cluv-text-muted">
+              {recentScans.length > 0 ? `${recentScans.length} scan tercatat` : 'Belum ada aktivitas'}
+            </span>
+            <button onClick={() => navigate('/scan-history')} className="cluv-btn is-ghost is-sm">
+              <span>Buka Log Lengkap</span>
+              <ChevronRight size={14} />
             </button>
           </div>
+        </section>
 
-          {loading ? (
-            <div className="cluv-flex-col cluv-gap-3 cluv-mt-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="cluv-flex-row cluv-gap-3 cluv-items-center">
-                  <Skeleton height={40} width={40} radius="10px" />
-                  <div className="cluv-flex-1"><SkeletonText lines={2} /></div>
-                  <Skeleton height={20} width={40} radius="100px" />
-                </div>
-              ))}
+        {/* Kolom Kanan: Ritme Sirkadian & 1-Tap AI Prompt Chips */}
+        <section className="cluv-card cluv-circadian-card">
+          <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-3">
+            <div>
+              <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ritme Biologis Kulit</span>
+              <h2 className="cluv-title-card cluv-mt-1">Fokus Sirkadian</h2>
             </div>
-          ) : recentScans.length > 0 ? (
-            <div className="cluv-recent-scan-list cluv-mt-3">
-              {recentScans.slice(0, 5).map((scan) => (
-                <button
-                  key={scan.id}
-                  onClick={() => navigate('/scan-history')}
-                  className="cluv-recent-scan-item"
-                >
-                  <span className={`cluv-recent-scan-icon ${scan.type === 'face' ? 'is-teal' : 'is-blue'}`}>
-                    {scan.type === 'face' ? <ScanFace size={18} /> : <FlaskConical size={18} />}
-                  </span>
-                  <div className="cluv-recent-scan-info">
-                    <span className="cluv-recent-scan-title">{scan.title}</span>
-                    <span className="cluv-recent-scan-time">
-                      {new Date(scan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  {scan.score !== null && (
-                    <span className="cluv-badge is-teal is-sm">{scan.score}</span>
-                  )}
-                  <ChevronRight size={14} className="cluv-quick-tile-arrow" />
-                </button>
-              ))}
+            <div className="cluv-stat-icon is-teal">
+              <Sparkles size={18} />
             </div>
-          ) : (
-            <div className="cluv-text-center cluv-py-6">
-              <HeartPulse size={28} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
-              <p className="cluv-caption cluv-text-muted cluv-mt-2">Riwayat scan belum ada</p>
-            </div>
-          )}
-        </div>
+          </div>
 
-        {/* Adaptive Reminder Strip (Sunscreen during daytime, Barrier recovery at night) */}
-        {isNight ? (
-          <div className="cluv-card-strip is-neutral cluv-mt-4">
-            <div className="cluv-card-icon-wrap is-teal is-sm">
-              <Sparkles size={16} />
+          {/* Sirkadian Phase Box */}
+          <div className={`cluv-circadian-phase ${isNight ? 'is-night' : 'is-day'}`}>
+            <div className="cluv-circadian-phase-icon">
+              {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
             </div>
-            <p className="cluv-caption cluv-m-0">
-              Kulit memasuki fase regenerasi sel saat tidur. Pastikan skin barrier terhidrasi optimal semalaman.
-            </p>
-          </div>
-        ) : (
-          <div className="cluv-card-strip is-gold cluv-mt-4">
-            <div className="cluv-card-icon-wrap is-gold is-sm">
-              <SunMedium size={16} />
+            <div>
+              <h3 className="cluv-circadian-phase-title">
+                {isNight ? 'Fase Regenerasi Seluler (Malam)' : 'Fase Pertahanan Aktif (Siang)'}
+              </h3>
+              <p className="cluv-circadian-phase-desc">
+                {isNight
+                  ? 'Sintesis kolagen dan perbaikan mikrolesi kulit memuncak saat tidur. Nutrisi skin barrier dengan hidrasi kaya lipid.'
+                  : 'Kulit aktif memblokir radikal bebas dan radiasi UV. Pastikan re-apply sunscreen dan hindari iritasi aktif berlebih.'}
+              </p>
             </div>
-            <p className="cluv-caption cluv-m-0">
-              Jangan lupa re-apply sunscreen siang hari untuk proteksi kulit maksimal.
-            </p>
           </div>
-        )}
-      </section>
+
+          {/* 1-Tap AI Prompt Chips */}
+          <div>
+            <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Konsultasi AI Instan</span>
+            <div className="cluv-flex-col cluv-gap-2 cluv-mt-2">
+              {isNight ? (
+                <>
+                  <button
+                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana urutan layering skincare malam yang aman untuk skin barrier?'))}
+                    className="cluv-prompt-chip"
+                  >
+                    <span>🌙 Urutan layering produk malam ini?</span>
+                    <ChevronRight size={14} />
+                  </button>
+                  <button
+                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Apakah aman menggunakan bahan aktif seperti retinol malam ini?'))}
+                    className="cluv-prompt-chip"
+                  >
+                    <span>💧 Aturan pakai bahan aktif malam?</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana cara re-apply sunscreen yang tepat di siang hari?'))}
+                    className="cluv-prompt-chip"
+                  >
+                    <span>☀️ Cara re-apply sunscreen siang ini?</span>
+                    <ChevronRight size={14} />
+                  </button>
+                  <button
+                    onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bahan skincare apa yang melindungi kulit dari polusi dan radiasi UV?'))}
+                    className="cluv-prompt-chip"
+                  >
+                    <span>🛡️ Proteksi antioksidan di siang hari?</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
 
     </div>
   )
