@@ -66,76 +66,190 @@
   }
 }
 
-/* Mobile Pocket Strip (Ultra-compact 44px) */
-.cluv-mobile-pocket-strip {
+/* Mobile Interactive Preview Switcher (Allows testing Opsi A vs Opsi B live) */
+.cluv-mobile-preview-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--cluv-neutral-100, #f1f5f9);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  margin-bottom: 2px;
+  box-sizing: border-box;
+}
+
+.cluv-preview-toggle-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-500, #64748b);
+  padding: 4px 10px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cluv-preview-toggle-btn.is-active {
+  background: var(--cluv-current-card-bg, #ffffff);
+  color: var(--cluv-teal-dark, #127a75);
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+/* Avatar Ring Indicator (Replaces bulky PRO badge) */
+.cluv-avatar-ring {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.cluv-avatar-ring.is-pro {
+  padding: 2px;
+  background: linear-gradient(135deg, var(--cluv-teal) 0%, var(--cluv-gold) 100%);
+  box-shadow: 0 0 8px rgba(31, 157, 151, 0.28);
+}
+
+.cluv-avatar-ring.is-free {
+  padding: 1.5px;
+  background: var(--cluv-neutral-200);
+}
+
+.cluv-avatar-ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--cluv-current-card-bg, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  user-select: none;
+}
+
+.cluv-avatar-ring.is-pro .cluv-avatar-ring-inner {
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+/* Unified Interactive Credit Capsule ([ ⚡ 1.395 | + ]) */
+.cluv-credit-capsule {
+  display: inline-flex;
+  align-items: center;
+  background: var(--cluv-neutral-50, #f8fafc);
+  border: 1px solid var(--cluv-neutral-200, #e2e8f0);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  padding: 2px 3px 2px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cluv-credit-capsule:hover {
+  background: var(--cluv-neutral-100, #f1f5f9);
+  border-color: var(--cluv-teal-line, #bceae7);
+  transform: translateY(-1px);
+}
+
+.cluv-credit-capsule:active {
+  transform: scale(0.96);
+}
+
+.cluv-credit-capsule-val {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+.cluv-credit-capsule-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--cluv-neutral-200, #e2e8f0);
+  margin: 0 6px;
+}
+
+.cluv-credit-capsule-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cluv-credit-capsule:hover .cluv-credit-capsule-add {
+  background: var(--cluv-teal);
+  color: #ffffff;
+}
+
+/* OPSI A: Unified Bento Skin Card (Header Sapaan + Kredit di dalam satu kartu) */
+.cluv-mobile-unified-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-card, 18px);
+  padding: 14px 16px;
+  box-shadow: var(--cluv-shadow-sm);
+  box-sizing: border-box;
+}
+
+.cluv-mobile-unified-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--cluv-current-card-bg, #ffffff);
-  border: 1px solid var(--cluv-current-border, #dce8f3);
-  border-radius: var(--cluv-radius-md, 16px);
-  padding: 8px 14px;
-  box-shadow: var(--cluv-shadow-sm);
-  box-sizing: border-box;
   gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cluv-neutral-200, #e2e8f0);
+  margin-bottom: 12px;
 }
 
-.cluv-mobile-pocket-left {
+.cluv-mobile-unified-body {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 14px;
 }
 
-.cluv-mobile-pocket-name {
+/* OPSI B: Cardless Header (Header Teks Polos langsung di background) */
+.cluv-mobile-cardless-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px 4px;
+  box-sizing: border-box;
+}
+
+.cluv-mobile-name {
   font-size: 0.875rem;
   font-weight: 800;
   color: var(--cluv-current-text, #1a2d42);
   white-space: nowrap;
 }
 
-.cluv-mobile-pocket-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.cluv-mobile-credits-text {
-  font-size: 0.8125rem;
-  font-weight: 800;
-  color: var(--cluv-current-text, #1a2d42);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.cluv-mobile-topup-btn {
-  display: inline-flex;
-  align-items: center;
-  background: var(--cluv-teal-soft, #e6f6f5);
-  border: 1px solid var(--cluv-teal-line, #bceae7);
-  color: var(--cluv-teal-dark, #127a75);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
-
-.cluv-mobile-topup-btn:active {
-  transform: scale(0.95);
-}
-
-/* Mobile Compact Skin Card (Max 145px height, no bloat) */
+/* Mobile Compact Skin Card */
 .cluv-mobile-skin-card {
   display: flex;
   align-items: center;
   gap: 14px;
   background: var(--cluv-current-card-bg, #ffffff);
-  border: 1px solid var(--cluv-current-border, #dce8f3);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
   border-radius: var(--cluv-current-radius-card, 18px);
   padding: 14px 16px;
   box-shadow: var(--cluv-shadow-sm);
@@ -196,8 +310,16 @@
 
 .cluv-mobile-action-pill.is-subtle {
   background: var(--cluv-neutral-50, #f8fafc);
-  border-color: var(--cluv-current-border, #dce8f3);
+  border-color: var(--cluv-neutral-200, #e2e8f0);
   color: var(--cluv-current-text, #1a2d42);
+}
+
+/* Desktop Hero Clamp & Alignment Helper */
+.cluv-desktop-note-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* 3. Quick Scan Shortcuts (Desktop 2-Column Tiles vs Mobile 4-Column Squircle App Grid) */
