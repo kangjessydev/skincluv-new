@@ -102,158 +102,186 @@ export default function PrivacyCenterPage() {
   }
 
   return (
-    <div className="v0-page-container animate-fade-in">
-      <div className="v0-profile-form-container">
-        {/* Back Link */}
-        <div style={{ marginBottom: '16px' }}>
-          <Link to="/profile" className="v0-back-link">
-            <ArrowLeft size={16} /> Kembali ke Profil
-          </Link>
-        </div>
+    <div className="cluv-page cluv-focused-ledger">
+      {/* Back Link */}
+      <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
+        <ArrowLeft size={16} /> Kembali ke Profil
+      </Link>
 
-        {/* HEADER */}
-        <div className="v0-profile-form-header" style={{ marginBottom: '28px', textAlign: 'left' }}>
-          <span className="v0-celebrate-badge" style={{ marginBottom: '8px' }}>
-            <ShieldCheck size={14} /> PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)
-          </span>
-          <h1 className="v0-profile-form-main-title">Pengelolaan Data &amp; Hak Privasi</h1>
-          <p className="v0-profile-form-main-sub">
-            Anda memegang kendali penuh atas data pribadi, citra pemindaian wajah, dan keberadaan akun Anda pada platform Skincluv.
-          </p>
-        </div>
+      {/* HEADER */}
+      <div className="cluv-mb-6">
+        <span className="cluv-badge is-teal cluv-mb-2">
+          <ShieldCheck size={14} /> PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)
+        </span>
+        <h1 className="cluv-title-page cluv-mt-1 cluv-mb-1">Pengelolaan Data &amp; Hak Privasi</h1>
+        <p className="cluv-caption cluv-text-muted">
+          Anda memegang kendali penuh atas data pribadi, citra pemindaian wajah, dan keberadaan akun Anda pada platform Skincluv.
+        </p>
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* KARTU 1: PORTABILITAS DATA */}
-          <div className="v0-profile-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
-              <div className="v0-icon-wrap sky"><Download size={22} /></div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 4px' }}>
-                  Unduh Salinan Data Pribadi (<em>Data Portability</em>)
-                </h3>
-                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
-                  Ekspor seluruh catatan profil, jenis kulit, status kuota, dan saldo kredit Anda ke dalam berkas standar JSON.
-                </p>
-              </div>
+      <div className="cluv-flex-col cluv-gap-5">
+        {/* KARTU 1: PORTABILITAS DATA */}
+        <div className="cluv-card">
+          <div className="cluv-flex-row cluv-items-start cluv-gap-4">
+            <div className="cluv-card-icon-wrap is-sm is-blue">
+              <Download size={20} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--color-border-soft)' }}>
-              <button type="button" className="v0-btn-secondary" onClick={handleExportData}>
-                <Download size={15} />
-                <span>Unduh Data Profil (JSON)</span>
-              </button>
+            <div className="cluv-flex-col cluv-gap-1">
+              <h3 className="cluv-title-card">
+                Unduh Salinan Data Pribadi (<em>Data Portability</em>)
+              </h3>
+              <p className="cluv-caption cluv-text-muted">
+                Ekspor seluruh catatan profil, jenis kulit, status kuota, dan saldo kredit Anda ke dalam berkas standar JSON.
+              </p>
+            </div>
+          </div>
+          <hr className="cluv-divider is-compact cluv-my-4" />
+          <div className="cluv-flex-row cluv-justify-end">
+            <button type="button" className="cluv-btn is-outline is-sm" onClick={handleExportData}>
+              <Download size={15} />
+              <span>Unduh Data Profil (JSON)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* KARTU 2: HAPUS SCAN WAJAH SAJA */}
+        <div className="cluv-card">
+          <div className="cluv-flex-row cluv-items-start cluv-gap-4">
+            <div className="cluv-card-icon-wrap is-sm is-gold">
+              <Trash2 size={20} />
+            </div>
+            <div className="cluv-flex-col cluv-gap-1">
+              <h3 className="cluv-title-card">
+                Pembersihan Rekam Jejak Biometrik Wajah
+              </h3>
+              <p className="cluv-caption cluv-text-muted">
+                Musnahkan seluruh foto wajah dan skor pemindaian masa lalu Anda dari basis data operasional. Akun, kuota langganan, dan saldo kredit Anda akan tetap utuh.
+              </p>
             </div>
           </div>
 
-          {/* KARTU 2: HAPUS SCAN WAJAH SAJA */}
-          <div className="v0-profile-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
-              <div className="v0-icon-wrap amber"><Trash2 size={22} /></div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 4px' }}>
-                  Pembersihan Rekam Jejak Biometrik Wajah
-                </h3>
-                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
-                  Musnahkan seluruh foto wajah dan skor pemindaian masa lalu Anda dari basis data operasional. Akun, kuota langganan, dan saldo kredit Anda akan tetap utuh.
+          {scansDeletedSuccess && (
+            <div className="cluv-alert is-success cluv-mt-4">
+              <CheckCircle2 size={16} className="cluv-alert-icon" />
+              <div className="cluv-alert-content">
+                <p className="cluv-alert-message">
+                  Seluruh riwayat pemindaian wajah Anda berhasil dimusnahkan secara bersih.
                 </p>
               </div>
             </div>
+          )}
 
-            {scansDeletedSuccess && (
-              <div className="v0-profile-message success animate-fade-in" style={{ marginBottom: '16px' }}>
-                <CheckCircle2 size={16} />
-                <span>Seluruh riwayat pemindaian wajah Anda berhasil dimusnahkan secara bersih.</span>
-              </div>
-            )}
+          <hr className="cluv-divider is-compact cluv-my-4" />
+          <div className="cluv-flex-row cluv-justify-end">
+            <button
+              type="button"
+              className="cluv-btn is-outline is-sm"
+              onClick={handleDeleteFaceScans}
+              disabled={isDeletingScans}
+            >
+              {isDeletingScans ? <Loader2 size={15} className="cluv-animate-spin" /> : <Trash2 size={15} />}
+              <span>Hapus Rekam Jejak Scan Wajah Saja</span>
+            </button>
+          </div>
+        </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--color-border-soft)' }}>
+        {/* KARTU 3: KETENTUAN HAK PRIVASI */}
+        <div className="cluv-card">
+          <div className="cluv-flex-row cluv-items-start cluv-gap-4">
+            <div className="cluv-card-icon-wrap is-sm">
+              <Lock size={20} />
+            </div>
+            <div className="cluv-flex-col cluv-gap-1">
+              <h3 className="cluv-title-card">
+                Kebijakan &amp; Yurisdiksi Perlindungan Data
+              </h3>
+              <p className="cluv-caption cluv-text-muted">
+                Pelajari bagaimana kami mengamankan foto wajah di storage tertutup (<em>private bucket</em>) dan mengisolasi data transaksi kas non-PII.
+              </p>
+            </div>
+          </div>
+          <hr className="cluv-divider is-compact cluv-my-4" />
+          <div className="cluv-flex-row cluv-justify-end">
+            <Link to="/privacy" className="cluv-btn is-outline is-sm">
+              <Eye size={15} />
+              <span>Baca Kebijakan Privasi Lengkap</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* KARTU 4: PENGHAPUSAN AKUN PERMANEN (DANGER ZONE) */}
+        <div className="cluv-card is-danger">
+          <div className="cluv-flex-row cluv-items-start cluv-gap-4">
+            <div className="cluv-card-icon-wrap is-sm is-rose">
+              <AlertTriangle size={20} />
+            </div>
+            <div className="cluv-flex-col cluv-gap-1">
+              <h3 className="cluv-title-card cluv-text-rose">
+                Pemusnahan Akun Permanen (<em>Right to be Forgotten</em>)
+              </h3>
+              <p className="cluv-caption cluv-text-muted">
+                Menghapus akun Skincluv Anda secara permanen. Seluruh foto wajah, riwayat percakapan AI, profil kulit, saldo kredit, dan kuota pass akan dimusnahkan seketika. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+          </div>
+          <hr className="cluv-divider is-compact cluv-my-4" />
+          <div className="cluv-flex-row cluv-justify-end">
+            <button
+              type="button"
+              className="cluv-btn is-danger is-sm"
+              onClick={() => {
+                setConfirmationInput('')
+                setDeleteError(null)
+                setShowDeleteModal(true)
+              }}
+            >
+              <Trash2 size={15} />
+              <span>Hapus Akun Saya Secara Permanen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MODAL KONFIRMASI GANDA PENGHAPUSAN AKUN */}
+      {showDeleteModal && (
+        <div className="cluv-modal-overlay">
+          <div className="cluv-modal-box is-sm">
+            <div className="cluv-modal-header">
+              <h2 className="cluv-modal-title cluv-flex-row cluv-items-center cluv-gap-2 cluv-text-rose">
+                <AlertTriangle size={18} /> Pemusnahan Akun Permanen
+              </h2>
               <button
                 type="button"
-                className="v0-btn-secondary"
-                onClick={handleDeleteFaceScans}
-                disabled={isDeletingScans}
+                className="cluv-modal-close"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeletingAccount}
               >
-                {isDeletingScans ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                <span>Hapus Rekam Jejak Scan Wajah Saja</span>
+                ✕
               </button>
             </div>
-          </div>
 
-          {/* KARTU 3: KETENTUAN HAK PRIVASI */}
-          <div className="v0-profile-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
-              <div className="v0-icon-wrap teal"><Lock size={22} /></div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 4px' }}>
-                  Kebijakan &amp; Yurisdiksi Perlindungan Data
-                </h3>
-                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
-                  Pelajari bagaimana kami mengamankan foto wajah di storage tertutup (<em>private bucket</em>) dan mengisolasi data transaksi kas non-PII.
-                </p>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--color-border-soft)' }}>
-              <Link to="/privacy" className="v0-btn-secondary">
-                <Eye size={15} />
-                <span>Baca Kebijakan Privasi Lengkap</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* KARTU 4: PENGHAPUSAN AKUN PERMANEN (DANGER ZONE) */}
-          <div className="v0-card-danger">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
-              <div className="v0-icon-wrap rose"><AlertTriangle size={22} /></div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-status-alert)', margin: '0 0 4px' }}>
-                  Pemusnahan Akun Permanen (<em>Right to be Forgotten</em>)
-                </h3>
-                <p style={{ fontSize: '0.84375rem', color: 'var(--color-ink-soft)', lineHeight: 1.5, margin: 0 }}>
-                  Menghapus akun Skincluv Anda secara permanen. Seluruh foto wajah, riwayat percakapan AI, profil kulit, saldo kredit, dan kuota pass akan dimusnahkan seketika. Tindakan ini tidak dapat dibatalkan.
-                </p>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid rgba(239, 68, 68, 0.15)' }}>
-              <button
-                type="button"
-                className="v0-btn-danger"
-                onClick={() => {
-                  setConfirmationInput('')
-                  setDeleteError(null)
-                  setShowDeleteModal(true)
-                }}
-              >
-                <Trash2 size={15} />
-                <span>Hapus Akun Saya Secara Permanen</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* MODAL KONFIRMASI GANDA PENGHAPUSAN AKUN */}
-        {showDeleteModal && (
-          <div className="v0-modal-backdrop animate-fade-in">
-            <div className="v0-modal-card animate-scale-up">
-              <div className="v0-modal-icon-alert">
-                <AlertTriangle size={28} />
-              </div>
-              <h2 className="v0-modal-title">Pemusnahan Akun Permanen</h2>
-              <p className="v0-modal-desc">
+            <div className="cluv-modal-body cluv-flex-col cluv-gap-4">
+              <p className="cluv-caption cluv-text-muted">
                 Anda hendak menghapus akun <strong>{user?.email}</strong>. Seluruh riwayat foto wajah, hasil pemindaian, percakapan AI, dan kuota langganan yang tersisa akan <strong>dihapus permanen dan tidak dapat dipulihkan kembali</strong>.
               </p>
 
               {deleteError && (
-                <div className="v0-modal-error-banner">
-                  <span>{deleteError}</span>
+                <div className="cluv-alert is-danger">
+                  <AlertTriangle size={16} className="cluv-alert-icon" />
+                  <div className="cluv-alert-content">
+                    <p className="cluv-alert-message">{deleteError}</p>
+                  </div>
                 </div>
               )}
 
-              <div className="v0-modal-input-group">
-                <label htmlFor="confirm-delete">
+              <div className="cluv-field">
+                <label htmlFor="confirm-delete" className="cluv-label">
                   Ketik <code>DELETE MY ACCOUNT</code> di bawah ini untuk mengonfirmasi:
                 </label>
                 <input
                   id="confirm-delete"
                   type="text"
+                  className="cluv-input"
                   placeholder="DELETE MY ACCOUNT"
                   value={confirmationInput}
                   onChange={(e) => setConfirmationInput(e.target.value)}
@@ -261,36 +289,36 @@ export default function PrivacyCenterPage() {
                   disabled={isDeletingAccount}
                 />
               </div>
+            </div>
 
-              <div className="v0-modal-footer-btns">
-                <button
-                  type="button"
-                  className="v0-btn-secondary"
-                  onClick={() => setShowDeleteModal(false)}
-                  disabled={isDeletingAccount}
-                >
-                  Batalkan
-                </button>
-                <button
-                  type="button"
-                  className="v0-btn-danger"
-                  onClick={handlePermanentlyDeleteAccount}
-                  disabled={isDeletingAccount || confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
-                >
-                  {isDeletingAccount ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" />
-                      <span>Memusnahkan Data...</span>
-                    </>
-                  ) : (
-                    <span>Konfirmasi Hapus Akun</span>
-                  )}
-                </button>
-              </div>
+            <div className="cluv-modal-footer">
+              <button
+                type="button"
+                className="cluv-btn is-outline is-sm"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeletingAccount}
+              >
+                Batalkan
+              </button>
+              <button
+                type="button"
+                className="cluv-btn is-danger is-sm"
+                onClick={handlePermanentlyDeleteAccount}
+                disabled={isDeletingAccount || confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 size={15} className="cluv-animate-spin" />
+                    <span>Memusnahkan Data...</span>
+                  </>
+                ) : (
+                  <span>Konfirmasi Hapus Akun</span>
+                )}
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

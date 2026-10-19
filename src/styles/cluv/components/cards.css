@@ -43,6 +43,11 @@
   background: linear-gradient(180deg, #ffffff 0%, var(--cluv-teal-soft) 100%);
 }
 
+.cluv-card.is-danger {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: var(--cluv-rose-soft, #fdf2f4);
+}
+
 /* Horizontal Row Layout Modifier (.cluv-card.is-row) */
 .cluv-card.is-row {
   flex-direction: row;
