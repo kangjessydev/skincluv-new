@@ -394,3 +394,27 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
 </div>
 ```
 
+#### 6. Pilihan Channel Pembayaran & Kode Bayar (.cluv-channel-option, .cluv-code-box)
+```tsx
+{/* 1. Channel Selector */}
+<div className="cluv-channel-group">
+  <div className="cluv-channel-category"><QrCode size={14} /> QRIS &amp; E-WALLET</div>
+  <label className={`cluv-channel-option ${selected ? 'is-selected' : ''}`} onClick={onSelect}>
+    <input type="radio" checked={selected} readOnly />
+    <div className="cluv-channel-label">
+      <span>QRIS (GoPay, OVO, Dana)</span>
+      <span className="cluv-badge is-teal is-sm">Instan</span>
+    </div>
+  </label>
+</div>
+
+{/* 2. Kode Bayar / Virtual Account Box */}
+<div className="cluv-code-box">
+  <span className="cluv-code-val">8872019283912</span>
+  <button type="button" className="cluv-btn is-outline is-sm" onClick={copyCode}>
+    <Copy size={14} /> Salin
+  </button>
+</div>
+```
+
+

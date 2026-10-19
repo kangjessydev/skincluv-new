@@ -177,10 +177,12 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="v0-page-container animate-fade-in">
-        <div className="v0-empty-state" style={{ minHeight: '360px' }}>
-          <RefreshCw size={32} className="animate-spin text-brand" />
-          <p style={{ color: 'var(--color-ink-soft)', fontSize: '0.875rem' }}>Memuat rincian transaksi...</p>
+      <div className="cluv-page">
+        <div className="cluv-focused-ledger">
+          <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+            <RefreshCw size={32} className="animate-spin cluv-text-teal cluv-mx-auto cluv-mb-3" />
+            <p className="cluv-body cluv-text-muted cluv-m-0">Memuat rincian transaksi...</p>
+          </div>
         </div>
       </div>
     )
@@ -191,91 +193,112 @@ export default function CheckoutPage() {
   // =============================================================
   if (!reference) {
     return (
-      <div className="v0-page-container animate-fade-in">
-        <div className="v0-profile-form-container">
-          <div style={{ marginBottom: '16px' }}>
-            <Link to="/pricing" className="v0-back-link">
-              <ArrowLeft size={16} /> Pilihan Paket
+      <div className="cluv-page">
+        <div className="cluv-focused-ledger">
+          <div className="cluv-mb-4">
+            <Link to="/pricing" className="cluv-back-link">
+              <ArrowLeft size={16} />
+              <span>Pilihan Paket</span>
             </Link>
           </div>
 
-          <div className="v0-profile-form-header" style={{ marginBottom: '24px', textAlign: 'left' }}>
-            <h1 className="v0-profile-form-main-title">Checkout &amp; Review Pesanan</h1>
-            <p className="v0-profile-form-main-sub">Periksa rincian pesanan dan pilih metode pembayaran favoritmu.</p>
+          <div className="cluv-mb-6">
+            <h1 className="cluv-title-page">Checkout &amp; Review Pesanan</h1>
+            <p className="cluv-caption cluv-text-muted">Periksa rincian pesanan dan pilih metode pembayaran favoritmu.</p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="cluv-flex-col cluv-gap-4">
             {/* Order Summary Card */}
-            <div className="v0-profile-card">
-              <h3 style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShoppingBag size={18} style={{ color: 'var(--color-teal)' }} /> Rincian Pesanan
-              </h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '14px', borderBottom: '1px dashed var(--color-border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {isGlow ? <Sparkles size={24} style={{ color: 'var(--color-status-attention)' }} /> : <Crown size={24} style={{ color: 'var(--color-gold)' }} />}
-                  <div>
-                    <h4 style={{ fontSize: '0.9375rem', margin: '0 0 2px', color: 'var(--color-ink)', fontWeight: 700 }}>{planTitle}</h4>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-ink-muted)', margin: 0 }}>{planDesc}</p>
-                  </div>
-                </div>
-                <div style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--color-teal)', fontFamily: 'var(--font-display)' }}>{planPriceFormatted}</div>
+            <div className="cluv-card">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-4">
+                <ShoppingBag size={18} className="cluv-text-teal" />
+                <h3 className="cluv-title-card cluv-m-0">Rincian Pesanan</h3>
               </div>
 
-              <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', fontSize: '0.8125rem', gap: '2px' }}>
-                <span style={{ color: 'var(--color-ink-muted)', fontSize: '0.75rem' }}>Pemesan:</span>
-                <strong style={{ fontWeight: 700, color: 'var(--color-ink)' }}>{profile?.full_name || 'Pelanggan Skincluv'}</strong>
-                <span style={{ color: 'var(--color-teal)' }}>{session?.user?.email}</span>
+              <div className="cluv-flex-between cluv-items-center cluv-pb-4 cluv-border-b">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+                  {isGlow ? (
+                    <div className="cluv-card-icon-wrap is-sm is-teal">
+                      <Sparkles size={20} />
+                    </div>
+                  ) : (
+                    <div className="cluv-card-icon-wrap is-sm is-gold">
+                      <Crown size={20} />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{planTitle}</h4>
+                    <p className="cluv-caption cluv-text-muted cluv-m-0">{planDesc}</p>
+                  </div>
+                </div>
+                <div className="cluv-price-val cluv-text-teal cluv-font-bold cluv-m-0">{planPriceFormatted}</div>
+              </div>
+
+              <div className="cluv-mt-4 cluv-flex-col cluv-gap-1">
+                <span className="cluv-micro cluv-text-muted cluv-uppercase cluv-font-bold">Pemesan:</span>
+                <strong className="cluv-body cluv-font-bold cluv-text-dark">{profile?.full_name || 'Pelanggan Skincluv'}</strong>
+                <span className="cluv-caption cluv-text-teal">{session?.user?.email}</span>
               </div>
             </div>
 
             {/* Payment Method Selector Card */}
-            <div className="v0-profile-card">
-              <h3 style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CreditCard size={18} style={{ color: 'var(--color-teal)' }} /> Pilih Metode Pembayaran
-              </h3>
+            <div className="cluv-card">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-4">
+                <CreditCard size={18} className="cluv-text-teal" />
+                <h3 className="cluv-title-card cluv-m-0">Pilih Metode Pembayaran</h3>
+              </div>
 
-              <div className="v0-channel-group">
-                <div className="v0-channel-category"><QrCode size={14} /> QRIS &amp; E-WALLET</div>
+              <div className="cluv-channel-group">
+                <div className="cluv-channel-category">
+                  <QrCode size={14} />
+                  <span>QRIS &amp; E-WALLET</span>
+                </div>
                 {PAYMENT_CHANNELS.filter(c => c.category === 'qris').map(ch => (
                   <label
                     key={ch.code}
-                    className={`v0-channel-option ${selectedMethod === ch.code ? 'selected' : ''}`}
+                    className={`cluv-channel-option ${selectedMethod === ch.code ? 'is-selected' : ''}`}
                     onClick={() => setSelectedMethod(ch.code)}
                   >
                     <input type="radio" name="payment_method" value={ch.code} checked={selectedMethod === ch.code} readOnly />
-                    <div className="v0-channel-label">
+                    <div className="cluv-channel-label">
                       <span>{ch.name}</span>
-                      <span className="v0-channel-tag qris">{ch.iconLabel}</span>
+                      <span className="cluv-badge is-teal is-sm">{ch.iconLabel}</span>
                     </div>
                   </label>
                 ))}
 
-                <div className="v0-channel-category"><CreditCard size={14} /> VIRTUAL ACCOUNT (BANK TRANSFER)</div>
+                <div className="cluv-channel-category">
+                  <CreditCard size={14} />
+                  <span>VIRTUAL ACCOUNT (BANK TRANSFER)</span>
+                </div>
                 {PAYMENT_CHANNELS.filter(c => c.category === 'va').map(ch => (
                   <label
                     key={ch.code}
-                    className={`v0-channel-option ${selectedMethod === ch.code ? 'selected' : ''}`}
+                    className={`cluv-channel-option ${selectedMethod === ch.code ? 'is-selected' : ''}`}
                     onClick={() => setSelectedMethod(ch.code)}
                   >
                     <input type="radio" name="payment_method" value={ch.code} checked={selectedMethod === ch.code} readOnly />
-                    <div className="v0-channel-label">
+                    <div className="cluv-channel-label">
                       <span>{ch.name}</span>
-                      <span className="v0-channel-tag va">{ch.iconLabel}</span>
+                      <span className="cluv-badge is-slate is-sm">{ch.iconLabel}</span>
                     </div>
                   </label>
                 ))}
 
-                <div className="v0-channel-category"><Store size={14} /> GERAI RETAIL</div>
+                <div className="cluv-channel-category">
+                  <Store size={14} />
+                  <span>GERAI RETAIL</span>
+                </div>
                 {PAYMENT_CHANNELS.filter(c => c.category === 'retail').map(ch => (
                   <label
                     key={ch.code}
-                    className={`v0-channel-option ${selectedMethod === ch.code ? 'selected' : ''}`}
+                    className={`cluv-channel-option ${selectedMethod === ch.code ? 'is-selected' : ''}`}
                     onClick={() => setSelectedMethod(ch.code)}
                   >
                     <input type="radio" name="payment_method" value={ch.code} checked={selectedMethod === ch.code} readOnly />
-                    <div className="v0-channel-label">
+                    <div className="cluv-channel-label">
                       <span>{ch.name}</span>
-                      <span className="v0-channel-tag retail">{ch.iconLabel}</span>
+                      <span className="cluv-badge is-gold is-sm">{ch.iconLabel}</span>
                     </div>
                   </label>
                 ))}
@@ -283,57 +306,58 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment Total & Submit CTA */}
-            <div className="v0-receipt-box">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <span style={{ fontSize: '0.9375rem', color: 'var(--color-ink)' }}>Subtotal Paket:</span>
-                <strong style={{ fontSize: '1.25rem', color: 'var(--color-teal)', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
-                  {planPriceFormatted}
-                </strong>
-              </div>
-              <div style={{ marginTop: '4px' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-ink-muted)', fontStyle: 'italic' }}>
+            <div className="cluv-card">
+              <div className="cluv-receipt-box">
+                <div className="cluv-receipt-row">
+                  <span className="cluv-receipt-label">Subtotal Paket:</span>
+                  <strong className="cluv-price-val cluv-text-teal cluv-m-0">{planPriceFormatted}</strong>
+                </div>
+                <div className="cluv-micro cluv-text-muted cluv-mt-1">
                   *Biaya administrasi bank/e-Wallet akan dihitung resmi oleh Tripay di halaman berikutnya.
-                </span>
+                </div>
               </div>
 
-              <div className="v0-trust-box">
-                <div className="v0-trust-header">
-                  <ShieldCheck size={18} />
-                  <span className="v0-trust-title">Pembayaran Aman &amp; Transparan</span>
+              <div className="cluv-card-note cluv-mt-4">
+                <ShieldCheck size={20} className="cluv-text-teal cluv-flex-shrink-0" />
+                <div>
+                  <strong className="cluv-font-bold cluv-text-teal">Pembayaran Aman &amp; Transparan:</strong>
+                  <p className="cluv-caption cluv-line-relaxed cluv-mt-1 cluv-m-0">
+                    Ini <strong>bukan langganan bulanan</strong>. Ini <strong>Paket Akses 30 Hari</strong> — sekali bayar, kuota langsung aktif. Saldo <strong>TIDAK AKAN</strong> terpotong otomatis di akhir periode. Kamu yang pegang kendali penuh.
+                  </p>
                 </div>
-                <p className="v0-trust-text">
-                  Ini <strong>bukan langganan bulanan</strong>. Ini <strong>Paket Akses 30 Hari</strong> — sekali bayar, kuota langsung aktif. Saldo <strong>TIDAK AKAN</strong> terpotong otomatis di akhir periode. Kamu yang pegang kendali penuh.
-                </p>
               </div>
 
               {errorMessage && (
-                <div className="v0-profile-message error animate-fade-in" style={{ marginTop: '14px' }}>
-                  <ShieldAlert size={16} />
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 700 }}>{errorMessage}</p>
-                    {errorMessage.includes('Payment gateway not configured') && (
-                      <span style={{ fontSize: '0.75rem', opacity: 0.85 }}>
-                        Tips: Kredensial Tripay (TRIPAY_API_KEY, TRIPAY_PRIVATE_KEY, TRIPAY_MERCHANT_CODE) belum dikonfigurasi di Supabase Secrets.
-                      </span>
-                    )}
+                <div className="cluv-card is-danger cluv-mt-4">
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+                    <ShieldAlert size={18} className="cluv-text-rose" />
+                    <div>
+                      <p className="cluv-body cluv-font-bold cluv-text-rose cluv-m-0">{errorMessage}</p>
+                      {errorMessage.includes('Payment gateway not configured') && (
+                        <span className="cluv-micro cluv-text-muted">
+                          Tips: Kredensial Tripay (TRIPAY_API_KEY, TRIPAY_PRIVATE_KEY, TRIPAY_MERCHANT_CODE) belum dikonfigurasi di Supabase Secrets.
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
               <button
                 type="button"
-                className="v0-profile-save-btn"
-                style={{ width: '100%', justifyContent: 'center', marginTop: '16px' }}
+                className="cluv-btn is-primary is-md is-block cluv-mt-5"
                 onClick={handleProceedToPayment}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <RefreshCw size={16} className="animate-spin" /> Memproses Tagihan...
+                    <RefreshCw size={16} className="animate-spin" />
+                    <span>Memproses Tagihan...</span>
                   </>
                 ) : (
                   <>
-                    Lanjut ke Pembayaran Tripay <ChevronRight size={16} />
+                    <span>Lanjut ke Pembayaran Tripay</span>
+                    <ChevronRight size={16} />
                   </>
                 )}
               </button>
@@ -349,17 +373,17 @@ export default function CheckoutPage() {
   // =============================================================
   if (!invoice) {
     return (
-      <div className="v0-page-container animate-fade-in">
-        <div className="v0-profile-form-container">
-          <div className="v0-empty-state" style={{ minHeight: '360px', textAlign: 'center' }}>
-            <ShieldAlert size={48} style={{ color: 'var(--color-status-alert)', margin: '0 auto 12px' }} />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-ink)', margin: '0 0 8px' }}>
+      <div className="cluv-page">
+        <div className="cluv-focused-ledger">
+          <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+            <ShieldAlert size={48} className="cluv-text-rose cluv-mx-auto cluv-mb-3" />
+            <h2 className="cluv-title-card cluv-mb-2">
               Transaksi Tidak Ditemukan
             </h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-ink-soft)', margin: '0 0 20px' }}>
+            <p className="cluv-body cluv-text-muted cluv-mb-5">
               Nomor referensi <code>{reference}</code> tidak valid atau tidak terdaftar.
             </p>
-            <Link to="/transactions" className="v0-btn-action">
+            <Link to="/transactions" className="cluv-btn is-secondary is-md">
               Lihat Riwayat Transaksi
             </Link>
           </div>
@@ -377,77 +401,80 @@ export default function CheckoutPage() {
   const isExpired = invoice?.status === 'EXPIRED' || timeLeft === 'Expired'
 
   return (
-    <div className="v0-page-container animate-fade-in">
-      <div className="v0-profile-form-container">
-        <div style={{ marginBottom: '16px' }}>
-          <Link to="/transactions" className="v0-back-link">
-            <ArrowLeft size={16} /> Riwayat Transaksi
+    <div className="cluv-page">
+      <div className="cluv-focused-ledger">
+        <div className="cluv-mb-4">
+          <Link to="/transactions" className="cluv-back-link">
+            <ArrowLeft size={16} />
+            <span>Riwayat Transaksi</span>
           </Link>
         </div>
 
-        <div className="v0-profile-form-header" style={{ marginBottom: '24px', textAlign: 'left' }}>
-          <h1 className="v0-profile-form-main-title">Detail Tagihan Pembayaran</h1>
+        <div className="cluv-mb-6">
+          <h1 className="cluv-title-page">Detail Tagihan Pembayaran</h1>
         </div>
 
-        <div className="v0-profile-card">
+        <div className="cluv-card">
           {/* Status & Expiry Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px dashed var(--color-border)', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-ink)' }}>
-              <span>Status:</span>
+          <div className="cluv-flex-between cluv-items-center cluv-pb-4 cluv-border-b cluv-mb-5">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+              <span className="cluv-caption cluv-font-bold cluv-text-dark">Status:</span>
               {isPaid ? (
-                <span className="v0-badge optimal"><CheckCircle2 size={13} /> LUNAS</span>
+                <span className="cluv-badge is-teal is-sm"><CheckCircle2 size={13} /> LUNAS</span>
               ) : isExpired ? (
-                <span className="v0-badge alert">KADALUARSA</span>
+                <span className="cluv-badge is-rose is-sm">KADALUARSA</span>
               ) : (
-                <span className="v0-badge attention">BELUM DIBAYAR</span>
+                <span className="cluv-badge is-gold is-sm">BELUM DIBAYAR</span>
               )}
             </div>
             {!isPaid && !isExpired && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: 'var(--color-ink-muted)' }}>
-                <Clock size={14} /> Batas Waktu: <strong style={{ color: 'var(--color-status-attention)', fontFamily: 'monospace', fontSize: '0.9375rem' }}>{timeLeft || '24:00:00'}</strong>
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
+                <Clock size={14} />
+                <span>Batas Waktu:</span>
+                <strong className="cluv-font-bold cluv-text-gold">{timeLeft || '24:00:00'}</strong>
               </div>
             )}
           </div>
 
           {/* Invoice Items Summary */}
-          <div style={{ background: 'var(--color-surface-muted)', padding: '16px', border: '1px solid var(--color-border-soft)', borderRadius: 'var(--radius-lg)', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84375rem', color: 'var(--color-ink-soft)' }}>
-              <span>No. Tagihan:</span>
-              <strong style={{ fontFamily: 'monospace', color: 'var(--color-teal)' }}>{invoice.merchant_ref}</strong>
+          <div className="cluv-receipt-box cluv-mb-5">
+            <div className="cluv-receipt-row">
+              <span className="cluv-receipt-label">No. Tagihan:</span>
+              <strong className="cluv-receipt-val cluv-text-teal">{invoice.merchant_ref}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84375rem', color: 'var(--color-ink-soft)' }}>
-              <span>Produk:</span>
-              <strong style={{ color: 'var(--color-ink)' }}>{invoice.plan_name || (invoice.merchant_ref?.includes('GLOW') ? 'Skincluv GLOW (Akses 30 Hari)' : 'Skincluv PRO (Akses 30 Hari)')}</strong>
+            <div className="cluv-receipt-row">
+              <span className="cluv-receipt-label">Produk:</span>
+              <strong className="cluv-receipt-val">{invoice.plan_name || (invoice.merchant_ref?.includes('GLOW') ? 'Skincluv GLOW (Akses 30 Hari)' : 'Skincluv PRO (Akses 30 Hari)')}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84375rem', color: 'var(--color-ink-soft)' }}>
-              <span>Total Tagihan:</span>
-              <strong style={{ color: 'var(--color-teal)', fontSize: '1.125rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+            <div className="cluv-receipt-row">
+              <span className="cluv-receipt-label">Total Tagihan:</span>
+              <strong className="cluv-receipt-val cluv-text-teal cluv-font-bold">
                 Rp {(invoice.total_amount_idr || invoice.amount_idr)?.toLocaleString('id-ID')}
               </strong>
             </div>
           </div>
 
           {/* Method-Specific Instruction Box */}
-          <div className="v0-receipt-box" style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--color-teal)', marginBottom: '16px', fontWeight: 700 }}>
+          <div className="cluv-card cluv-text-center cluv-mb-5">
+            <div className="cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-2 cluv-text-teal cluv-mb-4">
               {method.includes('QRIS') ? <QrCode size={20} /> : method.includes('MART') || method.includes('INDOMARET') ? <Store size={20} /> : <CreditCard size={20} />}
-              <h3 style={{ fontSize: '1.0625rem', margin: 0, color: 'var(--color-teal)', fontWeight: 700 }}>Metode Pembayaran: {method}</h3>
+              <h3 className="cluv-title-card cluv-text-teal cluv-m-0">Metode Pembayaran: {method}</h3>
             </div>
 
             {/* QRIS Display */}
             {method.includes('QRIS') && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              <div className="cluv-flex-col cluv-items-center cluv-gap-3">
                 {qrUrl ? (
-                  <div className="v0-qris-box">
+                  <div className="cluv-qr-box">
                     <img src={qrUrl} alt="QRIS Code" style={{ width: '200px', height: '200px', display: 'block' }} />
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '32px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--color-border)', color: 'var(--color-ink-muted)' }}>
-                    <QrCode size={64} />
-                    <p style={{ margin: 0, fontSize: '0.84375rem' }}>Buka halaman Tripay untuk memindai QRIS</p>
+                  <div className="cluv-card cluv-empty cluv-text-center cluv-py-6 cluv-w-full">
+                    <QrCode size={48} className="cluv-text-muted cluv-mx-auto cluv-mb-2" />
+                    <p className="cluv-caption cluv-text-muted cluv-m-0">Buka halaman Tripay untuk memindai QRIS</p>
                   </div>
                 )}
-                <p style={{ fontSize: '0.8125rem', color: 'var(--color-ink-soft)', maxWidth: '360px', lineHeight: 1.4, margin: '8px 0 0' }}>
+                <p className="cluv-caption cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-m-0">
                   Scan QR Code di atas menggunakan GoPay, OVO, ShopeePay, Dana, LinkAja, atau Mobile Banking kamu.
                 </p>
               </div>
@@ -455,18 +482,18 @@ export default function CheckoutPage() {
 
             {/* Virtual Account / Code Display */}
             {!method.includes('QRIS') && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.8125rem', color: 'var(--color-ink-muted)', fontWeight: 600 }}>
+              <div className="cluv-flex-col cluv-items-center cluv-gap-2">
+                <span className="cluv-caption cluv-text-muted cluv-font-bold">
                   {method.includes('MART') || method.includes('INDOMARET') ? 'Kode Pembayaran Minimarket:' : 'Nomor Virtual Account:'}
                 </span>
-                <div className="v0-pay-code-box">
-                  <span className="v0-pay-code-num">{payCode}</span>
-                  <button type="button" className="v0-btn-action" onClick={() => copyToClipboard(payCode)}>
-                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                <div className="cluv-code-box">
+                  <span className="cluv-code-val">{payCode}</span>
+                  <button type="button" className="cluv-btn is-outline is-sm" onClick={() => copyToClipboard(payCode)}>
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
                     <span>{copied ? 'Tersalin!' : 'Salin'}</span>
                   </button>
                 </div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-ink-muted)', maxWidth: '340px', marginTop: '6px', margin: 0 }}>
+                <p className="cluv-micro cluv-text-muted cluv-max-w-sm cluv-mx-auto cluv-mt-1 cluv-m-0">
                   Salin nomor di atas dan masukkan pada menu transfer Bank/Virtual Account kamu.
                 </p>
               </div>
@@ -474,11 +501,10 @@ export default function CheckoutPage() {
           </div>
 
           {/* Interactive Action Footer */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'center' }}>
+          <div className="cluv-flex-col cluv-gap-3 cluv-text-center">
             <button
               type="button"
-              className="v0-profile-save-btn"
-              style={{ width: '100%', justifyContent: 'center' }}
+              className="cluv-btn is-primary is-md is-block"
               onClick={() => fetchInvoiceStatus(true)}
               disabled={isCheckingStatus || isPaid}
             >
@@ -487,12 +513,13 @@ export default function CheckoutPage() {
             </button>
 
             {invoice.checkout_url && (
-              <a href={invoice.checkout_url} target="_blank" rel="noreferrer" className="v0-btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-                <span>Buka Halaman Pembayaran Tripay</span> <ExternalLink size={16} />
+              <a href={invoice.checkout_url} target="_blank" rel="noreferrer" className="cluv-btn is-secondary is-md is-block">
+                <span>Buka Halaman Pembayaran Tripay</span>
+                <ExternalLink size={16} />
               </a>
             )}
 
-            <Link to="/transactions" style={{ fontSize: '0.8125rem', color: 'var(--color-ink-muted)', textDecoration: 'none', marginTop: '4px', fontWeight: 600 }}>
+            <Link to="/transactions" className="cluv-caption cluv-text-muted cluv-font-bold cluv-mt-1">
               Lihat Semua Riwayat Transaksi Saya
             </Link>
           </div>

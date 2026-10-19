@@ -630,5 +630,107 @@
   }
 }
 
+/* =============================================================================
+ * Universal Payment Channel Primitive (.cluv-channel-option)
+ * ============================================================================= */
+.cluv-channel-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cluv-channel-category {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.03em;
+  margin: 14px 0 6px;
+}
+
+.cluv-channel-category:first-child {
+  margin-top: 0;
+}
+
+.cluv-channel-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 14px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.cluv-channel-option:hover {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-teal, #1f9d97);
+}
+
+.cluv-channel-option.is-selected {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal, #1f9d97);
+  box-shadow: 0 2px 10px rgba(31, 157, 151, 0.12);
+}
+
+.cluv-channel-option input[type="radio"] {
+  accent-color: var(--cluv-teal, #1f9d97);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.cluv-channel-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+}
+
+/* =============================================================================
+ * Universal Pay Code Box & QR Box (.cluv-code-box, .cluv-qr-box)
+ * ============================================================================= */
+.cluv-code-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--cluv-surface, #ffffff);
+  padding: 10px 18px;
+  border-radius: var(--cluv-radius-lg, 14px);
+  border: 2px solid var(--cluv-teal, #1f9d97);
+  box-shadow: 0 4px 14px rgba(31, 157, 151, 0.15);
+  box-sizing: border-box;
+}
+
+.cluv-code-val {
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-family: monospace;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  letter-spacing: 1px;
+}
+
+.cluv-qr-box {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: var(--cluv-radius-xl, 16px);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+
 
 
