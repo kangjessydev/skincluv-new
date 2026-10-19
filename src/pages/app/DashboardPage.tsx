@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  ArrowRight,
   ArrowUpRight,
   CalendarDays,
   Check,
@@ -23,9 +24,12 @@ import {
   Zap,
   MessageCircle,
   Moon,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
-import { useDashboardData } from '@/hooks/useDashboardData'
+import { useDashboardData, type DashboardMissionItem } from '@/hooks/useDashboardData'
 import { Badge, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
 import '@/styles/cluv/app/dashboard.css'
@@ -104,7 +108,7 @@ export default function DashboardPage() {
 
   const skinAssessment = data?.skin_assessment
   const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0, avg_safety_score: null }
-  const missions = data?.missions ?? { completed: 0, total: 1 }
+  const missions = data?.missions ?? { completed: 0, total: 3, active_list: [] }
   const recentScans = data?.recent_scans ?? []
   const scanCounts = data?.scan_counts ?? { face_total: 0, ingredient_total: 0, total: 0 }
   // face_trend: 7 titik scan wajah non-repeat (dari RPC migration 082)
@@ -112,6 +116,42 @@ export default function DashboardPage() {
   const faceTrend = [...(data?.face_trend ?? [])].reverse()
   // Guardrail RFC 019: chart hanya ditampilkan bila ≥3 scan wajah unik tersedia
   const hasEnoughTrendData = scanCounts.face_total >= 3
+
+  // Transformation & Comparison Baseline calculation
+  const baselineScan = faceTrend.length > 1 ? faceTrend[0] : null
+  const latestScan = faceTrend.length > 0 ? faceTrend[faceTrend.length - 1] : null
+  const deltaScore = latestScan && baselineScan ? ((latestScan.score ?? 0) - (baselineScan.score ?? 0)) : 0
+  const hasComparisonData = faceTrend.length >= 2
+
+  // Curated Daily Glow Missions (connected to DB progress & actions)
+  const dailyMissions: DashboardMissionItem[] = missions.active_list?.length
+    ? missions.active_list
+    : [
+        {
+          id: 'm-face-scan',
+          name: isNight ? 'Evaluasi Skin Barrier Malam' : 'Observasi Kondisi Kulit Pagi',
+          coin_reward: 5,
+          current_count: skinAssessment?.has_face_scan ? 1 : 0,
+          target_count: 1,
+          is_completed: Boolean(skinAssessment?.has_face_scan),
+        },
+        {
+          id: 'm-ing-scan',
+          name: 'Pemeriksaan Bahan Skincare Harian',
+          coin_reward: 5,
+          current_count: productSummary.total_products_scanned > 0 ? 1 : 0,
+          target_count: 1,
+          is_completed: productSummary.total_products_scanned > 0,
+        },
+        {
+          id: 'm-ai-chat',
+          name: isNight ? 'Tanya Rutinitas Regenerasi ke AI' : 'Konsultasi Proteksi UV ke AI',
+          coin_reward: 3,
+          current_count: 0,
+          target_count: 1,
+          is_completed: false,
+        },
+      ]
 
   const userName = profile?.full_name || 'Pengguna'
   const firstName = userName.split(' ')[0]
@@ -198,36 +238,33 @@ export default function DashboardPage() {
       )}
 
       {/* =====================================================================
-          1. DESKTOP VIEW (> 640px): Greeting Header + Weather Banner + Hero Grid
+          1. DESKTOP VIEW (> 640px): Greeting Header + Ambient Strip + Split-Hero Bento
           ===================================================================== */}
       <header className="cluv-dashboard-header">
-        <div>
-          <h1 className="cluv-title-section">Selamat {timeOfDay}, {firstName} ✨</h1>
-          <p className="cluv-subtitle cluv-mt-1">{todayFormatted}</p>
-        </div>
-
-        {/* Skinsistant AI Companion Weather Banner (Full Width under date) */}
-        <div className="cluv-weather-bubble" aria-label="Saran Cuaca & Proteksi Kulit">
-          <div className="cluv-weather-bubble-icon">
-            <Bot size={18} />
+        <div className="cluv-header-top-row">
+          <div>
+            <h1 className="cluv-title-section">Selamat {timeOfDay}, {firstName} ✨</h1>
+            <p className="cluv-subtitle cluv-mt-1">{todayFormatted}</p>
           </div>
-          <div className="cluv-weather-bubble-content">
-            <div className="cluv-weather-bubble-header">
-              <span className="cluv-weather-bubble-title">Skinsistant AI · Cuaca &amp; Proteksi Kulit</span>
-              <span className="cluv-weather-bubble-tag">
-                <SunMedium size={12} />
-                <span>{weather.temp} · {weather.uvIndex}</span>
-              </span>
+
+          {/* Sleek Ambient Context Strip (Compact, non-stretching header pills) */}
+          <div className="cluv-ambient-strip" aria-label="Kondisi Lingkungan Hari Ini">
+            <div className="cluv-ambient-pill is-gold" title="Suhu dan indeks radiasi UV saat ini">
+              <SunMedium size={14} />
+              <span>{weather.temp} · {weather.uvIndex}</span>
             </div>
-            <p className="cluv-weather-bubble-text">"{weather.tip}"</p>
+            <div className="cluv-ambient-pill is-teal" title="Fokus perlindungan biologis kulit saat ini">
+              <ShieldCheck size={14} />
+              <span>{isNight ? 'Fase Regenerasi Malam' : 'Proteksi UV Aktif'}</span>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Desktop Hero Grid (2-Column 1.55fr : 1fr) */}
-      <div className="cluv-desktop-hero-grid">
-        {/* Observasi Kulit Terkini */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+      {/* UNIFIED SPLIT-HERO BENTO: Observasi Wajah (60%) + Keamanan Skincare Lab (40%) dalam 1 Bento */}
+      <section className="cluv-card cluv-split-hero-bento">
+        {/* ZONA KIRI: Observasi Visual Kulit */}
+        <div className="cluv-split-hero-left">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -258,7 +295,7 @@ export default function DashboardPage() {
               </div>
             ) : skinAssessment?.has_face_scan ? (
               <div className="cluv-flex-row cluv-gap-4 cluv-items-start cluv-mt-5">
-                {/* Biometric Circular Score Ring (Top Anchored) */}
+                {/* Biometric Circular Score Ring */}
                 <div className="cluv-score-ring is-md cluv-flex-shrink-0">
                   <svg className="cluv-score-svg" viewBox="0 0 80 80">
                     <circle className="cluv-score-bg-circle" cx="40" cy="40" r="34" strokeWidth="6" />
@@ -324,10 +361,10 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
-        </section>
+        </div>
 
-        {/* Keamanan Komposisi Skincare (Lab) */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        {/* ZONA KANAN: Keamanan Komposisi Skincare (Lab) */}
+        <div className="cluv-split-hero-right">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -341,16 +378,16 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Lab Metrics Badges (Compact Inline Badges) */}
+            {/* Lab Metrics Badges */}
             <div className="cluv-lab-metrics-strip">
               <span className="cluv-lab-metric-badge">
-                Produk Diuji: <strong>{productSummary.total_products_scanned}</strong>
+                Diuji: <strong>{productSummary.total_products_scanned}</strong>
               </span>
               <span className="cluv-lab-metric-badge is-teal">
-                Formula Aman: <strong>{productSummary.safe_products_count}</strong>
+                Aman: <strong>{productSummary.safe_products_count}</strong>
               </span>
               <span className="cluv-lab-metric-badge is-blue">
-                Skor Keamanan: <strong>{productSummary.avg_safety_score !== null ? `${productSummary.avg_safety_score}/100` : '-'}</strong>
+                Skor: <strong>{productSummary.avg_safety_score !== null ? `${productSummary.avg_safety_score}/100` : '-'}</strong>
               </span>
             </div>
 
@@ -373,8 +410,8 @@ export default function DashboardPage() {
               <ChevronRight size={14} />
             </button>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
 
 
@@ -630,51 +667,67 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Dynamic Rutinitas Harian dengan Embedded Progress Bar */}
+        {/* Misi Glow Hari Ini (Gamifikasi Harian & Rewards) */}
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
-                <div className={`cluv-card-icon-wrap is-sm ${isNight ? 'is-purple' : 'is-gold'}`}>
-                  {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
+                <div className="cluv-card-icon-wrap is-sm is-gold">
+                  <Sparkles size={18} />
                 </div>
                 <div>
-                  <h2 className="cluv-title-card">{isNight ? 'Rutinitas Malam 🌙' : 'Rutinitas Pagi ☀️'}</h2>
+                  <h2 className="cluv-title-card">Misi Glow Hari Ini</h2>
                   <p className="cluv-caption cluv-text-muted cluv-mt-1">
-                    {isNight ? '3 langkah · regenerasi barrier' : '3 langkah · proteksi harian'}
+                    Selesaikan misi · Raih AI Credits
                   </p>
                 </div>
               </div>
               <div className="cluv-flex-col cluv-items-end">
                 <span className="cluv-badge is-teal is-sm">
-                  {checked.filter(Boolean).length}/{activeRoutine.length} Selesai
+                  {dailyMissions.filter((m) => m.is_completed).length}/{dailyMissions.length} Selesai
                 </span>
                 <div className="cluv-routine-progress-track">
                   <div
                     className="cluv-routine-progress-bar"
                     style={{
-                      width: `${Math.round((checked.filter(Boolean).length / Math.max(activeRoutine.length, 1)) * 100)}%`,
+                      width: `${Math.round((dailyMissions.filter((m) => m.is_completed).length / Math.max(dailyMissions.length, 1)) * 100)}%`,
                     }}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="cluv-checklist-group cluv-mt-5">
-              {activeRoutine.map((item, index) => (
-                <button
-                  key={item.title}
-                  onClick={() => toggleRoutine(index)}
-                  className={`cluv-check-item ${checked[index] ? 'is-checked' : ''}`}
+            {/* Daftar Misi Interaktif */}
+            <div className="cluv-mission-list cluv-mt-5">
+              {dailyMissions.map((mission) => (
+                <div
+                  key={mission.id}
+                  onClick={() => {
+                    if (mission.id.includes('face')) navigate('/face-scan')
+                    else if (mission.id.includes('ing')) navigate('/ingredient-scan')
+                    else navigate('/chatbot')
+                  }}
+                  className={`cluv-mission-card ${mission.is_completed ? 'is-completed' : ''}`}
+                  role="button"
+                  tabIndex={0}
                 >
-                  <span className="cluv-check-box">
-                    {checked[index] && <Check size={14} strokeWidth={3} />}
-                  </span>
-                  <div className="cluv-check-info">
-                    <p className="cluv-check-title">{item.title}</p>
-                    <span className="cluv-check-meta">{item.type}</span>
+                  <div className="cluv-mission-info">
+                    <span className="cluv-mission-checkbox">
+                      {mission.is_completed && <Check size={14} strokeWidth={3} />}
+                    </span>
+                    <div className="cluv-mission-text">
+                      <p className="cluv-mission-title">{mission.name}</p>
+                      <span className="cluv-mission-desc">
+                        {mission.is_completed ? 'Misi selesai · Kredit terklaim' : 'Ketuk untuk selesaikan misi'}
+                      </span>
+                    </div>
                   </div>
-                </button>
+
+                  <span className={`cluv-mission-reward ${mission.is_completed ? 'is-done' : ''}`}>
+                    <Zap size={11} />
+                    <span>+{mission.coin_reward}</span>
+                  </span>
+                </div>
               ))}
             </div>
           </div>
@@ -684,16 +737,16 @@ export default function DashboardPage() {
               onClick={() => navigate('/missions')}
               className="cluv-btn is-ghost is-sm cluv-w-full cluv-justify-center"
             >
-              <span>Buka detail misi lengkap</span>
+              <span>Buka Detail Misi &amp; Reward</span>
               <ChevronRight size={14} />
             </button>
           </div>
         </section>
       </div>
 
-      {/* 4. BOTTOM BENTO GRID: Riwayat Scan (1.55fr) + Ritme Sirkadian & AI Prompts (1fr) */}
+      {/* 4. BOTTOM BENTO GRID: Transformasi & Komparasi (1.55fr) + Skinsistant AI Coach (1fr) */}
       <div className="cluv-bottom-bento-grid">
-        {/* Kolom Kiri: Riwayat Scan Terakhir */}
+        {/* Kolom Kiri: Transformasi & Komparasi Klinis */}
         <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
@@ -702,79 +755,140 @@ export default function DashboardPage() {
                   <HeartPulse size={18} />
                 </div>
                 <div>
-                  <h2 className="cluv-title-card">Riwayat Scan Terakhir</h2>
-                  <p className="cluv-caption cluv-text-muted cluv-mt-1">Analisis terbaru dari akun kamu</p>
+                  <h2 className="cluv-title-card">Transformasi &amp; Komparasi</h2>
+                  <p className="cluv-caption cluv-text-muted cluv-mt-1">
+                    Evaluasi kemajuan skin barrier lintas waktu
+                  </p>
                 </div>
               </div>
               <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
-                <span>Lihat semua</span>
+                <span>Riwayat</span>
                 <ArrowUpRight size={14} />
               </button>
             </div>
 
             {loading ? (
-              <div className="cluv-flex-col cluv-gap-3 cluv-mt-5">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="cluv-flex-row cluv-gap-3 cluv-items-center">
-                    <Skeleton height={40} width={40} radius="10px" />
-                    <div className="cluv-flex-1"><SkeletonText lines={2} /></div>
-                    <Skeleton height={20} width={40} radius="100px" />
-                  </div>
-                ))}
+              <div className="cluv-flex-row cluv-gap-4 cluv-items-center cluv-py-6">
+                <Skeleton height={60} width={60} radius="50%" />
+                <div className="cluv-flex-1"><SkeletonText lines={2} /></div>
+                <Skeleton height={60} width={60} radius="50%" />
               </div>
-            ) : recentScans.length > 0 ? (
-              <div className="cluv-recent-scan-list cluv-mt-5">
-                {recentScans.slice(0, 5).map((scan) => (
-                  <button
-                    key={scan.id}
-                    onClick={() => navigate('/scan-history')}
-                    className="cluv-recent-scan-item"
-                  >
-                    <span className={`cluv-recent-scan-icon ${scan.type === 'face' ? 'is-teal' : 'is-blue'}`}>
-                      {scan.type === 'face' ? <ScanFace size={18} /> : <FlaskConical size={18} />}
-                    </span>
-                    <div className="cluv-recent-scan-info">
-                      <span className="cluv-recent-scan-title">{scan.title}</span>
-                      <span className="cluv-recent-scan-time">
-                        {new Date(scan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </span>
+            ) : hasComparisonData && baselineScan && latestScan ? (
+              <div className="cluv-mt-5">
+                {/* Side-by-Side Comparison Box */}
+                <div className="cluv-progress-comparison-box">
+                  {/* Kolom Kiri: Baseline */}
+                  <div className="cluv-progress-col">
+                    <span className="cluv-progress-col-label">Kondisi Baseline</span>
+                    <div className="cluv-score-ring is-sm">
+                      <svg className="cluv-score-svg" viewBox="0 0 80 80">
+                        <circle className="cluv-score-bg-circle" cx="40" cy="40" r="34" strokeWidth="7" />
+                        <circle
+                          className="cluv-score-fg-circle is-optimal"
+                          cx="40"
+                          cy="40"
+                          r="34"
+                          strokeWidth="7"
+                          strokeDasharray={213.6}
+                          strokeDashoffset={213.6 - (213.6 * Math.min(baselineScan.score, 100)) / 100}
+                        />
+                      </svg>
+                      <div className="cluv-score-center">
+                        <span className="cluv-score-val">{baselineScan.score}</span>
+                        <span className="cluv-score-max">/100</span>
+                      </div>
                     </div>
-                    {scan.score !== null && (
-                      <span className="cluv-badge is-teal is-sm">{scan.score}</span>
-                    )}
-                    <ChevronRight size={14} className="cluv-quick-tile-arrow" />
-                  </button>
-                ))}
+                    <span className="cluv-progress-col-date">
+                      {new Date(baselineScan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+
+                  {/* Kolom Tengah: Delta Indicator & MCID */}
+                  <div className="cluv-progress-mid">
+                    <span className={`cluv-delta-pill ${deltaScore > 0 ? 'is-positive' : deltaScore === 0 ? 'is-neutral' : 'is-attention'}`}>
+                      {deltaScore > 0 ? <TrendingUp size={14} /> : deltaScore < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
+                      <span>{deltaScore > 0 ? `+${deltaScore} Poin` : deltaScore < 0 ? `${deltaScore} Poin` : 'Stabil'}</span>
+                    </span>
+                    <ArrowRight size={18} className="cluv-text-muted" />
+                    <span className="cluv-progress-mcid-note">
+                      {Math.abs(deltaScore) >= 5
+                        ? (deltaScore > 0 ? 'Kemajuan Bermakna (>MCID)' : 'Perlu Perhatian Barrier')
+                        : 'Stabil (Noise < 5 Poin)'}
+                    </span>
+                  </div>
+
+                  {/* Kolom Kanan: Observasi Terkini */}
+                  <div className="cluv-progress-col">
+                    <span className="cluv-progress-col-label">Observasi Terkini</span>
+                    <div className="cluv-score-ring is-sm">
+                      <svg className="cluv-score-svg" viewBox="0 0 80 80">
+                        <circle className="cluv-score-bg-circle" cx="40" cy="40" r="34" strokeWidth="7" />
+                        <circle
+                          className="cluv-score-fg-circle is-optimal"
+                          cx="40"
+                          cy="40"
+                          r="34"
+                          strokeWidth="7"
+                          strokeDasharray={213.6}
+                          strokeDashoffset={213.6 - (213.6 * Math.min(latestScan.score, 100)) / 100}
+                        />
+                      </svg>
+                      <div className="cluv-score-center">
+                        <span className="cluv-score-val">{latestScan.score}</span>
+                        <span className="cluv-score-max">/100</span>
+                      </div>
+                    </div>
+                    <span className="cluv-progress-col-date">
+                      {new Date(latestScan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Insight Ringkas Transformasi */}
+                <p className="cluv-body cluv-mt-4 cluv-line-relaxed cluv-text-muted">
+                  {deltaScore > 0
+                    ? 'Skin barrier menunjukkan tren penguatan positif dibanding baseline awal. Lanjutkan konsistensi hidrasi dan perlindungan UV harian.'
+                    : deltaScore === 0
+                    ? 'Kondisi kulit terpantau berada pada tingkat ketahanan yang stabil dan terjaga optimal. Tidak ditemukan anomali iritasi.'
+                    : 'Terdeteksi penurunan skor minor. Pastikan tidak over-exfoliating dan perkuat nutrisi ceramide pada rutinitas malam.'}
+                </p>
               </div>
             ) : (
               <div className="cluv-text-center cluv-py-6">
-                <HeartPulse size={28} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
-                <p className="cluv-caption cluv-text-muted cluv-mt-2">Riwayat scan belum ada</p>
+                <HeartPulse size={32} strokeWidth={1.5} className="cluv-text-muted cluv-mx-auto" />
+                <h4 className="cluv-title-card cluv-mt-2">Butuh Minimal 2 Scan</h4>
+                <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-empty-desc">
+                  Lakukan pemindaian wajah kedua di hari berbeda untuk membuka komparasi transformasi sebelum &amp; sesudah perawatan.
+                </p>
+                <button onClick={() => navigate('/face-scan')} className="cluv-btn is-primary is-sm cluv-mt-4">
+                  <ScanFace size={15} />
+                  <span>Pindai Wajah Sekarang</span>
+                </button>
               </div>
             )}
           </div>
 
           <div className="cluv-flex-between cluv-items-center cluv-pt-4 cluv-border-t cluv-mt-6">
             <span className="cluv-caption cluv-text-muted">
-              {recentScans.length > 0 ? `${recentScans.length} scan tercatat` : 'Belum ada aktivitas'}
+              {faceTrend.length > 0 ? `${faceTrend.length} titik data observasi tersimpan` : 'Belum ada data'}
             </span>
             <button onClick={() => navigate('/scan-history')} className="cluv-btn is-ghost is-sm">
-              <span>Buka Log Lengkap</span>
+              <span>Buka Riwayat Lengkap</span>
               <ChevronRight size={14} />
             </button>
           </div>
         </section>
 
-        {/* Kolom Kanan: Ritme Sirkadian & 1-Tap AI Prompt Chips */}
+        {/* Kolom Kanan: Skinsistant AI Smart Briefing */}
         <section className="cluv-card cluv-circadian-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
-                <div className="cluv-card-icon-wrap is-sm is-gold">
-                  <Sparkles size={18} />
+                <div className="cluv-card-icon-wrap is-sm is-purple">
+                  <Bot size={18} />
                 </div>
                 <div>
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Ritme Biologis Kulit</span>
+                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Skinsistant AI Coach</span>
                   <h2 className="cluv-title-card cluv-mt-1">Fokus Sirkadian</h2>
                 </div>
               </div>
@@ -791,7 +905,7 @@ export default function DashboardPage() {
                 </h3>
                 <p className="cluv-circadian-phase-desc">
                   {isNight
-                    ? 'Sintesis kolagen dan perbaikan mikrolesi kulit memuncak saat tidur. Nutrisi skin barrier dengan hidrasi kaya lipid.'
+                    ? 'Sintesis kolagen dan pemulihan mikrolesi kulit memuncak saat tidur. Nutrisi skin barrier dengan hidrasi kaya lipid.'
                     : 'Kulit aktif memblokir radikal bebas dan radiasi UV. Pastikan re-apply sunscreen dan hindari iritasi aktif berlebih.'}
                 </p>
               </div>
@@ -838,6 +952,16 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="cluv-mt-6 cluv-pt-4 cluv-border-t">
+            <button
+              onClick={() => navigate('/chatbot')}
+              className="cluv-btn is-ghost is-sm cluv-w-full cluv-justify-center"
+            >
+              <span>Buka Chat Skinsistant AI</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
         </section>
       </div>

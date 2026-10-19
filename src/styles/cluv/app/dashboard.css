@@ -23,8 +23,50 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 12px;
+  gap: 16px;
   margin: 0;
+}
+
+.cluv-header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cluv-ambient-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cluv-ambient-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-700, #334155);
+  box-shadow: var(--cluv-shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.cluv-ambient-pill.is-gold {
+  background: #fffbeb;
+  border-color: var(--cluv-gold-line, #fae0b8);
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-ambient-pill.is-teal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal-line, #bceae7);
+  color: var(--cluv-teal-dark, #127a75);
 }
 
 .cluv-dashboard-title {
@@ -110,17 +152,48 @@
   line-height: 1.45;
 }
 
-/* 3. Desktop Hero Grid: Observasi Wajah (1.55fr) + Keamanan Skincare (1fr) */
-.cluv-desktop-hero-grid {
+/* 3. Unified Split-Hero Bento (Wajah & Keamanan Skincare dalam 1 Bento) */
+.cluv-split-hero-bento {
   display: grid;
-  grid-template-columns: 1.55fr 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0;
+  padding: clamp(20px, 3.5vw, 32px);
+  position: relative;
+  overflow: hidden;
+}
+
+.cluv-split-hero-left {
+  padding-right: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.cluv-split-hero-right {
+  padding-left: 32px;
+  border-left: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 @media (max-width: 900px) {
-  .cluv-desktop-hero-grid {
+  .cluv-split-hero-bento {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .cluv-split-hero-left {
+    padding-right: 0;
+    padding-bottom: 24px;
+    border-bottom: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  }
+
+  .cluv-split-hero-right {
+    padding-left: 0;
+    border-left: none;
   }
 }
 
@@ -275,7 +348,7 @@
   margin: 6px auto 0;
 }
 
-/* 5. Embedded Routine Progress Track */
+/* 5. Embedded Routine & Mission Progress Track */
 .cluv-routine-progress-track {
   width: 90px;
   height: 6px;
@@ -292,7 +365,118 @@
   transition: width 0.3s ease;
 }
 
-/* 6. Bottom Bento Grid: Riwayat Scan (1.55fr) + Ritme Sirkadian & AI Prompts (1fr) */
+/* Misi Glow Interactive Cards */
+.cluv-mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.cluv-mission-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--cluv-radius-md, 12px);
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  background: var(--cluv-current-card-bg, #ffffff);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.cluv-mission-card:hover {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-teal-line, #bceae7);
+  transform: translateX(2px);
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-mission-card.is-completed {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-neutral-200, #e2e8f0);
+  opacity: 0.85;
+}
+
+.cluv-mission-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-mission-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--cluv-neutral-300, #cbd5e1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: #ffffff;
+}
+
+.cluv-mission-card.is-completed .cluv-mission-checkbox {
+  background: var(--cluv-teal, #1f9d97);
+  border-color: var(--cluv-teal, #1f9d97);
+}
+
+.cluv-mission-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-mission-title {
+  font-size: 0.84375rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, #1a2d42);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.cluv-mission-card.is-completed .cluv-mission-title {
+  text-decoration: line-through;
+  color: var(--cluv-neutral-400, #94a3b8);
+}
+
+.cluv-mission-desc {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500, #64748b);
+  margin: 2px 0 0;
+}
+
+.cluv-mission-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background: #fffbeb;
+  border: 1px solid var(--cluv-gold-line, #fae0b8);
+  color: var(--cluv-gold, #d97706);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cluv-mission-reward.is-done {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+}
+
+/* 6. Bottom Bento Grid: Transformasi & Komparasi (1.55fr) + Skinsistant AI Coach (1fr) */
 .cluv-bottom-bento-grid {
   display: grid;
   grid-template-columns: 1.55fr 1fr;
@@ -306,77 +490,84 @@
   }
 }
 
-/* Recent Scan Activity Rows */
-.cluv-recent-scan-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cluv-recent-scan-item {
+/* Transformation & Clinical Progress Comparison */
+.cluv-progress-comparison-box {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  border-radius: var(--cluv-radius-md, 12px);
+  justify-content: space-around;
+  gap: 16px;
+  padding: 24px 20px;
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-radius: var(--cluv-radius-lg, 16px);
   border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
-  background: var(--cluv-current-card-bg, #ffffff);
-  cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  text-decoration: none;
-  color: inherit;
-  text-align: left;
-  width: 100%;
   box-sizing: border-box;
 }
 
-.cluv-recent-scan-item:hover {
-  background: var(--cluv-neutral-50, #f8fafc);
-  border-color: var(--cluv-teal-line, #bceae7);
-  transform: translateX(2px);
-  box-shadow: var(--cluv-shadow-sm);
-}
-
-.cluv-recent-scan-icon {
+.cluv-progress-col {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  flex-shrink: 0;
+  text-align: center;
+  gap: 6px;
 }
 
-.cluv-recent-scan-icon.is-teal {
+.cluv-progress-col-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cluv-neutral-500, #64748b);
+}
+
+.cluv-progress-col-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-400, #94a3b8);
+}
+
+.cluv-progress-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.cluv-delta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cluv-delta-pill.is-positive {
+  background: #dcfce7;
+  border: 1.5px solid #bbf7d0;
+  color: #166534;
+}
+
+.cluv-delta-pill.is-neutral {
   background: var(--cluv-teal-soft, #e6f6f5);
-  border: 1px solid var(--cluv-teal-line, #bceae7);
+  border: 1.5px solid var(--cluv-teal-line, #bceae7);
   color: var(--cluv-teal-dark, #127a75);
 }
 
-.cluv-recent-scan-icon.is-blue {
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
-  color: var(--cluv-status-info, #2563eb);
+.cluv-delta-pill.is-attention {
+  background: #fef3c7;
+  border: 1.5px solid #fde68a;
+  color: #92400e;
 }
 
-.cluv-recent-scan-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.cluv-recent-scan-title {
-  font-size: 0.875rem;
+.cluv-progress-mcid-note {
+  font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--cluv-current-text, #1a2d42);
-  display: block;
-}
-
-.cluv-recent-scan-time {
-  font-size: 0.75rem;
-  font-weight: 500;
   color: var(--cluv-neutral-500, #64748b);
-  display: block;
-  margin-top: 2px;
+  text-align: center;
+  max-width: 140px;
 }
 
 /* Circadian & Intelligent AI Companion Card */
@@ -485,7 +676,8 @@
 
 @media (max-width: 640px) {
   .cluv-dashboard-header,
-  .cluv-desktop-hero-grid {
+  .cluv-desktop-hero-grid,
+  .cluv-split-hero-bento {
     display: none !important;
   }
 
