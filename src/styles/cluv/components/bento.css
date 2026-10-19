@@ -118,9 +118,11 @@
  * 3. BENTO ANATOMY SLOTS (.cluv-bento-header, .cluv-bento-body, .cluv-bento-footer)
  * ============================================================================= */
 .cluv-bento-header {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "icon titles action";
+  align-items: center;
+  gap: 14px;
   padding-bottom: 16px;
   border-bottom: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
   margin-bottom: 16px;
@@ -135,15 +137,15 @@
   margin-bottom: 12px;
 }
 
-.cluv-bento-header-top {
+.cluv-bento-header-icon {
+  grid-area: icon;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .cluv-bento-header-titles {
+  grid-area: titles;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -152,20 +154,42 @@
   box-sizing: border-box;
 }
 
-/* Modifier: Inline Header (Side-by-side icon & title untuk card tanpa tombol aksi) */
-.cluv-bento-header.is-inline {
-  flex-direction: row;
+.cluv-bento-header-action {
+  grid-area: action;
+  display: flex;
   align-items: center;
-  gap: 14px;
-}
-
-.cluv-bento-header.is-inline .cluv-bento-header-top {
-  width: auto;
+  justify-content: flex-end;
+  justify-self: end;
   flex-shrink: 0;
 }
 
-.cluv-bento-header.is-inline .cluv-bento-header-titles {
-  flex: 1;
+.cluv-bento-header-action:empty {
+  display: none;
+}
+
+/* Modifier: Inline Header (Side-by-side icon & title untuk card tanpa tombol aksi) */
+.cluv-bento-header.is-inline {
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "icon titles";
+}
+
+/* Mobile Breakpoint (<= 640px): Card dengan tombol aksi otomatis adaptif 2 baris */
+@media (max-width: 640px) {
+  .cluv-bento-header {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "icon action"
+      "titles titles";
+    row-gap: 10px;
+    column-gap: 12px;
+    align-items: center;
+  }
+
+  .cluv-bento-header.is-inline {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "icon titles";
+    row-gap: 0;
+  }
 }
 
 

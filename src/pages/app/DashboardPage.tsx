@@ -267,21 +267,23 @@ export default function DashboardPage() {
         <section className="cluv-bento-card">
           <div>
             <div className="cluv-bento-header">
-              <div className="cluv-bento-header-top">
+              <div className="cluv-bento-header-icon">
                 <div className="cluv-card-icon-wrap is-sm">
                   <ScanFace size={20} />
                 </div>
-                {skinAssessment?.has_face_scan && (
-                  <button onClick={() => navigate('/face-scan')} className="cluv-btn is-outline is-sm">
-                    <ScanFace size={14} />
-                    <span>Pindai Ulang</span>
-                  </button>
-                )}
               </div>
               <div className="cluv-bento-header-titles">
                 <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Observasi Visual AI</span>
                 <h2 className="cluv-title-card">Kondisi Kulit Terkini</h2>
               </div>
+              {skinAssessment?.has_face_scan && (
+                <div className="cluv-bento-header-action">
+                  <button onClick={() => navigate('/face-scan')} className="cluv-btn is-outline is-sm">
+                    <ScanFace size={14} />
+                    <span>Pindai Ulang</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {loading ? (
@@ -367,7 +369,7 @@ export default function DashboardPage() {
         <section className="cluv-bento-card">
           <div>
             <div className="cluv-bento-header is-inline">
-              <div className="cluv-bento-header-top">
+              <div className="cluv-bento-header-icon">
                 <div className="cluv-card-icon-wrap is-sm is-blue">
                   <FlaskConical size={20} />
                 </div>
@@ -587,14 +589,10 @@ export default function DashboardPage() {
         <section className="cluv-bento-card">
           <div>
             <div className="cluv-bento-header">
-              <div className="cluv-bento-header-top">
+              <div className="cluv-bento-header-icon">
                 <div className="cluv-card-icon-wrap is-sm">
                   <CalendarDays size={18} />
                 </div>
-                <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
-                  <span>Riwayat</span>
-                  <ArrowUpRight size={14} />
-                </button>
               </div>
               <div className="cluv-bento-header-titles">
                 <h2 className="cluv-title-card">Tren Analisis Kulit</h2>
@@ -603,6 +601,12 @@ export default function DashboardPage() {
                     ? `${recentScans.length} scan terakhir · skor wajah`
                     : `${recentScans.length} scan — butuh minimal 3 untuk melihat tren`}
                 </p>
+              </div>
+              <div className="cluv-bento-header-action">
+                <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
+                  <span>Riwayat</span>
+                  <ArrowUpRight size={14} />
+                </button>
               </div>
             </div>
 
@@ -671,10 +675,18 @@ export default function DashboardPage() {
         <section className="cluv-bento-card">
           <div>
             <div className="cluv-bento-header">
-              <div className="cluv-bento-header-top">
+              <div className="cluv-bento-header-icon">
                 <div className="cluv-card-icon-wrap is-sm is-gold">
                   <Sparkles size={18} />
                 </div>
+              </div>
+              <div className="cluv-bento-header-titles">
+                <h2 className="cluv-title-card">Misi Glow Hari Ini</h2>
+                <p className="cluv-caption cluv-text-muted">
+                  Selesaikan misi · Raih AI Credits
+                </p>
+              </div>
+              <div className="cluv-bento-header-action">
                 <div className="cluv-flex-col cluv-items-end">
                   <span className="cluv-badge is-teal is-sm">
                     {dailyMissions.filter((m) => m.is_completed).length}/{dailyMissions.length} Selesai
@@ -688,12 +700,6 @@ export default function DashboardPage() {
                     />
                   </div>
                 </div>
-              </div>
-              <div className="cluv-bento-header-titles">
-                <h2 className="cluv-title-card">Misi Glow Hari Ini</h2>
-                <p className="cluv-caption cluv-text-muted">
-                  Selesaikan misi · Raih AI Credits
-                </p>
               </div>
             </div>
 
@@ -750,20 +756,22 @@ export default function DashboardPage() {
         <section className="cluv-bento-card">
           <div>
             <div className="cluv-bento-header">
-              <div className="cluv-bento-header-top">
+              <div className="cluv-bento-header-icon">
                 <div className="cluv-card-icon-wrap is-sm">
                   <HeartPulse size={18} />
                 </div>
-                <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
-                  <span>Riwayat</span>
-                  <ArrowUpRight size={14} />
-                </button>
               </div>
               <div className="cluv-bento-header-titles">
                 <h2 className="cluv-title-card">Transformasi &amp; Komparasi</h2>
                 <p className="cluv-caption cluv-text-muted">
                   Evaluasi kemajuan skin barrier lintas waktu
                 </p>
+              </div>
+              <div className="cluv-bento-header-action">
+                <button onClick={() => navigate('/scan-history')} className="cluv-btn is-outline is-sm">
+                  <span>Riwayat</span>
+                  <ArrowUpRight size={14} />
+                </button>
               </div>
             </div>
 
@@ -883,7 +891,7 @@ export default function DashboardPage() {
         <section className="cluv-bento-card cluv-circadian-card">
           <div>
             <div className="cluv-bento-header is-inline">
-              <div className="cluv-bento-header-top">
+              <div className="cluv-bento-header-icon">
                 <div className="cluv-card-icon-wrap is-sm is-purple">
                   <Bot size={18} />
                 </div>
