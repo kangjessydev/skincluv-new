@@ -266,3 +266,51 @@
   transform: none !important;
 }
 
+/* =============================================================================
+ * 6. SELECTABLE CHIP / TAG PILL PRIMITIVES (.cluv-chip, .cluv-chip-group)
+ * ============================================================================= */
+.cluv-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.cluv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-field, var(--cluv-radius-md));
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-600));
+  background: var(--cluv-current-card-bg, #ffffff);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.cluv-chip:hover {
+  border-color: var(--cluv-teal-line, #bceae7);
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-chip.is-active,
+.cluv-chip.active {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  border-color: var(--cluv-teal);
+  font-weight: 700;
+  box-shadow: 0 0 0 1px var(--cluv-teal);
+}
+
+.cluv-chip.is-pill {
+  border-radius: var(--cluv-radius-pill, 9999px);
+}
+

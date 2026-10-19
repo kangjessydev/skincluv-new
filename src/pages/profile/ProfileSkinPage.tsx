@@ -181,63 +181,62 @@ export default function ProfileSkinPage() {
   }
 
   return (
-    <div className="v0-profile-page">
-      <div className="v0-profile-form-container">
-        {/* Back link navigation */}
-        <div style={{ marginBottom: 16 }}>
-          <Link to="/profile" className="v0-profile-back-link">
-            <ArrowLeft size={16} />
-            <span>Kembali ke Profil & Pengaturan</span>
-          </Link>
-        </div>
+    <div className="cluv-page cluv-focused-ledger">
+      {/* Back link navigation */}
+      <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
+        <ArrowLeft size={16} />
+        <span>Kembali ke Profil &amp; Pengaturan</span>
+      </Link>
 
-        {/* Header */}
-        <div className="v0-profile-header">
-          <h1>Profil & Preferensi Kulit</h1>
-          <p>Konfigurasikan tipe kulit dan bahan yang ingin kamu hindari untuk mempersonalisasi rekomendasi Skinsistant AI.</p>
-        </div>
+      {/* Header */}
+      <div className="cluv-mb-6">
+        <h1 className="cluv-title-page">Profil &amp; Preferensi Kulit</h1>
+        <p className="cluv-caption cluv-text-muted">Konfigurasikan tipe kulit dan bahan yang ingin kamu hindari untuk mempersonalisasi rekomendasi Skinsistant AI.</p>
+      </div>
 
-        {/* Main card */}
-        <div className="v0-profile-card">
-          {/* Regulatory & Privacy Notice (Invarian 19 & UU PDP No. 27/2022) */}
-          <div className="v0-regulatory-banner">
-            <div className="v0-regulatory-banner-icon">
-            <ShieldCheck size={20} />
-          </div>
-          <div className="v0-regulatory-banner-content">
-            <h4 className="v0-regulatory-title">Deklarasi Preferensi Konsumen Edukatif</h4>
-            <p className="v0-regulatory-desc">
+      {/* Main card */}
+      <div className="cluv-card cluv-flex-col cluv-gap-6">
+        {/* Regulatory & Privacy Notice (Invarian 19 & UU PDP No. 27/2022) */}
+        <div className="cluv-card-note">
+          <ShieldCheck size={20} className="cluv-text-teal" />
+          <div className="cluv-flex-col cluv-gap-1">
+            <h4 className="cluv-body cluv-font-bold cluv-text-teal">Deklarasi Preferensi Konsumen Edukatif</h4>
+            <p className="cluv-caption">
               Data ini adalah preferensi mandiri yang Anda tentukan sendiri sebagai panduan analisis Skinsistant AI. Ini bukan merupakan diagnosis klinis, rekam medis dokter, ataupun resep obat. Anda berhak mengubah preferensi ini kapan saja.
             </p>
           </div>
         </div>
 
         {fetching ? (
-          <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-ink-muted)' }}>
-            Memuat preferensi kulit Anda...
+          <div className="cluv-text-center cluv-py-8 cluv-flex-col cluv-items-center cluv-gap-2">
+            <div className="cluv-spinner cluv-mb-2" />
+            <p className="cluv-caption cluv-text-muted">Memuat preferensi kulit Anda...</p>
           </div>
         ) : (
           <>
             {/* Section 1: Tipe Kulit Utama */}
-            <div className="v0-profile-form-section">
-              <div className="v0-profile-section-heading">
-                <span className="v0-profile-section-icon"><Activity size={16} /></span>
+            <div className="cluv-flex-col cluv-gap-3">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+                <div className="cluv-card-icon-wrap is-sm is-teal">
+                  <Activity size={16} />
+                </div>
                 <div>
-                  <p className="v0-profile-form-section-title">Tipe Kulit Utama</p>
-                  <p className="v0-profile-form-section-sub">Pilih salah satu kondisi dasar wajah yang paling menggambarkan kulitmu saat ini</p>
+                  <h3 className="cluv-body cluv-font-bold">Tipe Kulit Utama</h3>
+                  <p className="cluv-caption cluv-text-muted">Pilih salah satu kondisi dasar wajah yang paling menggambarkan kulitmu saat ini</p>
                 </div>
               </div>
-              <div className="v0-profile-chip-group">
+
+              <div className="cluv-chip-group">
                 {SKIN_TYPES.map((t) => {
                   const isActive = skinType === t.id
                   return (
                     <button
                       key={t.id}
                       type="button"
-                      className={`v0-profile-chip ${isActive ? 'active' : ''}`}
+                      className={`cluv-chip ${isActive ? 'is-active' : ''}`}
                       onClick={() => setSkinType(t.id)}
                     >
-                      {isActive && <Check size={14} className="v0-profile-chip-check" />}
+                      {isActive && <Check size={14} className="cluv-text-teal" />}
                       <span>{t.label}</span>
                     </button>
                   )
@@ -245,26 +244,31 @@ export default function ProfileSkinPage() {
               </div>
             </div>
 
+            <hr className="cluv-divider is-dashed is-compact" />
+
             {/* Section 2: Target Perawatan */}
-            <div className="v0-profile-form-section v0-mt-section-form">
-              <div className="v0-profile-section-heading">
-                <span className="v0-profile-section-icon alert"><AlertCircle size={16} /></span>
+            <div className="cluv-flex-col cluv-gap-3">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+                <div className="cluv-card-icon-wrap is-sm is-rose">
+                  <AlertCircle size={16} />
+                </div>
                 <div>
-                  <p className="v0-profile-form-section-title">Target Perawatan & Masalah Kulit</p>
-                  <p className="v0-profile-form-section-sub">Dapat memilih lebih dari satu target perawatan (multi-select)</p>
+                  <h3 className="cluv-body cluv-font-bold">Target Perawatan &amp; Masalah Kulit</h3>
+                  <p className="cluv-caption cluv-text-muted">Dapat memilih lebih dari satu target perawatan (multi-select)</p>
                 </div>
               </div>
-              <div className="v0-profile-chip-group">
+
+              <div className="cluv-chip-group">
                 {CONCERNS_LIST.map((c) => {
                   const isActive = concerns.includes(c)
                   return (
                     <button
                       key={c}
                       type="button"
-                      className={`v0-profile-chip ${isActive ? 'active' : ''}`}
+                      className={`cluv-chip ${isActive ? 'is-active' : ''}`}
                       onClick={() => handleToggleConcern(c)}
                     >
-                      {isActive && <Check size={14} className="v0-profile-chip-check" />}
+                      {isActive && <Check size={14} className="cluv-text-teal" />}
                       <span>{c}</span>
                     </button>
                   )
@@ -272,30 +276,33 @@ export default function ProfileSkinPage() {
               </div>
             </div>
 
+            <hr className="cluv-divider is-dashed is-compact" />
+
             {/* Section 3: Bahan yang Pernah Bikin Kulit Tidak Nyaman */}
-            <div className="v0-profile-form-section v0-mt-section-form">
-              <div className="v0-profile-section-heading">
-                <span className="v0-profile-section-icon amber">
+            <div className="cluv-flex-col cluv-gap-3">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+                <div className="cluv-card-icon-wrap is-sm is-gold">
                   <ShieldCheck size={16} />
-                </span>
+                </div>
                 <div>
-                  <p className="v0-profile-form-section-title">Bahan yang Pernah Membuat Kulit Tidak Nyaman</p>
-                  <p className="v0-profile-form-section-sub">
+                  <h3 className="cluv-body cluv-font-bold">Bahan yang Pernah Membuat Kulit Tidak Nyaman</h3>
+                  <p className="cluv-caption cluv-text-muted">
                     Skinsistant AI dan fitur Scan Komposisi akan memberikan peringatan otomatis jika mendeteksi bahan ini dalam produk yang Anda pindai
                   </p>
                 </div>
               </div>
-              <div className="v0-profile-chip-group">
+
+              <div className="cluv-chip-group">
                 {SENSITIVITIES_LIST.map((item) => {
                   const isActive = sensitivities.includes(item)
                   return (
                     <button
                       key={item}
                       type="button"
-                      className={`v0-profile-chip ${isActive ? 'active' : ''}`}
+                      className={`cluv-chip ${isActive ? 'is-active' : ''}`}
                       onClick={() => handleToggleSensitivity(item)}
                     >
-                      {isActive && <Check size={14} className="v0-profile-chip-check" />}
+                      {isActive && <Check size={14} className="cluv-text-teal" />}
                       <span>{item}</span>
                     </button>
                   )
@@ -304,28 +311,30 @@ export default function ProfileSkinPage() {
             </div>
 
             {message && (
-              <div className={`v0-profile-message ${isSuccess ? 'success' : 'error'}`}>
-                {isSuccess ? <Check size={16} /> : <AlertCircle size={16} />}
-                <span>{message}</span>
+              <div className={`cluv-alert ${isSuccess ? 'is-success' : 'is-danger'}`}>
+                {isSuccess ? <Check size={16} className="cluv-alert-icon" /> : <AlertCircle size={16} className="cluv-alert-icon" />}
+                <div className="cluv-alert-content">
+                  <p className="cluv-alert-message">{message}</p>
+                </div>
               </div>
             )}
 
-            <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="cluv-flex-col cluv-gap-3 cluv-pt-2">
               <button
-                className="v0-profile-save-btn"
+                type="button"
+                className="cluv-btn is-primary is-lg cluv-w-full"
                 onClick={handleSave}
                 disabled={loading}
               >
                 <Save size={16} />
                 <span>{loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}</span>
               </button>
-              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--color-ink-muted)', margin: 0 }}>
-                <Sparkles size={14} /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot Skincluv.
+              <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5">
+                <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot Skincluv.
               </p>
             </div>
           </>
         )}
-      </div>
       </div>
     </div>
   )
