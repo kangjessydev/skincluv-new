@@ -262,9 +262,9 @@ export default function DashboardPage() {
       </header>
 
       {/* 2. DESKTOP HERO GRID: Observasi Visual Kulit (1.55fr) + Keamanan Komposisi Lab (1fr) */}
-      <div className="cluv-desktop-hero-grid">
+      <div className="cluv-bento-grid is-hero cluv-desktop-hero-section">
         {/* Observasi Visual Kulit */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-bento-card">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -364,7 +364,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Keamanan Komposisi Skincare (Lab) */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-bento-card">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -582,9 +582,9 @@ export default function DashboardPage() {
           3. SHARED SECTIONS: Trend & Rutinitas + Riwayat Scan & Sirkadian
           ===================================================================== */}
       {/* MIDDLE GRID: TREN KULIT (1.55fr) + RUTINITAS AM/PM (1fr) */}
-      <div className="cluv-middle-grid">
+      <div className="cluv-bento-grid is-hero">
         {/* Scan Score Trend Chart — RFC 019 guardrail: ≥3 titik data */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-bento-card">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -668,7 +668,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Misi Glow Hari Ini (Gamifikasi Harian & Rewards) */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-bento-card">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -745,9 +745,9 @@ export default function DashboardPage() {
       </div>
 
       {/* 4. BOTTOM BENTO GRID: Transformasi & Komparasi (1.55fr) + Skinsistant AI Coach (1fr) */}
-      <div className="cluv-bottom-bento-grid">
+      <div className="cluv-bento-grid is-hero">
         {/* Kolom Kiri: Transformasi & Komparasi Klinis */}
-        <section className="cluv-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-bento-card">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -880,7 +880,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Kolom Kanan: Skinsistant AI Smart Briefing */}
-        <section className="cluv-card cluv-circadian-card cluv-flex-col cluv-justify-between">
+        <section className="cluv-bento-card cluv-circadian-card">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -911,22 +911,22 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 1-Tap AI Prompt Chips */}
+            {/* 1-Tap AI Action Tiles */}
             <div className="cluv-mt-5">
               <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Konsultasi AI Instan</span>
-              <div className="cluv-flex-col cluv-gap-3 cluv-mt-3">
+              <div className="cluv-action-tile-group cluv-mt-3">
                 {isNight ? (
                   <>
                     <button
                       onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana urutan layering skincare malam yang aman untuk skin barrier?'))}
-                      className="cluv-prompt-chip"
+                      className="cluv-action-tile"
                     >
                       <span>🌙 Urutan layering produk malam ini?</span>
                       <ChevronRight size={14} />
                     </button>
                     <button
                       onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Apakah aman menggunakan bahan aktif seperti retinol malam ini?'))}
-                      className="cluv-prompt-chip"
+                      className="cluv-action-tile"
                     >
                       <span>💧 Aturan pakai bahan aktif malam?</span>
                       <ChevronRight size={14} />
@@ -936,14 +936,14 @@ export default function DashboardPage() {
                   <>
                     <button
                       onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bagaimana cara re-apply sunscreen yang tepat di siang hari?'))}
-                      className="cluv-prompt-chip"
+                      className="cluv-action-tile"
                     >
                       <span>☀️ Cara re-apply sunscreen siang ini?</span>
                       <ChevronRight size={14} />
                     </button>
                     <button
                       onClick={() => navigate('/chatbot?q=' + encodeURIComponent('Bahan skincare apa yang melindungi kulit dari polusi dan radiasi UV?'))}
-                      className="cluv-prompt-chip"
+                      className="cluv-action-tile"
                     >
                       <span>🛡️ Proteksi antioksidan di siang hari?</span>
                       <ChevronRight size={14} />

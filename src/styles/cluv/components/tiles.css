@@ -1,0 +1,104 @@
+/* src/styles/cluv/components/tiles.css
+   =============================================================================
+   Skincluv Universal Action Tiles (.cluv-action-tile, .cluv-action-tile-group)
+   =============================================================================
+   Interactive row tiles for 1-tap AI prompts, quick settings, and menu options.
+*/
+
+/* 1. Action Tile Group */
+.cluv-action-tile-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 2. Action Tile */
+.cluv-action-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--cluv-neutral-50, #f8fafc);
+  border: 1.5px solid var(--cluv-teal-line, #bceae7);
+  border-radius: var(--cluv-radius-lg, 16px);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark, #127a75);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.cluv-action-tile:hover {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal, #1f9d97);
+  color: var(--cluv-teal-dark, #127a75);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(18, 122, 117, 0.1);
+}
+
+.cluv-action-tile svg {
+  color: var(--cluv-teal, #1f9d97);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.cluv-action-tile:hover svg {
+  transform: translateX(3px);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+/* Modifiers */
+.cluv-action-tile.is-purple {
+  background: var(--cluv-purple-soft, #faf5ff);
+  border-color: var(--cluv-purple-line, #e9d5ff);
+  color: var(--cluv-purple, #8b5cf6);
+}
+
+.cluv-action-tile.is-purple svg {
+  color: var(--cluv-purple, #8b5cf6);
+}
+
+.cluv-action-tile.is-purple:hover {
+  background: #f3e8ff;
+  border-color: var(--cluv-purple, #8b5cf6);
+}
+
+.cluv-action-tile.is-gold {
+  background: var(--cluv-gold-soft, #fef8ee);
+  border-color: var(--cluv-gold-line, #fae0b8);
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-action-tile.is-gold svg {
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-action-tile.is-gold:hover {
+  background: #fef3c7;
+  border-color: var(--cluv-gold, #d97706);
+}
+
+.cluv-action-tile.is-slate {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-neutral-200, #e2e8f0);
+  color: var(--cluv-neutral-700, #334155);
+}
+
+.cluv-action-tile.is-slate svg {
+  color: var(--cluv-neutral-400, #94a3b8);
+}
+
+.cluv-action-tile.is-slate:hover {
+  background: #ffffff;
+  border-color: var(--cluv-neutral-300, #cbd5e1);
+  color: var(--cluv-neutral-900, #0f172a);
+}

@@ -1,0 +1,161 @@
+/* src/styles/cluv/components/bento.css
+   =============================================================================
+   Skincluv Universal Bento System (.cluv-bento-grid, .cluv-bento-card)
+   =============================================================================
+   Standardized, responsive multi-column bento layouts and structured cards.
+   Includes slot-based architecture: .cluv-bento-header, .cluv-bento-body, .cluv-bento-footer.
+*/
+
+/* =============================================================================
+ * 1. BENTO GRID CONTAINER (.cluv-bento-grid)
+ * ============================================================================= */
+.cluv-bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Preset Column Modifiers */
+/* 1.1 Hero Bento Split: 60:40 (1.55fr : 1fr) */
+.cluv-bento-grid.is-hero {
+  grid-template-columns: 1.55fr 1fr;
+}
+
+/* 1.2 Equal Bento Split: 50:50 (1fr : 1fr) */
+.cluv-bento-grid.is-equal {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* 1.3 Trio Bento Split: 33:33:33 (1fr : 1fr : 1fr) */
+.cluv-bento-grid.is-trio {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* 1.4 Quad Bento Split: 4 columns */
+.cluv-bento-grid.is-quad {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* 1.5 Full-Width Bento */
+.cluv-bento-grid.is-full {
+  grid-template-columns: 1fr;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+  .cluv-bento-grid.is-hero,
+  .cluv-bento-grid.is-equal,
+  .cluv-bento-grid.is-trio,
+  .cluv-bento-grid.is-quad {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cluv-bento-grid {
+    gap: 14px;
+  }
+}
+
+/* =============================================================================
+ * 2. BENTO CARD CONTAINER (.cluv-bento-card)
+ * ============================================================================= */
+.cluv-bento-card {
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  border-radius: var(--cluv-radius-xl, 24px);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--cluv-shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05));
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modifiers */
+.cluv-bento-card.is-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cluv-shadow-md, 0 6px 16px rgba(15, 23, 42, 0.08));
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-bento-card.is-compact {
+  padding: 16px 20px;
+}
+
+.cluv-bento-card.is-tint-teal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-bento-card.is-tint-purple {
+  background: var(--cluv-purple-soft, #faf5ff);
+  border-color: var(--cluv-purple-line, #e9d5ff);
+}
+
+.cluv-bento-card.is-tint-gold {
+  background: var(--cluv-gold-soft, #fef8ee);
+  border-color: var(--cluv-gold-line, #fae0b8);
+}
+
+@media (max-width: 640px) {
+  .cluv-bento-card {
+    padding: 16px;
+    border-radius: var(--cluv-radius-lg, 16px);
+  }
+}
+
+/* =============================================================================
+ * 3. BENTO ANATOMY SLOTS (.cluv-bento-header, .cluv-bento-body, .cluv-bento-footer)
+ * ============================================================================= */
+.cluv-bento-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  margin-bottom: 16px;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.cluv-bento-header.no-border {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cluv-bento-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cluv-bento-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  margin-top: 20px;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.cluv-bento-footer.no-border {
+  border-top: none;
+  padding-top: 0;
+}
