@@ -417,4 +417,43 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
 </div>
 ```
 
+#### 7. Misi Harian & Gamifikasi (.cluv-missions-layout, .cluv-mission-item)
+```tsx
+<div className="cluv-missions-layout">
+  {/* Kolom Kiri: Saldo & Info (340px) */}
+  <div>
+    <div className="cluv-card is-highlight cluv-mb-4">
+      <div className="cluv-flex-row cluv-items-center cluv-gap-4">
+        <div className="cluv-card-icon-wrap is-lg is-gold"><Coins size={30} /></div>
+        <div>
+          <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Saldo Credits</span>
+          <div className="cluv-title-hero cluv-m-0">25 <span className="cluv-body cluv-font-bold cluv-text-muted">Credits</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Kolom Kanan: Daftar Misi */}
+  <div className="cluv-card">
+    <div className={`cluv-mission-item ${isReady ? 'is-ready' : isClaimed ? 'is-claimed' : ''}`}>
+      <div className="cluv-mission-item-main">
+        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-1">
+          <span className="cluv-badge is-teal is-sm">Harian</span>
+          <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">Scan Wajah Harian</h4>
+        </div>
+        <p className="cluv-micro cluv-text-muted cluv-m-0">Lakukan observasi visual kulit hari ini.</p>
+        <div className="cluv-progress-track cluv-max-w-xs cluv-mt-2">
+          <div className="cluv-progress-bar" style={{ width: '100%' }} />
+        </div>
+      </div>
+      <div className="cluv-mission-item-action">
+        <span className="cluv-font-bold cluv-text-gold">+3 Credits</span>
+        <button type="button" className="cluv-btn is-primary is-sm">Klaim Hadiah</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+
 
