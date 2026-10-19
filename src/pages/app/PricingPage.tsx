@@ -3,7 +3,7 @@
 // Kepatuhan: Invarian 13 (No overclaim), Invarian 18 (Prepaid pricing integrity), Invarian 19 (Non-therapeutic)
 
 import { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Crown, CheckCircle2, Sparkles, ShieldCheck, HeartHandshake, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
