@@ -368,3 +368,29 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
   </button>
 </div>
 ```
+
+#### 5. Riwayat Scan & Timeline Item (.cluv-scan-card & .cluv-score-badge)
+```tsx
+<div className="cluv-scan-card" onClick={handleClick}>
+  <div className="cluv-scan-card-main">
+    <div className="cluv-score-badge is-optimal">
+      <span className="cluv-score-badge-val">85</span>
+      <span className="cluv-score-badge-label">/100</span>
+    </div>
+    <div className="cluv-scan-card-body">
+      <div className="cluv-caption cluv-text-muted cluv-mb-1">Senin, 19 Oktober 2026</div>
+      <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">Analisis Kondisi Kulit</h4>
+      <p className="cluv-micro cluv-text-muted cluv-truncate">Hasil observasi visual barrier kulit...</p>
+      <div className="cluv-chip-group cluv-mt-2">
+        <span className="cluv-chip is-sm">Kombinasi</span>
+        <span className="cluv-chip is-sm">#Pori</span>
+      </div>
+    </div>
+  </div>
+  <div className="cluv-scan-card-action">
+    <span>Buka Rangkuman</span>
+    <ChevronRight size={16} />
+  </div>
+</div>
+```
+

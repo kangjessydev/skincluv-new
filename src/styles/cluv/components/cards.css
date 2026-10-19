@@ -515,4 +515,120 @@
   border-color: var(--cluv-gold-line, #fde68a);
 }
 
+/* =============================================================================
+ * Universal Score Badge Primitive (.cluv-score-badge)
+ * ============================================================================= */
+.cluv-score-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--cluv-radius-md, 12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-weight: 800;
+  text-align: center;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-score-badge.is-optimal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-score-badge.is-caution {
+  background: var(--cluv-gold-soft, #fffbeb);
+  color: var(--cluv-gold, #b45309);
+  border-color: var(--cluv-gold-line, #fde68a);
+}
+
+.cluv-score-badge.is-alert {
+  background: var(--cluv-rose-soft, #fdf2f4);
+  color: var(--cluv-rose, #e11d48);
+  border-color: var(--cluv-rose-line, #fecdd3);
+}
+
+.cluv-score-badge-val {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.cluv-score-badge-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+/* =============================================================================
+ * Universal Scan Item Card (.cluv-scan-card)
+ * ============================================================================= */
+.cluv-scan-card {
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-current-radius-card, var(--cluv-radius-xl, 16px));
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  box-sizing: border-box;
+  width: 100%;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cluv-scan-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cluv-teal, #1f9d97);
+  box-shadow: 0 8px 24px -6px rgba(31, 157, 151, 0.15);
+}
+
+.cluv-scan-card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cluv-scan-card-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.cluv-scan-card-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-teal, #1f9d97);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cluv-scan-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+  .cluv-scan-card-action {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px dashed var(--cluv-current-border, var(--cluv-neutral-200));
+  }
+}
+
+
 

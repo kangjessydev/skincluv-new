@@ -147,28 +147,31 @@ export default function ScanHistoryPage() {
 
 
   return (
-    <div className="v0-page-container skincluv-scan-history-page animate-fade-in">
+    <div className="cluv-page">
       {/* Header Bar */}
-      <div className="page-header-box">
-        <Link to="/" className="back-link-btn">
-          <ArrowLeft size={16} /> Kembali ke Dashboard
+      <div className="cluv-mb-6">
+        <Link to="/" className="cluv-back-link cluv-mb-3">
+          <ArrowLeft size={16} />
+          <span>Kembali ke Dashboard</span>
         </Link>
-        <h1 className="page-title">Skin Journey & Riwayat Analisis</h1>
-        <p className="page-subtitle">
+        <h1 className="cluv-title-page">Skin Journey &amp; Riwayat Analisis</h1>
+        <p className="cluv-caption cluv-text-muted">
           Pantau perkembangan kesehatan kulit dan riwayat verifikasi formula skincare kamu dalam satu tempat.
         </p>
 
         {/* Tab Switcher */}
-        <div className="history-tab-switcher">
+        <div className="cluv-tabs cluv-mt-5">
           <button
-            className={`tab-btn ${activeTab === 'face' ? 'active' : ''}`}
+            type="button"
+            className={`cluv-tab-btn ${activeTab === 'face' ? 'active' : ''}`}
             onClick={() => setActiveTab('face')}
           >
             <ScanFace size={16} />
             <span>Analisis Wajah ({scans.length})</span>
           </button>
           <button
-            className={`tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
+            type="button"
+            className={`cluv-tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
             onClick={() => setActiveTab('ingredient')}
           >
             <FlaskConical size={16} />
@@ -178,73 +181,73 @@ export default function ScanHistoryPage() {
       </div>
 
       {/* Dynamic Statistics Bento Grid */}
-      <div className="history-stats-grid">
+      <div className="cluv-grid cols-3 cluv-gap-4 cluv-mb-6">
         {activeTab === 'face' ? (
           <>
-            <div className="stat-bento-card glass-card">
-              <div className="stat-icon-wrapper bg-sky-light">
-                <ScanFace size={22} className="text-sky-dark" />
+            <div className="cluv-card cluv-flex-row cluv-items-center cluv-gap-4">
+              <div className="cluv-card-icon-wrap is-md is-teal">
+                <ScanFace size={22} />
               </div>
               <div>
-                <span className="stat-label">Total Sesi Scan Wajah</span>
-                <h3 className="stat-value">{totalFaceScans} Kali</h3>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Total Sesi Scan Wajah</span>
+                <h3 className="cluv-title-card cluv-m-0">{totalFaceScans} Kali</h3>
               </div>
             </div>
 
-            <div className="stat-bento-card glass-card">
-              <div className="stat-icon-wrapper bg-emerald-light">
-                <Award size={22} className="text-emerald-dark" />
+            <div className="cluv-card cluv-flex-row cluv-items-center cluv-gap-4">
+              <div className="cluv-card-icon-wrap is-md is-gold">
+                <Award size={22} />
               </div>
               <div>
-                <span className="stat-label">Rata-rata Skor Kulit</span>
-                <h3 className="stat-value">{avgFaceScore}/100</h3>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Rata-rata Skor Kulit</span>
+                <h3 className="cluv-title-card cluv-m-0">{avgFaceScore}/100</h3>
               </div>
             </div>
 
-            <div className="stat-bento-card glass-card">
-              <div className="stat-icon-wrapper bg-indigo-light">
-                <TrendingUp size={22} className="text-indigo-dark" />
+            <div className="cluv-card cluv-flex-row cluv-items-center cluv-gap-4">
+              <div className="cluv-card-icon-wrap is-md is-blue">
+                <TrendingUp size={22} />
               </div>
               <div>
-                <span className="stat-label">Tren Sesi Terakhir</span>
-                <h3 className="stat-value">
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Tren Sesi Terakhir</span>
+                <h3 className="cluv-title-card cluv-m-0">
                   {faceScoreDiff >= 0 ? `+${faceScoreDiff}` : faceScoreDiff} Poin
-                  <span className="stat-subtext"> {faceScoreDiff >= 0 ? 'Meningkat' : 'Perlu Perhatian'}</span>
+                  <span className="cluv-caption cluv-font-normal cluv-text-muted"> {faceScoreDiff >= 0 ? 'Meningkat' : 'Perlu Perhatian'}</span>
                 </h3>
               </div>
             </div>
           </>
         ) : (
           <>
-            <div className="stat-bento-card glass-card">
-              <div className="stat-icon-wrapper bg-emerald-light">
-                <FlaskConical size={22} className="text-emerald-dark" />
+            <div className="cluv-card cluv-flex-row cluv-items-center cluv-gap-4">
+              <div className="cluv-card-icon-wrap is-md is-teal">
+                <FlaskConical size={22} />
               </div>
               <div>
-                <span className="stat-label">Total Produk Diperiksa</span>
-                <h3 className="stat-value">{totalIngScans} Produk</h3>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Total Produk Diperiksa</span>
+                <h3 className="cluv-title-card cluv-m-0">{totalIngScans} Produk</h3>
               </div>
             </div>
 
-            <div className="stat-bento-card glass-card">
-              <div className="stat-icon-wrapper bg-sky-light">
-                <ShieldCheck size={22} className="text-sky-dark" />
+            <div className="cluv-card cluv-flex-row cluv-items-center cluv-gap-4">
+              <div className="cluv-card-icon-wrap is-md is-blue">
+                <ShieldCheck size={22} />
               </div>
               <div>
-                <span className="stat-label">Rata-rata Safety Score</span>
-                <h3 className="stat-value">{avgSafetyScore}/100</h3>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Rata-rata Safety Score</span>
+                <h3 className="cluv-title-card cluv-m-0">{avgSafetyScore}/100</h3>
               </div>
             </div>
 
-            <div className="stat-bento-card glass-card">
-              <div className="stat-icon-wrapper bg-indigo-light">
-                <CheckCircle2 size={22} className="text-indigo-dark" />
+            <div className="cluv-card cluv-flex-row cluv-items-center cluv-gap-4">
+              <div className="cluv-card-icon-wrap is-md is-gold">
+                <CheckCircle2 size={22} />
               </div>
               <div>
-                <span className="stat-label">Formula Terverifikasi Aman</span>
-                <h3 className="stat-value">
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Formula Terverifikasi Aman</span>
+                <h3 className="cluv-title-card cluv-m-0">
                   {safeProductsCount} Produk
-                  <span className="stat-subtext"> Bebas Toksin</span>
+                  <span className="cluv-caption cluv-font-normal cluv-text-muted"> Bebas Toksin</span>
                 </h3>
               </div>
             </div>
@@ -254,26 +257,31 @@ export default function ScanHistoryPage() {
 
       {/* Main Content Area */}
       {loading ? (
-        <div className="loading-state glass-card">
-          <RefreshCw size={28} className="animate-spin text-brand" />
-          <p>Memuat rekam jejak riwayat...</p>
+        <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+          <RefreshCw size={28} className="cluv-text-teal animate-spin cluv-mx-auto cluv-mb-3" />
+          <p className="cluv-body cluv-text-muted cluv-m-0">Memuat rekam jejak riwayat...</p>
         </div>
       ) : activeTab === 'face' ? (
         /* TAB 1: FACE SCANS LIST */
         scans.length === 0 ? (
-          <div className="empty-history-card glass-card">
-            <ScanFace size={54} className="empty-icon" />
-            <h3>Belum Ada Riwayat Scan Wajah</h3>
-            <p>Kamu belum melakukan scan wajah. Mulai scan sekarang untuk melacak kesehatan kulitmu secara berkala!</p>
-            <Link to="/face-scan" className="btn-primary-gradient mt-md">
-              <Sparkles size={16} /> Mulai Face Scan Pertama
+          <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+            <div className="cluv-card-icon-wrap is-xl cluv-mx-auto cluv-mb-4 is-teal">
+              <ScanFace size={36} />
+            </div>
+            <h3 className="cluv-title-card cluv-mb-2">Belum Ada Riwayat Scan Wajah</h3>
+            <p className="cluv-body cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-mb-5">
+              Kamu belum melakukan scan wajah. Mulai scan sekarang untuk melacak kesehatan kulitmu secara berkala!
+            </p>
+            <Link to="/face-scan" className="cluv-btn is-primary is-md">
+              <Sparkles size={16} />
+              <span>Mulai Face Scan Pertama</span>
             </Link>
           </div>
         ) : (
-          <div className="history-timeline-section">
-            <h2 className="section-title">Timeline Scan Wajah Klinis</h2>
+          <div className="cluv-mb-6">
+            <h2 className="cluv-title-card cluv-mb-4">Timeline Analisis Wajah</h2>
 
-            <div className="scan-cards-container">
+            <div className="cluv-flex-col cluv-gap-3">
               {scans.map((scan, idx) => {
                 const dateObj = new Date(scan.created_at)
                 const formattedDate = dateObj.toLocaleDateString('id-ID', {
@@ -286,41 +294,45 @@ export default function ScanHistoryPage() {
                   hour: '2-digit',
                   minute: '2-digit',
                 })
-                const isOptimal = (scan.overall_score || 0) >= 80
-                const isCaution = (scan.overall_score || 0) >= 65 && (scan.overall_score || 0) < 80
+                const score = scan.overall_score || 0
+                const isOptimal = score >= 80
+                const isCaution = score >= 65 && score < 80
 
                 return (
                   <div
                     key={scan.id}
-                    className="scan-history-card glass-card"
+                    className="cluv-scan-card"
                     onClick={() => setSelectedScan(scan)}
                   >
-                    <div className="scan-card-left">
-                      <div className={`score-badge-circle ${isOptimal ? 'optimal' : isCaution ? 'caution' : 'warning'}`}>
-                        <span className="score-num">{scan.overall_score}</span>
-                        <span className="score-unit">/100</span>
+                    <div className="cluv-scan-card-main">
+                      <div className={`cluv-score-badge ${isOptimal ? 'is-optimal' : isCaution ? 'is-caution' : 'is-alert'}`}>
+                        <span className="cluv-score-badge-val">{score}</span>
+                        <span className="cluv-score-badge-label">/100</span>
                       </div>
 
-                      <div className="scan-info">
-                        <div className="scan-date-badge">
-                          <Calendar size={13} /> {formattedDate} • {formattedTime} {idx === 0 && <span className="latest-pill">Terbaru</span>}
+                      <div className="cluv-scan-card-body">
+                        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
+                          <Calendar size={13} />
+                          <span>{formattedDate} • {formattedTime}</span>
+                          {idx === 0 && <span className="cluv-badge is-teal is-sm">Terbaru</span>}
                         </div>
-                        <h4 className="scan-title">{scan.skin_status_title || 'Analisis Kondisi Kulit'}</h4>
-                        <p className="scan-desc-preview">{scan.analysis_notes || 'Hasil pemetaan kondisi kulit menyeluruh.'}</p>
+                        <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{scan.skin_status_title || 'Analisis Kondisi Kulit'}</h4>
+                        <p className="cluv-micro cluv-text-muted cluv-truncate cluv-mt-1 cluv-mb-2">
+                          {scan.analysis_notes || 'Hasil pemetaan kondisi kulit menyeluruh.'}
+                        </p>
 
-                        <div className="scan-tags-row">
-                          <span className="type-tag">Tipe: {scan.skin_type?.toUpperCase()}</span>
+                        <div className="cluv-chip-group">
+                          <span className="cluv-chip is-sm">Tipe: {scan.skin_type?.toUpperCase()}</span>
                           {Array.isArray(scan.skin_concerns) && scan.skin_concerns.slice(0, 3).map((c, i) => (
-                            <span key={i} className="concern-tag">#{c}</span>
+                            <span key={i} className="cluv-chip is-sm">#{c}</span>
                           ))}
                         </div>
                       </div>
                     </div>
 
-                    <div className="scan-card-action">
-                      <span className="view-detail-hint">
-                        Buka Laporan Medis <ChevronRight size={16} />
-                      </span>
+                    <div className="cluv-scan-card-action">
+                      <span>Buka Rangkuman Analisis</span>
+                      <ChevronRight size={16} />
                     </div>
                   </div>
                 )
@@ -331,19 +343,24 @@ export default function ScanHistoryPage() {
       ) : (
         /* TAB 2: INGREDIENT SCANS LIST */
         ingredientScans.length === 0 ? (
-          <div className="empty-history-card glass-card">
-            <FlaskConical size={54} className="empty-icon text-emerald-dark" />
-            <h3>Belum Ada Riwayat Scan Produk</h3>
-            <p>Periksa keamanan komposisi pembersih, toner, atau serum harianmu untuk memastikan bebas bahan berbahaya.</p>
-            <Link to="/ingredient-scan" className="btn-primary-gradient mt-md">
-              <FlaskConical size={16} /> Scan Komposisi Produk Pertama
+          <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+            <div className="cluv-card-icon-wrap is-xl cluv-mx-auto cluv-mb-4 is-teal">
+              <FlaskConical size={36} />
+            </div>
+            <h3 className="cluv-title-card cluv-mb-2">Belum Ada Riwayat Scan Produk</h3>
+            <p className="cluv-body cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-mb-5">
+              Periksa keamanan komposisi pembersih, toner, atau serum harianmu untuk memastikan bebas bahan berbahaya.
+            </p>
+            <Link to="/ingredient-scan" className="cluv-btn is-primary is-md">
+              <FlaskConical size={16} />
+              <span>Scan Komposisi Produk Pertama</span>
             </Link>
           </div>
         ) : (
-          <div className="history-timeline-section">
-            <h2 className="section-title">Daftar Produk yang Pernah Dianalisis</h2>
+          <div className="cluv-mb-6">
+            <h2 className="cluv-title-card cluv-mb-4">Daftar Produk yang Pernah Dianalisis</h2>
 
-            <div className="scan-cards-container">
+            <div className="cluv-flex-col cluv-gap-3">
               {ingredientScans.map((ing, idx) => {
                 const dateObj = new Date(ing.created_at)
                 const formattedDate = dateObj.toLocaleDateString('id-ID', {
@@ -357,31 +374,33 @@ export default function ScanHistoryPage() {
                 return (
                   <div
                     key={ing.id}
-                    className="scan-history-card glass-card"
+                    className="cluv-scan-card"
                     onClick={() => setSelectedIngredientScan(ing)}
                   >
-                    <div className="scan-card-left">
-                      <div className={`score-badge-circle ${isSafe ? 'optimal' : 'warning'}`}>
-                        <span className="score-num">{score}</span>
-                        <span className="score-unit">Safety</span>
+                    <div className="cluv-scan-card-main">
+                      <div className={`cluv-score-badge ${isSafe ? 'is-optimal' : 'is-alert'}`}>
+                        <span className="cluv-score-badge-val">{score}</span>
+                        <span className="cluv-score-badge-label">Safety</span>
                       </div>
 
-                      <div className="scan-info">
-                        <div className="scan-date-badge">
-                          <Calendar size={13} /> {formattedDate} {idx === 0 && <span className="latest-pill">Terbaru</span>}
+                      <div className="cluv-scan-card-body">
+                        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
+                          <Calendar size={13} />
+                          <span>{formattedDate}</span>
+                          {idx === 0 && <span className="cluv-badge is-teal is-sm">Terbaru</span>}
                         </div>
-                        <h4 className="scan-title">{ing.product_name}</h4>
-                        <p className="scan-desc-preview">
+                        <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{ing.product_name}</h4>
+                        <p className="cluv-micro cluv-text-muted cluv-truncate cluv-mt-1 cluv-mb-2">
                           {ing.brand ? `Brand: ${ing.brand} • ` : ''}
                           {isSafe ? 'Formula terverifikasi aman & minim resiko iritasi.' : 'Formula memiliki bahan yang perlu diperhatikan.'}
                         </p>
 
-                        <div className="scan-tags-row">
-                          <span className={`status-pill-badge ${isSafe ? 'safe' : 'caution'}`}>
+                        <div className="cluv-chip-group">
+                          <span className={`cluv-badge is-sm ${isSafe ? 'is-teal' : 'is-rose'}`}>
                             {isSafe ? 'Formula Sangat Baik' : 'Perlu Perhatian'}
                           </span>
                           {Array.isArray(ing.key_ingredients) && ing.key_ingredients.slice(0, 3).map((k, i) => (
-                            <span key={i} className="concern-tag">
+                            <span key={i} className="cluv-chip is-sm">
                               {typeof k === 'string' ? k : (k as any)?.name}
                             </span>
                           ))}
@@ -389,10 +408,9 @@ export default function ScanHistoryPage() {
                       </div>
                     </div>
 
-                    <div className="scan-card-action">
-                      <span className="view-detail-hint">
-                        Buka Audit Formula <ChevronRight size={16} />
-                      </span>
+                    <div className="cluv-scan-card-action">
+                      <span>Buka Evaluasi Formula</span>
+                      <ChevronRight size={16} />
                     </div>
                   </div>
                 )
