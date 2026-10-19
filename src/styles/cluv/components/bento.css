@@ -119,8 +119,8 @@
  * ============================================================================= */
 .cluv-bento-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
   padding-bottom: 16px;
   border-bottom: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
   margin-bottom: 16px;
@@ -132,6 +132,24 @@
 .cluv-bento-header.no-border {
   border-bottom: none;
   padding-bottom: 0;
+  margin-bottom: 12px;
+}
+
+.cluv-bento-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cluv-bento-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .cluv-bento-body {
@@ -158,4 +176,117 @@
 .cluv-bento-footer.no-border {
   border-top: none;
   padding-top: 0;
+  margin-top: 12px;
 }
+
+/* =============================================================================
+ * 4. UNIVERSAL COMPARISON BOX (.cluv-compare-box)
+ * ============================================================================= */
+.cluv-compare-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 16px;
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-radius: var(--cluv-radius-lg, 16px);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.cluv-compare-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-compare-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cluv-neutral-500, #64748b);
+  white-space: nowrap;
+}
+
+.cluv-compare-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-400, #94a3b8);
+}
+
+.cluv-compare-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.cluv-compare-note {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-500, #64748b);
+  text-align: center;
+  max-width: 120px;
+  line-height: 1.3;
+}
+
+.cluv-delta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cluv-delta-pill.is-positive {
+  background: #dcfce7;
+  border: 1.5px solid #bbf7d0;
+  color: #166534;
+}
+
+.cluv-delta-pill.is-neutral {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border: 1.5px solid var(--cluv-teal-line, #bceae7);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-delta-pill.is-attention {
+  background: #fef3c7;
+  border: 1.5px solid #fde68a;
+  color: #92400e;
+}
+
+@media (max-width: 640px) {
+  .cluv-compare-box {
+    padding: 14px 10px;
+    gap: 8px;
+  }
+
+  .cluv-compare-label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+  }
+
+  .cluv-compare-note {
+    font-size: 0.625rem;
+    max-width: 90px;
+  }
+
+  .cluv-delta-pill {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+}
+
