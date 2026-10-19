@@ -380,6 +380,25 @@ Teks penenang di bawah tombol CTA (seperti `Gratis Pendaftaran • Tanpa Kartu K
 - **Dividers**: `.cluv-divider` & `.cluv-divider.has-text`
 - **Dialogs**: `.cluv-modal-overlay` & `.cluv-modal-box`
 
+---
+
+### 5.13 Hukum Mutlak Styling & Framework Integrity (The 3 Golden Invariants)
+
+> **Latar Belakang & Doktrin**: Insiden regresi berulang di halaman aplikasi (`src/pages/app/`) disebabkan oleh kebiasaan buruk membuat class CSS baru ad-hoc per-halaman di `dashboard.css` (hingga 900+ baris) atau sekadar mengganti nama class lama tanpa merombak visualnya. Doktrin di bawah ini mengikat seluruh AI Council (Antigravity, Claude, ChatGPT, DeepSeek, Kimi):
+
+#### 1. Tiga Larangan Emas (The 3 Golden Rules)
+1. **TIDAK BOLEH PAKE STYLE LAMA**: Dilarang keras mempertahankan gaya visual, tata letak kusam, border tebal kaku, atau display lama peninggalan v0. Seluruh elemen wajib bermutasi menjadi desain Cluv murni (`#ffffff` surface, border 1.5px crisp, radius membulat elegan, icon wrap pastel).
+2. **TIDAK BOLEH ASAL UBAH / BIKIN NAMA KELAS**: Dilarang keras membuat class CSS ad-hoc per-halaman di `src/styles/cluv/app/*.css` untuk sesuatu yang seharusnya menjadi Utility atau Component universal. Dilarang sekadar me-rename `v0-*` menjadi `cluv-*` tanpa menyelaraskan CSS-nya.
+3. **WAJIB DISKUSI KELAS YG SUDAH ADA MAUPUN YG BELUM ADA DAN AKAN DIGUNAKAN**:
+   - AI wajib mengecek cheatsheet Cluv FW (`docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md`) sebelum menyentuh kode.
+   - Jika membutuhkan komponen/layout yang belum ada di framework: **WAJIB DISKUSIKAN TERLEBIH DAHULU DENGAN USER**. Rumuskan lego-nya (nama class, slot, modifier), lalu bangun di `src/styles/cluv/components/`, BUKAN di CSS lokal halaman!
+
+#### 2. Pemisahan Tegas Utility vs Component
+- **Utility**: Atomik (1-2 properti untuk suntik instan di JSX tanpa bikin CSS baru): `.cluv-flex`, `.cluv-flex-col`, `.cluv-flex-row`, `.cluv-items-center`, `.cluv-justify-between`, `.cluv-gap-2`, `.cluv-gap-3`, `.cluv-gap-4`, `.cluv-mt-4`, `.cluv-text-center`, `.cluv-w-full`.
+- **Component**: Entitas berstruktur dengan pola **Base Class + Modifier `.is-*`**: `.cluv-btn.is-primary`, `.cluv-bento-grid.is-hero`, `.cluv-bento-card`, `.cluv-badge.is-teal`, `.cluv-action-tile`.
+- **Doktrin Zero-Page-CSS**: File CSS halaman (`dashboard.css`, dll) dilarang mendefinisikan layout grid, card, button, atau badge baru. Halaman aplikasi wajib dibangun dari komposisi lego Cluv Framework.
+
+
 
 
 

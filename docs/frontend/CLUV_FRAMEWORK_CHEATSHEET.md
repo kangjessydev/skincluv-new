@@ -4,16 +4,28 @@
 
 ---
 
-## 1. Tiga Aturan Mutlak (AI Invariants)
+## 1. Tiga Doktrin Mutlak (The 3 Golden Invariants)
 
+> 🔴 **1. TIDAK BOLEH PAKE STYLE LAMA**:  
+> Dilarang keras mempertahankan gaya visual, tata letak kusam, border tebal kaku, atau display lama peninggalan v0. Seluruh elemen wajib bermutasi menjadi desain Cluv murni (`#ffffff` surface, border 1.5px crisp, radius membulat elegan, icon wrap pastel).
+>
+> 🔴 **2. TIDAK BOLEH ASAL UBAH / BIKIN NAMA KELAS**:  
+> Dilarang keras membuat class CSS ad-hoc per-halaman di `src/styles/cluv/app/*.css` untuk sesuatu yang seharusnya menjadi Utility atau Component universal. Dilarang sekadar me-rename `v0-*` menjadi `cluv-*` tanpa menyelaraskan CSS-nya.
+>
+> 🔴 **3. WAJIB DISKUSI KELAS YG SUDAH ADA MAUPUN YG BELUM ADA DAN AKAN DIGUNAKAN**:  
+> Sebelum menyentuh kode CSS atau JSX:
+> - Cek tabel Quick Lookup di bawah ini sebelum membuat class baru.
+> - Jika membutuhkan komponen/layout yang belum ada di framework: **WAJIB DISKUSIKAN TERLEBIH DAHULU DENGAN USER**. Rumuskan lego-nya (nama class, slot, modifier), lalu bangun di `src/styles/cluv/components/`, BUKAN di CSS lokal halaman!
+
+### Aturan Arsitektur Tambahan
 1. **Prefix Wajib**: Komponen universal SELALU berawalan `.cluv-`. Dilarang membuat class baru dengan nama halaman (misal: `.faq-card`, `.login-btn`).
 2. **Larangan Class Telanjang**: DILARANG memakai kata telanjang seperti `sm`, `primary`, atau `admin`. Wajib gunakan modifier **`is-*`** (contoh: `.is-primary`, `.is-sm`, `.is-pill`).
 3. **Contextual Cascade**: Jangan mengetik `.is-admin` di setiap elemen admin. Cukup bungkus halaman di `.cluv-surface-admin`, semua komponen otomatis berpenampilan admin.
 4. **Hukum Komponen Mandiri (Zero Outer Margin)**: Komponen (`.cluv-card`, `.cluv-btn`, `.cluv-badge`, `.cluv-alert`) **DILARANG** memiliki margin luar bawaan (`margin: 0`) dan **DILARANG** ditimpa utility padding (misal: `<div className="cluv-card cluv-p-6">` dilarang keras! Gunakan padding responsif bawaan kartu atau modifier `.is-compact`).
 5. **Separation of Spacing (Makro vs Mikro)**: Jarak vertikal babak halaman 100% diatur oleh `.cluv-section` (`clamp(40px, 5vw, 64px) 0`). Wrapper halaman root DILARANG memiliki `padding-bottom` tambahan. Utilitas spacing (`.cluv-mt-*`, `.cluv-mb-*`) HANYA boleh dipakai untuk ritme mikro teks/tombol saudara di dalam kontainer.
-6. **Aturan Pasangan Judul (Title Pairing Rule)**:
-   - Di bawah H1 (`.cluv-title-hero`) **SELALU** gunakan `.cluv-lead` (18px–20px) sebagai kalimat pembuka utama yang berwibawa agar tidak jomplang dari ukuran H1.
-   - Di bawah H2 (`.cluv-title-section`) **SELALU** gunakan `.cluv-subtitle` (15px–16px) sebagai keterangan pendukung seksi yang ringkas dan santun.
+6. **Pemisahan Tegas Utility vs Component**:
+   - **Utility**: Atomik (1-2 properti untuk suntik instan di JSX): `.cluv-flex`, `.cluv-flex-col`, `.cluv-gap-3`, `.cluv-mt-4`, `.cluv-text-center`, `.cluv-w-full`.
+   - **Component**: Wadah terstruktur dengan base class + modifier `.is-*`: `.cluv-btn.is-primary`, `.cluv-card`, `.cluv-bento-grid.is-hero`, `.cluv-bento-card`, `.cluv-badge.is-teal`.
 
 ---
 

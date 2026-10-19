@@ -23,15 +23,32 @@ Dokumen skill ini adalah **sumber kebenaran tunggal (Single Source of Truth)** d
 4. **Strict Frontend Boundary**:
    - Frontend HANYA mengurus antarmuka, UX, interaksi, dan konsumsi API.
    - **Dilarang keras menyentuh backend** (SQL migration, Supabase schema, Edge Functions). Semua kebutuhan data/API baru dicatat di `kerja hari ini/changelog.md` untuk dikerjakan oleh tim backend.
-5. **Anti-Renaming Illusion (DILARANG HANYA GANTI NAMA PREFIX)**:
-   - **DILARANG KERAS** sekadar me-rename selector CSS lama (misal: `v0-card` -> `cluv-card`, `v0-recent-scan-*` -> `cluv-recent-scan-*`) sementara aturan CSS di baliknya masih memakai style lama yang kusam/kaku!
-   - Setiap elemen yang dimigrasikan ke Cluv **WAJIB bermutasi menjadi desain Cluv yang sesungguhnya**:
-     - Memakai primitive resmi Cluv (`src/styles/cluv/components/cards.css`, `checklist.css`, `stats.css`, dll).
-     - Permukaan bersih `#ffffff` tanpa gradien aneh vertikal peninggalan v0.
-     - Border 1.5px crisp `var(--cluv-neutral-200)` dengan hover soft aqua line `var(--cluv-teal-line)`.
-     - Ikon Lucide dibungkus wadah resmi `.cluv-card-icon-wrap` (pastel wash: teal, blue, gold, purple).
-     - Radius membulat elegan `var(--cluv-radius-lg, 16px)` hingga `var(--cluv-radius-xl, 20px)`.
-     - Seluruh baris CSS warisan v0 lama yang sudah tidak terpakai wajib dihapus bersih!
+5. **TIGA DOKTRIN MUTLAK CLUV FRAMEWORK (THE 3 GOLDEN INVARIANTS)**:
+   > 🔴 **1. TIDAK BOLEH PAKE STYLE LAMA**:  
+   > Dilarang keras mempertahankan gaya visual, tata letak kusam, border abu-abu tebal, atau display lama peninggalan v0. Seluruh elemen wajib bermutasi menjadi standar Cluv murni (surface bersih, border 1.5px crisp, radius membulat elegan, icon wrap pastel).
+   >
+   > 🔴 **2. TIDAK BOLEH ASAL UBAH / BIKIN NAMA KELAS**:  
+   > Dilarang keras membuat class CSS ad-hoc per-halaman di `src/styles/cluv/app/*.css` untuk sesuatu yang seharusnya menjadi Utility atau Component universal. Dilarang sekadar me-rename prefix `v0-*` menjadi `cluv-*` tanpa merombak strukturnya menjadi lego Cluv.
+   >
+   > 🔴 **3. WAJIB DISKUSI KELAS YG SUDAH ADA MAUPUN YG BELUM ADA DAN AKAN DIGUNAKAN**:  
+   > Sebelum menyentuh kode CSS atau JSX:
+   > - Cek terlebih dahulu class yang sudah ada di Cluv Framework (`CLUV_FRAMEWORK_CHEATSHEET.md`).
+   > - Jika ada class yang belum ada di framework: **WAJIB DISKUSIKAN TERLEBIH DAHULU DENGAN USER**. Rumuskan apakah dijadikan generic component atau modifier `.is-*`, lalu bangun di dalam framework (`src/styles/cluv/components/`), bukan di CSS halaman!
+
+6. **Pemisahan Tegas: Utility Component vs CSS Component**:
+   - **Utility Component (Atomic Class)**:
+     - Sifat: Alat suntik seketika (1–2 properti spesifik), composable, langsung disuntikkan di JSX tanpa membuat baris CSS baru.
+     - Contoh: `.cluv-flex`, `.cluv-flex-col`, `.cluv-flex-row`, `.cluv-items-center`, `.cluv-justify-between`, `.cluv-justify-center`, `.cluv-gap-3`, `.cluv-mt-4`, `.cluv-text-center`, `.cluv-w-full`.
+     - *Pantangan*: Dilarang membuat class komponen palsu yang isinya cuma sekadar flex/margin/padding!
+   - **CSS Component (Lego Blok Berstruktur)**:
+     - Sifat: Wadah multi-properti (border, radius, shadow, hover, internal padding) yang membentuk entitas UI utuh.
+     - Pola Baku: **Base Class** + **Modifier `.is-*`**:
+       - Tombol: `.cluv-btn` + `.is-primary`, `.is-secondary`, `.is-outline`, `.is-sm`
+       - Badge: `.cluv-badge` + `.is-teal`, `.is-gold`, `.is-sm`
+       - Grid Bento: `.cluv-bento-grid` + `.is-hero`, `.is-equal`, `.is-trio`
+       - Kartu Bento: `.cluv-bento-card` + slot (`.cluv-bento-header`, `.cluv-bento-body`, `.cluv-bento-footer`)
+       - Action Tile: `.cluv-action-tile` + `.is-interactive`
+     - *Pantangan*: Dilarang merangkai 20 utility manual berulang-ulang jika bentuk tersebut sudah memiliki padanan komponen resmi!
 
 ---
 
@@ -42,7 +59,9 @@ Berdasarkan kesepakatan bersama user, styling di Skincluv dibagi menjadi 2 kateg
 ### A. Generic Cluv Styles (`src/styles/cluv/components/`)
 Komponen universal yang dipakai berulang di banyak halaman:
 - `.cluv-btn` (tombol universal dengan modifier `.is-primary`, `.is-secondary`, `.is-outline`, `.is-ghost`, `.is-sm`, dll).
-- `.cluv-card` (kartu kanonikal dengan padding fluida, soft shadow, hover lift).
+- `.cluv-card` & `.cluv-bento-card` (kartu kanonikal & kartu bento dengan padding terstandarisasi, soft shadow, hover lift).
+- `.cluv-bento-grid` (grid bento responsif dengan preset rasio `.is-hero`, `.is-equal`, `.is-trio`).
+- `.cluv-action-tile` (row kartu interaktif/prompt AI 1-tap dengan panah dan hover lift).
 - `.cluv-badge` (label kapsul status `.is-teal`, `.is-gold`, `.is-rose`, `.is-slate`, `.is-sm`).
 - `.cluv-alert` (notifikasi sistem `.is-warning`, `.is-danger`, `.is-info`).
 - `.cluv-stat-card` & `.cluv-stat-grid` (kartu ringkasan metrik angka).
@@ -60,7 +79,8 @@ Style khusus yang **sah dan dilegalkan** jika hanya tampil khusus pada fitur ata
 > ⚠️ **JANGAN ASAL BIKIN KODE ATAU NEBAK SENDIRI!**  
 > Jika menemukan kebutuhan visual yang belum terwadahi di generic Cluv:
 > 1. **Diskusikan terlebih dahulu dengan user**: jelaskan opsi desain dan tanyakan apakah ingin dijadikan generic atau eksklusif.
-> 2. **Jika disepakati masuk Cluv FW**: rumuskan spesifikasi class dan utility-nya bersama user sebelum mengimplementasikannya.
+> 2. **Jika disepakati masuk Cluv FW**: rumuskan spesifikasi class dan utility-nya bersama user sebelum mengimplementasikannya ke `src/styles/cluv/components/`.
+> 3. **Dilarang menuliskan komponen baru di CSS halaman (`dashboard.css`, dll)**.
 
 ---
 
