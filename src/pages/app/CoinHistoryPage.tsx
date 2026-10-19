@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Coins, ArrowDownLeft, ArrowUpRight, Filter } from 'lucide-react'
+import { ArrowLeft, Coins, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -58,99 +58,116 @@ export default function CoinHistoryPage() {
   })
 
   return (
-    <div className="v0-page-container animate-fade-in">
-      <div className="v0-profile-form-container">
+    <div className="cluv-page cluv-focused-ledger">
+      {/* Back to Billing Link */}
+      <button
+        type="button"
+        className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3"
+        onClick={() => navigate('/profile/billing')}
+      >
+        <ArrowLeft size={16} /> Kembali ke Billing & Langganan
+      </button>
+
+      {/* Header */}
+      <div className="cluv-mb-6">
+        <h1 className="cluv-title-page">Riwayat Mutasi Credits</h1>
+        <p className="cluv-caption cluv-text-muted">Rincian perolehan dan penggunaan AI Credits Skincluv kamu.</p>
+      </div>
+
+      {/* Coin Balance Banner Card */}
+      <div className="cluv-card cluv-mb-6 cluv-flex-between cluv-flex-wrap cluv-gap-4">
+        <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+          <div className="cluv-card-icon-wrap is-sm is-gold">
+            <Coins size={20} />
+          </div>
+          <div className="cluv-flex-col">
+            <span className="cluv-caption cluv-text-muted">Total Saldo Credits</span>
+            <span className="cluv-title-card cluv-font-bold cluv-text-gold">
+              {coinBalance?.balance ?? 0} Credits
+            </span>
+          </div>
+        </div>
+        <Link to="/missions" className="cluv-btn is-outline is-sm">
+          + Dapatkan Credits
+        </Link>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="cluv-tabs">
         <button
           type="button"
-          className="v0-back-link"
-          onClick={() => navigate('/profile/billing')}
+          className={`cluv-tab-btn ${filter === 'ALL' ? 'is-active' : ''}`}
+          onClick={() => setFilter('ALL')}
         >
-          <ArrowLeft size={16} /> Kembali ke Billing & Langganan
+          <span>Semua</span>
+          <span className="cluv-tab-badge">{transactions.length}</span>
         </button>
+        <button
+          type="button"
+          className={`cluv-tab-btn ${filter === 'CREDIT' ? 'is-active' : ''}`}
+          onClick={() => setFilter('CREDIT')}
+        >
+          <span>Pemasukan (+)</span>
+          <span className="cluv-tab-badge">{transactions.filter(t => isCredit(t.type)).length}</span>
+        </button>
+        <button
+          type="button"
+          className={`cluv-tab-btn ${filter === 'DEBIT' ? 'is-active' : ''}`}
+          onClick={() => setFilter('DEBIT')}
+        >
+          <span>Pengeluaran (-)</span>
+          <span className="cluv-tab-badge">{transactions.filter(t => !isCredit(t.type)).length}</span>
+        </button>
+      </div>
 
-        <div className="v0-profile-form-header" style={{ marginTop: '12px' }}>
-          <h1 className="v0-profile-form-main-title">Riwayat Mutasi Credits</h1>
-          <p className="v0-profile-form-main-sub">Rincian perolehan dan penggunaan AI Credits Skincluv kamu.</p>
-        </div>
-
-        {/* Coin Balance Card */}
-        <div className="v0-profile-card v0-stat-card">
-          <div className="v0-stat-card-left">
-            <div className="v0-profile-credits-icon-box">
-              <Coins size={22} />
-            </div>
-            <div>
-              <span className="v0-profile-credits-title">Total Saldo Credits</span>
-              <span className="v0-stat-card-val">{coinBalance?.balance ?? 0} Credits</span>
-            </div>
+      {/* Mutation List */}
+      <div className="cluv-flex-col cluv-gap-3 cluv-mt-6">
+        {loading ? (
+          <div className="cluv-card cluv-text-center cluv-py-8 cluv-items-center">
+            <div className="cluv-spinner cluv-mb-3" />
+            <p className="cluv-caption cluv-text-muted">Memuat riwayat mutasi...</p>
           </div>
-          <Link to="/missions" className="v0-profile-hub-action-btn">
-            + Dapatkan Credits
-          </Link>
-        </div>
-
-        {/* Filter Tabs & History List Card */}
-        <div className="v0-profile-card">
-          <div className="v0-filter-bar">
-            <span className="v0-filter-label"><Filter size={15} /> Filter Mutasi:</span>
-            <div className="v0-profile-chip-group">
-              <button
-                type="button"
-                className={`v0-profile-chip ${filter === 'ALL' ? 'active' : ''}`}
-                onClick={() => setFilter('ALL')}
-              >
-                Semua
-              </button>
-              <button
-                type="button"
-                className={`v0-profile-chip ${filter === 'CREDIT' ? 'active' : ''}`}
-                onClick={() => setFilter('CREDIT')}
-              >
-                Pemasukan (+)
-              </button>
-              <button
-                type="button"
-                className={`v0-profile-chip ${filter === 'DEBIT' ? 'active' : ''}`}
-                onClick={() => setFilter('DEBIT')}
-              >
-                Pengeluaran (-)
-              </button>
+        ) : filtered.length === 0 ? (
+          <div className="cluv-card cluv-text-center cluv-py-8 cluv-items-center">
+            <div className="cluv-card-icon-wrap is-lg is-gold cluv-mb-3">
+              <Coins size={28} />
             </div>
+            <h3 className="cluv-title-card">Belum Ada Mutasi Credits</h3>
+            <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md">
+              Riwayat perolehan atau penggunaan credits kamu akan tampil di sini.
+            </p>
+            <Link to="/missions" className="cluv-btn is-primary is-sm cluv-mt-4">
+              Selesaikan Misi
+            </Link>
           </div>
-
-          <div className="v0-ledger-list">
-            {loading ? (
-              <p className="v0-ledger-sub" style={{ textAlign: 'center', padding: '32px 0' }}>Memuat riwayat mutasi...</p>
-            ) : filtered.length === 0 ? (
-              <p className="v0-ledger-sub" style={{ textAlign: 'center', padding: '32px 0' }}>Belum ada riwayat mutasi credits.</p>
-            ) : (
-              filtered.map((item) => (
-                <div key={item.id} className="v0-ledger-item">
-                  <div className="v0-ledger-left">
-                    <div className={`v0-ledger-icon ${isCredit(item.type) ? 'optimal' : 'alert'}`}>
-                      {isCredit(item.type) ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
-                    </div>
-                    <div className="v0-ledger-info">
-                      <h4 className="v0-ledger-title">{item.notes || TYPE_LABEL[item.type] || item.type}</h4>
-                      <span className="v0-ledger-sub">
-                        {new Date(item.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
+        ) : (
+          filtered.map((item) => (
+            <div key={item.id} className="cluv-ledger-card">
+              <div className="cluv-ledger-body">
+                <div className="cluv-ledger-main">
+                  <div className={`cluv-card-icon-wrap is-sm ${isCredit(item.type) ? '' : 'is-rose'}`}>
+                    {isCredit(item.type) ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
                   </div>
-                  <div className={`v0-ledger-amount ${isCredit(item.type) ? 'credit' : 'debit'}`}>
-                    {isCredit(item.type) ? '+' : '-'}{item.amount} Credits
+                  <div>
+                    <h4 className="cluv-ledger-title">{item.notes || TYPE_LABEL[item.type] || item.type}</h4>
+                    <span className="cluv-ledger-date">
+                      {new Date(item.created_at).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
+                <div className={`cluv-font-extrabold ${isCredit(item.type) ? 'cluv-text-teal' : 'cluv-text-rose'}`}>
+                  {isCredit(item.type) ? '+' : '-'}{item.amount} Credits
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )
