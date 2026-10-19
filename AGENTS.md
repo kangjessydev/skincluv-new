@@ -398,6 +398,14 @@ Teks penenang di bawah tombol CTA (seperti `Gratis Pendaftaran • Tanpa Kartu K
 - **Component**: Entitas berstruktur dengan pola **Base Class + Modifier `.is-*`**: `.cluv-btn.is-primary`, `.cluv-bento-grid.is-hero`, `.cluv-bento-card`, `.cluv-badge.is-teal`, `.cluv-action-tile`.
 - **Doktrin Zero-Page-CSS**: File CSS halaman (`dashboard.css`, dll) dilarang mendefinisikan layout grid, card, button, atau badge baru. Halaman aplikasi wajib dibangun dari komposisi lego Cluv Framework.
 
+#### 3. SOP 5 Langkah Wajib Styling & Refactoring (The 5-Step Bottom-Up Cascade)
+1. **Langkah 1 (Tokens)**: Cek `src/styles/cluv/tokens.css`. Pastikan warna, radius, dan bayangan memakai variabel token `var(--cluv-*)`. Dilarang menulis nilai hex atau pixel sembarangan.
+2. **Langkah 2 (Utilities)**: Cek `src/styles/cluv/utilities.css`. Gunakan class atomik yang sudah ada untuk spacing, gap, dan flex.
+3. **Langkah 3 (Generic Component)**: Cek `src/styles/cluv/components/`. Buat/sesuaikan komponen generic dengan pola **Base Class + Modifier `.is-*`**. Dilarang membuat komponen di CSS halaman!
+4. **Langkah 4 (Assembling di JSX)**: Di file `.tsx`, susun komponen dan suntikkan utilitas mikro layaknya menyusun lego.
+5. **Langkah 5 (Dead Code Purge)**: Hapus selector ad-hoc lama di file CSS halaman (`dashboard.css`, dll) agar stylesheet menyusut bersih dan bebas dari dead code.
+
+
 
 
 

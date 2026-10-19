@@ -26,6 +26,12 @@
 6. **Pemisahan Tegas Utility vs Component**:
    - **Utility**: Atomik (1-2 properti untuk suntik instan di JSX): `.cluv-flex`, `.cluv-flex-col`, `.cluv-gap-3`, `.cluv-mt-4`, `.cluv-text-center`, `.cluv-w-full`.
    - **Component**: Wadah terstruktur dengan base class + modifier `.is-*`: `.cluv-btn.is-primary`, `.cluv-card`, `.cluv-bento-grid.is-hero`, `.cluv-bento-card`, `.cluv-badge.is-teal`.
+7. **SOP 5 Langkah Wajib Styling & Refactoring (The 5-Step Bottom-Up Cascade)**:
+   - `[1. Tokens]` ➔ Cek `tokens.css` (var `--cluv-*`, no hardcoded hex/px).
+   - `[2. Utilities]` ➔ Cek `utilities.css` (flex, spacing, gap, alignment).
+   - `[3. Generic Component]` ➔ Cek/buat di `components/` (Base Class + `.is-*`).
+   - `[4. Assembling JSX]` ➔ Susun di `.tsx` layaknya lego.
+   - `[5. Dead Code Purge]` ➔ Hapus selector ad-hoc lama di CSS halaman (`dashboard.css`, dll).
 
 ---
 

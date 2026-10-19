@@ -82,6 +82,14 @@ Style khusus yang **sah dan dilegalkan** jika hanya tampil khusus pada fitur ata
 > 2. **Jika disepakati masuk Cluv FW**: rumuskan spesifikasi class dan utility-nya bersama user sebelum mengimplementasikannya ke `src/styles/cluv/components/`.
 > 3. **Dilarang menuliskan komponen baru di CSS halaman (`dashboard.css`, dll)**.
 
+### D. SOP 5 Langkah Wajib Styling & Refactoring (The 5-Step Bottom-Up Cascade)
+Setiap AI atau developer yang memperbaiki atau membuat tampilan UI **WAJIB** mengeksekusi secara berurutan:
+1. **Langkah 1 (Tokens)**: Cek `src/styles/cluv/tokens.css`. Pastikan warna, radius, dan bayangan memakai variabel token `var(--cluv-*)`. Dilarang menulis nilai hex atau pixel sembarangan.
+2. **Langkah 2 (Utilities)**: Cek `src/styles/cluv/utilities.css`. Jika kebutuhan hanya atomik (flex, spacing margin/padding, gap, alignment), gunakan utilitas yang sudah ada. Dilarang membuat class baru hanya untuk `display: flex` atau `margin`.
+3. **Langkah 3 (Generic Component)**: Cek `src/styles/cluv/components/`. Jika elemen memiliki struktur (border, radius, padding, hover, bento grid, kartu, action tile), buat/sesuaikan sebagai komponen generic dengan pola **Base Class + Modifier `.is-*`**. Dilarang mendefinisikan komponen di file CSS halaman!
+4. **Langkah 4 (Assembling di JSX)**: Di file `.tsx`, cukup rakit komponen dan suntikkan utilitas mikro layaknya menyusun lego.
+5. **Langkah 5 (Dead Code Purge)**: Hapus class ad-hoc lama di file CSS halaman (`dashboard.css`, dll) agar file stylesheet menyusut bersih dan tidak meninggalkan sampah teknis.
+
 ---
 
 ## 🌸 3. Seluruh Konsensus Halaman Non-Login (Public Pages)
