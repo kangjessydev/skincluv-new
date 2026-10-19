@@ -261,10 +261,10 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* UNIFIED SPLIT-HERO BENTO: Observasi Wajah (60%) + Keamanan Skincare Lab (40%) dalam 1 Bento */}
-      <section className="cluv-card cluv-split-hero-bento">
-        {/* ZONA KIRI: Observasi Visual Kulit */}
-        <div className="cluv-split-hero-left">
+      {/* 2. DESKTOP HERO GRID: Observasi Visual Kulit (1.55fr) + Keamanan Komposisi Lab (1fr) */}
+      <div className="cluv-desktop-hero-grid">
+        {/* Observasi Visual Kulit */}
+        <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -361,10 +361,10 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* ZONA KANAN: Keamanan Komposisi Skincare (Lab) */}
-        <div className="cluv-split-hero-right">
+        {/* Keamanan Komposisi Skincare (Lab) */}
+        <section className="cluv-card cluv-flex-col cluv-justify-between">
           <div>
             <div className="cluv-flex-between cluv-items-center cluv-border-b cluv-pb-4">
               <div className="cluv-flex-row cluv-gap-3 cluv-items-center">
@@ -410,8 +410,8 @@ export default function DashboardPage() {
               <ChevronRight size={14} />
             </button>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
 
 
@@ -652,7 +652,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Scan count summary pills */}
-          <div className="cluv-flex-row cluv-gap-2.5 cluv-mt-6 cluv-border-t cluv-pt-4 cluv-flex-wrap">
+          <div className="cluv-flex-row cluv-gap-3 cluv-mt-6 cluv-border-t cluv-pt-4 cluv-flex-wrap">
             <span className="cluv-badge is-teal is-sm">
               <ScanFace size={13} /> <span>{scanCounts.face_total} Wajah</span>
             </span>
@@ -914,7 +914,7 @@ export default function DashboardPage() {
             {/* 1-Tap AI Prompt Chips */}
             <div className="cluv-mt-5">
               <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Konsultasi AI Instan</span>
-              <div className="cluv-flex-col cluv-gap-2.5 cluv-mt-3">
+              <div className="cluv-flex-col cluv-gap-3 cluv-mt-3">
                 {isNight ? (
                   <>
                     <button
@@ -957,8 +957,9 @@ export default function DashboardPage() {
           <div className="cluv-mt-6 cluv-pt-4 cluv-border-t">
             <button
               onClick={() => navigate('/chatbot')}
-              className="cluv-btn is-ghost is-sm cluv-w-full cluv-justify-center"
+              className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-center"
             >
+              <Bot size={15} />
               <span>Buka Chat Skinsistant AI</span>
               <ChevronRight size={14} />
             </button>

@@ -104,6 +104,7 @@
 /* Gap Scale */
 .cluv-gap-1 { gap: 4px; }
 .cluv-gap-2 { gap: 8px; }
+.cluv-gap-2\.5 { gap: 10px; }
 .cluv-gap-3 { gap: 12px; }
 .cluv-gap-4 { gap: 16px; }
 .cluv-gap-5 { gap: 20px; }
