@@ -129,69 +129,77 @@ export default function ProfilePage() {
   const concernsCount = activeSkinProfile?.skin_concerns?.length || 0
 
   return (
-    <div className="v0-profile-page">
+    <div className="cluv-page">
       {/* Header */}
-      <div className="v0-profile-header">
-        <h1>Profil & Pengaturan</h1>
-        <p>Pusat kendali akun, keanggotaan, preferensi kulit, dan privasi datamu.</p>
+      <div className="cluv-mb-6">
+        <h1 className="cluv-title-page">Profil & Pengaturan</h1>
+        <p className="cluv-caption cluv-text-muted">Pusat kendali akun, keanggotaan, preferensi kulit, dan privasi datamu.</p>
       </div>
 
-      <div className="v0-profile-grid">
+      <div className="cluv-grid cols-2 cluv-gap-6">
         {/* ── Left Column: Identity & Balance Summary ── */}
-        <div className="v0-profile-col">
+        <div className="cluv-flex-col cluv-gap-5">
           {/* User Profile Card */}
-          <div className="v0-profile-card">
-            <div className="v0-profile-user-row">
-              <div className="v0-profile-avatar">
+          <div className="cluv-card cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-3">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+              <div className="cluv-avatar is-lg">
                 {profile?.full_name?.charAt(0).toUpperCase() || 'S'}
               </div>
-              <div className="v0-profile-user-info">
-                <p className="v0-profile-user-name">{profile?.full_name}</p>
-                <p className="v0-profile-user-handle">{profile?.username || 'Pelanggan Skincluv'}</p>
+              <div className="cluv-flex-col">
+                <span className="cluv-body cluv-font-bold">{profile?.full_name || 'Pengguna Skincluv'}</span>
+                <span className="cluv-caption cluv-text-muted">{profile?.username || 'Pelanggan Skincluv'}</span>
               </div>
-              <button className="v0-profile-logout-btn" onClick={handleSignOut} title="Keluar dari akun">
-                <LogOut size={15} /> Keluar
-              </button>
             </div>
+            <button
+              type="button"
+              className="cluv-btn is-ghost is-sm cluv-text-rose"
+              onClick={handleSignOut}
+              title="Keluar dari akun"
+            >
+              <LogOut size={15} /> Keluar
+            </button>
           </div>
 
           {/* Membership & Quota Summary */}
-          <div className="v0-profile-card">
-            <div className="v0-profile-member-header">
-              <span className={`v0-profile-tier-badge ${tierClass}`}>
+          <div className="cluv-card cluv-flex-col cluv-gap-4">
+            <div className="cluv-flex-between cluv-items-center">
+              <span className={`cluv-badge ${isPro ? 'is-gold' : isGlow ? 'is-teal' : 'is-slate'}`}>
                 {isPro ? <Crown size={13} /> : <Zap size={13} />}
                 {tierLabel}
               </span>
               {!isPro && (
-                <Link to="/pricing" className="v0-profile-upgrade-btn">
+                <Link to="/pricing" className="cluv-btn is-outline is-sm">
                   <Crown size={13} /> Upgrade
                 </Link>
               )}
             </div>
 
-            <div className="v0-profile-usage-label">
-              <span className="v0-profile-usage-label-left">
-                <Activity size={14} /> Kuota Universal AI Bulan Ini
-              </span>
-              {isFree ? (
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Gunakan Credits Misi</span>
-              ) : (
-                <span>
-                  <span className="v0-profile-usage-remaining">{remainingPercent}% Tersisa</span>
-                  <span className="v0-profile-usage-used">({usedPercent}% terpakai)</span>
+            <div className="cluv-flex-col cluv-gap-2">
+              <div className="cluv-flex-between cluv-items-center">
+                <span className="cluv-caption cluv-font-bold cluv-flex-row cluv-items-center cluv-gap-1.5">
+                  <Activity size={14} className="cluv-text-teal" /> Kuota Universal AI Bulan Ini
                 </span>
-              )}
-            </div>
-            <div className="v0-profile-usage-bar-bg">
-              <div
-                className="v0-profile-usage-bar-fill"
-                style={{ width: isFree ? '0%' : `${Math.max(usedPercent, 2)}%`, background: barColor }}
-              />
+                {isFree ? (
+                  <span className="cluv-caption cluv-text-muted">Gunakan Credits Misi</span>
+                ) : (
+                  <span className="cluv-caption">
+                    <strong className="cluv-text-teal">{remainingPercent}% Tersisa</strong>{' '}
+                    <span className="cluv-text-muted">({usedPercent}% terpakai)</span>
+                  </span>
+                )}
+              </div>
+
+              <div className="cluv-progress-track">
+                <div
+                  className={`cluv-progress-bar ${usedPercent >= 90 ? 'is-rose' : usedPercent >= 75 ? 'is-amber' : ''}`}
+                  style={{ width: isFree ? '0%' : `${Math.max(usedPercent, 2)}%` }}
+                />
+              </div>
             </div>
 
-            <div className="v0-profile-usage-status-row" style={{ marginTop: 14 }}>
-              <span className="v0-profile-status-dot" />
-              <span>
+            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-pt-1">
+              <span className={`cluv-dot is-pulse ${isActivePremium(subscription) ? 'is-teal' : 'is-slate'}`} />
+              <span className="cluv-caption">
                 Status: <strong>{isActivePremium(subscription) ? 'Aktif' : 'Gratis'}</strong>
                 {subscription?.expires_at && (
                   <> (Perpanjang: {new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })})</>
@@ -199,127 +207,133 @@ export default function ProfilePage() {
               </span>
             </div>
 
-            <div style={{ marginTop: 14 }}>
-              <Link to="/profile/billing" className="v0-profile-hub-action-btn">
-                <span>Kelola Kuota & Tagihan</span>
-                <ArrowRight size={15} />
-              </Link>
-            </div>
+            <Link to="/profile/billing" className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-between cluv-mt-1">
+              <span>Kelola Kuota & Tagihan</span>
+              <ArrowRight size={15} />
+            </Link>
           </div>
 
           {/* AI Credits Balance Card */}
-          <div className="v0-profile-card">
-            <div className="v0-profile-credits-card">
-              <div className="v0-profile-credits-info">
-                <div className="v0-profile-credits-title">
-                  <Coins size={15} /> Saldo AI Credits
-                </div>
-                <div className="v0-profile-credits-amount">
-                  {coinBalance?.balance ?? 0}
-                  <span className="v0-profile-credits-unit">Credits</span>
-                </div>
+          <div className="cluv-card cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-3">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+              <div className="cluv-card-icon-wrap is-sm is-gold">
+                <Coins size={18} />
               </div>
-              <Link to="/pricing" className="v0-profile-credits-buy-btn">
-                + Beli Credits
-              </Link>
+              <div className="cluv-flex-col">
+                <span className="cluv-caption cluv-text-muted">Saldo AI Credits</span>
+                <span className="cluv-title-card cluv-font-bold cluv-text-gold">
+                  {coinBalance?.balance ?? 0} Credits
+                </span>
+              </div>
             </div>
+            <Link to="/pricing" className="cluv-btn is-primary is-sm">
+              + Beli Credits
+            </Link>
           </div>
         </div>
 
         {/* ── Right Column: Hub Navigasi Sub-Pages ── */}
-        <div className="v0-profile-col">
+        <div className="cluv-flex-col cluv-gap-5">
           {/* Hub Card 1: Profil & Preferensi Kulit */}
-          <div className="v0-profile-card v0-profile-hub-card">
-            <div className="v0-profile-hub-header">
-              <span className="v0-profile-nav-icon-wrap teal" style={{ width: 40, height: 40 }}>
+          <div className="cluv-card cluv-flex-col cluv-gap-4">
+            <div className="cluv-flex-row cluv-items-start cluv-gap-3">
+              <div className="cluv-card-icon-wrap is-sm is-teal">
                 <Activity size={20} />
-              </span>
-              <div style={{ flex: 1 }}>
-                <h3 className="v0-profile-hub-title">Profil & Preferensi Kulit</h3>
-                <p className="v0-profile-hub-sub">
+              </div>
+              <div className="cluv-flex-col cluv-gap-1 cluv-flex-1">
+                <h3 className="cluv-title-card">Profil &amp; Preferensi Kulit</h3>
+                <p className="cluv-caption cluv-text-muted">
                   Atur tipe kulit wajah, target perawatan harian, dan bahan yang ingin kamu hindari untuk memandu analisis personal Skinsistant AI.
                 </p>
               </div>
             </div>
 
-            <div className="v0-profile-hub-meta-row">
-              <span className="v0-profile-hub-meta-tag">
-                Tipe Kulit: <strong>{skinTypeLabel}</strong>
+            <div className="cluv-flex-row cluv-gap-2 cluv-flex-wrap">
+              <span className="cluv-badge is-slate">
+                Tipe Kulit: <strong className="cluv-ml-1">{skinTypeLabel}</strong>
               </span>
-              <span className="v0-profile-hub-meta-tag">
-                Target & Sensitivitas: <strong>{concernsCount} Dipilih</strong>
+              <span className="cluv-badge is-slate">
+                Target &amp; Sensitivitas: <strong className="cluv-ml-1">{concernsCount} Dipilih</strong>
               </span>
             </div>
 
-            <Link to="/profile/skin" className="v0-profile-hub-action-btn">
-              <span>Kelola Profil & Preferensi Kulit</span>
-              <ArrowRight size={16} />
+            <Link to="/profile/skin" className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-between">
+              <span>Kelola Profil &amp; Preferensi Kulit</span>
+              <ArrowRight size={15} />
             </Link>
           </div>
 
           {/* Hub Card 2: Pusat Privasi & Hak Hapus Data */}
-          <div className="v0-profile-card v0-profile-hub-card">
-            <div className="v0-profile-hub-header">
-              <span className="v0-profile-nav-icon-wrap green" style={{ width: 40, height: 40 }}>
+          <div className="cluv-card cluv-flex-col cluv-gap-4">
+            <div className="cluv-flex-row cluv-items-start cluv-gap-3">
+              <div className="cluv-card-icon-wrap is-sm is-gold">
                 <ShieldCheck size={20} />
-              </span>
-              <div style={{ flex: 1 }}>
-                <h3 className="v0-profile-hub-title">Pusat Privasi & Hak Hapus Data</h3>
-                <p className="v0-profile-hub-sub">
+              </div>
+              <div className="cluv-flex-col cluv-gap-1 cluv-flex-1">
+                <h3 className="cluv-title-card">Pusat Privasi &amp; Hak Hapus Data</h3>
+                <p className="cluv-caption cluv-text-muted">
                   Kendali privasi data biometrik, izin memori klinis chatbot Skinsistant AI, dan hak penghapusan akun permanen (UU PDP No. 27/2022).
                 </p>
               </div>
             </div>
 
-            <div className="v0-profile-hub-meta-row">
-              <span className="v0-profile-hub-meta-tag">
-                Perlindungan: <strong>UU PDP No. 27/2022</strong>
+            <div className="cluv-flex-row cluv-gap-2 cluv-flex-wrap">
+              <span className="cluv-badge is-teal">
+                Perlindungan: <strong className="cluv-ml-1">UU PDP No. 27/2022</strong>
               </span>
-              <span className="v0-profile-hub-meta-tag">
-                Biometrik: <strong>Terkontrol</strong>
+              <span className="cluv-badge is-slate">
+                Biometrik: <strong className="cluv-ml-1">Terkontrol</strong>
               </span>
             </div>
 
-            <Link to="/privacy-center" className="v0-profile-hub-action-btn">
-              <span>Buka Pusat Privasi & Data</span>
-              <ArrowRight size={16} />
+            <Link to="/privacy-center" className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-between">
+              <span>Buka Pusat Privasi &amp; Data</span>
+              <ArrowRight size={15} />
             </Link>
           </div>
 
           {/* Hub Card 3: Akses Riwayat Aktivitas & Tagihan */}
-          <div className="v0-profile-card">
-            <p className="v0-profile-nav-title">Riwayat Aktivitas & Pembayaran</p>
-            <div className="v0-profile-nav-list">
-              <Link to="/transactions" className="v0-profile-nav-item">
-                <span className="v0-profile-nav-item-left">
-                  <span className="v0-profile-nav-icon-wrap teal"><Receipt size={16} /></span>
-                  <div>
-                    <span style={{ display: 'block', fontWeight: 600, color: 'var(--color-ink)' }}>Faktur & Tagihan Tripay</span>
-                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Status pembayaran langganan</span>
+          <div className="cluv-card">
+            <h3 className="cluv-caption cluv-font-bold cluv-text-muted cluv-mb-3">
+              RIWAYAT AKTIVITAS &amp; PEMBAYARAN
+            </h3>
+            <div className="cluv-flex-col cluv-gap-2.5">
+              <Link to="/transactions" className="cluv-card-strip is-neutral is-interactive">
+                <div className="cluv-card-strip-main">
+                  <div className="cluv-card-icon-wrap is-sm">
+                    <Receipt size={16} />
                   </div>
-                </span>
-                <ArrowRight size={15} className="v0-profile-nav-arrow" />
+                  <div className="cluv-card-strip-body">
+                    <h4 className="cluv-card-strip-title">Faktur &amp; Tagihan Tripay</h4>
+                    <p className="cluv-caption cluv-text-muted">Status pembayaran langganan</p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="cluv-text-muted" />
               </Link>
-              <Link to="/coin-history" className="v0-profile-nav-item">
-                <span className="v0-profile-nav-item-left">
-                  <span className="v0-profile-nav-icon-wrap slate"><History size={16} /></span>
-                  <div>
-                    <span style={{ display: 'block', fontWeight: 600, color: 'var(--color-ink)' }}>Mutasi AI Credits</span>
-                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Riwayat debit dan perolehan credits</span>
+              <Link to="/coin-history" className="cluv-card-strip is-neutral is-interactive">
+                <div className="cluv-card-strip-main">
+                  <div className="cluv-card-icon-wrap is-sm is-gold">
+                    <History size={16} />
                   </div>
-                </span>
-                <ArrowRight size={15} className="v0-profile-nav-arrow" />
+                  <div className="cluv-card-strip-body">
+                    <h4 className="cluv-card-strip-title">Mutasi AI Credits</h4>
+                    <p className="cluv-caption cluv-text-muted">Riwayat debit dan perolehan credits</p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="cluv-text-muted" />
               </Link>
               {canAccessAdmin && (
-                <Link to="/admin" className="v0-profile-nav-item admin">
-                  <span className="v0-profile-nav-item-left">
-                    <span className="v0-profile-nav-icon-wrap indigo"><ShieldCheck size={16} /></span>
-                    <div>
-                      <span style={{ display: 'block', fontWeight: 600, color: 'var(--color-ink)' }}>Admin Control Center</span>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Panel manajemen sistem Skincluv</span>
+                <Link to="/admin" className="cluv-card-strip is-neutral is-interactive">
+                  <div className="cluv-card-strip-main">
+                    <div className="cluv-card-icon-wrap is-sm is-rose">
+                      <ShieldCheck size={16} />
                     </div>
-                  </span>
-                  <ArrowRight size={15} className="v0-profile-nav-arrow" />
+                    <div className="cluv-card-strip-body">
+                      <h4 className="cluv-card-strip-title">Admin Control Center</h4>
+                      <p className="cluv-caption cluv-text-muted">Panel manajemen sistem Skincluv</p>
+                    </div>
+                  </div>
+                  <ArrowRight size={16} className="cluv-text-muted" />
                 </Link>
               )}
             </div>

@@ -476,4 +476,43 @@
   color: var(--cluv-current-text, var(--cluv-neutral-900));
 }
 
+/* =============================================================================
+ * Universal User Avatar Primitive (.cluv-avatar)
+ * ============================================================================= */
+.cluv-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  border: 2px solid var(--cluv-teal-line, #bceae7);
+  user-select: none;
+}
+
+.cluv-avatar.is-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.875rem;
+}
+
+.cluv-avatar.is-lg {
+  width: 52px;
+  height: 52px;
+  font-size: 1.25rem;
+}
+
+.cluv-avatar.is-gold {
+  background: var(--cluv-gold-soft, #fffbeb);
+  color: var(--cluv-gold);
+  border-color: var(--cluv-gold-line, #fde68a);
+}
+
 
