@@ -128,3 +128,43 @@
 .cluv-stat-meta.is-alert {
   color: var(--cluv-status-danger);
 }
+
+/* =============================================================================
+ * Universal Progress Bar Primitives (.cluv-progress-track, .cluv-progress-bar)
+ * ============================================================================= */
+.cluv-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.cluv-progress-track.is-sm {
+  height: 6px;
+}
+
+.cluv-progress-track.is-lg {
+  height: 12px;
+}
+
+.cluv-progress-bar {
+  height: 100%;
+  background: var(--cluv-teal);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+.cluv-progress-bar.is-gold {
+  background: var(--cluv-gold);
+}
+
+.cluv-progress-bar.is-rose {
+  background: var(--cluv-rose);
+}
+
+.cluv-progress-bar.is-amber {
+  background: var(--cluv-amber);
+}
