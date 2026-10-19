@@ -382,16 +382,22 @@ Teks penenang di bawah tombol CTA (seperti `Gratis Pendaftaran • Tanpa Kartu K
 
 ---
 
-### 5.13 Hukum Mutlak Styling & Framework Integrity (The 3 Golden Invariants)
+### 5.13 Hukum Mutlak Styling & Framework Integrity (The 4 Golden Invariants)
 
 > **Latar Belakang & Doktrin**: Insiden regresi berulang di halaman aplikasi (`src/pages/app/`) disebabkan oleh kebiasaan buruk membuat class CSS baru ad-hoc per-halaman di `dashboard.css` (hingga 900+ baris) atau sekadar mengganti nama class lama tanpa merombak visualnya. Doktrin di bawah ini mengikat seluruh AI Council (Antigravity, Claude, ChatGPT, DeepSeek, Kimi):
 
-#### 1. Tiga Larangan Emas (The 3 Golden Rules)
+#### 1. Empat Larangan Emas (The 4 Golden Rules)
 1. **TIDAK BOLEH PAKE STYLE LAMA**: Dilarang keras mempertahankan gaya visual, tata letak kusam, border tebal kaku, atau display lama peninggalan v0. Seluruh elemen wajib bermutasi menjadi desain Cluv murni (`#ffffff` surface, border 1.5px crisp, radius membulat elegan, icon wrap pastel).
 2. **TIDAK BOLEH ASAL UBAH / BIKIN NAMA KELAS**: Dilarang keras membuat class CSS ad-hoc per-halaman di `src/styles/cluv/app/*.css` untuk sesuatu yang seharusnya menjadi Utility atau Component universal. Dilarang sekadar me-rename `v0-*` menjadi `cluv-*` tanpa menyelaraskan CSS-nya.
 3. **WAJIB DISKUSI KELAS YG SUDAH ADA MAUPUN YG BELUM ADA DAN AKAN DIGUNAKAN**:
    - AI wajib mengecek cheatsheet Cluv FW (`docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md`) sebelum menyentuh kode.
    - Jika membutuhkan komponen/layout yang belum ada di framework: **WAJIB DISKUSIKAN TERLEBIH DAHULU DENGAN USER**. Rumuskan lego-nya (nama class, slot, modifier), lalu bangun di `src/styles/cluv/components/`, BUKAN di CSS lokal halaman!
+4. **TABULA RASA RESET: KENALI HAKIKAT HALAMAN, JANGAN TERPENGARUH BIAS STYLE LAMA**:
+   - Saat mengaudit dan merombak halaman, **HAPUS SEMUA STYLE LAMA** dan ganti dengan standar Cluv murni. Dilarang berpikir: *"Karena style lama bentuknya begini, jadi di Cluv kita ikuti bentuk lama saja"*.
+   - **Wajib sesuaikan dengan hakikat & pengetahuan fungsional halaman tersebut**:
+     - Jika Dashboard di style lama dibuat sempit, JANGAN dipertahankan sempit hanya karena Cluv punya layout sempit! Hakikat Dashboard adalah kanvas bento lapang (`max-width: 1240px`).
+     - Sebaliknya: Jika halaman adalah Riwayat Tagihan / Mutasi Finansial / Formulir Akun, hakikatnya adalah Focused Ledger (`max-width: 760px; margin-left: 0; margin-right: auto`).
+   - Kenali peran semantik halaman, buang total bias lama, lalu susun menggunakan layout Cluv Framework yang paling benar secara UX dan fungsionalitas produk!
 
 #### 2. Pemisahan Tegas Utility vs Component
 - **Utility**: Atomik (1-2 properti untuk suntik instan di JSX tanpa bikin CSS baru): `.cluv-flex`, `.cluv-flex-col`, `.cluv-flex-row`, `.cluv-items-center`, `.cluv-justify-between`, `.cluv-gap-2`, `.cluv-gap-3`, `.cluv-gap-4`, `.cluv-mt-4`, `.cluv-text-center`, `.cluv-w-full`.

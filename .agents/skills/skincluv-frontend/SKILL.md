@@ -23,7 +23,7 @@ Dokumen skill ini adalah **sumber kebenaran tunggal (Single Source of Truth)** d
 4. **Strict Frontend Boundary**:
    - Frontend HANYA mengurus antarmuka, UX, interaksi, dan konsumsi API.
    - **Dilarang keras menyentuh backend** (SQL migration, Supabase schema, Edge Functions). Semua kebutuhan data/API baru dicatat di `kerja hari ini/changelog.md` untuk dikerjakan oleh tim backend.
-5. **TIGA DOKTRIN MUTLAK CLUV FRAMEWORK (THE 3 GOLDEN INVARIANTS)**:
+5. **EMPAT DOKTRIN MUTLAK CLUV FRAMEWORK (THE 4 GOLDEN INVARIANTS)**:
    > 🔴 **1. TIDAK BOLEH PAKE STYLE LAMA**:  
    > Dilarang keras mempertahankan gaya visual, tata letak kusam, border abu-abu tebal, atau display lama peninggalan v0. Seluruh elemen wajib bermutasi menjadi standar Cluv murni (surface bersih, border 1.5px crisp, radius membulat elegan, icon wrap pastel).
    >
@@ -34,6 +34,13 @@ Dokumen skill ini adalah **sumber kebenaran tunggal (Single Source of Truth)** d
    > Sebelum menyentuh kode CSS atau JSX:
    > - Cek terlebih dahulu class yang sudah ada di Cluv Framework (`CLUV_FRAMEWORK_CHEATSHEET.md`).
    > - Jika ada class yang belum ada di framework: **WAJIB DISKUSIKAN TERLEBIH DAHULU DENGAN USER**. Rumuskan apakah dijadikan generic component atau modifier `.is-*`, lalu bangun di dalam framework (`src/styles/cluv/components/`), bukan di CSS halaman!
+   >
+   > 🔴 **4. TABULA RASA RESET: KENALI HAKIKAT HALAMAN, JANGAN TERPENGARUH BIAS STYLE LAMA**:  
+   > Saat melakukan audit dan perbaikan layout halaman, **HAPUS SEMUA STYLE LAMA** dan ganti dengan standar Cluv murni. Dilarang keras berpikir: *"Karena style lama bentuknya begini, jadi di Cluv kita ikuti bentuk lama saja"* — ini SALAH TOTAL! AI dilarang buta meniru layout lama.
+   > **Wajib sesuaikan dengan hakikat & pengetahuan fungsi halaman tersebut**:
+   > - Contoh: Jika Dashboard di style lama dibuat sempit, JANGAN pertahankan sempit hanya karena Cluv punya style sempit! Hakikat Dashboard adalah kanvas bento lapang (`max-width: 1240px`).
+   > - Sebaliknya: Jika halaman adalah Riwayat Tagihan / Mutasi Finansial / Formulir Akun, hakikatnya adalah Focused Ledger (`max-width: 760px; margin-left: 0; margin-right: auto`).
+   > **Prinsip Utama**: Kenali dulu peran dan fungsi halaman secara semantik, buang total bias style lama, lalu susun menggunakan layout Cluv Framework yang paling benar secara UX dan fungsionalitas produk!
 
 6. **Pemisahan Tegas: Utility Component vs CSS Component**:
    - **Utility Component (Atomic Class)**:

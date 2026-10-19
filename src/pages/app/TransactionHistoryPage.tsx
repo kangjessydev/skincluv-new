@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Clock, CheckCircle2, CreditCard, ExternalLink, RefreshCw, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle2, CreditCard, ExternalLink, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -33,116 +33,137 @@ export default function TransactionHistoryPage() {
     fetchTransactions()
   }, [session])
 
-  const filteredInvoices = invoices.filter(inv => {
+  const filteredInvoices = invoices.filter((inv) => {
     if (filter === 'unpaid') return inv.status === 'UNPAID'
     if (filter === 'paid') return inv.status === 'PAID'
     if (filter === 'expired') return inv.status === 'EXPIRED' || inv.status === 'FAILED'
     return true
   })
+
   return (
-    <div className="v0-page-container animate-fade-in">
-      <div className="v0-profile-form-container">
-        <div>
-          <Link to="/profile/billing" className="v0-back-link">
-            <ArrowLeft size={16} /> Kembali ke Billing & Langganan
-          </Link>
-          <div className="v0-profile-form-header" style={{ marginTop: '12px' }}>
-            <h1 className="v0-profile-form-main-title">Riwayat Tagihan & Transaksi</h1>
-            <p className="v0-profile-form-main-sub">Daftar tagihan & status pembayaran paket langganan kamu.</p>
+    <div className="cluv-focused-ledger cluv-animate-fade">
+      {/* Back Link to Billing */}
+      <Link to="/profile/billing" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1">
+        <ArrowLeft size={16} />
+        <span>Kembali ke Billing &amp; Langganan</span>
+      </Link>
+
+      {/* Page Header */}
+      <div className="cluv-flex-col cluv-gap-1 cluv-mt-3">
+        <h1 className="cluv-title-page">Riwayat Tagihan &amp; Transaksi</h1>
+        <p className="cluv-caption cluv-text-muted">
+          Daftar tagihan &amp; status pembayaran paket langganan kamu.
+        </p>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="cluv-tabs cluv-mt-5">
+        <button
+          type="button"
+          className={`cluv-tab-btn ${filter === 'all' ? 'is-active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          <span>Semua</span>
+          <span className="cluv-tab-badge">{invoices.length}</span>
+        </button>
+        <button
+          type="button"
+          className={`cluv-tab-btn ${filter === 'unpaid' ? 'is-active' : ''}`}
+          onClick={() => setFilter('unpaid')}
+        >
+          <span>Belum Dibayar</span>
+          <span className="cluv-tab-badge">{invoices.filter((i) => i.status === 'UNPAID').length}</span>
+        </button>
+        <button
+          type="button"
+          className={`cluv-tab-btn ${filter === 'paid' ? 'is-active' : ''}`}
+          onClick={() => setFilter('paid')}
+        >
+          <span>Lunas</span>
+          <span className="cluv-tab-badge">{invoices.filter((i) => i.status === 'PAID').length}</span>
+        </button>
+      </div>
+
+      {/* Transactions List */}
+      <div className="cluv-flex-col cluv-gap-3 cluv-mt-6">
+        {loading ? (
+          <div className="cluv-card cluv-text-center cluv-py-8 cluv-items-center">
+            <div className="cluv-spinner is-md cluv-mb-3" />
+            <p className="cluv-caption cluv-text-muted">Memuat riwayat transaksi...</p>
           </div>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="v0-filter-bar">
-          <div className="v0-profile-chip-group">
-            <button
-              type="button"
-              className={`v0-profile-chip ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              Semua ({invoices.length})
-            </button>
-            <button
-              type="button"
-              className={`v0-profile-chip ${filter === 'unpaid' ? 'active' : ''}`}
-              onClick={() => setFilter('unpaid')}
-            >
-              Belum Dibayar ({invoices.filter(i => i.status === 'UNPAID').length})
-            </button>
-            <button
-              type="button"
-              className={`v0-profile-chip ${filter === 'paid' ? 'active' : ''}`}
-              onClick={() => setFilter('paid')}
-            >
-              Lunas ({invoices.filter(i => i.status === 'PAID').length})
-            </button>
+        ) : filteredInvoices.length === 0 ? (
+          <div className="cluv-card cluv-text-center cluv-py-8 cluv-items-center">
+            <div className="cluv-card-icon-wrap is-lg is-teal cluv-mb-3">
+              <ShoppingBag size={28} />
+            </div>
+            <h3 className="cluv-title-card">Belum Ada Transaksi</h3>
+            <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md">
+              Kamu belum memiliki riwayat transaksi di Skincluv.
+            </p>
+            <Link to="/pricing" className="cluv-btn is-primary is-sm cluv-mt-4">
+              Upgrade ke PRO
+            </Link>
           </div>
-        </div>
-
-        {/* Transactions List */}
-        <div className="v0-ledger-list">
-          {loading ? (
-            <div className="v0-profile-card v0-loading-state">
-              <RefreshCw size={24} className="animate-spin text-teal" />
-              <p className="v0-ledger-sub">Memuat riwayat transaksi...</p>
-            </div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="v0-profile-card v0-empty-state">
-              <ShoppingBag size={44} className="v0-empty-icon" />
-              <h3 className="v0-profile-hub-title">Belum Ada Transaksi</h3>
-              <p className="v0-profile-hub-sub">Kamu belum memiliki riwayat transaksi di Skincluv.</p>
-              <Link to="/pricing" className="v0-btn-action" style={{ marginTop: '12px' }}>
-                Upgrade ke PRO
-              </Link>
-            </div>
-          ) : (
-            filteredInvoices.map(inv => {
-              const isPaid = inv.status === 'PAID'
-              const isUnpaid = inv.status === 'UNPAID'
-              const dateFormatted = new Date(inv.created_at).toLocaleDateString('id-ID', {
-                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-              })
-
-              return (
-                <div key={inv.id} className="v0-profile-card" style={{ padding: '16px 20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: '1px dashed var(--color-border)' }}>
-                    <div>
-                      <span style={{ fontFamily: 'monospace', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-teal)', display: 'block' }}>
-                        {inv.merchant_ref}
-                      </span>
-                      <span className="v0-ledger-sub" style={{ marginTop: '2px' }}>{dateFormatted}</span>
-                    </div>
-                    {isPaid ? (
-                      <span className="v0-badge success"><CheckCircle2 size={12} /> LUNAS</span>
-                    ) : isUnpaid ? (
-                      <span className="v0-badge warning"><Clock size={12} /> BELUM DIBAYAR</span>
-                    ) : (
-                      <span className="v0-badge danger">KADALUARSA</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <CreditCard size={20} style={{ color: 'var(--color-teal)', flexShrink: 0 }} />
-                      <div>
-                        <h4 className="v0-ledger-title">Skincluv PRO — 1 Bulan</h4>
-                        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-teal)' }}>
-                          Rp {inv.amount_idr?.toLocaleString('id-ID')}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {isUnpaid && (
-                      <Link to={`/checkout/${inv.merchant_ref}`} className="v0-btn-action">
-                        Bayar Sekarang <ExternalLink size={14} />
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              )
+        ) : (
+          filteredInvoices.map((inv) => {
+            const isPaid = inv.status === 'PAID'
+            const isUnpaid = inv.status === 'UNPAID'
+            const dateFormatted = new Date(inv.created_at).toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
             })
-          )}
-        </div>
+
+            return (
+              <div key={inv.id} className="cluv-ledger-card">
+                <div className="cluv-ledger-header">
+                  <div>
+                    <span className="cluv-ledger-ref">{inv.merchant_ref}</span>
+                    <span className="cluv-ledger-date">{dateFormatted}</span>
+                  </div>
+                  {isPaid ? (
+                    <span className="cluv-badge is-teal">
+                      <CheckCircle2 size={12} />
+                      <span>LUNAS</span>
+                    </span>
+                  ) : isUnpaid ? (
+                    <span className="cluv-badge is-gold">
+                      <Clock size={12} />
+                      <span>BELUM DIBAYAR</span>
+                    </span>
+                  ) : (
+                    <span className="cluv-badge is-rose">
+                      <span>KADALUARSA</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="cluv-ledger-body">
+                  <div className="cluv-ledger-main">
+                    <div className="cluv-card-icon-wrap is-sm is-teal">
+                      <CreditCard size={18} />
+                    </div>
+                    <div>
+                      <h4 className="cluv-ledger-title">Skincluv PRO — 1 Bulan</h4>
+                      <span className="cluv-ledger-amount">
+                        Rp {inv.amount_idr?.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isUnpaid && (
+                    <Link to={`/checkout/${inv.merchant_ref}`} className="cluv-btn is-primary is-sm">
+                      <span>Bayar Sekarang</span>
+                      <ExternalLink size={13} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )
