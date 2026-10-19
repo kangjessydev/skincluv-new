@@ -802,7 +802,569 @@
   }
 }
 
+/* =============================================================================
+ * Universal Scanner & Analysis Layout (.cluv-scan-layout)
+ * ============================================================================= */
+.cluv-scan-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  width: 100%;
+  max-width: 1240px;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+@media (min-width: 960px) {
+  .cluv-scan-layout {
+    grid-template-columns: 1fr 340px;
+    align-items: start;
+  }
+}
+
+.cluv-scan-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.cluv-scan-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* =============================================================================
+ * Universal Dropzone Primitive (.cluv-dropzone)
+ * ============================================================================= */
+.cluv-dropzone {
+  border: 2px dashed var(--cluv-neutral-300, #cbd5e1);
+  border-radius: var(--cluv-radius-xl, 20px);
+  padding: 36px 20px;
+  text-align: center;
+  background: var(--cluv-surface-muted, #f8fafc);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.cluv-dropzone:hover,
+.cluv-dropzone.is-dragging {
+  border-color: var(--cluv-teal);
+  background: var(--cluv-teal-soft);
+  transform: translateY(-1px);
+}
+
+.cluv-dropzone-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.cluv-dropzone-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+.cluv-dropzone-subtitle {
+  font-size: 0.8125rem;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  margin: 0;
+}
+
+.cluv-dropzone-btn-fake {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-teal-line);
+  color: var(--cluv-teal-dark);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  margin-top: 8px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-dropzone-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.cluv-dropzone-preview-img {
+  max-height: 240px;
+  max-width: 100%;
+  border-radius: var(--cluv-radius-md, 12px);
+  object-fit: contain;
+  box-shadow: var(--cluv-shadow-md);
+}
+
+/* =============================================================================
+ * Neural AI Scanner HUD & Animation (.cluv-scanner-hud)
+ * ============================================================================= */
+.cluv-scanner-hud {
+  position: relative;
+  border-radius: var(--cluv-radius-xl, 18px);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--cluv-neutral-900, #0f172a), var(--cluv-neutral-800, #1e293b));
+  height: 260px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--cluv-shadow-xl);
+  border: 1.5px solid var(--cluv-neutral-700);
+}
+
+.cluv-scanner-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+  filter: contrast(1.05);
+}
+
+.cluv-scanner-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, transparent 35%, rgba(15, 23, 42, 0.5) 100%),
+    linear-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgba(14, 165, 233, 0.08) 1px, transparent 1px) 0 0 / 22px 22px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cluv-scanner-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #38bdf8;
+  border-style: solid;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.cluv-scanner-corner.top-left {
+  top: 12px;
+  left: 12px;
+  border-width: 3px 0 0 3px;
+  border-top-left-radius: 5px;
+}
+
+.cluv-scanner-corner.top-right {
+  top: 12px;
+  right: 12px;
+  border-width: 3px 3px 0 0;
+  border-top-right-radius: 5px;
+}
+
+.cluv-scanner-corner.bottom-left {
+  bottom: 12px;
+  left: 12px;
+  border-width: 0 0 3px 3px;
+  border-bottom-left-radius: 5px;
+}
+
+.cluv-scanner-corner.bottom-right {
+  bottom: 12px;
+  right: 12px;
+  border-width: 0 3px 3px 0;
+  border-bottom-right-radius: 5px;
+}
+
+.cluv-scanner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #0284c7 25%, #38bdf8 50%, #0284c7 75%, transparent 100%);
+  box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.75), 0 0 32px 8px rgba(2, 132, 199, 0.35);
+  animation: cluvLaserScan 2.4s ease-in-out infinite;
+  z-index: 3;
+  pointer-events: none;
+}
+
+@keyframes cluvLaserScan {
+  0% { top: 5%; opacity: 0.85; }
+  50% { top: 93%; opacity: 1; }
+  100% { top: 5%; opacity: 0.85; }
+}
+
+.cluv-scanner-status-pill {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(6px);
+  color: #e0f2fe;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  z-index: 5;
+}
+
+.cluv-scanner-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+  animation: cluvScannerPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes cluvScannerPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.cluv-scanner-progress-track {
+  width: 100%;
+  max-width: 380px;
+  height: 4px;
+  background: var(--cluv-neutral-200);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+}
+
+.cluv-scanner-progress-glow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--cluv-teal), #38bdf8, transparent);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  animation: cluvSweep 1.8s infinite ease-in-out;
+}
+
+@keyframes cluvSweep {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+/* =============================================================================
+ * Universal Ingredient Item Card (.cluv-ingredient-card)
+ * ============================================================================= */
+.cluv-ingredient-card {
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-ingredient-card:hover {
+  border-color: var(--cluv-teal-line);
+  box-shadow: var(--cluv-shadow-md);
+}
+
+.cluv-ingredient-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cluv-ingredient-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  margin: 0;
+}
+
+.cluv-ingredient-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cluv-ingredient-func {
+  font-size: 0.84375rem;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-600));
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* =============================================================================
+ * Universal Layering Matrix (.cluv-layering-grid, .cluv-layering-box)
+ * ============================================================================= */
+.cluv-layering-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.cluv-layering-box {
+  border-radius: var(--cluv-radius-lg, 14px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1.5px solid transparent;
+}
+
+.cluv-layering-box.is-best {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-layering-box.is-danger {
+  background: var(--cluv-rose-soft, #fdf2f4);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.cluv-combo-item {
+  background: var(--cluv-surface, #ffffff);
+  border-radius: var(--cluv-radius-md, 10px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--cluv-shadow-xs, 0 1px 2px rgba(0,0,0,0.03));
+}
+
+/* =============================================================================
+ * Universal Hero Actives Highlight Box (.cluv-hero-actives)
+ * ============================================================================= */
+.cluv-hero-actives {
+  background: linear-gradient(135deg, var(--cluv-gold-soft, #fef8ee) 0%, #fffbeb 100%);
+  border: 1.5px solid #fde68a;
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 16px 20px;
+  box-shadow: var(--cluv-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cluv-hero-actives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.cluv-hero-pill-item {
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid #fef08a;
+  border-radius: var(--cluv-radius-md, 12px);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--cluv-shadow-xs, 0 1px 2px rgba(0,0,0,0.02));
+}
+
+/* =============================================================================
+ * Universal Comedogenic Badge (.cluv-comedo-badge)
+ * ============================================================================= */
+.cluv-comedo-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.2;
+}
+
+.cluv-comedo-badge.is-low {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.cluv-comedo-badge.is-med {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.cluv-comedo-badge.is-high {
+  background: var(--cluv-rose-soft, #fdf2f4);
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* =============================================================================
+ * Universal OCR Quick-Correction Box (.cluv-ocr-box)
+ * ============================================================================= */
+.cluv-ocr-box {
+  background: var(--cluv-surface-muted, #f8fafc);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 14px);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cluv-ocr-content {
+  font-size: 0.84375rem;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-600));
+  line-height: 1.55;
+  margin: 0;
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  padding: 12px 14px;
+  border-radius: var(--cluv-radius-md, 10px);
+  word-break: break-word;
+}
+
+/* =============================================================================
+ * Universal Circular Score Avatar (.cluv-score-circle)
+ * ============================================================================= */
+.cluv-score-circle {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  border: 3px solid #ffffff;
+  position: relative;
+  line-height: 1;
+}
+
+.cluv-score-circle.is-safe {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+}
+
+.cluv-score-circle.is-caution {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+}
+
+.cluv-score-circle.is-danger {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.35);
+}
+
+.sr-number-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+}
+
+.sr-val {
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.sr-scale {
+  font-size: 0.625rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.sr-unit {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.95;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.product-packaging-thumb-box {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: var(--cluv-radius-md, 12px);
+  overflow: hidden;
+  border: 1px solid var(--cluv-neutral-300, #cbd5e1);
+  flex-shrink: 0;
+  box-shadow: var(--cluv-shadow-sm);
+  background: var(--cluv-surface-muted, #f1f5f9);
+}
+
+.product-packaging-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.packaging-thumb-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
 
 
+/* =============================================================================
+ * Universal Contraindications Card (.cluv-contraindications-card)
+ * ============================================================================= */
+.cluv-contraindications-card {
+  background: #fffbeb;
+  border: 1.5px solid #fed7aa;
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cluv-contraindication-item {
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid #fde68a;
+  border-radius: var(--cluv-radius-md, 10px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
 

@@ -455,5 +455,58 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
 </div>
 ```
 
+---
 
+## 8. Pola Universal: Scanner & Analisis Produk (.cluv-scan-layout, .cluv-dropzone, .cluv-scanner-hud, .cluv-ingredient-card)
 
+```tsx
+<div className="v0-page-container cluv-canvas-layout animate-fade-in">
+  <div className="cluv-scan-layout">
+    {/* Kolom Kiri: Workspace Analisis */}
+    <div className="cluv-scan-main">
+      <div className="cluv-mb-2">
+        <h1 className="cluv-title-section cluv-m-0">Scan Ingredient Skincare</h1>
+        <p className="cluv-subtitle cluv-mt-1">Observasi ilmiah keamanan komposisi bahan kosmetik.</p>
+      </div>
+
+      {/* Stage Upload */}
+      <div className="cluv-card">
+        <div className="cluv-dropzone" onClick={openPicker}>
+          <div className="cluv-dropzone-icon"><Camera size={26} /></div>
+          <h3 className="cluv-dropzone-title">Ambil / Unggah Foto Label Komposisi</h3>
+          <p className="cluv-dropzone-subtitle">Pastikan teks komposisi terlihat jelas dan terang</p>
+          <div className="cluv-dropzone-btn-fake"><Upload size={14} /> Pilih File atau Jepret Kamera</div>
+        </div>
+      </div>
+
+      {/* Stage Scanning HUD */}
+      <div className="cluv-card cluv-items-center cluv-py-8">
+        <div className="cluv-scanner-hud">
+          <img src={previewUrl} className="cluv-scanner-preview-img" />
+          <div className="cluv-scanner-grid-overlay" />
+          <div className="cluv-scanner-corner top-left" />
+          <div className="cluv-scanner-corner top-right" />
+          <div className="cluv-scanner-corner bottom-left" />
+          <div className="cluv-scanner-corner bottom-right" />
+          <div className="cluv-scanner-laser" />
+          <div className="cluv-scanner-status-pill">
+            <span className="cluv-scanner-status-dot" />
+            <span>AI OCR VISION ACTIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Kolom Kanan: Sidebar Profil & Tips */}
+    <div className="cluv-scan-aside">
+      <div className="cluv-card is-highlight">
+        <h4 className="cluv-font-bold cluv-m-0">Profil Kulit Aktif</h4>
+        <div className="cluv-flex-row cluv-gap-1 cluv-mt-2">
+          <span className="cluv-badge is-teal is-sm">Berminyak</span>
+          <span className="cluv-badge is-slate is-sm">Jerawat</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
