@@ -152,6 +152,23 @@
   box-sizing: border-box;
 }
 
+/* Modifier: Inline Header (Side-by-side icon & title untuk card tanpa tombol aksi) */
+.cluv-bento-header.is-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+}
+
+.cluv-bento-header.is-inline .cluv-bento-header-top {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.cluv-bento-header.is-inline .cluv-bento-header-titles {
+  flex: 1;
+}
+
+
 .cluv-bento-body {
   flex: 1;
   display: flex;

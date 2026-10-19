@@ -366,7 +366,7 @@ export default function DashboardPage() {
         {/* Keamanan Komposisi Skincare (Lab) */}
         <section className="cluv-bento-card">
           <div>
-            <div className="cluv-bento-header">
+            <div className="cluv-bento-header is-inline">
               <div className="cluv-bento-header-top">
                 <div className="cluv-card-icon-wrap is-sm is-blue">
                   <FlaskConical size={20} />
@@ -882,7 +882,7 @@ export default function DashboardPage() {
         {/* Kolom Kanan: Skinsistant AI Smart Briefing */}
         <section className="cluv-bento-card cluv-circadian-card">
           <div>
-            <div className="cluv-bento-header">
+            <div className="cluv-bento-header is-inline">
               <div className="cluv-bento-header-top">
                 <div className="cluv-card-icon-wrap is-sm is-purple">
                   <Bot size={18} />
