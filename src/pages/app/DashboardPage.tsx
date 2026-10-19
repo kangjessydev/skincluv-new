@@ -11,7 +11,6 @@ import {
   Check,
   ChevronRight,
   HeartPulse,
-  MoreHorizontal,
   ShieldCheck,
   Sparkles,
   SunMedium,
@@ -33,18 +32,6 @@ import { useDashboardData, type DashboardMissionItem } from '@/hooks/useDashboar
 import { Badge, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
 import '@/styles/cluv/app/dashboard.css'
-
-const morningRoutine = [
-  { title: 'Cleanser Lembut (pH Balance)', type: 'Pagi · 2 menit', done: true },
-  { title: 'Serum Niacinamide / Hidrasi', type: 'Pagi · 1 menit', done: true },
-  { title: 'Moisturizer + Sunscreen SPF 50', type: 'Pagi · 2 menit', done: false },
-]
-
-const eveningRoutine = [
-  { title: 'Double Cleansing (Micellar / Oil)', type: 'Malam · 3 menit', done: true },
-  { title: 'Active / Barrier Serum', type: 'Malam · 2 menit', done: false },
-  { title: 'Night Repair Moisturizer', type: 'Malam · 2 menit', done: false },
-]
 
 function getTimeOfDayGreeting(): string {
   const hour = new Date().getHours()
@@ -95,16 +82,10 @@ export default function DashboardPage() {
 
   const currentHour = new Date().getHours()
   const isNight = currentHour >= 17 || currentHour < 4
-  const activeRoutine = isNight ? eveningRoutine : morningRoutine
 
-  const [checked, setChecked] = useState(activeRoutine.map((item) => item.done))
   const [showExpiryBanner, setShowExpiryBanner] = useState(true)
 
   const weather = getEnvironmentalWeather()
-
-  const toggleRoutine = (index: number) => {
-    setChecked((items) => items.map((item, itemIndex) => (itemIndex === index ? !item : item)))
-  }
 
   const skinAssessment = data?.skin_assessment
   const productSummary = data?.product_summary ?? { total_products_scanned: 0, safe_products_count: 0, avg_safety_score: null }
