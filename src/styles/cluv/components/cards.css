@@ -80,6 +80,18 @@
   border-radius: var(--cluv-radius-md, 10px);
 }
 
+.cluv-card-icon-wrap.is-lg {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--cluv-radius-lg, 16px);
+}
+
+.cluv-card-icon-wrap.is-xl {
+  width: 68px;
+  height: 68px;
+  border-radius: var(--cluv-radius-xl, 20px);
+}
+
 .cluv-card-icon-wrap.is-gold,
 .public-card-icon-wrap.gold {
   background: #fef8ee;
@@ -415,6 +427,48 @@
   color: var(--cluv-teal-dark, #127a75);
   margin-top: 2px;
   display: block;
+}
+
+/* =============================================================================
+ * Receipt & Invoice Detail Box (.cluv-receipt-box)
+ * ============================================================================= */
+.cluv-receipt-box {
+  background: var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc));
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 16px 20px;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: left;
+}
+
+.cluv-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--cluv-current-border, var(--cluv-border, #dce8f3));
+}
+
+.cluv-receipt-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cluv-receipt-row:first-child {
+  padding-top: 0;
+}
+
+.cluv-receipt-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+}
+
+.cluv-receipt-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, var(--cluv-neutral-900));
 }
 
 

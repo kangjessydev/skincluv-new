@@ -71,98 +71,101 @@ export default function PaymentSuccessPage() {
     : (isGlowPlan ? 'Rp 25.000' : 'Rp 49.000')
 
   return (
-    <div className="v0-page-container animate-fade-in">
-      <div className="v0-profile-form-container">
-        <div style={{ marginBottom: '16px' }}>
-          <Link to="/profile/billing" className="v0-back-link">
-            <ArrowLeft size={16} /> Kembali ke Billing & Langganan
-          </Link>
+    <div className="cluv-page cluv-focused-ledger">
+      {/* Back to Billing */}
+      <Link
+        to="/profile/billing"
+        className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-4"
+      >
+        <ArrowLeft size={16} /> Kembali ke Billing & Langganan
+      </Link>
+
+      <div className="cluv-card cluv-items-center cluv-text-center">
+        {/* Animated Celebration Crown/Sparkle */}
+        <div className="cluv-card-icon-wrap is-xl is-gold cluv-mb-3 cluv-animate-pulse">
+          {isGlowPlan ? <Sparkles size={34} /> : <Crown size={36} />}
+        </div>
+        
+        <div>
+          <span className="cluv-badge is-gold cluv-mb-2">
+            <Sparkles size={13} /> Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
+          </span>
         </div>
 
-        <div className="v0-profile-card" style={{ padding: '32px 28px', textAlign: 'center' }}>
-          {/* Animated Celebration Crown/Sparkle */}
-          <div className={`v0-celebrate-circle ${isGlowPlan ? 'glow' : ''}`}>
-            {isGlowPlan ? <Sparkles size={40} /> : <Crown size={42} />}
+        <h1 className="cluv-title-card cluv-mt-2 cluv-mb-1">
+          Selamat! Kamu Resmi Memiliki Akses {isGlowPlan ? 'GLOW' : 'PRO'}
+        </h1>
+        <p className="cluv-caption cluv-text-muted cluv-mb-6 cluv-max-w-md">
+          Nikmati akses analisis kondisi kulit & konsultasi Skinsistant AI selama 30 hari ke depan.
+        </p>
+
+        {/* Invoice Summary Box */}
+        <div className="cluv-receipt-box cluv-mb-5">
+          <div className="cluv-receipt-row">
+            <span className="cluv-receipt-label">No. Referensi:</span>
+            <span className="cluv-receipt-val cluv-font-mono cluv-text-teal">{reference}</span>
           </div>
-          <div>
-            <span className="v0-celebrate-badge">
-              <Sparkles size={14} /> Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
+          <div className="cluv-receipt-row">
+            <span className="cluv-receipt-label">Paket:</span>
+            <span className="cluv-receipt-val cluv-text-teal">{planName}</span>
+          </div>
+          <div className="cluv-receipt-row">
+            <span className="cluv-receipt-label">Total Pembayaran:</span>
+            <span className="cluv-receipt-val">{planPriceFormatted}</span>
+          </div>
+          <div className="cluv-receipt-row">
+            <span className="cluv-receipt-label">Status Pembayaran:</span>
+            <span className="cluv-badge is-teal">
+              <CheckCircle size={12} /> LUNAS
             </span>
           </div>
+        </div>
 
-          <h1 className="v0-profile-form-main-title" style={{ fontSize: '1.375rem', marginBottom: '8px' }}>
-            Selamat! Kamu Resmi Memiliki Akses {isGlowPlan ? 'GLOW' : 'PRO'}
-          </h1>
-          <p className="v0-profile-form-main-sub" style={{ marginBottom: '24px' }}>
-            Nikmati akses analisis kondisi kulit & konsultasi Skinsistant AI selama 30 hari ke depan.
+        {/* Benefits Checklist */}
+        <div className="cluv-card is-compact cluv-w-full cluv-mb-5 cluv-text-left">
+          <h3 className="cluv-caption cluv-font-bold cluv-text-muted cluv-mb-3">
+            FITUR {isGlowPlan ? 'GLOW' : 'PRO'} YANG SUDAH TERBUKA:
+          </h3>
+          <ul className="cluv-feature-list">
+            <li className="cluv-feature-item">
+              <CheckCircle size={16} className="cluv-text-teal" />
+              <span>{isGlowPlan ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage / 30 Hari'}</span>
+            </li>
+            <li className="cluv-feature-item">
+              <CheckCircle size={16} className="cluv-text-teal" />
+              <span>Analisis Kulit AI & Rekomendasi Rutinitas yang Dipersonalisasi</span>
+            </li>
+            <li className="cluv-feature-item">
+              <CheckCircle size={16} className="cluv-text-teal" />
+              <span>Peringatan Komposisi & Deteksi Interaksi Skincare</span>
+            </li>
+            <li className="cluv-feature-item">
+              <CheckCircle size={16} className="cluv-text-teal" />
+              <span>Tanya Jawab Edukatif Bersama Skinsistant AI 24/7</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Non-Therapeutic Compliance Disclaimer (RFC 016/017) */}
+        <div className="cluv-card-note cluv-w-full cluv-mb-6 cluv-text-left">
+          <AlertCircle size={16} />
+          <p className="cluv-caption">
+            <strong>Pemberitahuan Kepatuhan:</strong> Skincluv adalah panduan perawatan kosmetik berbasis AI — bukan diagnosis klinis, resep obat, atau pengganti dokter spesialis dermatologi.
           </p>
+        </div>
 
-          {/* Invoice Summary Box */}
-          <div className="v0-receipt-box">
-            <div className="v0-receipt-row">
-              <span className="v0-receipt-label">No. Referensi:</span>
-              <span className="v0-receipt-val code">{reference}</span>
-            </div>
-            <div className="v0-receipt-row">
-              <span className="v0-receipt-label">Paket:</span>
-              <span className="v0-receipt-val highlight">{planName}</span>
-            </div>
-            <div className="v0-receipt-row">
-              <span className="v0-receipt-label">Total Pembayaran:</span>
-              <span className="v0-receipt-val">{planPriceFormatted}</span>
-            </div>
-            <div className="v0-receipt-row">
-              <span className="v0-receipt-label">Status Pembayaran:</span>
-              <span className="v0-badge success">
-                <CheckCircle size={12} /> LUNAS
-              </span>
-            </div>
-          </div>
-
-          {/* Benefits Checklist */}
-          <div className="v0-benefits-card">
-            <h3>Fitur {isGlowPlan ? 'GLOW' : 'PRO'} yang Sudah Terbuka:</h3>
-            <ul className="v0-benefits-list">
-              <li>
-                <CheckCircle size={16} className="v0-benefits-icon" />
-                <span>{isGlowPlan ? '100 Universal AI Usage / 30 Hari' : '500 Universal AI Usage / 30 Hari'}</span>
-              </li>
-              <li>
-                <CheckCircle size={16} className="v0-benefits-icon" />
-                <span>Analisis Kulit AI & Rekomendasi Rutinitas yang Dipersonalisasi</span>
-              </li>
-              <li>
-                <CheckCircle size={16} className="v0-benefits-icon" />
-                <span>Peringatan Komposisi & Deteksi Interaksi Skincare</span>
-              </li>
-              <li>
-                <CheckCircle size={16} className="v0-benefits-icon" />
-                <span>Tanya Jawab Edukatif Bersama Skinsistant AI 24/7</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Non-Therapeutic Compliance Disclaimer (RFC 016/017) */}
-          <div className="v0-disclaimer-box">
-            <AlertCircle size={16} className="v0-disclaimer-icon" />
-            <p>
-              <strong>Pemberitahuan Kepatuhan:</strong> Skincluv adalah panduan perawatan kosmetik berbasis AI — bukan diagnosis klinis, resep obat, atau pengganti dokter spesialis dermatologi.
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
-            <Link to="/face-scan" className="v0-btn-action" style={{ justifyContent: 'center', padding: '12px 18px', fontSize: '0.875rem' }}>
-              <ScanFace size={18} /> Coba Scan Wajah Sekarang
+        {/* Action Buttons */}
+        <div className="cluv-flex-col cluv-gap-3 cluv-w-full">
+          <Link to="/face-scan" className="cluv-btn is-primary cluv-w-full cluv-justify-center">
+            <ScanFace size={18} /> Coba Scan Wajah Sekarang
+          </Link>
+          <div className="cluv-flex-row cluv-gap-3 cluv-w-full">
+            <Link to="/chatbot" className="cluv-btn is-outline cluv-flex-1 cluv-justify-center">
+              <MessageSquare size={16} /> Chat AI
             </Link>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <Link to="/chatbot" className="v0-profile-chip" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}>
-                <MessageSquare size={15} /> Chat AI
-              </Link>
-              <Link to="/transactions" className="v0-profile-chip" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none' }}>
-                Riwayat Tagihan <ArrowRight size={14} />
-              </Link>
-            </div>
+            <Link to="/transactions" className="cluv-btn is-ghost cluv-flex-1 cluv-justify-center">
+              Riwayat Tagihan <ArrowRight size={14} />
+            </Link>
           </div>
         </div>
       </div>
