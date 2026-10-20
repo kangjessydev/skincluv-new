@@ -77,6 +77,7 @@
 | **Tabs & Subnav** | `.cluv-tabs` | `.is-full` | `.cluv-tab-btn` (`.is-active`)<br>`.cluv-tab-badge` | Segmented tab navigasi horizontal untuk filter riwayat scan dan sub-halaman. |
 | **Status Cues** | `.cluv-status-cue` | - | `.cluv-status-cue-number`<br>`.cluv-status-cue-badge` | Visual penanda status numerik besar (404, 500, empty state) dengan icon badge mengambang di tengah. |
 | **Ambient Decorations** | `.cluv-ambient-layer` | - | `.cluv-ambient-decor`<br>`.is-cloud-left`<br>`.is-star-mid`<br>`.is-cloud-right`<br>`.is-heart-bottom`<br>`.cluv-delay-[1-3]` | Layer stiker ambient mengambang lembut untuk hero cerita tanpa mengganggu interaksi konten. |
+| **Conversational Chat** | `.cluv-chat-root`<br>`.cluv-chat-scroll` | `.is-user`<br>`.is-bot`<br>`.is-wide` (drawer) | `.cluv-chat-util-bar`<br>`.cluv-chat-util-btn`<br>`.cluv-chat-session-badge`<br>`.cluv-chat-drawer`<br>`.cluv-chat-banner`<br>`.cluv-chat-welcome`<br>`.cluv-chat-chip`<br>`.cluv-chat-row`<br>`.cluv-chat-bubble`<br>`.cluv-chat-avatar`<br>`.cluv-chat-thinking`<br>`.cluv-chat-input-bar`<br>`.cluv-chat-input-wrap`<br>`.cluv-chat-send-btn`<br>`.cluv-chat-paywall-card`<br>`.cluv-chat-sources` | Layout Type C: Full-bleed viewport chat AI dengan header utilitas, drawer riwayat/UU PDP, bubble percakapan, CTA scan, dan input lengket bawah. |
 
 ---
 
@@ -507,6 +508,69 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
         </div>
       </div>
     </div>
+  </div>
+</div>
+```
+
+---
+
+## 9. Pola Universal: Conversational Chat (.cluv-chat-root, .cluv-chat-scroll, .cluv-chat-bubble, .cluv-chat-input-bar)
+
+```tsx
+<div className="cluv-chat-root">
+  {/* Utility Bar */}
+  <div className="cluv-chat-util-bar">
+    <div className="cluv-chat-util-left">
+      <button className="cluv-chat-util-btn"><History size={16} /> Riwayat (5)</button>
+      <button className="cluv-chat-util-btn"><Brain size={16} /> Memori (3)</button>
+    </div>
+    <div className="cluv-chat-util-center">
+      <div className="cluv-chat-session-badge">
+        <Sparkles size={13} />
+        <span className="cluv-chat-session-badge-title">Konsultasi Kulit AI</span>
+      </div>
+    </div>
+    <div className="cluv-chat-util-right">
+      <button className="cluv-chat-util-btn is-primary"><Plus size={16} /> Chat Baru</button>
+    </div>
+  </div>
+
+  {/* Scrollable Message Feed */}
+  <div className="cluv-chat-scroll">
+    {/* Bot Message Row */}
+    <div className="cluv-chat-row is-bot">
+      <div className="cluv-chat-avatar is-bot"><Sparkles size={15} /></div>
+      <div className="cluv-chat-bubble-wrap">
+        <div className="cluv-chat-bubble">
+          <p>Halo! Ada yang ingin didiskusikan seputar perawatan kulit Anda?</p>
+        </div>
+        <span className="cluv-chat-timestamp">12:30</span>
+      </div>
+    </div>
+
+    {/* User Message Row */}
+    <div className="cluv-chat-row is-user">
+      <div className="cluv-chat-bubble-wrap">
+        <div className="cluv-chat-bubble">
+          <p>Kulit saya terasa berminyak di siang hari.</p>
+        </div>
+        <span className="cluv-chat-timestamp">12:31</span>
+      </div>
+      <div className="cluv-chat-avatar is-user">JD</div>
+    </div>
+  </div>
+
+  {/* Sticky Bottom Input Bar */}
+  <div className="cluv-chat-input-bar">
+    <form className="cluv-chat-input-wrap">
+      <button type="button" className="cluv-chat-attach-btn"><Paperclip size={18} /></button>
+      <textarea rows={1} placeholder="Tanyakan sesuatu pada Skinsistant AI..." />
+      <button type="submit" className="cluv-chat-send-btn"><Send size={16} /></button>
+    </form>
+    <p className="cluv-chat-disclaimer">
+      <ShieldAlert size={12} />
+      <span>Skinsistant memberikan edukasi dan panduan perawatan kosmetik, bukan diagnosis atau tindakan medis profesional.</span>
+    </p>
   </div>
 </div>
 ```

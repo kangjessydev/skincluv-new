@@ -37,6 +37,7 @@
 @import './components/tabs.css';
 @import './components/bento.css';
 @import './components/tiles.css';
+@import './components/chat.css';
 
 /* 3. App Surface Shell */
 @import './app/shell.css';

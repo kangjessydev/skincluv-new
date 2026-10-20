@@ -1,0 +1,1073 @@
+/* src/styles/cluv/components/chat.css
+   =============================================================================
+   Skincluv Universal Conversational Chat Primitives (.cluv-chat-*)
+   =============================================================================
+   Complies with AGENTS.md Layout Type C (Full-Bleed Viewport):
+   Zero outer page scroll, sticky utility bar on top, scrollable chat message
+   feed in the center, and sticky input bar at the bottom.
+*/
+
+/* 1. Root Full-Bleed Layout */
+.cluv-chat-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  width: 100%;
+  background: var(--cluv-current-bg, var(--cluv-neutral-50));
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: var(--cluv-current-font, var(--cluv-font-app));
+}
+
+/* 2. Top Utility Bar */
+.cluv-chat-util-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--cluv-surface);
+  border-bottom: 1px solid var(--cluv-border);
+  flex-shrink: 0;
+  gap: 12px;
+  z-index: 10;
+}
+
+.cluv-chat-util-left,
+.cluv-chat-util-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cluv-chat-util-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.cluv-chat-session-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--cluv-radius-pill);
+  background: var(--cluv-teal-soft);
+  border: 1px solid var(--cluv-teal-line);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark);
+  max-width: 320px;
+}
+
+.cluv-chat-session-badge-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cluv-chat-util-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--cluv-border);
+  background: var(--cluv-surface);
+  color: var(--cluv-neutral-600);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--cluv-radius-md);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cluv-chat-util-btn:hover {
+  background: var(--cluv-neutral-50);
+  color: var(--cluv-teal);
+  border-color: var(--cluv-teal-line);
+}
+
+.cluv-chat-util-btn.is-reset {
+  color: var(--cluv-status-danger);
+}
+
+.cluv-chat-util-btn.is-reset:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.cluv-chat-util-btn.is-primary {
+  color: #ffffff;
+  background: var(--cluv-teal);
+  border-color: var(--cluv-teal);
+}
+
+.cluv-chat-util-btn.is-primary:hover {
+  background: var(--cluv-teal-hover);
+  border-color: var(--cluv-teal-hover);
+}
+
+/* 3. History & Memory Drawer */
+.cluv-chat-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  justify-content: flex-start;
+  animation: cluvFadeIn 0.2s ease;
+}
+
+.cluv-chat-drawer {
+  width: 320px;
+  max-width: 90vw;
+  height: 100%;
+  background: var(--cluv-surface);
+  box-shadow: var(--cluv-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  animation: cluvSlideRight 0.25s ease;
+}
+
+.cluv-chat-drawer.is-wide {
+  width: 480px;
+}
+
+@keyframes cluvSlideRight {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.cluv-chat-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--cluv-border);
+}
+
+.cluv-chat-drawer-header h3 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  margin: 0;
+  font-family: inherit;
+}
+
+.cluv-chat-drawer-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--cluv-neutral-500);
+  cursor: pointer;
+  border-radius: var(--cluv-radius-sm);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.cluv-chat-drawer-close:hover {
+  color: var(--cluv-neutral-900);
+  background: var(--cluv-neutral-100);
+}
+
+.cluv-chat-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cluv-chat-session-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--cluv-radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--cluv-neutral-700);
+  transition: background 0.2s ease;
+}
+
+.cluv-chat-session-item:hover {
+  background: var(--cluv-neutral-100);
+}
+
+.cluv-chat-session-item.is-active {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal-dark);
+  font-weight: 700;
+}
+
+.cluv-chat-session-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cluv-chat-delete-btn {
+  background: none;
+  border: none;
+  color: var(--cluv-neutral-400);
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  border-radius: var(--cluv-radius-sm);
+}
+
+.cluv-chat-session-item:hover .cluv-chat-delete-btn {
+  opacity: 1;
+}
+
+.cluv-chat-delete-btn:hover {
+  color: var(--cluv-status-danger);
+}
+
+/* 4. Consent Banner (UU PDP) */
+.cluv-chat-banner {
+  background: var(--cluv-teal-soft);
+  border: 1px solid var(--cluv-teal-line);
+  border-radius: var(--cluv-radius-lg);
+  padding: 14px 18px;
+  margin: 12px 16px 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: cluvFadeIn 0.2s ease;
+}
+
+.cluv-chat-banner-content {
+  flex: 1;
+}
+
+.cluv-chat-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark);
+  margin-bottom: 4px;
+}
+
+.cluv-chat-banner-content p {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-700);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.cluv-chat-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 5. Main Chat Scroll Area */
+.cluv-chat-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+}
+
+.cluv-chat-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.cluv-chat-scroll::-webkit-scrollbar-thumb {
+  background: var(--cluv-neutral-300);
+  border-radius: 4px;
+}
+
+/* 6. Welcome Hero */
+.cluv-chat-welcome {
+  max-width: 540px;
+  margin: 32px auto 0;
+  text-align: center;
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-xl);
+  padding: 32px 24px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-chat-welcome-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--cluv-teal-soft);
+  border: 1px solid var(--cluv-teal-line);
+  color: var(--cluv-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.cluv-chat-welcome h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  margin: 0 0 8px 0;
+}
+
+.cluv-chat-welcome p {
+  font-size: 0.875rem;
+  color: var(--cluv-neutral-500);
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.cluv-chat-chips-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cluv-chat-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-800);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cluv-chat-chip:hover {
+  background: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal-line);
+  color: var(--cluv-teal-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+/* 7. Chat Rows & Bubbles */
+.cluv-chat-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.cluv-chat-row.is-user {
+  justify-content: flex-end;
+}
+
+.cluv-chat-row.is-bot {
+  justify-content: flex-start;
+}
+
+.cluv-chat-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cluv-chat-avatar.is-bot {
+  background: var(--cluv-teal-soft);
+  border: 1px solid var(--cluv-teal-line);
+  color: var(--cluv-teal);
+}
+
+.cluv-chat-avatar.is-user {
+  background: var(--cluv-teal);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cluv-chat-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+}
+
+.cluv-chat-bubble {
+  border-radius: var(--cluv-radius-lg);
+  padding: 12px 18px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-chat-row.is-user .cluv-chat-bubble {
+  background: linear-gradient(135deg, var(--cluv-teal) 0%, var(--cluv-teal-hover) 100%);
+  color: #ffffff !important;
+  border-bottom-right-radius: 4px;
+}
+
+.cluv-chat-row.is-user .cluv-chat-bubble p {
+  color: #ffffff !important;
+  margin: 0;
+}
+
+.cluv-chat-row.is-bot .cluv-chat-bubble {
+  background: var(--cluv-surface);
+  color: var(--cluv-neutral-900);
+  border: 1px solid var(--cluv-border);
+  border-bottom-left-radius: 4px;
+}
+
+.cluv-chat-bubble p {
+  margin: 0;
+}
+
+.cluv-chat-bubble p + p {
+  margin-top: 8px;
+}
+
+.cluv-chat-timestamp {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-400);
+  margin-top: 4px;
+  display: block;
+}
+
+.cluv-chat-row.is-user .cluv-chat-timestamp {
+  text-align: right;
+}
+
+.cluv-chat-row.is-bot .cluv-chat-timestamp {
+  text-align: left;
+}
+
+/* 8. Thinking State */
+.cluv-chat-thinking {
+  background: var(--cluv-surface) !important;
+  border: 1px solid var(--cluv-border) !important;
+  border-bottom-left-radius: 4px !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px !important;
+  width: fit-content;
+}
+
+.cluv-chat-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cluv-chat-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cluv-teal);
+  animation: cluvDotBounce 1.1s infinite ease-in-out;
+}
+
+.cluv-chat-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.cluv-chat-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes cluvDotBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.cluv-chat-shimmer-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-teal-dark);
+  animation: cluvThinkShimmer 1.8s infinite ease-in-out;
+  white-space: nowrap;
+}
+
+@keyframes cluvThinkShimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* 9. Sticky Bottom Input Bar */
+.cluv-chat-input-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 20px 10px 20px;
+  background: var(--cluv-surface);
+  border-top: 1px solid var(--cluv-border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.cluv-chat-disclaimer {
+  margin: 8px 0 0 0;
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  user-select: none;
+}
+
+.cluv-chat-disclaimer svg {
+  color: var(--cluv-amber);
+  flex-shrink: 0;
+}
+
+.cluv-chat-input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-lg);
+  padding: 6px 8px 6px 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.cluv-chat-input-wrap:focus-within {
+  border-color: var(--cluv-teal);
+  background: var(--cluv-surface);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+.cluv-chat-input-wrap textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  color: var(--cluv-neutral-900);
+  resize: none;
+  max-height: 140px;
+  min-height: 24px;
+  line-height: 1.5;
+  padding: 6px 0;
+  overflow-y: auto;
+}
+
+.cluv-chat-input-wrap textarea::placeholder {
+  color: var(--cluv-neutral-400);
+}
+
+.cluv-chat-attach-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--cluv-radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--cluv-neutral-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.cluv-chat-attach-btn:hover {
+  color: var(--cluv-teal);
+  background: var(--cluv-neutral-100);
+}
+
+.cluv-chat-send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--cluv-teal);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px rgba(31, 157, 151, 0.25);
+  flex-shrink: 0;
+}
+
+.cluv-chat-send-btn:hover:not(:disabled) {
+  background: var(--cluv-teal-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(31, 157, 151, 0.35);
+}
+
+.cluv-chat-send-btn:disabled {
+  background: var(--cluv-neutral-300);
+  color: var(--cluv-neutral-400);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* 10. In-Chat Warning Strip (0 Credits) */
+.cluv-chat-warning-strip {
+  background: var(--cluv-gold-soft);
+  border: 1px solid var(--cluv-gold-line);
+  border-radius: var(--cluv-radius-md);
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.8125rem;
+  color: #92400e;
+  animation: cluvFadeIn 0.2s ease;
+}
+
+.cluv-chat-warning-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cluv-chat-warning-left svg {
+  color: var(--cluv-gold);
+  flex-shrink: 0;
+}
+
+.cluv-chat-warning-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 11. In-Chat Insufficient Credits Paywall Card */
+.cluv-chat-paywall-card {
+  background: var(--cluv-gold-soft);
+  border: 1px solid var(--cluv-gold-line);
+  border-radius: var(--cluv-radius-lg);
+  padding: 16px;
+  max-width: 440px;
+  box-shadow: var(--cluv-shadow-sm);
+  animation: cluvFadeIn 0.2s ease;
+}
+
+.cluv-chat-paywall-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cluv-chat-paywall-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cluv-gold);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cluv-chat-paywall-header h4 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0;
+}
+
+.cluv-chat-paywall-cost {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--cluv-radius-pill);
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.cluv-chat-paywall-desc {
+  font-size: 0.8125rem;
+  color: #78350f;
+  line-height: 1.45;
+  margin: 0 0 14px 0;
+}
+
+.cluv-chat-paywall-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 12. In-Chat Action CTA Buttons (RFC 006) */
+.cluv-chat-cta-wrapper {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cluv-chat-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--cluv-radius-md);
+  border: none;
+  cursor: pointer;
+  color: #ffffff;
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+
+.cluv-chat-cta-btn.is-face {
+  background: linear-gradient(135deg, var(--cluv-teal) 0%, var(--cluv-teal-hover) 100%);
+  box-shadow: 0 2px 8px rgba(31, 157, 151, 0.25);
+}
+
+.cluv-chat-cta-btn.is-face:hover {
+  background: linear-gradient(135deg, var(--cluv-teal-hover) 0%, var(--cluv-teal-dark) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(31, 157, 151, 0.35);
+}
+
+.cluv-chat-cta-btn.is-ingredient {
+  background: linear-gradient(135deg, var(--cluv-status-success) 0%, var(--cluv-teal) 100%);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.cluv-chat-cta-btn.is-ingredient:hover {
+  background: linear-gradient(135deg, #059669 0%, var(--cluv-teal-dark) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+/* 13. Sources Accordion (Tavily search citations) */
+.cluv-chat-sources {
+  margin-top: 6px;
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  overflow: hidden;
+  background: var(--cluv-neutral-50);
+  font-size: 0.78rem;
+  max-width: 480px;
+}
+
+.cluv-chat-sources-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--cluv-teal-dark);
+  cursor: pointer;
+  font-weight: 700;
+  text-align: left;
+}
+
+.cluv-chat-sources-toggle:hover {
+  background: var(--cluv-teal-soft);
+}
+
+.cluv-chat-sources-chevron {
+  margin-left: auto;
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+.cluv-chat-sources-list {
+  border-top: 1px solid var(--cluv-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.cluv-chat-source-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--cluv-neutral-100);
+  transition: background 0.15s;
+}
+
+.cluv-chat-source-item:last-child {
+  border-bottom: none;
+}
+
+.cluv-chat-source-item:hover {
+  background: var(--cluv-teal-soft);
+}
+
+.cluv-chat-source-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark);
+  min-width: 24px;
+  padding-top: 1px;
+}
+
+.cluv-chat-source-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cluv-chat-source-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-800);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cluv-chat-source-snippet {
+  font-size: 0.72rem;
+  color: var(--cluv-neutral-500);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cluv-chat-source-url {
+  font-size: 0.68rem;
+  color: var(--cluv-teal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 14. Clinical Memory Drawer Widgets */
+.cluv-chat-uupdp-card {
+  background: var(--cluv-teal-soft);
+  border: 1px solid var(--cluv-teal-line);
+  border-radius: var(--cluv-radius-md);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.cluv-chat-uupdp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark);
+  margin-bottom: 6px;
+}
+
+.cluv-chat-uupdp-card p {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-700);
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+
+.cluv-chat-uupdp-rights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cluv-teal);
+}
+
+.cluv-chat-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  margin-bottom: 14px;
+}
+
+.cluv-chat-consent-card {
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.cluv-chat-consent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cluv-chat-consent-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
+
+.cluv-chat-consent-desc {
+  font-size: 0.72rem;
+  color: var(--cluv-neutral-500);
+  line-height: 1.45;
+  margin: 0 0 10px 0;
+}
+
+.cluv-chat-sub-options {
+  border-top: 1px solid var(--cluv-border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.cluv-chat-sub-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--cluv-neutral-700);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cluv-chat-memory-card {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 12px;
+  transition: all 0.15s ease;
+}
+
+.cluv-chat-memory-card:hover {
+  border-color: var(--cluv-neutral-300);
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-chat-memory-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cluv-chat-memory-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--cluv-radius-pill);
+  letter-spacing: 0.03em;
+}
+
+.cluv-chat-memory-badge.is-allergy {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.cluv-chat-memory-badge.is-sensitivity {
+  background: var(--cluv-gold-soft);
+  color: #b45309;
+}
+
+.cluv-chat-memory-badge.is-reaction,
+.cluv-chat-memory-badge.is-treatment_reaction {
+  background: var(--cluv-purple-soft);
+  color: var(--cluv-purple);
+}
+
+.cluv-chat-memory-badge.is-preference,
+.cluv-chat-memory-badge.is-skin_trend {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal-dark);
+}
+
+.cluv-chat-memory-entity {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  margin-bottom: 3px;
+}
+
+.cluv-chat-memory-fact {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  line-height: 1.4;
+}
+
+/* 15. Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .cluv-chat-warning-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .cluv-chat-warning-cta-group {
+    width: 100%;
+  }
+  .cluv-chat-util-bar {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .cluv-chat-util-center {
+    display: none;
+  }
+  .cluv-chat-util-btn span {
+    display: none;
+  }
+  .cluv-chat-util-btn {
+    padding: 6px 8px;
+  }
+  .cluv-chat-scroll {
+    padding: 14px 12px;
+  }
+  .cluv-chat-bubble-wrap {
+    max-width: 85%;
+  }
+  .cluv-chat-input-bar {
+    padding: 10px 12px;
+  }
+}

@@ -34,7 +34,6 @@ import ChatAttachmentSlot, { type ChatAttachmentDescriptor } from '@/components/
 import FaceScanDetailModal from '@/components/scans/FaceScanDetailModal'
 import IngredientScanDetailModal from '@/components/scans/IngredientScanDetailModal'
 import type { FaceScan, IngredientScan } from '@/types/database'
-import '@/styles/chatbot.css'
 
 interface ClinicalMemory {
   id: string
@@ -692,7 +691,7 @@ export default function ChatbotPage() {
   const activeSession = sessions.find((s) => s.id === sessionId)
 
   return (
-    <div className="skinsistant-chat-root">
+    <div className="cluv-chat-root">
       {/* COIN CONFIRMATION MODAL */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
@@ -706,11 +705,11 @@ export default function ChatbotPage() {
       )}
 
       {/* CHAT UTILITY BAR (Riwayat Chat, Memori Percakapan, Reset Sesi & Chat Baru) */}
-      <div className="chat-util-bar">
-        <div className="chat-util-left">
+      <div className="cluv-chat-util-bar">
+        <div className="cluv-chat-util-left">
           <button
             onClick={() => setShowHistoryModal(!showHistoryModal)}
-            className="util-btn util-history-btn"
+            className="cluv-chat-util-btn"
             title="Riwayat Sesi Percakapan"
           >
             <History size={16} />
@@ -722,7 +721,7 @@ export default function ChatbotPage() {
               fetchClinicalMemories()
               setShowMemoryModal(true)
             }}
-            className="util-btn util-memory-btn"
+            className="cluv-chat-util-btn"
             title="Memori Percakapan (Sesuai UU Perlindungan Data Pribadi)"
           >
             <Brain size={16} />
@@ -730,20 +729,20 @@ export default function ChatbotPage() {
           </button>
         </div>
 
-        <div className="chat-util-center">
-          <div className="chat-session-badge">
-            <Sparkles size={13} style={{ color: 'var(--color-teal)' }} />
-            <span className="chat-session-badge-title">
+        <div className="cluv-chat-util-center">
+          <div className="cluv-chat-session-badge">
+            <Sparkles size={13} style={{ color: 'var(--cluv-teal)' }} />
+            <span className="cluv-chat-session-badge-title">
               {activeSession?.title || 'Konsultasi Kulit AI'}
             </span>
           </div>
         </div>
 
-        <div className="chat-util-right">
+        <div className="cluv-chat-util-right">
           {sessionId && messages.length > 0 && (
             <button
               onClick={handleResetCurrentSession}
-              className="util-btn util-reset-btn"
+              className="cluv-chat-util-btn is-reset"
               title="Kosongkan pesan dalam sesi ini"
             >
               <Trash2 size={15} />
@@ -751,7 +750,7 @@ export default function ChatbotPage() {
             </button>
           )}
 
-          <button onClick={handleCreateNewChat} className="util-btn util-new-btn" title="Mulai Percakapan Baru">
+          <button onClick={handleCreateNewChat} className="cluv-chat-util-btn is-primary" title="Mulai Percakapan Baru">
             <Plus size={16} />
             <span>Chat Baru</span>
           </button>
@@ -760,27 +759,27 @@ export default function ChatbotPage() {
 
       {/* CONSENT BANNER (SESUAI UU PERLINDUNGAN DATA PRIBADI) */}
       {showConsentBanner && user?.id && (
-        <div className="memory-consent-banner">
-          <div className="consent-content">
-            <div className="consent-title-row">
-              <Sparkles size={16} className="text-primary" />
+        <div className="cluv-chat-banner">
+          <div className="cluv-chat-banner-content">
+            <div className="cluv-chat-banner-title">
+              <Sparkles size={16} />
               <strong>Aktifkan Memori Skinsistant?</strong>
             </div>
             <p>
-              AI akan mengingat hal penting dari obrolanmu (seperti bahan yang memicu iritasi, alergi, atau preferensi skincare-mu) supaya saran konsultasi berikutnya makin personal dan aman. Sesuai UU Perlindungan Data Pribadi — kamu bebas melihat, mematikan, atau menghapusnya kapan saja.
+              AI akan mengingat preferensi penting dari obrolan Anda (seperti bahan yang memicu iritasi, sensitivitas, atau tujuan perawatan kulit) agar panduan berikutnya makin personal dan aman. Sesuai UU Perlindungan Data Pribadi — Anda bebas melihat, menonaktifkan, atau menghapusnya kapan saja.
             </p>
           </div>
-          <div className="consent-action-buttons">
+          <div className="cluv-chat-banner-actions">
             <button
               type="button"
-              className="consent-btn-accept"
+              className="cluv-btn is-primary is-sm"
               onClick={() => handleSetMemoryConsent(true)}
             >
               Aktifkan
             </button>
             <button
               type="button"
-              className="consent-btn-dismiss"
+              className="cluv-btn is-secondary is-sm"
               onClick={() => handleSetMemoryConsent(false)}
             >
               Lewati
@@ -791,43 +790,43 @@ export default function ChatbotPage() {
 
       {/* MEMORY MODAL (SESUAI UU PERLINDUNGAN DATA PRIBADI) */}
       {showMemoryModal && (
-        <div className="history-drawer-overlay" onClick={() => setShowMemoryModal(false)}>
-          <div className="history-drawer clinical-memory-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
+        <div className="cluv-chat-drawer-overlay" onClick={() => setShowMemoryModal(false)}>
+          <div className="cluv-chat-drawer is-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="cluv-chat-drawer-header">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={18} className="text-teal-600" />
                 <h3>Memori Percakapan &amp; Hak Privasi</h3>
               </div>
-              <button onClick={() => setShowMemoryModal(false)} className="drawer-close-btn">
+              <button onClick={() => setShowMemoryModal(false)} className="cluv-chat-drawer-close">
                 <X size={18} />
               </button>
             </div>
 
-            <div className="drawer-body">
-              <div className="uupdp-compliance-card">
-                <div className="uupdp-badge">
+            <div className="cluv-chat-drawer-body">
+              <div className="cluv-chat-uupdp-card">
+                <div className="cluv-chat-uupdp-badge">
                   <ShieldCheck size={13} /> Sesuai UU Perlindungan Data Pribadi
                 </div>
                 <p>
-                  <strong>Prinsip Minimisasi Data &amp; Isolasi Pribadi:</strong> AI hanya mengingat hal penting (seperti alergi, sensitivitas bahan, atau preferensi skincare) yang Anda diskusikan agar konsultasi berikutnya selalu aman dan relevan. Memori ini 100% terisolasi untuk akun Anda dan tidak dapat dibaca admin ataupun pihak ketiga.
+                  <strong>Prinsip Minimisasi Data &amp; Isolasi Pribadi:</strong> AI hanya mengingat informasi esensial (seperti sensitivitas bahan atau preferensi kosmetik) yang Anda diskusikan agar edukasi berikutnya selalu aman dan relevan. Memori ini 100% terisolasi untuk akun Anda dan tidak dapat dibaca admin ataupun pihak ketiga.
                 </p>
-                <div className="uupdp-rights">
+                <div className="cluv-chat-uupdp-rights">
                   <span><CheckCircle2 size={12} className="inline mr-1" /> Hak Akses &amp; Hapus Data Pribadi</span>
                   <span><CheckCircle2 size={12} className="inline mr-1" /> Isolasi Sandboxing Terenkripsi</span>
                 </div>
               </div>
 
               {/* Status Consent Toggle */}
-              <div className="memory-consent-toggle-row">
-                <div className="consent-status-label">
+              <div className="cluv-chat-toggle-row">
+                <div className="text-xs text-slate-600">
                   <span>Status Memori Percakapan: </span>
-                  <strong className={memoryConsent ? 'text-emerald-600' : 'text-slate-500'}>
+                  <strong className={memoryConsent ? 'text-teal-700 font-bold' : 'text-slate-500 font-bold'}>
                     {memoryConsent ? 'Aktif' : 'Nonaktif'}
                   </strong>
                 </div>
                 <button
                   type="button"
-                  className={`consent-toggle-btn ${memoryConsent ? 'btn-disable' : 'btn-enable'}`}
+                  className={`cluv-btn is-sm ${memoryConsent ? 'is-danger' : 'is-primary'}`}
                   onClick={() => handleSetMemoryConsent(!memoryConsent)}
                 >
                   {memoryConsent ? 'Nonaktifkan' : 'Aktifkan'}
@@ -835,54 +834,54 @@ export default function ChatbotPage() {
               </div>
 
               {/* Scan History Consent Section (RFC 006 Multi-Model Consensus) */}
-              <div className="scan-consent-card">
-                <div className="scan-consent-header">
-                  <div className="scan-consent-title">
-                    <Sparkles size={15} className="text-violet-icon" />
+              <div className="cluv-chat-consent-card">
+                <div className="cluv-chat-consent-header">
+                  <div className="cluv-chat-consent-title">
+                    <Sparkles size={15} style={{ color: 'var(--cluv-teal)' }} />
                     <span>Riwayat Scan AI</span>
                   </div>
                   <button
                     type="button"
-                    className={`consent-toggle-btn ${scanMasterConsent ? 'btn-enable' : 'btn-disable'}`}
+                    className={`cluv-btn is-sm ${scanMasterConsent ? 'is-primary' : 'is-danger'}`}
                     onClick={() => handleSetScanConsent(!scanMasterConsent)}
                   >
                     {scanMasterConsent ? 'Aktif' : 'Nonaktif'}
                   </button>
                 </div>
-                <p className="scan-consent-desc">
-                  Izinkan Skinsistant membaca hasil scan wajah dan riwayat produk untuk personalisasi rekomendasi. Sesuai prinsip minimisasi data UU PDP, riwayat scan hanya diakses jika relevan dengan pertanyaan Anda.
+                <p className="cluv-chat-consent-desc">
+                  Izinkan Skinsistant membaca riwayat pemetaan kondisi kulit dan komposisi produk untuk rekomendasi yang lebih tepat sasaran. Sesuai prinsip UU PDP, riwayat hanya dirujuk saat relevan dengan pertanyaan Anda.
                 </p>
 
                 {scanMasterConsent && (
-                  <div className="scan-sub-options">
-                    <label className="scan-sub-item">
-                      <span>Rekam Jejak Scan Wajah Terakhir</span>
+                  <div className="cluv-chat-sub-options">
+                    <label className="cluv-chat-sub-item">
+                      <span>Rekam Jejak Pemetaan Kondisi Kulit Terakhir</span>
                       <input
                         type="checkbox"
                         checked={scanFaceConsent}
                         onChange={(e) => handleSetScanConsent(true, e.target.checked, scanProductConsent)}
-                        className="scan-checkbox"
+                        className="accent-teal-600 w-4 h-4 rounded cursor-pointer"
                       />
                     </label>
-                    <label className="scan-sub-item">
-                      <span>Rekam Jejak Cek Komposisi / Produk</span>
+                    <label className="cluv-chat-sub-item">
+                      <span>Rekam Jejak Analisis Komposisi Produk</span>
                       <input
                         type="checkbox"
                         checked={scanProductConsent}
                         onChange={(e) => handleSetScanConsent(true, scanFaceConsent, e.target.checked)}
-                        className="scan-checkbox"
+                        className="accent-teal-600 w-4 h-4 rounded cursor-pointer"
                       />
                     </label>
                   </div>
                 )}
               </div>
 
-              <div className="memories-section-header">
-                <h4>Fakta yang Diingat ({clinicalMemories.length})</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-bold text-slate-800 m-0">Fakta yang Diingat ({clinicalMemories.length})</h4>
                 {clinicalMemories.length > 0 && (
                   <button
                     onClick={handleClearAllMemories}
-                    className="clear-all-memories-btn"
+                    className="cluv-btn is-ghost is-sm text-rose-600"
                     title="Hapus seluruh memori"
                   >
                     Hapus Semua
@@ -891,35 +890,35 @@ export default function ChatbotPage() {
               </div>
 
               {isLoadingMemories ? (
-                <div className="flex items-center justify-center py-8 text-gray-400">
+                <div className="flex items-center justify-center py-8 text-slate-400">
                   <Loader2 size={20} className="animate-spin" />
                 </div>
               ) : clinicalMemories.length === 0 ? (
-                <div className="empty-memories-box">
-                  <Brain size={28} className="text-gray-300 mb-2" />
-                  <p className="text-sm font-semibold text-gray-600">Belum ada memori klinis tersimpan.</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Saat Anda menyebut alergi atau bahan yang membuat kulit iritasi (misal: "kulitku alergi parfum"), AI akan otomatis mengingatnya.
+                <div className="p-6 text-center border border-dashed rounded-xl bg-slate-50 border-slate-200">
+                  <Brain size={28} className="text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-slate-700">Belum ada preferensi &amp; catatan tersimpan.</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Saat Anda menyebut sensitivitas atau bahan yang kurang cocok bagi kulit, AI akan otomatis mengingatnya.
                   </p>
                 </div>
               ) : (
-                <div className="clinical-memories-list">
+                <div className="flex flex-col gap-2.5">
                   {clinicalMemories.map((m) => (
-                    <div key={m.id} className="clinical-memory-card">
-                      <div className="memory-card-top">
-                        <span className={`memory-type-badge type-${m.memory_type}`}>
+                    <div key={m.id} className="cluv-chat-memory-card">
+                      <div className="cluv-chat-memory-top">
+                        <span className={`cluv-chat-memory-badge is-${m.memory_type}`}>
                           {m.memory_type.replace('_', ' ').toUpperCase()}
                         </span>
                         <button
                           onClick={() => handleDeleteSingleMemory(m.id)}
-                          className="delete-memory-btn"
-                          title="Hapus fakta memori ini"
+                          className="cluv-chat-delete-btn opacity-100 text-slate-400 hover:text-rose-600"
+                          title="Hapus catatan preferensi ini"
                         >
                           <Trash2 size={13} />
                         </button>
                       </div>
-                      <div className="memory-entity-name">{m.entity}</div>
-                      <div className="memory-fact-text">{m.clinical_fact}</div>
+                      <div className="cluv-chat-memory-entity">{m.entity}</div>
+                      <div className="cluv-chat-memory-fact">{m.clinical_fact}</div>
                     </div>
                   ))}
                 </div>
@@ -931,17 +930,17 @@ export default function ChatbotPage() {
 
       {/* HISTORY SESSIONS POPOVER / DRAWER */}
       {showHistoryModal && (
-        <div className="history-drawer-overlay" onClick={() => setShowHistoryModal(false)}>
-          <div className="history-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
+        <div className="cluv-chat-drawer-overlay" onClick={() => setShowHistoryModal(false)}>
+          <div className="cluv-chat-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="cluv-chat-drawer-header">
               <h3>Riwayat Percakapan</h3>
-              <button onClick={() => setShowHistoryModal(false)} className="drawer-close-btn">
+              <button onClick={() => setShowHistoryModal(false)} className="cluv-chat-drawer-close">
                 ×
               </button>
             </div>
-            <div className="drawer-body">
+            <div className="cluv-chat-drawer-body">
               {sessions.length === 0 ? (
-                <p className="empty-history-text">Belum ada riwayat percakapan.</p>
+                <p className="text-center text-sm text-slate-400 my-6">Belum ada riwayat percakapan.</p>
               ) : (
                 sessions.map((s) => (
                   <div
@@ -950,13 +949,13 @@ export default function ChatbotPage() {
                       navigate(`/chatbot/${s.id}`)
                       setShowHistoryModal(false)
                     }}
-                    className={`history-session-item ${sessionId === s.id ? 'active' : ''}`}
+                    className={`cluv-chat-session-item ${sessionId === s.id ? 'is-active' : ''}`}
                   >
                     <MessageSquare size={16} className="shrink-0 text-slate-400" />
-                    <span className="session-title-text">{s.title || 'Percakapan'}</span>
+                    <span className="cluv-chat-session-title">{s.title || 'Percakapan'}</span>
                     <button
                       onClick={(e) => handleDeleteSession(s.id, e)}
-                      className="delete-session-btn"
+                      className="cluv-chat-delete-btn"
                       title="Hapus percakapan"
                     >
                       <Trash2 size={14} />
@@ -970,25 +969,25 @@ export default function ChatbotPage() {
       )}
 
       {/* MAIN CHAT SCROLL AREA (Only message list scrolls internally) */}
-      <div className="chat-scroll-area">
+      <div className="cluv-chat-scroll">
         {messages.length === 0 && !isLoadingMessages && (
-          <div className="chat-welcome-box">
-            <div className="welcome-avatar-icon">
-              <Sparkles size={28} className="text-primary" />
+          <div className="cluv-chat-welcome">
+            <div className="cluv-chat-welcome-avatar">
+              <Sparkles size={28} />
             </div>
             <h2>Halo, {userName}!</h2>
             <p>
-              Saya <b>Skinsistant AI</b>, asisten konsultasi kulit pribadi Anda. Tanyakan apa saja mengenai masalah kulit, rutinitas skincare, atau analisis komposisi produk.
+              Saya <b>Skinsistant AI</b>, asisten konsultasi kulit pribadi Anda. Tanyakan apa saja mengenai perawatan kulit, rutinitas skincare, atau analisis komposisi produk.
             </p>
-            <div className="welcome-chips-grid">
+            <div className="cluv-chat-chips-grid">
               {suggestionChips.map((chip, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  className="welcome-chip-item"
+                  className="cluv-chat-chip"
                   onClick={() => handleSendMessage(chip)}
                 >
-                  <Sparkles size={14} />
+                  <Sparkles size={14} style={{ color: 'var(--cluv-teal)' }} />
                   <span>{chip}</span>
                 </button>
               ))}
@@ -997,8 +996,8 @@ export default function ChatbotPage() {
         )}
 
         {isLoadingMessages && (
-          <div className="loading-chat-state">
-            <Loader2 size={24} className="animate-spin text-primary" />
+          <div className="flex items-center justify-center gap-2.5 py-8 text-slate-400 text-sm">
+            <Loader2 size={24} className="animate-spin text-teal-600" />
             <span>Memuat pesan percakapan...</span>
           </div>
         )}
@@ -1006,32 +1005,32 @@ export default function ChatbotPage() {
         {messages.map((msg) => {
           const { cleanText, actions } = parseMessageAction(msg.text)
           return (
-            <div key={msg.id} className={`chat-row ${msg.sender}`}>
+            <div key={msg.id} className={`cluv-chat-row is-${msg.sender}`}>
               {msg.sender === 'bot' && (
-                <div className="chat-avatar bot-avatar">
+                <div className="cluv-chat-avatar is-bot">
                   <Sparkles size={15} />
                 </div>
               )}
 
-              <div className="bubble-wrapper">
+              <div className="cluv-chat-bubble-wrap">
                 {msg.id.startsWith('insufficient-') ? (
-                  <div className="in-chat-insufficient-card">
-                    <div className="insufficient-card-header">
-                      <div className="insufficient-icon-badge">
+                  <div className="cluv-chat-paywall-card">
+                    <div className="cluv-chat-paywall-header">
+                      <div className="cluv-chat-paywall-icon">
                         <Coins size={16} />
                       </div>
                       <div>
                         <h4>Credits Tidak Mencukupi</h4>
-                        <span className="insufficient-cost-tag">Butuh {chatbotCost} Credit</span>
+                        <span className="cluv-chat-paywall-cost">Butuh {chatbotCost} Credit</span>
                       </div>
                     </div>
-                    <p className="insufficient-card-desc">
-                      Saldo kamu saat ini tidak mencukupi untuk konsultasi ini. Selesaikan misi harian untuk mendapatkan Credits gratis atau tingkatkan ke paket bulanan.
+                    <p className="cluv-chat-paywall-desc">
+                      Saldo Anda saat ini tidak mencukupi untuk konsultasi ini. Selesaikan misi harian untuk mendapatkan Credits gratis atau aktifkan paket akses bulanan.
                     </p>
-                    <div className="insufficient-card-actions">
+                    <div className="cluv-chat-paywall-actions">
                       <button
                         type="button"
-                        className="insufficient-act-btn mission-btn"
+                        className="cluv-btn is-secondary is-sm"
                         onClick={() => navigate('/missions')}
                       >
                         <Trophy size={14} />
@@ -1039,7 +1038,7 @@ export default function ChatbotPage() {
                       </button>
                       <button
                         type="button"
-                        className="insufficient-act-btn upgrade-btn"
+                        className="cluv-btn is-primary is-sm"
                         onClick={() => navigate('/pricing')}
                       >
                         <Crown size={14} />
@@ -1048,7 +1047,7 @@ export default function ChatbotPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="chat-bubble">
+                  <div className="cluv-chat-bubble">
                     {msg.sender === 'bot' ? (
                       <FormattedMarkdown content={cleanText} userName={userName} />
                     ) : (
@@ -1068,15 +1067,15 @@ export default function ChatbotPage() {
 
                 {/* RFC 006: In-Chat Action CTA Widget */}
                 {msg.sender === 'bot' && actions.length > 0 && (
-                  <div className="chat-action-cta-wrapper">
+                  <div className="cluv-chat-cta-wrapper">
                     {actions.includes('FACE_SCAN') && (
                       <button
                         type="button"
                         onClick={() => navigate('/face-scan')}
-                        className="chat-action-cta-btn face-scan-cta"
+                        className="cluv-chat-cta-btn is-face"
                       >
                         <ScanFace size={15} />
-                        <span>Mulai Scan Wajah AI Sekarang</span>
+                        <span>Mulai Pemetaan Kondisi Kulit AI</span>
                         <ArrowRight size={13} />
                       </button>
                     )}
@@ -1084,21 +1083,21 @@ export default function ChatbotPage() {
                       <button
                         type="button"
                         onClick={() => navigate('/ingredient-scan')}
-                        className="chat-action-cta-btn ingredient-scan-cta"
+                        className="cluv-chat-cta-btn is-ingredient"
                       >
                         <FileText size={15} />
-                        <span>Cek Komposisi / Produk</span>
+                        <span>Cek Komposisi Produk</span>
                         <ArrowRight size={13} />
                       </button>
                     )}
                   </div>
                 )}
 
-                <span className="chat-timestamp">{msg.created_at}</span>
+                <span className="cluv-chat-timestamp">{msg.created_at}</span>
               </div>
 
               {msg.sender === 'user' && (
-                <div className="chat-avatar user-avatar">{userInitials}</div>
+                <div className="cluv-chat-avatar is-user">{userInitials}</div>
               )}
             </div>
           )
@@ -1106,36 +1105,36 @@ export default function ChatbotPage() {
 
         {/* SOURCES ACCORDION — tampil di bawah pesan AI terakhir jika ada hasil search */}
         {messages.length > 0 && lastSources.length > 0 && !isSending && (
-          <div className="chat-row bot">
-            <div className="chat-avatar bot-avatar" style={{ visibility: 'hidden' }}>
+          <div className="cluv-chat-row is-bot">
+            <div className="cluv-chat-avatar is-bot" style={{ visibility: 'hidden' }}>
               <Sparkles size={15} />
             </div>
-            <div className="bubble-wrapper">
-              <div className="sources-accordion">
+            <div className="cluv-chat-bubble-wrap">
+              <div className="cluv-chat-sources">
                 <button
                   type="button"
-                  className="sources-accordion-toggle"
+                  className="cluv-chat-sources-toggle"
                   onClick={() => setShowSources((v) => !v)}
                 >
                   <ShieldCheck size={13} />
                   <span>{lastSources.length} Sumber Referensi</span>
-                  <span className="sources-chevron">{showSources ? '▲' : '▼'}</span>
+                  <span className="cluv-chat-sources-chevron">{showSources ? '▲' : '▼'}</span>
                 </button>
                 {showSources && (
-                  <div className="sources-list">
+                  <div className="cluv-chat-sources-list">
                     {lastSources.map((src, i) => (
                       <a
                         key={i}
                         href={src.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="source-card"
+                        className="cluv-chat-source-item"
                       >
-                        <span className="source-num">[{i + 1}]</span>
-                        <div className="source-body">
-                          <span className="source-title">{src.title}</span>
-                          <span className="source-snippet">{src.snippet}</span>
-                          <span className="source-url">{src.url}</span>
+                        <span className="cluv-chat-source-num">[{i + 1}]</span>
+                        <div className="cluv-chat-source-body">
+                          <span className="cluv-chat-source-title">{src.title}</span>
+                          <span className="cluv-chat-source-snippet">{src.snippet}</span>
+                          <span className="cluv-chat-source-url">{src.url}</span>
                         </div>
                       </a>
                     ))}
@@ -1147,19 +1146,19 @@ export default function ChatbotPage() {
         )}
 
         {isSending && (
-          <div className="chat-row bot">
-            <div className="chat-avatar bot-avatar">
+          <div className="cluv-chat-row is-bot">
+            <div className="cluv-chat-avatar is-bot">
               <Sparkles size={15} />
             </div>
-            <div className="bubble-wrapper">
-              <div className="chat-bubble thinking-bubble">
-                <div className="bouncing-dots">
+            <div className="cluv-chat-bubble-wrap">
+              <div className="cluv-chat-bubble cluv-chat-thinking">
+                <div className="cluv-chat-dots">
                   <span />
                   <span />
                   <span />
                 </div>
-                <span className="shimmer-think-text">
-                  Sedang mengetik...
+                <span className="cluv-chat-shimmer-text">
+                  Sedang menganalisis...
                 </span>
               </div>
             </div>
@@ -1170,26 +1169,26 @@ export default function ChatbotPage() {
       </div>
 
       {/* STICKY INPUT BAR AT BOTTOM */}
-      <div className="chat-input-bar">
+      <div className="cluv-chat-input-bar">
         {isFreeTierOutOfCredits && (
-          <div className="chat-credit-warning-strip">
-            <div className="warning-left">
-              <Coins size={15} className="warning-coin-icon" />
+          <div className="cluv-chat-warning-strip">
+            <div className="cluv-chat-warning-left">
+              <Coins size={15} />
               <span>
                 Saldo <strong>0 Credits</strong>. Kumpulkan Credits dari Misi atau Upgrade Akun untuk konsultasi.
               </span>
             </div>
-            <div className="warning-cta-group">
+            <div className="cluv-chat-warning-cta-group">
               <button
                 type="button"
-                className="strip-btn strip-btn-mission"
+                className="cluv-btn is-secondary is-sm"
                 onClick={() => navigate('/missions')}
               >
                 <Trophy size={13} /> Misi Gratis
               </button>
               <button
                 type="button"
-                className="strip-btn strip-btn-upgrade"
+                className="cluv-btn is-primary is-sm"
                 onClick={() => navigate('/pricing')}
               >
                 <Crown size={13} /> Upgrade
@@ -1203,9 +1202,9 @@ export default function ChatbotPage() {
             e.preventDefault()
             handleSendMessage()
           }}
-          className="input-wrap"
+          className="cluv-chat-input-wrap"
         >
-          <button type="button" className="attach-btn" title="Lampirkan foto (segera hadir)">
+          <button type="button" className="cluv-chat-attach-btn" title="Lampirkan foto (segera hadir)">
             <Paperclip size={18} />
           </button>
 
@@ -1217,7 +1216,7 @@ export default function ChatbotPage() {
             rows={1}
             placeholder={
               isFreeTierOutOfCredits
-                ? 'Credits kamu 0. Kerjakan misi atau upgrade akun untuk chat...'
+                ? 'Credits Anda 0. Kerjakan misi atau aktifkan paket akses untuk berkonsultasi...'
                 : 'Tanyakan sesuatu pada Skinsistant AI... (Shift + Enter untuk baris baru)'
             }
             disabled={isSending}
@@ -1227,7 +1226,7 @@ export default function ChatbotPage() {
           <button
             type="submit"
             disabled={!inputText.trim() || isSending}
-            className="send-btn"
+            className="cluv-chat-send-btn"
           >
             {isSending ? (
               <Loader2 size={16} className="animate-spin" />
@@ -1237,9 +1236,9 @@ export default function ChatbotPage() {
           </button>
         </form>
 
-        <p className="chat-medical-disclaimer">
-          <ShieldAlert size={12} className="disclaimer-icon" />
-          <span>Skinsistant memberikan saran perawatan kosmetik & edukasi, bukan diagnosa medis klinis.</span>
+        <p className="cluv-chat-disclaimer">
+          <ShieldAlert size={12} />
+          <span>Skinsistant memberikan edukasi dan panduan perawatan kosmetik, bukan diagnosis atau tindakan medis profesional.</span>
         </p>
       </div>
 
@@ -1257,3 +1256,4 @@ export default function ChatbotPage() {
     </div>
   )
 }
+
