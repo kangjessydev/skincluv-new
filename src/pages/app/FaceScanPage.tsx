@@ -28,7 +28,6 @@ import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelper
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { validateImageQuality, compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace, disposeFaceLandmarker } from '@/utils/faceLandmarkDetector'
-import '@/styles/face-scan.css'
 
 type Stage = 'upload' | 'scanning' | 'result'
 
@@ -678,7 +677,7 @@ export default function FaceScanPage() {
         }))
 
   return (
-    <div className="v0-page-container skincluv-face-scan-page animate-fade-in">
+    <div className="v0-page-container cluv-canvas-layout animate-fade-in">
       {/* Coin Deduction Modal */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
@@ -695,21 +694,21 @@ export default function FaceScanPage() {
       <div ref={topResultRef} />
 
       {/* Header Bar */}
-      <div className="page-header-box">
-        <div className="page-header-content">
-          <h1 className="page-title">Scan Wajah AI</h1>
-          <p className="page-subtitle">
+      <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-3">
+        <div>
+          <h1 className="cluv-title-section cluv-m-0">Scan Wajah AI</h1>
+          <p className="cluv-subtitle cluv-mt-1">
             Pemetaan kondisi kulit dari foto wajahmu dengan AI secara objektif, lengkap dengan analogi penyebab, saran perawatan, dan rekomendasi bahan aktif formulasi kosmetik.
           </p>
         </div>
-        <Link to="/scan-history" className="history-shortcut-btn">
+        <Link to="/scan-history" className="cluv-btn is-outline is-sm">
           <History size={16} /> Riwayat Scan Kulit
         </Link>
       </div>
 
       {/* Alert Error Box */}
       {errorMsg && (
-        <div className="error-alert">
+        <div className="cluv-alert is-danger cluv-mb-3">
           <AlertCircle size={18} className="shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -717,91 +716,101 @@ export default function FaceScanPage() {
 
       {/* STAGE 1: UPLOAD & SIDE PANEL */}
       {stage === 'upload' && (
-        <div className="facescan-grid-layout">
+        <div className="cluv-scan-layout">
           {/* Left Column: Dropzone & Main Action */}
-          <div className="main-dropzone-col">
-            <div
-              className={`dropzone-box ${isDragging ? 'dragging' : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              {previewUrl ? (
-                <div className="preview-container">
-                  <img src={previewUrl} alt="Preview Foto Wajah" className="preview-img" />
-                  <button onClick={handleClearImage} className="clear-image-btn">
-                    <X size={14} /> Ganti Foto
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="dz-icon-avatar">
-                    <Camera size={26} />
+          <div className="cluv-scan-main">
+            <div className="cluv-card cluv-gap-4">
+              <div
+                className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {previewUrl ? (
+                  <div className="cluv-dropzone-preview">
+                    <img src={previewUrl} alt="Preview Foto Wajah" className="cluv-dropzone-preview-img" />
+                    <button
+                      type="button"
+                      onClick={handleClearImage}
+                      className="cluv-btn is-outline is-sm"
+                    >
+                      <X size={14} /> Ganti Foto
+                    </button>
                   </div>
-                  <h3 className="dz-main-title">Unggah foto wajah kamu</h3>
-                  <p className="dz-sub-title">Tarik & lepas, atau klik untuk memilih — JPG/PNG/WEBP maks 5MB</p>
-                </>
-              )}
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
-            </div>
-
-            {isFreeTierOutOfCredits && (
-              <div className="face-scan-credit-notice">
-                <div className="notice-left">
-                  <Coins size={16} className="notice-coin-icon" />
-                  <span>
-                    Butuh <strong>{faceCost} Credits</strong> untuk analisis wajah (Saldo kamu: <strong>{currentCoins} Credits</strong>).
-                  </span>
-                </div>
-                <div className="notice-right">
-                  <Link to="/missions" className="notice-sub-btn mission">
-                    <Trophy size={13} /> Misi Gratis
-                  </Link>
-                  <Link to="/pricing" className="notice-sub-btn upgrade">
-                    <Crown size={13} /> Upgrade
-                  </Link>
-                </div>
+                ) : (
+                  <>
+                    <div className="cluv-dropzone-icon">
+                      <Camera size={26} />
+                    </div>
+                    <h3 className="cluv-dropzone-title">Unggah foto wajah kamu</h3>
+                    <p className="cluv-dropzone-subtitle">Tarik & lepas, atau klik untuk memilih — JPG/PNG/WEBP maks 5MB</p>
+                    <div className="cluv-dropzone-btn-fake">
+                      <Camera size={14} /> Ambil atau Pilih Foto Wajah
+                    </div>
+                  </>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
               </div>
-            )}
 
-            <button
-              className="btn-primary-action"
-              onClick={handleStartFlow}
-              disabled={!imageBase64}
-            >
-              <Sparkles size={18} />
-              <span>Mulai Analisis Wajah AI</span>
-            </button>
+              {isFreeTierOutOfCredits && (
+                <div className="cluv-alert is-warning is-compact cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-2">
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <Coins size={16} className="text-amber-600 shrink-0" />
+                    <span className="cluv-micro">
+                      Butuh <strong>{faceCost} Credits</strong> untuk analisis wajah (Saldo kamu: <strong>{currentCoins} Credits</strong>).
+                    </span>
+                  </div>
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-1">
+                    <Link to="/missions" className="cluv-btn is-outline is-sm">
+                      <Trophy size={13} /> Misi Gratis
+                    </Link>
+                    <Link to="/pricing" className="cluv-btn is-primary is-sm">
+                      <Crown size={13} /> Upgrade
+                    </Link>
+                  </div>
+                </div>
+              )}
 
-            {/* Medical Disclaimer */}
-            <div className="disclaimer-banner">
-              <Info size={16} className="disclaimer-icon" />
-              <span>
-                <b>Privasi & Klinis:</b> Foto hanya diproses untuk deteksi kondisi kulit dan tidak dibagikan kepada pihak ketiga. Hasil analisis bersifat edukasi dermatologi.
-              </span>
+              <button
+                type="button"
+                className="cluv-btn is-primary cluv-w-full"
+                onClick={handleStartFlow}
+                disabled={!imageBase64}
+              >
+                <Sparkles size={18} />
+                <span>Mulai Analisis Wajah AI</span>
+              </button>
+
+              {/* Disclaimer (Invariant 19 compliant) */}
+              <div className="cluv-alert is-warning is-compact">
+                <Info size={16} className="shrink-0 text-amber-600" />
+                <span className="cluv-micro">
+                  <b>Privasi & Keamanan:</b> Foto hanya diproses untuk observasi kondisi visual kulit dan tidak dibagikan kepada pihak ketiga. Hasil analisis bersifat panduan edukasi kosmetik.
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Right Column: Profile Context & Photo Guidelines */}
-          <div className="side-info-col">
-            <div className="side-card">
-              <div className="card-section-label">PROFIL KULIT AKTIF</div>
-              <div className="profile-info-row">
-                <span>Tipe kulit</span>
-                <span className="profile-val-text">{userSkinType}</span>
+          <div className="cluv-scan-aside">
+            <div className="cluv-card is-highlight">
+              <span className="cluv-badge is-teal is-sm cluv-mb-2">PROFIL KULIT AKTIF</span>
+              <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-mb-2 cluv-micro">
+                <span className="cluv-text-muted">Tipe kulit:</span>
+                <span className="cluv-font-bold cluv-text-dark">{userSkinType}</span>
               </div>
-              <div className="profile-info-row stacked">
-                <span>Fokus kulit</span>
-                <div className="chips-mini-group">
+              <div className="cluv-flex-col cluv-gap-1 cluv-micro">
+                <span className="cluv-text-muted">Fokus kulit:</span>
+                <div className="cluv-flex-row cluv-flex-wrap cluv-gap-1">
                   {userConcerns.map((concern: string, idx: number) => (
-                    <span key={idx} className="chip-mini-item">
+                    <span key={idx} className="cluv-badge is-slate is-sm">
                       {concern}
                     </span>
                   ))}
@@ -809,36 +818,39 @@ export default function FaceScanPage() {
               </div>
             </div>
 
-            <div className="side-card capture-guidance-card">
-              <div className="card-section-label">Panduan Sebelum Pengambilan Foto</div>
-              <p className="capture-guidance-sub">
+            <div className="cluv-card">
+              <span className="cluv-badge is-gold is-sm cluv-mb-2">PANDUAN SEBELUM FOTO</span>
+              <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-mb-3">
                 Pastikan kondisi berikut terpenuhi agar hasil analisis akurat dan konsisten dalam membandingkan perkembangan kulit.
               </p>
-              <div className="capture-guidance-items">
-                <div className="cg-item">
-                  <div className="cg-icon"><Sun size={18} /></div>
-                  <div className="cg-text">
-                    <strong>1. Pencahayaan merata dan alami</strong>
-                    <p>Pencahayaan memengaruhi akurasi pembacaan warna dan tekstur kulit. Ruangan terang dengan cahaya alami adalah pilihan terbaik.</p>
+              <div className="cluv-flex-col cluv-gap-3">
+                <div className="cluv-flex-row cluv-gap-2">
+                  <div className="cluv-card-icon-wrap is-sm is-gold shrink-0">
+                    <Sun size={16} />
+                  </div>
+                  <div className="cluv-micro">
+                    <strong className="cluv-text-dark">1. Pencahayaan merata & alami</strong>
+                    <p className="cluv-text-muted cluv-m-0 cluv-mt-1">Pencahayaan memengaruhi akurasi tekstur kulit. Ruangan terang dengan cahaya alami adalah pilihan terbaik.</p>
                   </div>
                 </div>
-                <div className="cg-item">
-                  <div className="cg-icon"><Sparkles size={18} /></div>
-                  <div className="cg-text">
-                    <strong>2. Wajah bersih tanpa riasan atau produk tebal</strong>
-                    <p>Disarankan mengambil foto sekitar 1 jam setelah mencuci wajah agar kondisi alami sebum dan pori terlihat jelas.</p>
+                <div className="cluv-flex-row cluv-gap-2">
+                  <div className="cluv-card-icon-wrap is-sm is-teal shrink-0">
+                    <Sparkles size={16} />
+                  </div>
+                  <div className="cluv-micro">
+                    <strong className="cluv-text-dark">2. Wajah bersih tanpa riasan tebal</strong>
+                    <p className="cluv-text-muted cluv-m-0 cluv-mt-1">Disarankan mengambil foto sekitar 1 jam setelah mencuci wajah agar kondisi alami sebum dan pori terlihat jelas.</p>
                   </div>
                 </div>
-                <div className="cg-item">
-                  <div className="cg-icon"><Scan size={18} /></div>
-                  <div className="cg-text">
-                    <strong>3. Posisikan wajah sejajar, jarak sekitar 30 cm</strong>
-                    <p>Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam bingkai panduan kamera.</p>
+                <div className="cluv-flex-row cluv-gap-2">
+                  <div className="cluv-card-icon-wrap is-sm shrink-0">
+                    <Scan size={16} />
+                  </div>
+                  <div className="cluv-micro">
+                    <strong className="cluv-text-dark">3. Jarak wajah sekitar 30 cm</strong>
+                    <p className="cluv-text-muted cluv-m-0 cluv-mt-1">Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam bingkai panduan kamera.</p>
                   </div>
                 </div>
-              </div>
-              <div className="cg-footer-tip">
-                <em>Catatan: Kualitas pencahayaan atau sudut foto dapat memengaruhi akurasi skor. Indikator kualitas foto akan memandu Anda saat kamera aktif.</em>
               </div>
             </div>
           </div>
@@ -847,115 +859,93 @@ export default function FaceScanPage() {
 
       {/* STAGE 2: NEURAL AI FACIAL BIOMETRIC SCANNER HUD */}
       {stage === 'scanning' && (
-        <div className="stage-card scanning-card">
-          <div className="scan-frame-viewport">
+        <div className="cluv-card cluv-items-center cluv-py-8 cluv-gap-4">
+          <div className="cluv-scanner-hud">
             {previewUrl ? (
-              <img src={previewUrl} alt="Foto Wajah" className="scan-img-preview" />
+              <img src={previewUrl} alt="Foto Wajah" className="cluv-scanner-preview-img" />
             ) : (
-              <div className="mock-face-shape" />
+              <div className="cluv-card is-compact cluv-text-muted cluv-micro">Foto Wajah Pengguna</div>
             )}
 
             {/* HUD High-Tech Grid & Corner Brackets */}
-            <div className="hud-grid-overlay" />
-            <div className="hud-corner top-left" />
-            <div className="hud-corner top-right" />
-            <div className="hud-corner bottom-left" />
-            <div className="hud-corner bottom-right" />
+            <div className="cluv-scanner-grid-overlay" />
+            <div className="cluv-scanner-corner top-left" />
+            <div className="cluv-scanner-corner top-right" />
+            <div className="cluv-scanner-corner bottom-left" />
+            <div className="cluv-scanner-corner bottom-right" />
 
             {/* Sweeping Laser Beam */}
-            <div className="scan-laser-beam" />
+            <div className="cluv-scanner-laser" />
 
             {/* Live Facial Biometric Status Pill */}
-            <div className="hud-status-badge">
-              <span className="hud-pulse-dot" />
+            <div className="cluv-scanner-status-pill">
+              <span className="cluv-scanner-status-dot" />
               <span>AI BIOMETRIC SCAN ACTIVE</span>
             </div>
           </div>
 
           {/* Shimmering Phase Status */}
-          <div className="scan-status-row">
-            <div className="bouncing-dots">
-              <span />
-              <span />
-              <span />
-            </div>
-            <span className="shimmer-scan-text">{FACE_SCAN_STAGES_TEXT[scanTextIndex]}</span>
+          <div className="cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-2 cluv-mt-2">
+            <span className="cluv-font-bold cluv-text-teal cluv-text-sm">{FACE_SCAN_STAGES_TEXT[scanTextIndex]}</span>
           </div>
 
           {/* Smooth Indeterminate Progress Bar */}
-          <div className="scan-progress-bar-track">
-            <div className="scan-progress-bar-glow" />
+          <div className="cluv-scanner-progress-track">
+            <div className="cluv-scanner-progress-glow" />
           </div>
 
           {/* Educational Clinical Tip Box */}
-          <div className="scan-tip-card">
-            <div className="tip-header">
-              <Sparkles size={13} className="tip-sparkle-icon" />
-              <span>Catatan Dermatologi Klinis</span>
+          <div className="cluv-card is-highlight cluv-p-3 cluv-max-w-md cluv-w-full">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-1 cluv-text-xs cluv-font-bold cluv-text-teal">
+              <Sparkles size={13} className="shrink-0" />
+              <span>Catatan Edukasi Kondisi Kulit</span>
             </div>
-            <p className="tip-body">{CLINICAL_FACIAL_TIPS[tipIndex]}</p>
+            <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-mt-1">{CLINICAL_FACIAL_TIPS[tipIndex]}</p>
           </div>
         </div>
       )}
 
-      {/* STAGE 3: RESULTS OUTPUT & CLINICAL REPORT */}
+      {/* STAGE 3: RESULTS OUTPUT & OBSERVATION REPORT */}
       {stage === 'result' && analysisResult && (
-        <div className="results-stack">
-          {/* Provenance Cache Banner (Kimi Template RFC 011) */}
+        <div className="cluv-flex-col cluv-gap-4">
+          {/* Provenance Cache Banner (RFC 011) */}
           {analysisResult.cached && (
-            <div className="card glass-card cache-hit-provenance-card">
-              <div className="cache-hit-inner">
-                <div className="cache-hit-icon-wrap">
-                  <Zap size={16} />
-                </div>
-                <div className="cache-hit-body">
-                  <h4 className="cache-hit-title">
-                    <Zap size={16} className="inline mr-1" /> Hasil Tersimpan Ditampilkan — 0 Kuota Terpotong
-                  </h4>
-                  <p className="cache-hit-desc">
-                    Ini foto yang sama dengan scan kamu pada {analysisResult.cached_at ? new Date(analysisResult.cached_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'sebelumnya'}. 
-                    Foto yang sama berarti kondisi kulit yang terbaca juga sama, sehingga hasil analisisnya identik. Kami tampilkan hasil tersimpanmu secara instan tanpa memotong kuota.
-                  </p>
-                  <div className="cache-hit-footer">
-                    <span className="cache-hit-badge-success">
-                      <CheckCircle2 size={13} /> Kuota kamu aman
-                    </span>
-                    <span className="cache-hit-badge-success">
-                      <CheckCircle2 size={13} /> Hasil identik
-                    </span>
-                    <span className="cache-hit-badge-speed">
-                      <Zap size={12} /> Instan (&lt;1 detik)
-                    </span>
-                    <div className="cache-hit-actions">
-                      <button
-                        onClick={handleResetFlow}
-                        className="btn btn-secondary btn-sm"
-                      >
-                        <Camera size={13} /> Scan Foto Baru
-                      </button>
-                      <button
-                        onClick={handleForceReanalyze}
-                        className="btn btn-outline btn-sm btn-force-reanalyze"
-                        title="Analisis ulang foto ini dari awal dengan AI (5 Credits)"
-                      >
-                        <RotateCcw size={13} /> Analisis Ulang (5 Credits)
-                      </button>
-                    </div>
+            <div className="cluv-alert is-info cluv-gap-3">
+              <Zap size={20} className="shrink-0 text-sky-600" />
+              <div className="cluv-flex-1">
+                <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-text-sm">
+                  Hasil Tersimpan Ditampilkan — 0 Kuota Terpotong
+                </h4>
+                <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-mt-1">
+                  Ini foto yang sama dengan scan kamu pada {analysisResult.cached_at ? new Date(analysisResult.cached_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'sebelumnya'}. 
+                  Foto yang sama berarti kondisi kulit yang terbaca juga sama, sehingga hasil analisisnya identik. Kami tampilkan hasil tersimpanmu secara instan tanpa memotong kuota.
+                </p>
+                <div className="cluv-flex-row cluv-items-center cluv-flex-wrap cluv-gap-2 cluv-mt-2">
+                  <span className="cluv-badge is-teal is-sm"><CheckCircle2 size={12} /> Kuota aman</span>
+                  <span className="cluv-badge is-teal is-sm"><CheckCircle2 size={12} /> Hasil identik</span>
+                  <span className="cluv-badge is-slate is-sm"><Zap size={12} /> Instan (&lt;1s)</span>
+                  <div className="cluv-flex-row cluv-gap-1 cluv-ml-auto">
+                    <button type="button" onClick={handleResetFlow} className="cluv-btn is-outline is-sm">
+                      <Camera size={13} /> Scan Foto Baru
+                    </button>
+                    <button type="button" onClick={handleForceReanalyze} className="cluv-btn is-outline is-sm">
+                      <RotateCcw size={13} /> Analisis Ulang (5 Credits)
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Clinical Escalation Alert (BPOM Kimi Consensus: Score < 55) */}
+          {/* Anjuran Konsultasi Spesialis (Score < 55) */}
           {getClinicalSeverityBand(analysisResult.overall_score ?? 80).band === 'consult_dermatologist' && (
-            <div className="card clinical-escalation-alert-card">
-              <AlertCircle size={20} className="clinical-escalation-icon" />
+            <div className="cluv-alert is-warning">
+              <AlertCircle size={20} className="shrink-0 text-amber-600" />
               <div>
-                <h4 className="clinical-escalation-title">
-                  Rekomendasi Rujukan Ahli Dermatologi
+                <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-text-sm">
+                  Anjuran Konsultasi Spesialis Kulit
                 </h4>
-                <p className="clinical-escalation-desc">
+                <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-mt-1">
                   Hasil evaluasi visual menunjukkan beberapa kondisi kulit yang lebih disarankan untuk ditinjau langsung oleh dokter spesialis kulit. AI Skincluv adalah alat bantu panduan kosmetik sehari-hari, bukan instrumen diagnosis medis resmi.
                 </p>
               </div>
@@ -963,13 +953,14 @@ export default function FaceScanPage() {
           )}
 
           {/* Score Hero Banner */}
-          <div className="score-hero-banner">
-            <div className="dots-bg-pattern" />
-            <div className="hero-glow-accent" />
-            
-            <div className="score-hero-content">
-              <div className={`score-ring-avatar ${
-                getClinicalSeverityBand(analysisResult.overall_score ?? 80).colorClass
+          <div className="cluv-card cluv-gap-4">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-4 cluv-flex-wrap">
+              <div className={`cluv-score-circle ${
+                getClinicalSeverityBand(analysisResult.overall_score ?? 80).band === 'consult_dermatologist'
+                  ? 'is-danger'
+                  : getClinicalSeverityBand(analysisResult.overall_score ?? 80).band === 'needs_attention'
+                  ? 'is-caution'
+                  : 'is-safe'
               }`}>
                 <div className="sr-number-row">
                   <span className="sr-val">{analysisResult.overall_score ?? 80}</span>
@@ -978,19 +969,19 @@ export default function FaceScanPage() {
                 <span className="sr-unit">{getClinicalSeverityBand(analysisResult.overall_score ?? 80).label}</span>
               </div>
 
-              <div className="score-meta-info">
-                <div className="hero-badges-row">
-                  <span className="hero-skin-type-badge">
+              <div className="cluv-flex-1 cluv-flex-col cluv-gap-1">
+                <div className="cluv-flex-row cluv-gap-1 cluv-flex-wrap">
+                  <span className="cluv-badge is-teal is-sm">
                     <Sparkles size={12} /> TIPE KULIT: {String(analysisResult.skin_type || userSkinType).toUpperCase()}
                   </span>
-                  <span className="hero-confidence-badge">
-                    <ShieldCheck size={12} /> ANALISIS DERMATOLOGI
+                  <span className="cluv-badge is-slate is-sm">
+                    <ShieldCheck size={12} /> OBSERVASI KULIT AI
                   </span>
                 </div>
-                <h3 className="hero-status-title">
+                <h3 className="cluv-title-item cluv-m-0">
                   {analysisResult.skin_status_title ?? `Kondisi Kulit: ${getClinicalSeverityBand(analysisResult.overall_score ?? 80).label}`}
                 </h3>
-                <p className="hero-status-desc">
+                <p className="cluv-body cluv-text-muted cluv-m-0">
                   {analysisResult.analysis_notes ||
                     getClinicalSeverityBand(analysisResult.overall_score ?? 80).descriptor}
                 </p>
@@ -1000,35 +991,27 @@ export default function FaceScanPage() {
 
           {/* Biometric Scan Snapshot & Area Overview */}
           {previewUrl && (
-            <div className="card biometric-overview-card">
-              <div className="biometric-photo-col">
-                <div className="biometric-frame">
-                  <img src={previewUrl} alt="Foto Wajah Teranalisis" className="biometric-img" />
-                  <div className="biometric-hud-corners">
-                    <span className="bh-corner tl" />
-                    <span className="bh-corner tr" />
-                    <span className="bh-corner bl" />
-                    <span className="bh-corner br" />
-                  </div>
-                  <div className="biometric-verified-tag">
-                    <CheckCircle2 size={12} />
-                    <span>Foto Dianalisis Klinis</span>
-                  </div>
+            <div className="cluv-biometric-overview">
+              <div className="cluv-biometric-frame">
+                <img src={previewUrl} alt="Foto Wajah Teranalisis" className="cluv-biometric-img" />
+                <div className="cluv-biometric-badge">
+                  <CheckCircle2 size={12} />
+                  <span>Foto Teranalisis AI</span>
                 </div>
               </div>
-              <div className="biometric-areas-col">
-                <div className="biometric-areas-header">
-                  <Target size={16} className="text-teal" />
+              <div className="cluv-biometric-areas-col">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-1 cluv-font-bold cluv-text-teal cluv-text-sm">
+                  <Target size={16} />
                   <span>Ringkasan Biometrik 3 Area Wajah</span>
                 </div>
-                <div className="biometric-chips-list">
+                <div className="cluv-flex-col cluv-gap-2">
                   {analysisResult.area_evaluations?.map((area) => (
-                    <div key={area.id} className="biometric-area-item">
-                      <div className="bai-left">
-                        <span className="bai-name">{area.area_name}</span>
-                        <span className="bai-score-text">Skor: {area.score}/100</span>
+                    <div key={area.id} className="cluv-biometric-area-item">
+                      <div className="cluv-flex-col">
+                        <span className="cluv-font-bold cluv-text-dark cluv-text-sm">{area.area_name}</span>
+                        <span className="cluv-micro cluv-text-muted">Skor: {area.score}/100</span>
                       </div>
-                      <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
+                      <span className={`cluv-badge is-sm ${area.status === 'Optimal' ? 'is-teal' : 'is-gold'}`}>
                         {area.status}
                       </span>
                     </div>
@@ -1039,148 +1022,159 @@ export default function FaceScanPage() {
           )}
 
           {/* Section 1: Granular 3-Area Facial Evaluation */}
-          <div className="section-label-header">EVALUASI KONDISI KULIT PER AREA (GRANULAR)</div>
-
-          <div className="area-cards-stack">
-            {analysisResult.area_evaluations?.map((area) => (
-              <div key={area.id} className="card area-analysis-card">
-                <div className="area-card-head">
-                  <div className="area-title-group">
-                    <Target size={16} className="area-icon-accent" />
-                    <h4 className="area-title-text">{area.area_name}</h4>
+          <div className="cluv-flex-col cluv-gap-3">
+            <span className="cluv-badge is-slate is-sm cluv-self-start">EVALUASI KONDISI KULIT PER AREA (GRANULAR)</span>
+            <div className="cluv-flex-col cluv-gap-3">
+              {analysisResult.area_evaluations?.map((area) => (
+                <div key={area.id} className="cluv-area-card">
+                  <div className="cluv-area-card-head">
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                      <div className="cluv-card-icon-wrap is-sm">
+                        <Target size={16} />
+                      </div>
+                      <h4 className="cluv-title-item cluv-m-0">{area.area_name}</h4>
+                    </div>
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-1">
+                      <span className={`cluv-badge is-sm ${area.status === 'Optimal' ? 'is-teal' : 'is-gold'}`}>
+                        {area.status}
+                      </span>
+                      <span className="cluv-badge is-slate is-sm">Skor: {area.score}/100</span>
+                    </div>
                   </div>
-                  <div className="area-head-badges">
-                    <span className={`area-severity-badge ${area.status === 'Optimal' ? 'ringan' : 'sedang'}`}>
-                      {area.status}
-                    </span>
-                    <span className="area-score-pill">Skor: {area.score}/100</span>
+
+                  <div className="cluv-area-box">
+                    <span className="cluv-micro cluv-font-bold cluv-text-teal">Hasil Analisis:</span>
+                    <p className="cluv-micro cluv-text-muted cluv-m-0">{area.finding}</p>
+                  </div>
+
+                  <div className="cluv-area-box is-analogy">
+                    <span className="cluv-micro cluv-font-bold cluv-text-gold">Penjelasan Sederhana:</span>
+                    <p className="cluv-micro cluv-text-muted cluv-m-0">{area.analogy}</p>
+                  </div>
+
+                  <div className="cluv-area-box is-action">
+                    <span className="cluv-micro cluv-font-bold cluv-text-teal">Rencana Tindakan:</span>
+                    <p className="cluv-micro cluv-text-muted cluv-m-0">{area.action_plan}</p>
                   </div>
                 </div>
-
-                <div className="area-finding-box">
-                  <span className="af-label">Hasil Analisis:</span>
-                  <p className="af-text">{area.finding}</p>
-                </div>
-
-                <div className="area-analogy-box">
-                  <span className="aa-label">Penjelasan Sederhana:</span>
-                  <p className="aa-text">{area.analogy}</p>
-                </div>
-
-                <div className="area-action-box">
-                  <span className="ac-label">Rencana Tindakan:</span>
-                  <p className="ac-text">{area.action_plan}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Section 2: Categorized Lifestyle & Skincare Tips */}
-          <div className="section-label-header">TIPS PERSONAL UNTUK KULITMU</div>
-          <div className="tips-category-grid">
-            <div className="card tip-card card-avoid">
-              <h4 className="tip-header-title text-red">
-                <X size={16} /> Hindari
-              </h4>
-              <ul className="tip-items-list avoid">
-                {analysisResult.tips_avoid?.map((tip, idx) => (
-                  <li key={idx}>{tip}</li>
-                ))}
-              </ul>
-            </div>
+          <div className="cluv-flex-col cluv-gap-3">
+            <span className="cluv-badge is-slate is-sm cluv-self-start">TIPS PERSONAL UNTUK KULITMU</span>
+            <div className="cluv-tips-grid">
+              <div className="cluv-tip-card is-avoid">
+                <h4 className="cluv-font-bold cluv-text-rose cluv-flex-row cluv-items-center cluv-gap-1 cluv-m-0 cluv-text-sm">
+                  <X size={16} /> Hindari
+                </h4>
+                <ul className="cluv-list-disc cluv-pl-4 cluv-micro cluv-text-muted cluv-space-y-1 cluv-m-0">
+                  {analysisResult.tips_avoid?.map((tip, idx) => (
+                    <li key={idx}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
 
-            <div className="card tip-card card-reduce">
-              <h4 className="tip-header-title text-amber">
-                <span className="dash-icon">−</span> Kurangi
-              </h4>
-              <ul className="tip-items-list reduce">
-                {analysisResult.tips_reduce?.map((tip, idx) => (
-                  <li key={idx}>{tip}</li>
-                ))}
-              </ul>
-            </div>
+              <div className="cluv-tip-card is-reduce">
+                <h4 className="cluv-font-bold cluv-text-gold cluv-flex-row cluv-items-center cluv-gap-1 cluv-m-0 cluv-text-sm">
+                  <span>−</span> Kurangi
+                </h4>
+                <ul className="cluv-list-disc cluv-pl-4 cluv-micro cluv-text-muted cluv-space-y-1 cluv-m-0">
+                  {analysisResult.tips_reduce?.map((tip, idx) => (
+                    <li key={idx}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
 
-            <div className="card tip-card card-do">
-              <h4 className="tip-header-title text-green">
-                <CheckCircle2 size={16} /> Rutin Lakukan
-              </h4>
-              <ul className="tip-items-list do">
-                {analysisResult.tips_do?.map((tip, idx) => (
-                  <li key={idx}>{tip}</li>
-                ))}
-              </ul>
+              <div className="cluv-tip-card is-do">
+                <h4 className="cluv-font-bold cluv-text-teal cluv-flex-row cluv-items-center cluv-gap-1 cluv-m-0 cluv-text-sm">
+                  <CheckCircle2 size={16} /> Rutin Lakukan
+                </h4>
+                <ul className="cluv-list-disc cluv-pl-4 cluv-micro cluv-text-muted cluv-space-y-1 cluv-m-0">
+                  {analysisResult.tips_do?.map((tip, idx) => (
+                    <li key={idx}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
           {/* Section 3: Rekomendasi Bahan Aktif Kosmetik (Hero Actives) */}
-          <div className="section-label-header">HERO ACTIVES — BAHAN YANG COCOK UNTUK KULITMU</div>
-          <div className="card hero-actives-card">
-            <div className="hero-actives-intro">
-              <FlaskConical size={18} className="intro-flask-icon" />
-              <span>
-                Kandungan bahan aktif kosmetik yang relevan untuk membantu merawat kondisi kulitmu berdasarkan hasil analisis foto wajah.
-              </span>
-            </div>
+          <div className="cluv-flex-col cluv-gap-3">
+            <span className="cluv-badge is-gold is-sm cluv-self-start">HERO ACTIVES — BAHAN YANG COCOK UNTUK KULITMU</span>
+            <div className="cluv-hero-actives">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-micro cluv-text-muted">
+                <FlaskConical size={18} className="text-amber-500 shrink-0" />
+                <span>
+                  Kandungan bahan aktif kosmetik yang relevan untuk membantu merawat kondisi kulitmu berdasarkan hasil analisis foto wajah.
+                </span>
+              </div>
 
-            <div className="actives-grid">
-              {heroIngredients.map((item, idx) => {
-                const isEssential = item.priority === 'essential'
-                const cleanName = item.name.replace(/^Kandungan yang cocok:\s*/i, '').trim()
-                const searchKeyword = `serum ${cleanName}`
+              <div className="cluv-grid cols-2 cluv-gap-3">
+                {heroIngredients.map((item, idx) => {
+                  const isEssential = item.priority === 'essential'
+                  const cleanName = item.name.replace(/^Kandungan yang cocok:\s*/i, '').trim()
+                  const searchKeyword = `serum ${cleanName}`
 
-                return (
-                  <div key={idx} className="active-item-card">
-                    <div className="aic-header">
-                      <div className="aic-badge-row">
-                        <span className="aic-rank">#{idx + 1}</span>
-                        <span className={`aic-priority-pill ${isEssential ? 'essential' : 'recommended'}`}>
-                          {isEssential ? 'Prioritas Utama' : 'Prioritas Pendukung'}
-                        </span>
+                  return (
+                    <div key={idx} className="cluv-active-item">
+                      <div className="cluv-active-item-header">
+                        <div className="cluv-flex-row cluv-items-center cluv-gap-1">
+                          <span className="cluv-badge is-gold is-sm">#{idx + 1}</span>
+                          <span className={`cluv-badge is-sm ${isEssential ? 'is-teal' : 'is-slate'}`}>
+                            {isEssential ? 'Prioritas Utama' : 'Prioritas Pendukung'}
+                          </span>
+                        </div>
+                        <h4 className="cluv-font-bold cluv-text-dark cluv-text-sm cluv-m-0">{cleanName}</h4>
                       </div>
-                      <h4 className="aic-name">{cleanName}</h4>
-                    </div>
 
-                    <p className="aic-purpose">{item.purpose}</p>
+                      <p className="cluv-micro cluv-text-muted cluv-m-0">{item.purpose}</p>
 
-                    <div className="aic-micro-disclaimer">
-                      Bahan kosmetik, bukan obat — hasil bervariasi tiap orang.
-                    </div>
+                      <div className="cluv-micro cluv-text-muted" style={{ fontSize: '0.72rem' }}>
+                        <em>Bahan kosmetik, bukan obat — hasil bervariasi tiap orang.</em>
+                      </div>
 
-                    <div className="aic-actions-row">
-                      <a
-                        href={`https://shopee.co.id/search?keyword=${encodeURIComponent(searchKeyword)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-shopee-search"
-                      >
-                        <ShoppingBag size={13} /> Cari Skincare di Marketplace ↗
-                      </a>
-                      <Link
-                        to={
-                          createdScanId
-                            ? `/chatbot?scan_id=${createdScanId}&q=${encodeURIComponent(`Bagaimana cara dan urutan pemakaian ${cleanName} yang aman untuk kulitku?`)}`
-                            : `/chatbot?q=${encodeURIComponent(`Bagaimana cara pemakaian ${cleanName}?`)}`
-                        }
-                        className="btn-ask-skinsistant"
-                      >
-                        <MessageSquare size={13} /> Tanya Cara Pakai
-                      </Link>
+                      <div className="cluv-flex-row cluv-gap-2 cluv-mt-1 cluv-flex-wrap">
+                        <a
+                          href={`https://shopee.co.id/search?keyword=${encodeURIComponent(searchKeyword)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="cluv-btn is-outline is-sm cluv-flex-1"
+                        >
+                          <ShoppingBag size={13} /> Marketplace ↗
+                        </a>
+                        <Link
+                          to={
+                            createdScanId
+                              ? `/chatbot?scan_id=${createdScanId}&q=${encodeURIComponent(`Bagaimana cara dan urutan pemakaian ${cleanName} yang aman untuk kulitku?`)}`
+                              : `/chatbot?q=${encodeURIComponent(`Bagaimana cara pemakaian ${cleanName}?`)}`
+                          }
+                          className="cluv-btn is-primary is-sm cluv-flex-1"
+                        >
+                          <MessageSquare size={13} /> Tanya Cara Pakai
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           </div>
 
           {/* Bottom Action Row */}
-          <div className="results-action-row">
-            <button className="btn-reset-scan" onClick={handleResetFlow}>
+          <div className="cluv-flex-row cluv-gap-3 cluv-mt-4 cluv-flex-wrap">
+            <button
+              type="button"
+              className="cluv-btn is-outline cluv-flex-1"
+              onClick={handleResetFlow}
+            >
               <RotateCcw size={16} />
               <span>Scan Wajah Ulang</span>
             </button>
             <Link
               to={createdScanId ? `/chatbot?scan_id=${createdScanId}` : '/chatbot'}
-              className="btn-consult-skinsistant"
+              className="cluv-btn is-primary cluv-flex-2"
             >
               <MessageSquare size={16} />
               <span>Konsultasikan Rutinitas ke SkinSistant AI</span>

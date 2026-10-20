@@ -1367,4 +1367,184 @@
   gap: 6px;
 }
 
+/* =============================================================================
+ * Universal Face Biometric Snapshot (.cluv-biometric-overview)
+ * ============================================================================= */
+.cluv-biometric-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-xl, 18px);
+  padding: 20px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+@media (min-width: 640px) {
+  .cluv-biometric-overview {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.cluv-biometric-frame {
+  position: relative;
+  width: 140px;
+  height: 180px;
+  border-radius: var(--cluv-radius-lg, 14px);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: var(--cluv-shadow-md);
+  border: 1.5px solid var(--cluv-neutral-300, #cbd5e1);
+  background: var(--cluv-neutral-900, #0f172a);
+}
+
+.cluv-biometric-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cluv-biometric-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  color: #e0f2fe;
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  white-space: nowrap;
+}
+
+.cluv-biometric-areas-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cluv-biometric-area-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--cluv-radius-md, 10px);
+  background: var(--cluv-surface-muted, #f8fafc);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+}
+
+/* =============================================================================
+ * Universal Granular Area Evaluation Card (.cluv-area-card)
+ * ============================================================================= */
+.cluv-area-card {
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-area-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cluv-area-box {
+  background: var(--cluv-surface-muted, #f8fafc);
+  border-left: 3px solid var(--cluv-teal);
+  border-radius: 0 var(--cluv-radius-md, 8px) var(--cluv-radius-md, 8px) 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cluv-area-box.is-analogy {
+  border-left-color: var(--cluv-gold);
+  background: #fffdf5;
+}
+
+.cluv-area-box.is-action {
+  border-left-color: var(--cluv-status-success);
+  background: #f0fdf4;
+}
+
+/* =============================================================================
+ * Universal Lifestyle & Tips Grid (.cluv-tips-grid)
+ * ============================================================================= */
+.cluv-tips-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .cluv-tips-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cluv-tip-card {
+  background: var(--cluv-surface, #ffffff);
+  border-radius: var(--cluv-radius-lg, 14px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1.5px solid transparent;
+}
+
+.cluv-tip-card.is-avoid {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: var(--cluv-rose-soft, #fdf2f4);
+}
+
+.cluv-tip-card.is-reduce {
+  border-color: rgba(217, 119, 6, 0.25);
+  background: var(--cluv-gold-soft, #fef8ee);
+}
+
+.cluv-tip-card.is-do {
+  border-color: rgba(31, 157, 151, 0.25);
+  background: var(--cluv-teal-soft, #e6f6f5);
+}
+
+/* =============================================================================
+ * Universal Active Recommendation Item Card (.cluv-active-item)
+ * ============================================================================= */
+.cluv-active-item {
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 14px);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-active-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+
 
