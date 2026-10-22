@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { Button, Badge } from '@/components/ui'
 
 type MissionCategory = 'all' | 'daily' | 'weekly' | 'one_time'
 
@@ -284,7 +285,7 @@ export default function MissionsPage() {
   const currentBalanceDisplay = coinBalance?.balance ?? 0
 
   return (
-    <div className="cluv-page">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       <div className="cluv-mb-6">
         <h1 className="cluv-title-page">Misi &amp; Hadiah Credits</h1>
         <p className="cluv-caption cluv-text-muted">
@@ -312,13 +313,13 @@ export default function MissionsPage() {
 
             <div className="cluv-mt-4">
               {readyCount > 0 ? (
-                <span className="cluv-badge is-teal cluv-animate-pulse">
-                  <Zap size={13} /> Ada {readyCount} Misi Siap Diklaim!
-                </span>
+                <Badge variant="teal" pulse icon={<Zap size={13} />}>
+                  Ada {readyCount} Misi Siap Diklaim!
+                </Badge>
               ) : (
-                <span className="cluv-badge is-gold">
-                  <Sparkles size={13} /> Akses Gratis ke Fitur AI
-                </span>
+                <Badge variant="gold" icon={<Sparkles size={13} />}>
+                  Akses Gratis ke Fitur AI
+                </Badge>
               )}
             </div>
           </div>
@@ -362,9 +363,9 @@ export default function MissionsPage() {
                 <Trophy size={18} className="cluv-text-gold" />
                 <h3 className="cluv-title-card cluv-m-0">Daftar Misi &amp; Tantangan</h3>
               </div>
-              <span className="cluv-badge is-slate is-sm">
-                <Calendar size={13} /> Reset 00:00 WIB
-              </span>
+              <Badge variant="slate" size="sm" icon={<Calendar size={13} />}>
+                Reset 00:00 WIB
+              </Badge>
             </div>
 
             {/* Mission Category Tabs */}
@@ -458,50 +459,59 @@ export default function MissionsPage() {
                       <div className="cluv-mission-item-action">
                         <span className="cluv-font-bold cluv-text-gold">+{m.reward_coins} Credits</span>
                         {m.is_claimed ? (
-                          <span className="cluv-badge is-teal is-sm">
-                            <CheckCircle2 size={13} /> Diklaim
-                          </span>
+                          <Badge variant="teal" size="sm" icon={<CheckCircle2 size={13} />}>
+                            Diklaim
+                          </Badge>
                         ) : isCompleted ? (
-                          <button
-                            type="button"
-                            className="cluv-btn is-primary is-sm"
-                            disabled={claimingSlug === m.slug}
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            loading={claimingSlug === m.slug}
                             onClick={() => handleClaim(m)}
                           >
-                            {claimingSlug === m.slug ? (
-                              <>
-                                <Loader2 size={13} className="animate-spin" />
-                                <span>Mengklaim...</span>
-                              </>
-                            ) : (
-                              'Klaim Hadiah'
-                            )}
-                          </button>
+                            Klaim Hadiah
+                          </Button>
                         ) : (
                           m.action === 'face_scan' ? (
-                            <Link to="/face-scan" className="cluv-btn is-outline is-sm">
-                              <span>Mulai Scan</span>
-                              <ArrowRight size={12} />
-                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              iconRight={<ArrowRight size={12} />}
+                              to="/face-scan"
+                            >
+                              Mulai Scan
+                            </Button>
                           ) : m.action === 'ingredient_scan' ? (
-                            <Link to="/ingredient-scan" className="cluv-btn is-outline is-sm">
-                              <span>Pindai Produk</span>
-                              <ArrowRight size={12} />
-                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              iconRight={<ArrowRight size={12} />}
+                              to="/ingredient-scan"
+                            >
+                              Pindai Produk
+                            </Button>
                           ) : m.action === 'chatbot' ? (
-                            <Link to="/chatbot" className="cluv-btn is-outline is-sm">
-                              <span>Tanya AI</span>
-                              <ArrowRight size={12} />
-                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              iconRight={<ArrowRight size={12} />}
+                              to="/chatbot"
+                            >
+                              Tanya AI
+                            </Button>
                           ) : m.action === 'complete_profile' ? (
-                            <Link to="/profile" className="cluv-btn is-outline is-sm">
-                              <span>Isi Profil</span>
-                              <ArrowRight size={12} />
-                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              iconRight={<ArrowRight size={12} />}
+                              to="/profile"
+                            >
+                              Isi Profil
+                            </Button>
                           ) : (
-                            <span className="cluv-badge is-slate is-sm">
+                            <Badge variant="slate" size="sm">
                               Belum Selesai
-                            </span>
+                            </Badge>
                           )
                         )}
                       </div>

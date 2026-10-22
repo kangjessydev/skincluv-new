@@ -4,6 +4,7 @@
 
 export { Card } from './Card'
 export { Badge } from './Badge'
+export { Button } from './Button'
 export { Skeleton, SkeletonText, SkeletonCard } from './SkeletonLoader'
 export {
   EmptyState,
@@ -12,4 +13,5 @@ export {
   EmptyChatHistory,
   EmptyScanHistory,
 } from './EmptyState'
+
 

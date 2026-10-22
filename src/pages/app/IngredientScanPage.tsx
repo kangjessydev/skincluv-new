@@ -34,6 +34,7 @@ import { supabase } from '@/lib/supabase'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace } from '@/utils/faceLandmarkDetector'
+import { Button, Badge } from '@/components/ui'
 
 type ScanStage = 'upload' | 'scanning' | 'result'
 type BadgeFilter = 'all' | 'aman' | 'hati' | 'hindari'
@@ -493,7 +494,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
   }, [displayIngredientsList, filterBadge, searchQuery])
 
   return (
-    <div className="v0-page-container cluv-canvas-layout animate-fade-in">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Coin Deduction Confirmation Modal */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
@@ -542,13 +543,14 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 {previewUrl ? (
                   <div className="cluv-dropzone-preview">
                     <img src={previewUrl} alt="Preview label komposisi" className="cluv-dropzone-preview-img" />
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      iconLeft={<X size={14} />}
                       onClick={handleClearImage}
-                      className="cluv-btn is-outline is-sm"
                     >
-                      <X size={14} /> Ganti / Hapus Foto
-                    </button>
+                      Ganti / Hapus Foto
+                    </Button>
                   </div>
                 ) : (
                   <>
@@ -599,26 +601,28 @@ PETUNJUK OCR & ANALISIS WAJIB:
                     </span>
                   </div>
                   <div className="cluv-flex-row cluv-items-center cluv-gap-1">
-                    <Link to="/missions" className="cluv-btn is-outline is-sm">
-                      <Trophy size={13} /> Misi Gratis
-                    </Link>
-                    <Link to="/pricing" className="cluv-btn is-primary is-sm">
-                      <Crown size={13} /> Upgrade
-                    </Link>
+                    <Button variant="outline" size="sm" iconLeft={<Trophy size={13} />} to="/missions">
+                      Misi Gratis
+                    </Button>
+                    <Button variant="primary" size="sm" iconLeft={<Crown size={13} />} to="/pricing">
+                      Upgrade
+                    </Button>
                   </div>
                 </div>
               )}
 
               {/* Action Button */}
-              <button
-                type="button"
-                className="cluv-btn is-primary cluv-w-full"
-                onClick={() => handleStartAnalysis()}
+              <Button
+                variant="primary"
+                size="md"
+                block
+                loading={isAnalyzing}
                 disabled={isAnalyzing || !imageBase64}
+                iconLeft={<FlaskConical size={18} />}
+                onClick={() => handleStartAnalysis()}
               >
-                <FlaskConical size={18} />
-                <span>Mulai Pindai Komposisi Skincare</span>
-              </button>
+                Mulai Pindai Komposisi Skincare
+              </Button>
 
               {/* Medical Disclaimer (Invariant 19 compliant) */}
               <div className="cluv-alert is-warning is-compact">
@@ -829,13 +833,14 @@ PETUNJUK OCR & ANALISIS WAJIB:
                     <FileText size={15} className="text-sky-600 shrink-0" />
                     <span>Teks Komposisi Terbaca dari Kemasan:</span>
                   </div>
-                  <button
-                    type="button"
-                    className="cluv-btn is-outline is-sm"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    iconLeft={<Edit3 size={13} />}
                     onClick={() => setIsEditingText(!isEditingText)}
                   >
-                    <Edit3 size={13} /> {isEditingText ? 'Tutup Edit' : 'Koreksi / Tambah Kata'}
-                  </button>
+                    {isEditingText ? 'Tutup Edit' : 'Koreksi / Tambah Kata'}
+                  </Button>
                 </div>
 
                 {!isEditingText ? (
@@ -853,14 +858,17 @@ PETUNJUK OCR & ANALISIS WAJIB:
                       className="cluv-textarea"
                       rows={3}
                     />
-                    <button
-                      type="button"
-                      className="cluv-btn is-primary is-sm cluv-self-start"
-                      onClick={handleReanalyzeWithText}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      loading={isAnalyzing}
                       disabled={isAnalyzing || !editableText.trim()}
+                      iconLeft={<RefreshCw size={14} />}
+                      onClick={handleReanalyzeWithText}
+                      className="cluv-self-start"
                     >
-                      <RefreshCw size={14} /> Hitung Ulang Analisis dengan Teks Terkoreksi
-                    </button>
+                      Hitung Ulang Analisis dengan Teks Terkoreksi
+                    </Button>
                   </div>
                 )}
               </div>
@@ -970,24 +978,24 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
                   {/* Mode Tampilan Toggle (Chips vs Cards) */}
                   <div className="cluv-btn-group">
-                    <button
-                      type="button"
-                      className={`cluv-btn is-sm ${viewMode === 'chips' ? 'is-primary' : 'is-ghost'}`}
+                    <Button
+                      variant={viewMode === 'chips' ? 'primary' : 'ghost'}
+                      size="sm"
+                      iconLeft={<LayoutGrid size={13} />}
                       onClick={() => setViewMode('chips')}
                       title="Tampilan Ringkas (Chips)"
                     >
-                      <LayoutGrid size={13} />
-                      <span>Ringkas</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`cluv-btn is-sm ${viewMode === 'cards' ? 'is-primary' : 'is-ghost'}`}
+                      Ringkas
+                    </Button>
+                    <Button
+                      variant={viewMode === 'cards' ? 'primary' : 'ghost'}
+                      size="sm"
+                      iconLeft={<ListFilter size={13} />}
                       onClick={() => setViewMode('cards')}
                       title="Tampilan Detail (Kartu)"
                     >
-                      <ListFilter size={13} />
-                      <span>Detail</span>
-                    </button>
+                      Detail
+                    </Button>
                   </div>
                 </div>
 
@@ -1118,23 +1126,26 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
               {/* Action Buttons: Consult Skinsistant & Reset */}
               <div className="cluv-flex-row cluv-gap-3 cluv-mt-4 cluv-flex-wrap">
-                <button
-                  type="button"
-                  className="cluv-btn is-outline cluv-flex-1"
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="cluv-flex-1"
+                  iconLeft={<RotateCcw size={16} />}
                   onClick={handleResetFlow}
                 >
-                  <RotateCcw size={16} />
-                  <span>Scan Produk Lain</span>
-                </button>
-                <Link
+                  Scan Produk Lain
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="cluv-flex-2"
+                  iconLeft={<Sparkles size={16} />}
                   to={`/chatbot?initialPrompt=${encodeURIComponent(
                     `Halo Skinsistant! Saya baru saja mengecek produk "${scanResult?.product_name || 'skincare'}". Apakah produk ini cocok dikombinasikan dengan kondisi kulit dan rutinitas harian saya?`
                   )}`}
-                  className="cluv-btn is-primary cluv-flex-2"
                 >
-                  <Sparkles size={16} />
-                  <span>Konsultasikan ke Skinsistant AI</span>
-                </Link>
+                  Konsultasikan ke Skinsistant AI
+                </Button>
               </div>
             </div>
           )}
@@ -1151,13 +1162,13 @@ PETUNJUK OCR & ANALISIS WAJIB:
               <h3 className="cluv-title-item cluv-m-0">Profil Kulit Aktif Anda</h3>
             </div>
             <div className="cluv-flex-row cluv-gap-1 cluv-flex-wrap cluv-mb-2">
-              <span className="cluv-badge is-teal is-sm">{userSkinType}</span>
+              <Badge variant="teal" size="sm">{userSkinType}</Badge>
               {activeSkinProfile?.skin_concerns && activeSkinProfile.skin_concerns.length > 0 ? (
                 activeSkinProfile.skin_concerns.slice(0, 2).map((c, i) => (
-                  <span key={i} className="cluv-badge is-slate is-sm">{c.toUpperCase()}</span>
+                  <Badge key={i} variant="slate" size="sm">{c.toUpperCase()}</Badge>
                 ))
               ) : (
-                <span className="cluv-badge is-slate is-sm">KOMBINASI SEHAT</span>
+                <Badge variant="slate" size="sm">KOMBINASI SEHAT</Badge>
               )}
             </div>
             <p className="cluv-micro cluv-text-muted cluv-m-0">

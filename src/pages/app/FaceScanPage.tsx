@@ -28,6 +28,7 @@ import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelper
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { validateImageQuality, compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace, disposeFaceLandmarker } from '@/utils/faceLandmarkDetector'
+import { Button, Badge } from '@/components/ui'
 
 type Stage = 'upload' | 'scanning' | 'result'
 
@@ -677,7 +678,7 @@ export default function FaceScanPage() {
         }))
 
   return (
-    <div className="v0-page-container cluv-canvas-layout animate-fade-in">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Coin Deduction Modal */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
@@ -701,9 +702,9 @@ export default function FaceScanPage() {
             Pemetaan kondisi kulit dari foto wajahmu dengan AI secara objektif, lengkap dengan analogi penyebab, saran perawatan, dan rekomendasi bahan aktif formulasi kosmetik.
           </p>
         </div>
-        <Link to="/scan-history" className="cluv-btn is-outline is-sm">
-          <History size={16} /> Riwayat Scan Kulit
-        </Link>
+        <Button variant="outline" size="sm" iconLeft={<History size={16} />} to="/scan-history">
+          Riwayat Scan Kulit
+        </Button>
       </div>
 
       {/* Alert Error Box */}
@@ -730,13 +731,14 @@ export default function FaceScanPage() {
                 {previewUrl ? (
                   <div className="cluv-dropzone-preview">
                     <img src={previewUrl} alt="Preview Foto Wajah" className="cluv-dropzone-preview-img" />
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      iconLeft={<X size={14} />}
                       onClick={handleClearImage}
-                      className="cluv-btn is-outline is-sm"
                     >
-                      <X size={14} /> Ganti Foto
-                    </button>
+                      Ganti Foto
+                    </Button>
                   </div>
                 ) : (
                   <>
@@ -768,25 +770,26 @@ export default function FaceScanPage() {
                     </span>
                   </div>
                   <div className="cluv-flex-row cluv-items-center cluv-gap-1">
-                    <Link to="/missions" className="cluv-btn is-outline is-sm">
-                      <Trophy size={13} /> Misi Gratis
-                    </Link>
-                    <Link to="/pricing" className="cluv-btn is-primary is-sm">
-                      <Crown size={13} /> Upgrade
-                    </Link>
+                    <Button variant="outline" size="sm" iconLeft={<Trophy size={13} />} to="/missions">
+                      Misi Gratis
+                    </Button>
+                    <Button variant="primary" size="sm" iconLeft={<Crown size={13} />} to="/pricing">
+                      Upgrade
+                    </Button>
                   </div>
                 </div>
               )}
 
-              <button
-                type="button"
-                className="cluv-btn is-primary cluv-w-full"
+              <Button
+                variant="primary"
+                size="md"
+                block
+                iconLeft={<Sparkles size={18} />}
                 onClick={handleStartFlow}
                 disabled={!imageBase64}
               >
-                <Sparkles size={18} />
-                <span>Mulai Analisis Wajah AI</span>
-              </button>
+                Mulai Analisis Wajah AI
+              </Button>
 
               {/* Disclaimer (Invariant 19 compliant) */}
               <div className="cluv-alert is-warning is-compact">
@@ -801,7 +804,7 @@ export default function FaceScanPage() {
           {/* Right Column: Profile Context & Photo Guidelines */}
           <div className="cluv-scan-aside">
             <div className="cluv-card is-highlight">
-              <span className="cluv-badge is-teal is-sm cluv-mb-2">PROFIL KULIT AKTIF</span>
+              <Badge variant="teal" size="sm" className="cluv-mb-2">PROFIL KULIT AKTIF</Badge>
               <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-mb-2 cluv-micro">
                 <span className="cluv-text-muted">Tipe kulit:</span>
                 <span className="cluv-font-bold cluv-text-dark">{userSkinType}</span>
@@ -810,16 +813,16 @@ export default function FaceScanPage() {
                 <span className="cluv-text-muted">Fokus kulit:</span>
                 <div className="cluv-flex-row cluv-flex-wrap cluv-gap-1">
                   {userConcerns.map((concern: string, idx: number) => (
-                    <span key={idx} className="cluv-badge is-slate is-sm">
+                    <Badge key={idx} variant="slate" size="sm">
                       {concern}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               </div>
             </div>
 
             <div className="cluv-card">
-              <span className="cluv-badge is-gold is-sm cluv-mb-2">PANDUAN SEBELUM FOTO</span>
+              <Badge variant="gold" size="sm" className="cluv-mb-2">PANDUAN SEBELUM FOTO</Badge>
               <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-mb-3">
                 Pastikan kondisi berikut terpenuhi agar hasil analisis akurat dan konsisten dalam membandingkan perkembangan kulit.
               </p>
@@ -921,16 +924,16 @@ export default function FaceScanPage() {
                   Foto yang sama berarti kondisi kulit yang terbaca juga sama, sehingga hasil analisisnya identik. Kami tampilkan hasil tersimpanmu secara instan tanpa memotong kuota.
                 </p>
                 <div className="cluv-flex-row cluv-items-center cluv-flex-wrap cluv-gap-2 cluv-mt-2">
-                  <span className="cluv-badge is-teal is-sm"><CheckCircle2 size={12} /> Kuota aman</span>
-                  <span className="cluv-badge is-teal is-sm"><CheckCircle2 size={12} /> Hasil identik</span>
-                  <span className="cluv-badge is-slate is-sm"><Zap size={12} /> Instan (&lt;1s)</span>
+                  <Badge variant="teal" size="sm"><CheckCircle2 size={12} /> Kuota aman</Badge>
+                  <Badge variant="teal" size="sm"><CheckCircle2 size={12} /> Hasil identik</Badge>
+                  <Badge variant="slate" size="sm"><Zap size={12} /> Instan (&lt;1s)</Badge>
                   <div className="cluv-flex-row cluv-gap-1 cluv-ml-auto">
-                    <button type="button" onClick={handleResetFlow} className="cluv-btn is-outline is-sm">
-                      <Camera size={13} /> Scan Foto Baru
-                    </button>
-                    <button type="button" onClick={handleForceReanalyze} className="cluv-btn is-outline is-sm">
-                      <RotateCcw size={13} /> Analisis Ulang (5 Credits)
-                    </button>
+                    <Button variant="outline" size="sm" iconLeft={<Camera size={13} />} onClick={handleResetFlow}>
+                      Scan Foto Baru
+                    </Button>
+                    <Button variant="outline" size="sm" iconLeft={<RotateCcw size={13} />} onClick={handleForceReanalyze}>
+                      Analisis Ulang (5 Credits)
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1136,24 +1139,30 @@ export default function FaceScanPage() {
                       </div>
 
                       <div className="cluv-flex-row cluv-gap-2 cluv-mt-1 cluv-flex-wrap">
-                        <a
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="cluv-flex-1"
                           href={`https://shopee.co.id/search?keyword=${encodeURIComponent(searchKeyword)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="cluv-btn is-outline is-sm cluv-flex-1"
+                          iconLeft={<ShoppingBag size={13} />}
                         >
-                          <ShoppingBag size={13} /> Marketplace ↗
-                        </a>
-                        <Link
+                          Marketplace ↗
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="cluv-flex-1"
                           to={
                             createdScanId
                               ? `/chatbot?scan_id=${createdScanId}&q=${encodeURIComponent(`Bagaimana cara dan urutan pemakaian ${cleanName} yang aman untuk kulitku?`)}`
                               : `/chatbot?q=${encodeURIComponent(`Bagaimana cara pemakaian ${cleanName}?`)}`
                           }
-                          className="cluv-btn is-primary is-sm cluv-flex-1"
+                          iconLeft={<MessageSquare size={13} />}
                         >
-                          <MessageSquare size={13} /> Tanya Cara Pakai
-                        </Link>
+                          Tanya Cara Pakai
+                        </Button>
                       </div>
                     </div>
                   )
@@ -1164,21 +1173,24 @@ export default function FaceScanPage() {
 
           {/* Bottom Action Row */}
           <div className="cluv-flex-row cluv-gap-3 cluv-mt-4 cluv-flex-wrap">
-            <button
-              type="button"
-              className="cluv-btn is-outline cluv-flex-1"
+            <Button
+              variant="outline"
+              size="md"
+              className="cluv-flex-1"
+              iconLeft={<RotateCcw size={16} />}
               onClick={handleResetFlow}
             >
-              <RotateCcw size={16} />
-              <span>Scan Wajah Ulang</span>
-            </button>
-            <Link
+              Scan Wajah Ulang
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              className="cluv-flex-2"
+              iconLeft={<MessageSquare size={16} />}
               to={createdScanId ? `/chatbot?scan_id=${createdScanId}` : '/chatbot'}
-              className="cluv-btn is-primary cluv-flex-2"
             >
-              <MessageSquare size={16} />
-              <span>Konsultasikan Rutinitas ke SkinSistant AI</span>
-            </Link>
+              Konsultasikan Rutinitas ke SkinSistant AI
+            </Button>
           </div>
         </div>
       )}

@@ -38,50 +38,10 @@
 .cluv-ambient-strip {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.cluv-ambient-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: var(--cluv-current-card-bg, #ffffff);
-  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
-  border-radius: 9999px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--cluv-neutral-700, #334155);
-  box-shadow: var(--cluv-shadow-sm);
-  transition: all 0.15s ease;
-}
-
-.cluv-ambient-pill.is-gold {
-  background: #fffbeb;
-  border-color: var(--cluv-gold-line, #fae0b8);
-  color: var(--cluv-gold, #d97706);
-}
-
-.cluv-ambient-pill.is-teal {
-  background: var(--cluv-teal-soft, #e6f6f5);
-  border-color: var(--cluv-teal-line, #bceae7);
-  color: var(--cluv-teal-dark, #127a75);
-}
-
-.cluv-dashboard-title {
-  font-size: clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem);
-  font-weight: 800;
-  color: var(--cluv-current-text, #1a2d42);
-  margin: 0;
-}
-
-.cluv-dashboard-subtitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--cluv-neutral-500);
-  margin: 0;
-}
 
 /* Skinsistant AI Companion Weather Banner (Full Width under date) */
 .cluv-weather-bubble {
@@ -398,26 +358,6 @@
   margin: 2px 0 0;
 }
 
-.cluv-mission-reward {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  padding: 3px 9px;
-  border-radius: 9999px;
-  background: #fffbeb;
-  border: 1px solid var(--cluv-gold-line, #fae0b8);
-  color: var(--cluv-gold, #d97706);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.cluv-mission-reward.is-done {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #94a3b8;
-}
 
 
 

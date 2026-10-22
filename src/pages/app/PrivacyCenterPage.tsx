@@ -7,6 +7,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Lock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { Button, Badge } from '@/components/ui'
 
 export default function PrivacyCenterPage() {
   const navigate = useNavigate()
@@ -102,7 +103,7 @@ export default function PrivacyCenterPage() {
   }
 
   return (
-    <div className="cluv-page cluv-focused-ledger">
+    <div className="cluv-canvas-focused cluv-animate-fade">
       {/* Back Link */}
       <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
         <ArrowLeft size={16} /> Kembali ke Profil
@@ -110,9 +111,9 @@ export default function PrivacyCenterPage() {
 
       {/* HEADER */}
       <div className="cluv-mb-6">
-        <span className="cluv-badge is-teal cluv-mb-2">
-          <ShieldCheck size={14} /> PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)
-        </span>
+        <Badge variant="teal" icon={<ShieldCheck size={14} />} className="cluv-mb-2">
+          PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)
+        </Badge>
         <h1 className="cluv-title-page cluv-mt-1 cluv-mb-1">Pengelolaan Data &amp; Hak Privasi</h1>
         <p className="cluv-caption cluv-text-muted">
           Anda memegang kendali penuh atas data pribadi, citra pemindaian wajah, dan keberadaan akun Anda pada platform Skincluv.
@@ -137,10 +138,14 @@ export default function PrivacyCenterPage() {
           </div>
           <hr className="cluv-divider is-compact cluv-my-4" />
           <div className="cluv-flex-row cluv-justify-end">
-            <button type="button" className="cluv-btn is-outline is-sm" onClick={handleExportData}>
-              <Download size={15} />
-              <span>Unduh Data Profil (JSON)</span>
-            </button>
+            <Button
+              variant="outline"
+              size="sm"
+              iconLeft={<Download size={15} />}
+              onClick={handleExportData}
+            >
+              Unduh Data Profil (JSON)
+            </Button>
           </div>
         </div>
 
@@ -173,15 +178,15 @@ export default function PrivacyCenterPage() {
 
           <hr className="cluv-divider is-compact cluv-my-4" />
           <div className="cluv-flex-row cluv-justify-end">
-            <button
-              type="button"
-              className="cluv-btn is-outline is-sm"
+            <Button
+              variant="outline"
+              size="sm"
+              iconLeft={<Trash2 size={15} />}
+              loading={isDeletingScans}
               onClick={handleDeleteFaceScans}
-              disabled={isDeletingScans}
             >
-              {isDeletingScans ? <Loader2 size={15} className="cluv-animate-spin" /> : <Trash2 size={15} />}
-              <span>Hapus Rekam Jejak Scan Wajah Saja</span>
-            </button>
+              Hapus Rekam Jejak Scan Wajah Saja
+            </Button>
           </div>
         </div>
 
@@ -202,10 +207,14 @@ export default function PrivacyCenterPage() {
           </div>
           <hr className="cluv-divider is-compact cluv-my-4" />
           <div className="cluv-flex-row cluv-justify-end">
-            <Link to="/privacy" className="cluv-btn is-outline is-sm">
-              <Eye size={15} />
-              <span>Baca Kebijakan Privasi Lengkap</span>
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              iconLeft={<Eye size={15} />}
+              to="/privacy"
+            >
+              Baca Kebijakan Privasi Lengkap
+            </Button>
           </div>
         </div>
 
@@ -226,18 +235,18 @@ export default function PrivacyCenterPage() {
           </div>
           <hr className="cluv-divider is-compact cluv-my-4" />
           <div className="cluv-flex-row cluv-justify-end">
-            <button
-              type="button"
-              className="cluv-btn is-danger is-sm"
+            <Button
+              variant="danger"
+              size="sm"
+              iconLeft={<Trash2 size={15} />}
               onClick={() => {
                 setConfirmationInput('')
                 setDeleteError(null)
                 setShowDeleteModal(true)
               }}
             >
-              <Trash2 size={15} />
-              <span>Hapus Akun Saya Secara Permanen</span>
-            </button>
+              Hapus Akun Saya Secara Permanen
+            </Button>
           </div>
         </div>
       </div>
@@ -292,29 +301,23 @@ export default function PrivacyCenterPage() {
             </div>
 
             <div className="cluv-modal-footer">
-              <button
-                type="button"
-                className="cluv-btn is-outline is-sm"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeletingAccount}
               >
                 Batalkan
-              </button>
-              <button
-                type="button"
-                className="cluv-btn is-danger is-sm"
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                loading={isDeletingAccount}
+                disabled={confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
                 onClick={handlePermanentlyDeleteAccount}
-                disabled={isDeletingAccount || confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
               >
-                {isDeletingAccount ? (
-                  <>
-                    <Loader2 size={15} className="cluv-animate-spin" />
-                    <span>Memusnahkan Data...</span>
-                  </>
-                ) : (
-                  <span>Konfirmasi Hapus Akun</span>
-                )}
-              </button>
+                Konfirmasi Hapus Akun
+              </Button>
             </div>
           </div>
         </div>

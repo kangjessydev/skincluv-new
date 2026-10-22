@@ -41,6 +41,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Surfaces** | `.cluv-surface-public`<br>`.cluv-surface-app`<br>`.cluv-surface-admin` | - | - | Dipasang di root layout / shell halaman untuk mengatur font, radius, & density otomatis. |
 | **Page Root** | `.cluv-page` | `.is-centered` | - | Root wrapper kanvas halaman (wajib padding 0! & margin 0! untuk mencegah phantom gaps). |
+| **App Canvases** | `.cluv-canvas-grid` (Tipe A: 1240px)<br>`.cluv-canvas-focused` (Tipe B: 760px)<br>`.cluv-canvas-bleed` (Tipe C: 100%) | - | - | 3 Standar Kanvas Konten Aplikasi Login. Menjamin garis kiri sejajar 40px presisi dengan Topbar. |
 | **Containers** | `.cluv-container` | `.is-narrow` (720px)<br>`.is-md` (1040px)<br>`.is-wide` (1360px)<br>`.is-fluid` (100%) | - | Pembatas lebar konten responsif (default 1200px boxed). |
 | **Sections** | `.cluv-section` | `.is-dense` (rapat)<br>`.is-spacious` (lega)<br>`.is-alt` (abu/subtle)<br>`.is-dark` (malam/gelap) | - | Pembungkus babak/seksi halaman dengan vertical padding standar. |
 | **Section Header** | `.cluv-section-header` | `.is-compact` (24px mb)<br>`.is-wide` (820px)<br>`.is-left` (rata kiri) | - | Blok terpusat judul + subtitle + badge dengan batas lebar proporsional (max-w 680px). |
@@ -574,3 +575,170 @@ Untuk modal atau navigation drawer mobile yang memiliki banyak item:
   </div>
 </div>
 ```
+
+---
+
+## 10. Pola Universal: Bento Grid System & Mobile App-First Dashboard (.cluv-bento-grid, .cluv-bento-card, .cluv-mobile-dashboard)
+
+### A. Anatomi Bento Card Baku (3 Slot)
+```tsx
+<div className="cluv-bento-grid is-hero">
+  {/* Kolom Kiri: 1.55fr (Hero Data) */}
+  <section className="cluv-bento-card">
+    <div>
+      {/* 1. Header Slot */}
+      <div className="cluv-bento-header">
+        <div className="cluv-bento-header-icon">
+          <div className="cluv-card-icon-wrap is-sm is-teal"><ScanFace size={20} /></div>
+        </div>
+        <div className="cluv-bento-header-titles">
+          <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Observasi Visual AI</span>
+          <h2 className="cluv-title-card">Kondisi Kulit Terkini</h2>
+        </div>
+        <div className="cluv-bento-header-action">
+          <button className="cluv-btn is-outline is-sm">Pindai Ulang</button>
+        </div>
+      </div>
+
+      {/* 2. Body Slot (Canvas Data) */}
+      <div className="cluv-bento-body cluv-mt-4">
+        {/* Konten data visual / chart / score ring */}
+      </div>
+    </div>
+
+    {/* 3. Footer Slot (Hairline Separator) */}
+    <div className="cluv-bento-footer cluv-flex-between cluv-items-center cluv-pt-4 cluv-border-t cluv-mt-6">
+      <span className="cluv-caption cluv-text-muted">Keterangan status</span>
+      <button className="cluv-btn is-ghost is-sm"><span>Lihat Detail</span><ChevronRight size={14} /></button>
+    </div>
+  </section>
+
+  {/* Kolom Kanan: 1fr (Secondary Support) */}
+  <section className="cluv-bento-card">
+    {/* ... */}
+  </section>
+</div>
+```
+
+### B. Mobile App-First Dashboard Pattern (<= 640px)
+```tsx
+<div className="cluv-mobile-dashboard">
+  {/* 1. Unified Skin Card (Avatar + Sapaan + Kapsul Kredit + Mini Score) */}
+  <div className="cluv-mobile-unified-card">
+    <div className="cluv-mobile-unified-header">
+      <div className="cluv-flex-row cluv-gap-2 cluv-items-center">
+        <div className="cluv-avatar-ring is-pro"><div className="cluv-avatar-ring-inner">JS</div></div>
+        <span className="cluv-mobile-name">Halo, Jessy</span>
+      </div>
+      <div className="cluv-credit-capsule">
+        <span className="cluv-credit-capsule-val"><Zap size={12} /><span>1.395</span></span>
+        <span className="cluv-credit-capsule-divider" />
+        <span className="cluv-credit-capsule-add">+</span>
+      </div>
+    </div>
+    {/* Body Ringkas + Action Pills */}
+  </div>
+
+  {/* 2. Skinsistant AI Weather Bubble */}
+  <div className="cluv-weather-bubble">
+    <div className="cluv-weather-bubble-icon"><Bot size={16} /></div>
+    <div className="cluv-weather-bubble-content">
+      <div className="cluv-weather-bubble-header">
+        <span className="cluv-weather-bubble-title">Skinsistant AI · Cuaca Hari Ini</span>
+        <span className="cluv-weather-bubble-tag"><SunMedium size={11} /> 30° · UV 7</span>
+      </div>
+      <p className="cluv-weather-bubble-text">"Siang ini terik banget bestie! Jangan lupa reapply sunscreen ya! :)"</p>
+    </div>
+  </div>
+
+  {/* 3. 4-Item Squircle Shortcuts (Grid 4 Kolom) */}
+  <div className="cluv-mobile-shortcuts">
+    <button className="cluv-mobile-shortcut-btn">
+      <div className="cluv-mobile-shortcut-icon is-teal"><ScanFace size={22} /></div>
+      <span className="cluv-mobile-shortcut-label">Scan Wajah</span>
+    </button>
+    <button className="cluv-mobile-shortcut-btn">
+      <div className="cluv-mobile-shortcut-icon is-blue"><FlaskConical size={22} /></div>
+      <span className="cluv-mobile-shortcut-label">Scan Bahan</span>
+    </button>
+    <button className="cluv-mobile-shortcut-btn">
+      <div className="cluv-mobile-shortcut-icon is-amber"><Sparkles size={22} /></div>
+      <span className="cluv-mobile-shortcut-label">Misi Glow</span>
+    </button>
+    <button className="cluv-mobile-shortcut-btn">
+      <div className="cluv-mobile-shortcut-icon is-purple"><Bot size={22} /></div>
+      <span className="cluv-mobile-shortcut-label">Tanya AI</span>
+    </button>
+  </div>
+</div>
+```
+
+---
+
+## 11. Triad Core Components: React Atoms (<Badge />, <Button />, Bento)
+
+### A. Badge Atom (`<Badge />` from `@/components/ui`)
+```tsx
+import { Badge } from '@/components/ui'
+
+// 1. Status Kulit / Kualitatif (dengan Dot)
+<Badge variant="teal" size="sm" dot>Optimal</Badge>
+<Badge variant="gold" size="sm" dot>Perhatian</Badge>
+<Badge variant="rose" size="sm" dot>Waspada</Badge>
+
+// 2. Chip Metrik / Counter (dengan Ikon)
+<Badge variant="teal" size="sm" icon={<ScanFace size={13} />}>11 Wajah</Badge>
+<Badge variant="slate" size="sm" icon={<FlaskConical size={13} />}>15 Komposisi</Badge>
+
+// 3. Ambient Context Cuaca / Suhu
+<Badge variant="gold" size="sm" icon={<SunMedium size={13} />}>26°C · UV 3.2</Badge>
+
+// 4. Reward Koin / Misi
+<Badge variant="gold" size="sm" icon={<Zap size={11} />}>+100</Badge>
+<Badge variant="slate" size="sm" icon={<Zap size={11} />}>+5 (Selesai)</Badge>
+
+// 5. Section Eyebrow (Landing / Public)
+<Badge variant="teal" size="md">🌸 Sahabat Meja Riasmu</Badge>
+```
+
+### B. Button Atom (`<Button />` from `@/components/ui`)
+```tsx
+import { Button } from '@/components/ui'
+
+// 1. Primary Action (CTA Utama / Submit Form)
+<Button variant="primary" size="md" iconRight={<ArrowRight size={16} />}>
+  Mulai Analisis
+</Button>
+
+// 2. Bento Header Action (Outline Brand Line)
+<Button variant="outline" size="sm" iconLeft={<ScanFace size={14} />} onClick={() => navigate('/face-scan')}>
+  Pindai Ulang
+</Button>
+
+// 3. Bento Footer Block Action (Full-width Outline)
+<Button variant="outline" size="sm" block iconRight={<ArrowRight size={14} />} to="/chatbot">
+  Buka Chat Skinsistant AI
+</Button>
+
+// 4. Bento Footer Drill-down (Ghost Text Link)
+<Button variant="ghost" size="sm" iconRight={<ChevronRight size={14} />} to="/scan-history">
+  Buka Riwayat Lengkap
+</Button>
+
+// 5. Loading State & Async Submissions
+<Button variant="primary" size="md" loading={isSubmitting} block>
+  Simpan Profil Kulit
+</Button>
+
+// 6. Kustom Radius (Pill vs Squircle vs Sharp)
+<Button variant="primary" size="sm" radius="pill" iconLeft={<Plus size={15} />}>
+  Chat Baru
+</Button>
+
+// 7. Destructive Action (Konfirmasi Hapus)
+<Button variant="danger" size="sm" onClick={handleDelete}>
+  Hapus Rekam Jejak
+</Button>
+```
+
+

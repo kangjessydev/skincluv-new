@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Coins, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { Button } from '@/components/ui'
 
 // Type yang sesuai dengan schema coin_transactions
 interface CoinTransaction {
@@ -58,7 +59,7 @@ export default function CoinHistoryPage() {
   })
 
   return (
-    <div className="cluv-page cluv-focused-ledger">
+    <div className="cluv-canvas-focused cluv-animate-fade">
       {/* Back to Billing Link */}
       <button
         type="button"
@@ -87,9 +88,9 @@ export default function CoinHistoryPage() {
             </span>
           </div>
         </div>
-        <Link to="/missions" className="cluv-btn is-outline is-sm">
+        <Button variant="outline" size="sm" to="/missions">
           + Dapatkan Credits
-        </Link>
+        </Button>
       </div>
 
       {/* Filter Tabs */}
@@ -136,9 +137,9 @@ export default function CoinHistoryPage() {
             <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md">
               Riwayat perolehan atau penggunaan credits kamu akan tampil di sini.
             </p>
-            <Link to="/missions" className="cluv-btn is-primary is-sm cluv-mt-4">
+            <Button variant="primary" size="sm" to="/missions" className="cluv-mt-4">
               Selesaikan Misi
-            </Link>
+            </Button>
           </div>
         ) : (
           filtered.map((item) => (

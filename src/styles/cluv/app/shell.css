@@ -208,7 +208,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px;
+  padding: 0 40px; /* Synchronized with 40px canvas left-anchor */
   position: sticky;
   top: 0;
   z-index: 30;
@@ -558,9 +558,15 @@
 .cluv-shell-page-content {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   width: 100%;
-  padding: 32px 40px 80px;
+  padding: 0; /* Zero padding: 100% owned by .cluv-canvas-* */
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
 }
 
 
@@ -623,7 +629,7 @@
   }
 
   .cluv-shell-page-content {
-    padding: 16px 16px 96px; /* Room for thumb bottom bar */
+    padding: 0; /* Padding owned by .cluv-canvas-* */
   }
 
   /* 3. Mobile Bottom Navigation Bar (Thumb Friendly 5 Menus) */

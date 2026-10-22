@@ -109,6 +109,14 @@
   border-radius: var(--cluv-radius-md);
 }
 
+.cluv-btn.is-radius-sm {
+  border-radius: var(--cluv-radius-sm);
+}
+
+.cluv-btn.is-radius-none {
+  border-radius: 0;
+}
+
 /* =============================================================================
  * 3. COLOR VARIANTS
  * ============================================================================= */
@@ -264,6 +272,29 @@
   cursor: default !important;
   pointer-events: none;
   transform: none !important;
+}
+
+.cluv-btn.is-loading {
+  pointer-events: none;
+  opacity: 0.85;
+  cursor: wait;
+}
+
+@keyframes cluv-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cluv-btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: cluv-btn-spin 0.65s linear infinite;
+  flex-shrink: 0;
 }
 
 /* =============================================================================

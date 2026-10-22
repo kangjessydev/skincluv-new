@@ -127,35 +127,81 @@ Halaman: `/`, `/about`, `/pricing`, `/faq`, `/contact`, `/terms`, `/privacy`, `/
 
 Halaman: `/dashboard`, `/face-scan`, `/ingredient-scan`, `/missions`, `/chatbot`, `/profile/*`.
 
-### 4.1 Shell & Page Layout Contract (Section 5.9 AGENTS.md)
-- **Struktur Shell**: Sidebar Kiri (264px) + Top Navbar (78px) + Main Canvas (`.v0-shell-page-content`).
+### 4.1 Shell & Page Layout Contract (Standard Canvas System)
+- **Struktur Shell**: Sidebar Kiri (250px) + Topbar (68px, padding `0 40px`) + Host Kanvas (`.cluv-shell-page-content`, padding `0`).
 - **Baseline Left-Anchor Discipline (Desktop)**:
-  - Garis tepi kiri konten (judul, tombol back, kartu) **WAJIB SELALU SEJAJAR** pada offset padding standar (`40px` dari sidebar).
-  - **DILARANG `margin: 0 auto` pada Form/Ledger Sempit**: Gunakan `margin-left: 0; margin-right: auto; max-width: 760px` agar konten tidak terlempar melayang ke tengah monitor ultrawide.
+  - Garis tepi kiri konten (judul, tombol back, kartu) **WAJIB SELALU SEJAJAR** pada offset padding standar (`40px` dari sidebar), 100% sejajar dengan judul di Topbar.
+- **3 Canonical App Canvas Primitives (`src/styles/cluv/layout.css`)**:
+  1. **`.cluv-canvas-grid` (Tipe A: Full Canvas)**: Dashboard, Scanner Wajah & Komposisi, Misi, Riwayat Scan, Profil Hub (`max-width: 1240px; padding: 32px 40px 80px;`).
+  2. **`.cluv-canvas-focused` (Tipe B: Focused Ledger & Forms)**: Tagihan, Mutasi Credits, Edit Profil Kulit, Checkout (`max-width: 760px; padding: 32px 40px 80px; margin-left: 0; margin-right: auto;`).
+  3. **`.cluv-canvas-bleed` (Tipe C: Full-Bleed Viewport)**: Skinsistant AI Chatbot & Camera HUD (`width: 100%; height: 100%; padding: 0; overflow: hidden;`).
 
-### 4.2 Mobile Dashboard (Konsensus Opsi A + Cuaca Konsep 2)
-1. **Unified Bento Skin Card (~135px)**:
-   - Sapaan ramah (`Halo, {firstName}`), avatar glow ring (`.is-pro` / `.is-free`), dan dompet kredit interaktif kapsul (`.cluv-credit-capsule: [ ⚡ 1.395 | + ]`) **MENYATU** di header atas Bento Card Observasi Kulit.
-   - Menghemat ~50px ruang vertikal dibanding floating card terpisah.
-2. **Skinsistant AI Weather Companion Bubble**:
-   - Menggunakan avatar robot AI sahabat (`<Bot />`), badge suhu + UV, dan gaya kutipan hangat bersahabat:  
-     *`"Siang ini terik banget loh bestie! Sampai 30 derajat. Jangan lupa pake sunscreen ya! :)"`*.
-3. **Menu Akses Cepat**:
-   - 4 Menu Squircle Pintas (*Scan Wajah, Scan Komposisi, Misi Glow, Tanya AI*) terkunci rapi tepat **di bawah** Bento Card Observasi Kulit.
+### 4.2 Master Contract: Bento Standards & Slot Architecture
+1. **Pola Grid Kanonikal (`.cluv-bento-grid`)**:
+   - `.is-hero` (1.55fr : 1fr): Hero split utama vs pendukung.
+   - `.is-equal` (1fr : 1fr): Komparasi seimbang dua data (Tren vs Rutinitas).
+   - `.is-trio` (1fr : 1fr : 1fr): Tiga metrik/tahap alur.
+   - `.is-quad` (repeat(4, 1fr)): 4 pintasan aksi horizontal.
+   - `.is-full` (1fr): Grafik lebar penuh.
+2. **Anatomi Kartu Bento (`.cluv-bento-card`)**:
+   - `.cluv-bento-header`: Memuat icon wrap pastel `.cluv-bento-header-icon`, judul + eyebrow `.cluv-bento-header-titles`, dan tombol aksi `.cluv-bento-header-action`. Gunakan `.is-inline` bila kartu tanpa tombol.
+   - `.cluv-bento-body`: Area visual data (Score ring SVG, bar chart, sirkadian box).
+   - `.cluv-bento-footer`: Tautan footer atau secondary CTA dengan hairline separator atas.
+3. **Varian Kartu**: `.is-interactive`, `.is-compact`, `.is-tint-teal`, `.is-tint-purple`, `.is-tint-gold`.
 
-### 4.3 Desktop Dashboard Visual Hierarchy & Breathing Room
-1. **Header Desktop Wajib Bersih & Tenang**:
-   - H1 Judul Babak (`.cluv-title-section`): *"Selamat sore, Jessy ✨"*.
-   - Subtitle tanggal: *"Minggu, 18 Oktober 2026"*.
-   - Data cuaca hadir sebagai **Micro Environmental Tag** yang manis di baris tanggal atau disematkan di atas rutinitas perawatan, **BUKAN sebagai card besar yang mengambang canggung di atas header**.
-2. **Anti "Divider Overload" (Garis Berlebihan)**:
-   - Hindari memecah kartu dengan garis-garis `border-b` dan `border-t` yang kaku.
-   - Gunakan ritme whitespace alami: flexbox `cluv-flex-col cluv-gap-4`.
-3. **Hero 2-Column Grid**:
-   - Kolom Kiri (1.55fr): Observasi Kulit Terkini dengan circular score ring dan status defensible.
-   - Kolom Kanan (1fr): Keamanan Skincare / Lab Komposisi dengan 3 metrik produk terstruktur rapi tanpa kotak border tebal.
-4. **4-Column Quick Action Bento Grid**:
-   - Di desktop, 4 shortcut sejajar rapi (*Scan Wajah AI*, *Scan Komposisi*, *Misi Glow Harian*, *Tanya Skinsistant*) dengan transisi hover lift yang halus.
+### 4.3 Master Contract: Tipografi & Spacing (Dashboard vs Landing)
+| Level Teks | Dashboard & App Pages (Login) | Landing & Public Pages (Non-Login) |
+| :--- | :--- | :--- |
+| **H1 Judul Utama** | **`.cluv-title-section`** (`clamp(1.5rem, 2.4vw + 0.5rem, 1.875rem)`). Dilarang pakai `.cluv-title-hero` di dashboard! | **`.cluv-title-hero`** (`clamp(2.25rem, 4vw + 1rem, 3.25rem)`). |
+| **H2/H3 Judul Kartu**| **`.cluv-title-card`** (`clamp(1.125rem, 1.2vw + 0.4rem, 1.25rem)`). | **`.cluv-title-section`** (`clamp(1.75rem, 3vw + 0.5rem, 2.25rem)`). |
+| **Eyebrow Label** | **`.cluv-micro.cluv-uppercase`** (`0.6875rem` / 11px, bold, tracking 0.04em). | **`.cluv-badge.is-teal`** (`0.8125rem`). |
+| **Body Teks** | **`.cluv-body`** (`0.875rem - 0.9375rem`, line-height 1.5). | **`.cluv-lead`** (`1.125rem`) & **`.cluv-body`** (`1rem`). |
+| **Fine Print** | **`.cluv-caption`** (`0.8125rem`) & **`.cluv-micro`** (`0.6875rem`). | **`.cluv-caption`** (`0.875rem`). |
+| **Spacing Gap** | `gap: 16px - 20px` (padat, anti-scrolling berlebih). | `padding: clamp(64px, 8vw, 96px) 0` (lega, bernapas). |
+
+### 4.4 Doktrin Mobile App-First (Bukan Sekadar Desktop yang Di-shrink)
+Di layar ponsel (`<= 640px`), dashboard beroperasi layaknya **Native Mobile App**:
+1. **Shell Navigasi Bawah Ramah Jempol**:
+   - Sidebar desktop dihilangkan total (`display: none !important`).
+   - Bottom Bar 5 menu (`.cluv-mobile-bottom-bar`) dengan Center Floating Action Button (FAB Scan Wajah: `.cluv-bottom-nav-fab-icon`) yang ramah jempol.
+   - Topbar bersih tanpa avatar; avatar profil pindah ke tab Profil di bottom bar.
+2. **Unified Hero Card Mobile (`.cluv-mobile-unified-card`)**:
+   - Sapaan desktop disembunyikan.
+   - Diganti kartu ringkas all-in-one: Avatar user glow ring + sapaan + kapsul saldo kredit (`+`) + mini score ring (56px) + quick action pills (`Pindai Ulang`, `Tanya AI`).
+3. **4-Item Squircle Shortcuts (`.cluv-mobile-shortcuts`)**:
+   - 4 menu aplikasi kotak membulat berjejer horizontal (Scan Wajah, Scan Komposisi, Misi Glow, Tanya AI).
+4. **Disiplin Padding Kartu di Mobile**:
+   - Padding kartu desktop: `24px`.
+   - Di mobile (`<= 640px`): **Wajib turun ke `16px 14px`** agar area baca lapang dan tidak tercekik border tebal.
+5. **Anti Scroll Fatigue & Pola Inset List**:
+   - Dilarang menumpuk 6-8 kartu raksasa vertikal tanpa henti.
+   - Rutinitas & misi harian wajib menggunakan pola **Compact Inset Grouped List** (`.cluv-checklist-group`), bukan tumpukan kartu berbingkai tebal.
+
+### 4.5 Master Contract: Triad Core Components (Bento, Button, Badge)
+Pola Arsitektur: **Design Tokens & Utilities (Lapis 1)** ➔ **CSS Component Base + .is-* (Lapis 2)** ➔ **Type-Safe React UI Component (Lapis 3)**.
+
+1. **Badge (`.cluv-badge`)**:
+   - Pola: `.cluv-badge` + `.is-[teal|gold|slate|rose|purple]` + `.is-sm` (khusus app dashboard/status/counters).
+   - Default (12px, padding `4px 12px`): Section Eyebrow di Landing/Public.
+   - `.is-sm` (11px, padding `2px 8px`): Dashboard status, pill cuaca, reward koin, scan count.
+   - Sub-elemen: `.cluv-dot` (titik 6px).
+   - *Pantangan*: Dilarang membuat class ad-hoc (`.cluv-ambient-pill`, `.cluv-mission-reward`). Wajib pakai `.cluv-badge` atau `<Badge />`!
+
+2. **Button (`.cluv-btn` & `<Button />`)**:
+   - Pola: `.cluv-btn` + `.is-[primary|secondary|outline|ghost|danger]` + `.is-[sm|md|lg]`.
+   - Filosofi: Landing Page = Pill 9999px besar (`is-lg`/`is-pill`) untuk konversi; Dashboard App = Squircle 12-14px ringkas (`is-sm`/`is-md`) untuk efisiensi data.
+   - Ukuran: `.is-sm` (38px, bento header/footer/toolbar), `.is-md` (46px, standar & form submit), `.is-lg` (52px, hero CTA landing).
+   - Radius: `.is-pill` (9999px), `.is-rounded` (12px), `.is-radius-sm` (8px), `.is-radius-none` (0px).
+   - Built-in Hover: Hover selalu terikat satu paket bawaan dengan varian dan animasi `0.18s cubic-bezier(0.16, 1, 0.3, 1)` + translasi Y (-1.5px).
+   - Loading State: `.is-loading` memunculkan spinner SVG, teks tetap stabil, otomatis pointer-events none untuk mencegah double transaction.
+   - Layout: `.is-block` (100%), `.is-stack-mobile` (100% width di HP <= 640px).
+   - React Atom: `<Button variant="..." size="..." radius="..." loading={...} to="..." iconLeft={...}>{children}</Button>`.
+   - *Pantangan*: Dilarang membuat class tombol kustom per halaman (`.save-btn`, `.back-btn`).
+
+3. **Bento Grid & Card (`.cluv-bento-grid`, `.cluv-bento-card`)**:
+   - Grid: `.is-hero` (60:40), `.is-equal` (50:50), `.is-trio` (33:33:33), `.is-quad` (4 col), `.is-full` (1 col).
+   - 3 Slot Card: `.cluv-bento-header` (opsi `.is-inline`), `.cluv-bento-body`, `.cluv-bento-footer`.
+   - Padding: Desktop `24px`; Mobile `16px 14px` (radius `16px`).
 
 ---
 
@@ -165,7 +211,8 @@ Sebelum menyatakan pekerjaan frontend selesai, AI WAJIB memverifikasi:
 - [ ] Tidak ada class Tailwind / non-cluv yang lolos (`node audit script`).
 - [ ] Tidak ada warna hex manual di file `.tsx` (gunakan CSS variables `var(--cluv-*)`).
 - [ ] Tidak ada inline styles layout/color di JSX (kecuali persentase kalkulasi JS murni).
-- [ ] Menggunakan skala tipografi resmi Cluv (`.cluv-title-section`, `.cluv-title-card`, `.cluv-body`, `.cluv-caption`).
-- [ ] Layar mobile tetap kompak dan ramah jempol (touch target >= 44px).
+- [ ] Menggunakan skala tipografi resmi Cluv (`.cluv-title-section` untuk H1 dashboard, `.cluv-title-card` untuk kartu).
+- [ ] Layar mobile tetap kompak, padding kartu 16px, ramah jempol (touch target >= 44px).
 - [ ] Layar desktop terkunci di anchor kiri (40px) dan memiliki satu titik fokus visual yang jelas.
 - [ ] Lolos validasi compile: `tsc -b` dan `vite build` 0 error.
+

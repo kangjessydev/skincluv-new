@@ -12,6 +12,7 @@ import {
   Check, Save, Sparkles,
 } from 'lucide-react'
 import type { SkinProfile, SkinType } from '@/types/database'
+import { Button } from '@/components/ui'
 
 const SKIN_TYPES: { id: SkinType; label: string }[] = [
   { id: 'normal', label: 'Normal' },
@@ -181,7 +182,7 @@ export default function ProfileSkinPage() {
   }
 
   return (
-    <div className="cluv-page cluv-focused-ledger">
+    <div className="cluv-canvas-focused cluv-animate-fade">
       {/* Back link navigation */}
       <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
         <ArrowLeft size={16} />
@@ -320,15 +321,16 @@ export default function ProfileSkinPage() {
             )}
 
             <div className="cluv-flex-col cluv-gap-3 cluv-pt-2">
-              <button
-                type="button"
-                className="cluv-btn is-primary is-lg cluv-w-full"
+              <Button
+                variant="primary"
+                size="lg"
+                block
+                loading={loading}
+                iconLeft={<Save size={16} />}
                 onClick={handleSave}
-                disabled={loading}
               >
-                <Save size={16} />
-                <span>{loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}</span>
-              </button>
+                {loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}
+              </Button>
               <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5">
                 <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot Skincluv.
               </p>

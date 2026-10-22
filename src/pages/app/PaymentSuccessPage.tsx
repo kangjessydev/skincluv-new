@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import type { Subscription } from '@/types/database'
 import { isActiveGlow } from '@/utils/subscriptionHelpers'
+import { Button, Badge } from '@/components/ui'
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams()
@@ -71,7 +72,7 @@ export default function PaymentSuccessPage() {
     : (isGlowPlan ? 'Rp 25.000' : 'Rp 49.000')
 
   return (
-    <div className="cluv-page cluv-focused-ledger">
+    <div className="cluv-canvas-focused cluv-animate-fade">
       {/* Back to Billing */}
       <Link
         to="/profile/billing"
@@ -87,16 +88,16 @@ export default function PaymentSuccessPage() {
         </div>
         
         <div>
-          <span className="cluv-badge is-gold cluv-mb-2">
-            <Sparkles size={13} /> Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
-          </span>
+          <Badge variant="gold" icon={<Sparkles size={13} />} className="cluv-mb-2">
+            Status {isGlowPlan ? 'GLOW' : 'PRO'} Aktif
+          </Badge>
         </div>
 
         <h1 className="cluv-title-card cluv-mt-2 cluv-mb-1">
           Selamat! Kamu Resmi Memiliki Akses {isGlowPlan ? 'GLOW' : 'PRO'}
         </h1>
         <p className="cluv-caption cluv-text-muted cluv-mb-6 cluv-max-w-md">
-          Nikmati akses analisis kondisi kulit & konsultasi Skinsistant AI selama 30 hari ke depan.
+          Nikmati akses analisis kondisi kulit &amp; konsultasi Skinsistant AI selama 30 hari ke depan.
         </p>
 
         {/* Invoice Summary Box */}
@@ -115,9 +116,9 @@ export default function PaymentSuccessPage() {
           </div>
           <div className="cluv-receipt-row">
             <span className="cluv-receipt-label">Status Pembayaran:</span>
-            <span className="cluv-badge is-teal">
-              <CheckCircle size={12} /> LUNAS
-            </span>
+            <Badge variant="teal" icon={<CheckCircle size={12} />}>
+              LUNAS
+            </Badge>
           </div>
         </div>
 
@@ -133,11 +134,11 @@ export default function PaymentSuccessPage() {
             </li>
             <li className="cluv-feature-item">
               <CheckCircle size={16} className="cluv-text-teal" />
-              <span>Analisis Kulit AI & Rekomendasi Rutinitas yang Dipersonalisasi</span>
+              <span>Analisis Kulit AI &amp; Rekomendasi Rutinitas yang Dipersonalisasi</span>
             </li>
             <li className="cluv-feature-item">
               <CheckCircle size={16} className="cluv-text-teal" />
-              <span>Peringatan Komposisi & Deteksi Interaksi Skincare</span>
+              <span>Peringatan Komposisi &amp; Deteksi Interaksi Skincare</span>
             </li>
             <li className="cluv-feature-item">
               <CheckCircle size={16} className="cluv-text-teal" />
@@ -156,16 +157,34 @@ export default function PaymentSuccessPage() {
 
         {/* Action Buttons */}
         <div className="cluv-flex-col cluv-gap-3 cluv-w-full">
-          <Link to="/face-scan" className="cluv-btn is-primary cluv-w-full cluv-justify-center">
-            <ScanFace size={18} /> Coba Scan Wajah Sekarang
-          </Link>
+          <Button
+            variant="primary"
+            size="md"
+            block
+            iconLeft={<ScanFace size={18} />}
+            to="/face-scan"
+          >
+            Coba Scan Wajah Sekarang
+          </Button>
           <div className="cluv-flex-row cluv-gap-3 cluv-w-full">
-            <Link to="/chatbot" className="cluv-btn is-outline cluv-flex-1 cluv-justify-center">
-              <MessageSquare size={16} /> Chat AI
-            </Link>
-            <Link to="/transactions" className="cluv-btn is-ghost cluv-flex-1 cluv-justify-center">
-              Riwayat Tagihan <ArrowRight size={14} />
-            </Link>
+            <Button
+              variant="outline"
+              size="md"
+              iconLeft={<MessageSquare size={16} />}
+              to="/chatbot"
+              className="cluv-flex-1"
+            >
+              Chat AI
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
+              iconRight={<ArrowRight size={14} />}
+              to="/transactions"
+              className="cluv-flex-1"
+            >
+              Riwayat Tagihan
+            </Button>
           </div>
         </div>
       </div>

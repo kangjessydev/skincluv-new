@@ -24,6 +24,8 @@ const IngredientScanPage = lazy(() => import('@/pages/app/IngredientScanPage'))
 const ChatbotPage = lazy(() => import('@/pages/app/ChatbotPage'))
 const MissionsPage = lazy(() => import('@/pages/app/MissionsPage'))
 const PricingPage = lazy(() => import('@/pages/app/PricingPage'))
+const AppPricingPage = lazy(() => import('@/pages/app/AppPricingPage'))
+const AppFaqPage = lazy(() => import('@/pages/app/AppFaqPage'))
 const CheckoutPage = lazy(() => import('@/pages/app/CheckoutPage'))
 const TransactionHistoryPage = lazy(() => import('@/pages/app/TransactionHistoryPage'))
 const CoinHistoryPage = lazy(() => import('@/pages/app/CoinHistoryPage'))
@@ -89,13 +91,17 @@ export default function App() {
         {/* Public regulatory, trust, & informational routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/paket" element={<PricingPage />} />
-          <Route path="/pricing" element={<Navigate to="/paket" replace />} />
+          {!user && (
+            <>
+              <Route path="/paket" element={<PricingPage />} />
+              <Route path="/pricing" element={<Navigate to="/paket" replace />} />
+              <Route path="/faq" element={<FaqPage />} />
+            </>
+          )}
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/refund-policy" element={<RefundPolicyPage />} />
           <Route path="/medical-disclaimer" element={<MedicalDisclaimerPage />} />
-          <Route path="/faq" element={<FaqPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
         </Route>
@@ -111,8 +117,9 @@ export default function App() {
           <Route path="/chatbot" element={<ChatbotPage />} />
           <Route path="/chatbot/:sessionId" element={<ChatbotPage />} />
           <Route path="/missions" element={<MissionsPage />} />
-          <Route path="/paket" element={<PricingPage />} />
+          <Route path="/paket" element={<AppPricingPage />} />
           <Route path="/pricing" element={<Navigate to="/paket" replace />} />
+          <Route path="/faq" element={<AppFaqPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout/:reference" element={<CheckoutPage />} />
           <Route path="/transactions" element={<TransactionHistoryPage />} />

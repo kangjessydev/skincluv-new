@@ -183,42 +183,41 @@ Jika sudah ada -> gunakan yang lama. Jangan buat implementasi paralel dengan nam
 
 ---
 
-### 5.5 SOP Frontend & UI Design System: Doktrin *Search-Before-Create*
+### 5.5 SOP Frontend & UI Design System: Doktrin Cluv Micro-Framework (`cluv-*`)
 
 > ⚡ **AI FAST SCAN REFERENCE**: Sebelum menulis JSX/TSX atau CSS, seluruh AI **WAJIB membaca cheat-sheet ringkas**: [docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md](file:///home/kangjessy/Documents/projects/skinscan/skincluv/docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md). File tersebut berisi kamus cepat seluruh class universal (`cluv-*`), snippet siap pakai, dan anti-hallucination checklist agar AI tidak perlu membuka file CSS berukuran besar!
 
-> **Prinsip Utama**: AI dilarang keras berasumsi atau membuat nama class CSS baru secara generatif dari nol (*self-contained bias*). Setiap komponen antarmuka yang akan dibuat **WAJIB** dicek terlebih dahulu apakah sudah memiliki padanan kanonikal di `src/index.css`.
+> **Prinsip Utama**: AI dilarang keras membuat class CSS ad-hoc atau membangkitkan class non-cluv. Seluruh komponen antarmuka yang akan dibuat **WAJIB** dicek terlebih dahulu apakah sudah memiliki padanan kanonikal di Cluv Framework (`src/styles/cluv/`).
 
 #### 1. Protokol Tiga Langkah: Reuse -> Extend -> Create
-Sebelum menulis baris CSS baru di `src/index.css` atau class di JSX `.tsx`, AI **WAJIB**:
-1. **Grep Terlebih Dahulu**: Jalankan pencarian di `src/index.css` untuk memeriksa komponen sejenis.
+Sebelum menulis baris CSS baru di `src/styles/cluv/` atau class di JSX `.tsx`, AI **WAJIB**:
+1. **Grep Terlebih Dahulu**: Jalankan pencarian di `CLUV_FRAMEWORK_CHEATSHEET.md` dan `src/styles/cluv/` untuk memeriksa komponen sejenis.
    ```bash
-   # Cek apakah class komponen sejenis sudah ada di CSS global
-   grep "\.v0-profile-" src/index.css
-   grep "v0-" src/index.css
+   # Cek apakah class komponen sejenis sudah ada di Cluv Framework
+   grep "\.cluv-" src/styles/cluv/components/
    ```
 2. **Reuse First (Gunakan Ulang)**: Jika konsep UI sudah ada (misal kartu kontainer, chip seleksi, tombol simpan, back link), **WAJIB gunakan class yang sudah ada**. Dilarang membuat class baru dengan nama berbeda untuk konsep yang sama.
-3. **Extend Second (Gunakan Modifier)**: Jika memerlukan sedikit variasi warna atau ikon, gunakan modifier class (misal: `.v0-profile-chip.active`, `.v0-profile-nav-icon-wrap.teal`, `.v0-profile-section-icon.alert`). Dilarang membuat root selector baru.
-4. **Create Last (Hanya Jika Benar-Benar Baru)**: Hanya boleh membuat class baru jika komponen tersebut benar-benar belum pernah ada di seluruh aplikasi Skincluv.
+3. **Extend Second (Gunakan Modifier)**: Jika memerlukan sedikit variasi warna atau ikon, gunakan modifier class ber-prefix `.is-*` (misal: `.cluv-chip.is-active`, `.cluv-card-icon-wrap.is-teal`, `.cluv-badge.is-sm`). Dilarang membuat root selector baru.
+4. **Create Last (Hanya Jika Benar-Benar Baru & Melalui Diskusi)**: Hanya boleh membuat class baru jika komponen tersebut benar-benar belum pernah ada di Cluv Framework dan telah didiskusikan serta disetujui bersama pengguna.
 
 ---
 
-### 5.6 Canonical UI Class Registry — Kontrak Antarmuka Frontend
+### 5.6 Canonical UI Class Registry — Kontrak Antarmuka Cluv Framework
 
-Tabel ini adalah **sumber kebenaran tunggal** untuk penamaan class UI di area akun, profil, dan sub-halamannya. Siapapun AI yang mengedit area ini **WAJIB** mematuhi penamaan ini:
+Tabel ini adalah **sumber kebenaran tunggal** untuk penamaan class UI di seluruh aplikasi Skincluv. Siapapun AI yang mengedit area ini **WAJIB** mematuhi penamaan ini:
 
-| Kebutuhan Visual / Komponen UI | Class Kanonikal Wajib (`src/index.css`) | Class Terlarang (Antipattern / Duplikasi) |
+| Kebutuhan Visual / Komponen UI | Class Kanonikal Wajib (`src/styles/cluv/`) | Class Terlarang (Antipattern / Duplikasi) |
 | :--- | :--- | :--- |
-| **Halaman Wrapper Profil & Anak-anaknya** | `.v0-profile-page` | `.subpage-container`, `.profile-page-custom`, wrapper polosan tanpa padding |
-| **Kartu Kontainer Utama (Card)** | `.v0-profile-card` | `.v0-subpage-card`, `.glass-card`, `.profile-box`, `.stich-bento-card` |
-| **Tombol Seleksi / Chip** | `.v0-profile-chip` | `.v0-selectable-chip`, `.tag-pill`, `.chip-btn` |
-| **Indikator Aktif Chip** | `.v0-profile-chip.active` | `.selected`, `.chip-active`, `.active-pill` |
-| **Tautan Navigasi Kembali (Sub-page)** | `.v0-profile-back-link` | `.btn-back-link`, `.back-link`, `.back-arrow` |
-| **Tombol Aksi Simpan Formulir** | `.v0-profile-save-btn` | `.v0-save-profile-btn`, `.btn-primary`, `.btn-save` |
-| **Grup Seksi Formulir** | `.v0-profile-form-section` | `.v0-form-block`, `.form-group-custom` |
-| **Icon Wrapper Seksi** | `.v0-profile-section-icon` | `.icon-box-custom`, `.v0-form-num` |
-| **Kotak Notifikasi Sukses/Error** | `.v0-profile-message.success` / `.error` | `.v0-subpage-alert`, `.alert-box`, `.alert-custom` |
-| **Tombol Aksi Kartu Hub** | `.v0-profile-hub-action-btn` | `.btn-hub`, `.hub-link-custom` |
+| **Kanvas Full / Bento (Tipe A)** | `.cluv-canvas-grid` | `.v0-page-container`, `.subpage-container`, `.cluv-canvas-layout` tanpa grid |
+| **Kanvas Focused / Ledger (Tipe B)** | `.cluv-canvas-focused` | `.v0-profile-page`, wrapper margin auto sempit |
+| **Kanvas Full-Bleed (Tipe C)** | `.cluv-canvas-bleed` | Kanvas dengan padding luar yang menjepit chat |
+| **Kartu Kontainer Utama (Card)** | `.cluv-card`, `.cluv-bento-card` | `.v0-profile-card`, `.v0-subpage-card`, `.glass-card` |
+| **Tombol Universal** | `.cluv-btn` (`.is-primary`, `.is-outline`, `.is-sm`) | `.v0-profile-save-btn`, `.btn-primary`, `.btn-save` |
+| **Tombol Seleksi / Chip** | `.cluv-chip` (`.is-active`) | `.v0-profile-chip`, `.tag-pill`, `.chip-btn` |
+| **Tautan Navigasi Kembali** | `.cluv-link.is-muted`, `.cluv-back-link` | `.v0-profile-back-link`, `.btn-back-link`, `.back-arrow` |
+| **Grup Formulir & Input** | `.cluv-field`, `.cluv-input`, `.cluv-label` | `.v0-profile-form-section`, `.form-group-custom` |
+| **Icon Wrapper Seksi** | `.cluv-card-icon-wrap` (`.is-teal`, `.is-gold`) | `.v0-profile-section-icon`, `.icon-box-custom` |
+| **Kotak Notifikasi Feedback** | `.cluv-alert` (`.is-success`, `.is-danger`) | `.v0-profile-message`, `.v0-subpage-alert`, `.alert-box` |
 
 ---
 
@@ -226,73 +225,60 @@ Tabel ini adalah **sumber kebenaran tunggal** untuk penamaan class UI di area ak
 
 1. **Zero Hardcoded Colors**:
    - DILARANG menggunakan kode warna hex manual (misal `#1f9d97`, `#f0fdf4`, `#bbf7d0`, `#e2e8f0`) di dalam file `.tsx` ataupun rule CSS baru.
-   - Wajib selalu merujuk ke CSS variables resmi di `:root`: `var(--color-teal)`, `var(--color-surface)`, `var(--color-border)`, `var(--color-status-optimal-soft)`, `var(--radius)`, dll.
+   - Wajib selalu merujuk ke CSS variables resmi di `:root`: `var(--cluv-teal)`, `var(--cluv-surface)`, `var(--cluv-border)`, `var(--cluv-radius)`, dll.
 2. **Zero Layout/Theming Inline Styles**:
    - DILARANG menggunakan atribut `style={{ background: '...', color: '...' }}` di JSX untuk tata letak dan pewarnaan.
    - Pengecualian HANYA berlaku untuk nilai dinamis murni hasil kalkulasi JavaScript (misal: persentase progress bar `style={{ width: `${percent}%` }}`).
 3. **No Island `<style>` Blocks**:
-   - DILARANG menyisipkan tag `<style>{...}</style>` baru di dalam komponen `.tsx` pada folder `src/pages/app/` dan `src/pages/profile/`. Seluruh styling halaman aplikasi wajib tersentralisasi di `src/index.css`.
+   - DILARANG menyisipkan tag `<style>{...}</style>` baru di dalam komponen `.tsx`. Seluruh styling halaman aplikasi wajib tersentralisasi di `src/styles/cluv/`.
 4. **Desktop Form Max-Width Discipline**:
-   - Formulir mandiri yang dirender dalam 1 kolom (seperti `/profile/skin`) wajib memiliki pembatas lebar proporsional di desktop (`max-width: 760px` terpusat / margin auto) agar tidak melebar kosong hingga 1120px+.
+   - Formulir mandiri yang dirender dalam 1 kolom (seperti `/profile/skin`) wajib menggunakan `.cluv-canvas-focused` (`max-width: 760px; margin-left: 0; margin-right: auto;`) agar tidak melebar kosong hingga 1120px+.
 
 ---
 
 ### 5.8 Checklist Wajib Sebelum Mengubah / Menambah UI Frontend
 
-- [ ] Sudah menjalankan `grep` di `src/index.css` untuk mengecek apakah class / komponen serupa sudah ada
+- [ ] Sudah mengecek `CLUV_FRAMEWORK_CHEATSHEET.md` sebelum menyentuh JSX/CSS
 - [ ] Menggunakan class kanonikal dari Canonical UI Class Registry (Tabel 5.6)
-- [ ] Tidak ada warna hex hardcoded di JSX atau CSS baru (semua menggunakan CSS variables `var(--color-*)`)
+- [ ] Tidak ada warna hex hardcoded di JSX atau CSS baru (semua menggunakan CSS variables `var(--cluv-*)`)
 - [ ] Tidak ada inline `<style>` baru di dalam file `.tsx`
-- [ ] Formulir single-column memiliki batas `max-width: 760px` di desktop
-- [ ] Lolos verifikasi build: `tsc --noEmit` & `vite build` 0 error
+- [ ] Lolos verifikasi build: `tsc -b` & `vite build` 0 error
 
 ---
 
-### 5.9 Shell & Page Layout Contract: Standarisasi Kontainer Konten Aplikasi
+### 5.9 Shell & Page Layout Contract: Standarisasi Kanvas Konten Aplikasi
 
-> **Latar Belakang**: Aplikasi Skincluv menggunakan shell berbasis **Sidebar Kiri (264px)** + **Top Navbar (78px)** + **Main Content Area (`.v0-shell-page-content`)**. Seluruh halaman aplikasi adalah tamu di dalam Main Content Area tersebut. Inkonsistensi padding dan penggunaan `margin: 0 auto` pada kontainer sempit menyebabkan konten melompat-lompat dan terlempar ke tengah layar desktop. Aturan di bawah ini mengunci konsistensi tata letak seluruh halaman.
+> **Latar Belakang**: Aplikasi Skincluv menggunakan shell berbasis **Sidebar Kiri (250px)** + **Top Navbar (68px, padding `0 40px`)** + **Host Kanvas Konten (`.cluv-shell-page-content`, padding: 0)**. Seluruh halaman aplikasi membungkus dirinya sendiri menggunakan salah satu dari 3 Layout Primitives Kanonikal untuk menjamin garis tepi kiri konten sejajar presisi 40px di desktop.
 
 #### 1. Baseline Anchor Point Kiri (Left-Anchor Discipline)
-- **Anchor Point Kiri Wajib Konsisten**: Di layar desktop, garis tepi kiri konten (tombol back, judul halaman, tab, kartu) **WAJIB SELALU SEJAJAR** di semua halaman, yaitu tepat pada offset padding standar (`40px` dari sisi kanan sidebar).
-- **Larangan `margin: 0 auto` pada Kontainer Halaman Sempit**: Dilarang menggunakan `margin: 0 auto` pada root wrapper halaman atau form sempit (`max-width: 600px - 760px`) karena akan membuat konten melayang jauh ke tengah monitor ultrawide/desktop dan merusak alur pandang mata dari sidebar. Gunakan `margin-right: auto; margin-left: 0;` agar lebar tetap proporsional namun tepi kiri tetap terkunci sejajar.
+- **Anchor Point Kiri Wajib Konsisten**: Di layar desktop, garis tepi kiri konten (tombol back, judul halaman, tab, kartu) **WAJIB SELALU SEJAJAR** di semua halaman, yaitu tepat pada offset padding standar (`40px` dari sisi kanan sidebar), 100% presisi dengan judul halaman di Topbar.
+- **Larangan `margin: 0 auto` pada Kontainer Halaman Sempit**: Dilarang menggunakan `margin: 0 auto` pada root wrapper halaman atau form sempit (`max-width: 600px - 760px`) karena akan membuat konten melayang jauh ke tengah monitor ultrawide/desktop dan merusak alur pandang mata dari sidebar. Gunakan `margin-right: auto; margin-left: 0;` (`.cluv-canvas-focused`) agar lebar tetap proporsional namun tepi kiri tetap terkunci sejajar.
 
-#### 2. Spesifikasi Standar Kontainer Halaman (`.v0-page-container`)
-Setiap halaman standar di dalam `.v0-shell-page-content` wajib menggunakan spesifikasi padding baku:
-- **Desktop (>= 769px)**:
-  - `padding: 32px 40px 80px;` (Padding atas 32px dari navbar, horizontal 40px, bawah 80px untuk scroll lega).
-  - `max-width: 1240px;` (Batas lebar maksimal kanvas).
-  - `box-sizing: border-box; width: 100%;`
-- **Mobile / Tablet (<= 768px)**:
-  - `padding: 20px 16px 60px;`
-  - `width: 100%;`
-
-#### 3. Klasifikasi Tata Letak Konten Halaman
-| Tipe Halaman | Contoh Halaman | Aturan Lebar & Perataan |
-| :--- | :--- | :--- |
-| **Tipe A: Full Canvas / Grid** | Dashboard, Scan History, Missions, Profile Hub | `max-width: 1240px; width: 100%;` (Grid 2-3 kolom responsif). |
-| **Tipe B: Focused Ledger & Forms** | Riwayat Transaksi, Mutasi Koin, Edit Profil Kulit | `max-width: 760px; width: 100%; margin-right: auto; margin-left: 0;` (Terkunci di anchor kiri, tidak melar berlebihan). |
-| **Tipe C: Full-Bleed Viewport** | Chatbot (/chatbot), Camera Viewfinder HUD | Viewport penuh edge-to-edge tanpa padding luar shell standar. |
+#### 2. Tiga Kanvas Kanonikal (`src/styles/cluv/layout.css`)
+| Tipe Kanvas | Class Kanonikal Wajib | Target Halaman | Spesifikasi Tata Letak |
+| :--- | :--- | :--- | :--- |
+| **Tipe A: Full Canvas / Grid** | `.cluv-canvas-grid` | Dashboard, Scan Wajah AI, Scan Komposisi, Misi Glow, Riwayat Scan, Profil Hub | `max-width: 1240px; padding: 32px 40px 80px; width: 100%;` (Mobile: `padding: 20px 16px 80px;`). |
+| **Tipe B: Focused Ledger & Forms** | `.cluv-canvas-focused` | Riwayat Tagihan, Mutasi Credits, Edit Profil Kulit, Pusat Privasi, Checkout | `max-width: 760px; padding: 32px 40px 80px; margin-left: 0; margin-right: auto; width: 100%;` (Mobile: `padding: 20px 16px 80px;`). |
+| **Tipe C: Full-Bleed Viewport** | `.cluv-canvas-bleed` | Skinsistant AI Chatbot (/chatbot), Camera Viewfinder HUD | Viewport penuh edge-to-edge (`width: 100%; height: 100%; padding: 0; overflow: hidden;`). |
 
 ---
 
-### 5.10 Prinsip DRY Global Pattern (Anti-Page-Prefix Duplication)
+### 5.10 Prinsip DRY Global Pattern (Cluv Universal Primitives)
 
-> **Latar Belakang**: Insiden pembuatan class terisolasi per halaman (misal: `.tx-*` untuk transaksi, `.ch-*` untuk coin history) menyebabkan duplikasi CSS puluhan baris untuk komponen yang sama persis (kartu saldo, baris mutasi, filter bar, empty state). Jika ada perubahan desain, developer terpaksa mengedit satu per satu di banyak tempat. Aturan ini mewajibkan abstraksi global agar CSS ramping, seragam, dan sekali ubah berefek ke seluruh aplikasi.
+> **Latar Belakang**: Insiden pembuatan class terisolasi per halaman menyebabkan duplikasi CSS puluhan baris untuk komponen yang sama persis (kartu saldo, baris mutasi, filter bar, empty state). Aturan ini mewajibkan penggunaan primitif Cluv Framework agar CSS ramping, seragam, dan sekali sentuh berefek ke seluruh aplikasi.
 
 #### 1. Larangan Duplikasi Prefix Halaman
-- **DILARANG** membuat selector CSS dengan prefix nama halaman spesifik (seperti `.tx-*`, `.ch-*`, `.ps-*`, `.pr-*`) untuk konsep UI umum yang muncul di lebih dari satu tempat.
-- Prefix halaman **HANYA** boleh digunakan untuk komponen yang 100% eksklusif (misal: Reticle Oval Viewfinder Kamera di Face Scan, atau Radar Chart Polygon).
+- **DILARANG** membuat selector CSS dengan prefix nama halaman spesifik untuk konsep UI umum yang muncul di lebih dari satu tempat.
+- Prefix halaman **HANYA** boleh digunakan untuk komponen yang 100% eksklusif (misal: Reticle Oval Viewfinder Kamera di Face Scan).
 
-#### 2. Kamus Komponen Global Kanonikal (`.v0-*`)
-Setiap halaman baru atau yang sedang direfaktorisasi **WAJIB** memakai komponen global ini:
-| Komponen UI | Class Global Wajib | Catatan Implementasi & Reset |
-| :--- | :--- | :--- |
-| **Tombol / Link Kembali** | `.v0-back-link` | Wajib reset: `background: none; border: none; padding: 0; cursor: pointer;` agar tidak memicu border abu-abu bawaan browser jika dipakai di elemen `<button>`. |
-| **Kartu Saldo / Ringkasan Metrik** | `.v0-stat-card` | Berisi icon-box, label, nominal besar, dan tombol CTA. |
-| **Bar Filter Mutasi / Status** | `.v0-filter-bar` | Flex container berisi label filter (`.v0-filter-label`) + grup chip (`.v0-profile-chip-group`). |
-| **Daftar & Baris Ledger** | `.v0-ledger-list`, `.v0-ledger-item` | Baris transaksi/mutasi dengan icon status bundar (`.v0-ledger-icon`), detail judul & tanggal, serta nominal/badge. |
-| **Pill Badge Status** | `.v0-badge.success` / `.warning` / `.danger` | Menggunakan token CSS variabel soft background + solid ink. |
-| **Kartu Kosong (Empty State)** | `.v0-empty-state` | Ikon redup 44px, judul bold, teks penjelasan, tombol aksi. |
+#### 2. Kamus Primitif Universal Cluv
+Setiap halaman baru atau yang sedang direfaktorisasi **WAJIB** memakai primitif Cluv Framework ini:
+- **Tombol / Link Kembali**: `.cluv-link.is-muted` atau `.cluv-back-link`
+- **Kartu Saldo / Ringkasan Metrik**: `.cluv-stat-card`, `.cluv-stat-grid`
+- **Bar Filter & Tab Navigasi**: `.cluv-tabs`, `.cluv-tab-btn`
+- **Daftar & Baris Ledger**: `.cluv-ledger-card`, `.cluv-receipt-box`
+- **Pill Badge Status**: `.cluv-badge` (`.is-teal`, `.is-gold`, `.is-rose`, `.is-slate`)
+- **Kartu Kosong (Empty State)**: `.cluv-status-cue`, `.cluv-card` center aligned
 
 ---
 
@@ -410,6 +396,141 @@ Teks penenang di bawah tombol CTA (seperti `Gratis Pendaftaran • Tanpa Kartu K
 3. **Langkah 3 (Generic Component)**: Cek `src/styles/cluv/components/`. Buat/sesuaikan komponen generic dengan pola **Base Class + Modifier `.is-*`**. Dilarang membuat komponen di CSS halaman!
 4. **Langkah 4 (Assembling di JSX)**: Di file `.tsx`, susun komponen dan suntikkan utilitas mikro layaknya menyusun lego.
 5. **Langkah 5 (Dead Code Purge)**: Hapus selector ad-hoc lama di file CSS halaman (`dashboard.css`, dll) agar stylesheet menyusut bersih dan bebas dari dead code.
+
+---
+
+### 5.14 Master Contract: Grid System, Bento Standards, Hirarki Tipografi, & Mobile App-First
+
+> **Tujuan Kontrak**: Menghilangkan tebak-tebakan antar AI mengenai tata letak, ukuran teks, varian bento, dan perilaku mobile pada halaman aplikasi Skincluv.
+
+#### 1. Kontrak Grid System: Dashboard vs Landing Page
+| Aspek Desain | Halaman Dashboard & Fitur App (Login) | Halaman Landing & Publik (Non-Login) |
+| :--- | :--- | :--- |
+| **Kanvas Root** | `.cluv-canvas-grid` (`max-width: 1240px; padding: 32px 40px 80px; width: 100%;`) | `.cluv-container` (`max-width: 1200px; padding: 0 24px; margin: 0 auto;`) |
+| **Anchor Tepi Kiri** | **Wajib Rata Kiri Paten 40px** dari sidebar (sejajar dengan Topbar). | **Rata Tengah (Center Storytelling)**. |
+| **Pola Grid** | Asymmetric Bento Grid (`.cluv-bento-grid.is-hero` 1.55fr : 1fr) untuk prioritas data klinis vs lab. | Symmetric Grid (`cols-2`, `cols-3`, `is-auto-fit`) untuk edukasi & cerita produk. |
+| **Density & Gap** | **High Density** (`gap: 16px - 20px`), efisiensi ruang tanpa scrolling berlebih. | **Airy & Breathable** (`gap: 24px - 32px`), ritme santai membaca. |
+
+#### 2. Standar Komponen Bento Universal
+Setiap kartu bento wajib menggunakan komponen generic dari `src/styles/cluv/components/bento.css`:
+- **Grid Layout**: `.cluv-bento-grid` dengan preset:
+  - `.is-hero` (1.55fr : 1fr) ➔ Observasi Utama vs Lab/Metrik Pendukung.
+  - `.is-equal` (1fr : 1fr) ➔ Komparasi Seimbang (Tren vs Rutinitas).
+  - `.is-trio` (1fr : 1fr : 1fr) ➔ 3 Tahapan alur / metrik.
+  - `.is-quad` (repeat(4, 1fr)) ➔ Barisan pintasan aksi cepat.
+  - `.is-full` (1fr) ➔ Grafik garis/timeline lebar penuh.
+- **Kartu Bento & 3 Slot Anatomis**: `.cluv-bento-card`
+  - `.cluv-bento-header`: Memuat `.cluv-bento-header-icon` (`.cluv-card-icon-wrap.is-sm`), `.cluv-bento-header-titles` (eyebrow `.cluv-micro` + judul `.cluv-title-card`), dan `.cluv-bento-header-action`. Gunakan modifier `.is-inline` jika kartu tidak memiliki tombol aksi.
+  - `.cluv-bento-body`: Kanvas data fleksibel (Score ring SVG, bar chart, indikator sirkadian).
+  - `.cluv-bento-footer`: Tautan footer / secondary action dengan border-top tipis.
+- **Varian Kartu**: `.is-interactive`, `.is-compact`, `.is-tint-teal`, `.is-tint-purple`, `.is-tint-gold`.
+
+#### 3. Kontrak Hirarki Tipografi & Jarak: Dashboard vs Landing Page
+| Hirarki Tipografi | Dashboard & App Pages | Landing & Public Pages |
+| :--- | :--- | :--- |
+| **Judul Halaman (H1)** | **`.cluv-title-section`** (`clamp(1.5rem, 2.4vw + 0.5rem, 1.875rem)`). Sapaan ramah ("Selamat pagi, Jessy ✨"). Dilarang memakai `.cluv-title-hero` di dashboard! | **`.cluv-title-hero`** (`clamp(2.25rem, 4vw + 1rem, 3.25rem)`). Headline marketing ekspresif. |
+| **Judul Kartu (H2/H3)** | **`.cluv-title-card`** (`clamp(1.125rem, 1.2vw + 0.4rem, 1.25rem)`). | **`.cluv-title-section`** (`clamp(1.75rem, 3vw + 0.5rem, 2.25rem)`). |
+| **Eyebrow / Category** | **`.cluv-micro.cluv-uppercase`** (`0.6875rem` / 11px, bold, tracking 0.04em). | **`.cluv-badge.is-teal`** (`0.8125rem`). |
+| **Teks Bacaan (Body)** | **`.cluv-body`** (`0.875rem - 0.9375rem`, line-height 1.5). | **`.cluv-lead`** (`1.125rem`) & **`.cluv-body`** (`1rem`, line-height 1.65). |
+| **Fine Print / Tanggal** | **`.cluv-caption`** (`0.8125rem`) & **`.cluv-micro`** (`0.6875rem`). | **`.cluv-caption`** (`0.875rem`). |
+| **Jarak Antar-Seksi** | `gap: 20px` (antar bento row). | `padding: clamp(64px, 8vw, 96px) 0` (`.cluv-section`). |
+
+#### 4. Doktrin Mobile App-First (Bukan Sekadar Desktop yang Di-shrink)
+Di layar ponsel (`<= 640px`), antarmuka aplikasi **WAJIB** berperilaku layaknya aplikasi mobile native (App-First UX), bukan sekadar layout web desktop yang ditumpuk 1 kolom:
+1. **Shell Navigasi Ala Super-App**:
+   - Sidebar desktop dihilangkan total (`display: none !important`).
+   - Digantikan oleh **Bottom Navigation Bar 5-menu** (`.cluv-mobile-bottom-bar`) dengan **Center FAB Scan Wajah bundar melayang** (`.cluv-bottom-nav-fab-icon`) yang ramah jangkauan jempol (*Thumb Zone*).
+   - Topbar desktop disederhanakan drastis; avatar profil dialihkan ke tab Profil di bottom bar.
+2. **Hero Terpadu Mobile (`.cluv-mobile-unified-card`)**:
+   - Sapaan desktop yang makan tempat disembunyikan.
+   - Digantikan kartu ringkas serbaguna: Avatar user glow ring + sapaan "Halo, [Nama]" + kapsul kredit `[ ⚡ 1.395 | + ]` + mini score ring (56px) + quick action pills (`Pindai Ulang`, `Tanya AI`).
+3. **4-Item Squircle Shortcuts (`.cluv-mobile-shortcuts`)**:
+   - 4 tombol menu aplikasi kotak membulat berjejer horizontal 4 kolom tepat di bawah hero card (Scan Wajah, Scan Komposisi, Misi Glow, Tanya AI).
+4. **Disiplin Padding Kartu di Mobile**:
+   - Padding kartu desktop adalah `24px`.
+   - Di mobile (`<= 640px`), padding kartu **WAJIB TURUN ke `16px 14px`** agar tidak memboroskan lebar layar ponsel yang sempit (360px - 390px) dan menyisakan ruang baca maksimal bagi konten.
+5. **Anti Scroll Fatigue & Pola Inset List**:
+   - Dilarang menumpuk 6-8 kartu bento besar secara vertikal panjang tanpa henti.
+   - Rutinitas & misi harian wajib menggunakan pola **Compact Inset Grouped List** (`.cluv-checklist-group`), bukan tumpukan kartu berbingkai tebal.
+
+#### 5. Kontrak Tiga Komponen Inti: Bento, Button (`.cluv-btn`), & Badge (`.cluv-badge`)
+Arsitektur komponen Skincluv memadukan kelincahan **Design Tokens atomik** (seperti Tailwind) dengan kerapian **Semantic Component** (seperti Bootstrap/Tailwind UI) dan **Type-Safe React Wrappers**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. Design Tokens & Utilities: var(--cluv-*), .cluv-flex, etc.   │
+├─────────────────────────────────────────────────────────────────┤
+│ 2. CSS Components (Base + Modifier .is-*): .cluv-badge, .cluv-btn│
+├─────────────────────────────────────────────────────────────────┤
+│ 3. React UI Components: <Badge />, <Button />, <BentoCard />   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+1. **Komponen Badge (`.cluv-badge`)**:
+   - **Base Class**: `.cluv-badge` (Pill membulat 9999px, font Nunito 700, user-select none).
+   - **Ukuran (Size)**:
+     - Default (`0.75rem` / 12px, padding `4px 12px`): Khusus Landing Page & Section Eyebrow (paling atas judul seksi).
+     - `.is-sm` (`0.6875rem` / 11px, padding `2px 8px`, gap 4px): Khusus Dashboard, status, counter scan, dan reward misi.
+   - **Warna Semantik**: `.is-teal`, `.is-gold`, `.is-slate`, `.is-rose`, `.is-purple`.
+   - **Sub-elemen**: `.cluv-dot` (titik indikator 6px status aktif/berdenyut).
+   - **Larangan**: DILARANG membuat class ad-hoc seperti `.cluv-ambient-pill` atau `.cluv-mission-reward`. Wajib gunakan `.cluv-badge`!
+   - **React Atom**: `<Badge variant="teal|gold|slate|rose|purple" size="sm|md" dot icon>{children}</Badge>`
+
+2. **Komponen Button (`.cluv-btn`)**:
+   - **Base Class**: `.cluv-btn` (Inline-flex, center-aligned, font-weight 700, border 1.5px solid transparent, touch target ergonomis).
+   - **Filosofi & Pembeda Landing vs Dashboard**:
+     - *Landing Page*: Hero CTA berukuran besar (`.is-lg` / 52px), bentuk Pill bulat penuh (`.is-pill` / 9999px), glow shadow lembut, fokus pada konversi emosional.
+     - *Dashboard App*: Compact & fungsional (`.is-sm` 38px / `.is-md` 44-46px), bentuk Clinical Squircle (`12px-14px`), crisp border 1.5px, zero distracting glow, fokus pada efisiensi data.
+   - **Ukuran (Size)**:
+     - `.is-sm`: Tinggi 38px, padding `0 16px`, font `0.8125rem` (untuk header/footer kartu bento & toolbar).
+     - `.is-md` (Default): Tinggi 46px, padding `0 22px`, font `0.9375rem` (tombol standar, form submit, modal).
+     - `.is-lg`: Tinggi 52px, padding `0 28px`, font `1.0625rem` (CTA utama hero landing).
+   - **Varian Hirarki Visual (Emphasis)**:
+     - `.is-primary`: Latar solid teal `#1f9d97`, teks putih, soft glow shadow, hover translateY(-1.5px). (Maksimal 1 per flow/modal).
+     - `.is-secondary`: Latar neutral/surface white, border tipis abu-abu netral, teks gelap. (Aksi alternatif netral).
+     - `.is-outline`: Latar transparan, border 1.5px teal line, teks teal, hover soft-teal wash. (Aksi sekunder berkarakter brand).
+     - `.is-ghost`: Tanpa border, latar transparan, hover wash abu-abu halus. (Navigasi drill-down / tautan footer kartu bento).
+     - `.is-danger`: Latar soft rose `#fee2e2`, border tipis `#fca5a5`, teks merah `#b91c1c`. (Aksi destruktif / hapus data).
+   - **Radius & Shape Modifiers**:
+     - `.is-pill`: 9999px (bawaan Landing Page).
+     - `.is-rounded`: 12px-14px (bawaan Dashboard App).
+     - `.is-radius-sm`: 8px (high-density).
+     - `.is-radius-none`: 0px (sharp square).
+   - **Built-in Hover Contract**:
+     - Hover terikat satu paket (built-in) dengan varian dan kurva animasi transisi `0.18s cubic-bezier(0.16, 1, 0.3, 1)`.
+     - Kontras warna teks dan background saat hover wajib mematuhi standar WCAG 2.1.
+   - **Loading & Disabled Contract**:
+     - `.is-loading`: Menampilkan `.cluv-btn-spinner` CSS SVG berputar, teks tetap rapi, otomatis pointer-events none untuk mencegah double-submit transaksi.
+     - `:disabled`, `.is-disabled`: Opacity 0.55, pointer-events none, cursor not-allowed.
+   - **Tata Letak & Responsif**: `.is-block` (width 100%), `.is-stack-mobile` (otomatis melebar 100% dan tinggi min 44px di HP <= 640px).
+   - **React Atom Canonical**:
+     ```tsx
+     <Button
+       variant="primary|secondary|outline|ghost|danger"
+       size="sm|md|lg"
+       radius="default|pill|rounded|sm|none"
+       loading={false}
+       disabled={false}
+       block={false}
+       stackMobile={false}
+       iconLeft={<Sparkles size={14} />}
+       iconRight={<ArrowRight size={14} />}
+       to="/path" // Otomatis me-render React Router <Link>
+       href="https://..." // Otomatis me-render <a>
+     >
+       Label Tombol
+     </Button>
+     ```
+
+3. **Komponen Bento (`.cluv-bento-grid`, `.cluv-bento-card`)**:
+   - **Grid Presets**: `.cluv-bento-grid` dengan modifier `.is-hero` (60:40), `.is-equal` (50:50), `.is-trio` (33:33:33), `.is-quad` (4 col), `.is-full` (1 col).
+   - **Card Anatomy 3 Slot Baku**:
+     - `.cluv-bento-header`: Ikon wrap pastel + judul H2/H3 (`.cluv-title-card`) + tombol aksi. Modifier `.is-inline` bila tanpa tombol.
+     - `.cluv-bento-body`: Kanvas data fleksibel (score ring, charts, metrik).
+     - `.cluv-bento-footer`: Tautan footer / secondary action dengan border-top tipis.
+   - **Disiplin Padding**: Desktop `24px`; Mobile (`<= 640px`) **wajib `16px 14px`** dengan sudut membulat `16px`.
+
+
 
 
 

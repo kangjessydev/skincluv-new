@@ -11,6 +11,7 @@ import {
   ArrowLeft, Crown, Zap, Activity, Coins,
   Receipt, History, ArrowRight,
 } from 'lucide-react'
+import { Button, Badge } from '@/components/ui'
 
 export default function ProfileBillingPage() {
   const profile = useAuthStore((s) => s.profile)
@@ -91,7 +92,7 @@ export default function ProfileBillingPage() {
   const tierLabel = isPro ? 'VIP PRO MEMBER' : isGlow ? 'GLOW MEMBER' : 'FREE ACCOUNT'
 
   return (
-    <div className="cluv-page">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Back link navigation */}
       <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
         <ArrowLeft size={16} />
@@ -109,13 +110,20 @@ export default function ProfileBillingPage() {
         <div className="cluv-flex-col cluv-gap-5">
           <div className="cluv-card cluv-flex-col cluv-gap-4">
             <div className="cluv-flex-between cluv-items-center">
-              <span className={`cluv-badge ${isPro ? 'is-gold' : isGlow ? 'is-teal' : 'is-slate'}`}>
-                {isPro ? <Crown size={13} /> : <Zap size={13} />}
+              <Badge
+                variant={isPro ? 'gold' : isGlow ? 'teal' : 'slate'}
+                icon={isPro ? <Crown size={13} /> : <Zap size={13} />}
+              >
                 {tierLabel}
-              </span>
-              <Link to="/pricing" className="cluv-btn is-outline is-sm">
-                <Crown size={13} /> {isPro ? 'Perpanjang' : 'Upgrade Paket'}
-              </Link>
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                iconLeft={<Crown size={13} />}
+                to="/pricing"
+              >
+                {isPro ? 'Perpanjang' : 'Upgrade Paket'}
+              </Button>
             </div>
 
             <div className="cluv-flex-col cluv-gap-2">
@@ -184,9 +192,9 @@ export default function ProfileBillingPage() {
                 </span>
               </div>
             </div>
-            <Link to="/pricing" className="cluv-btn is-primary is-sm">
+            <Button variant="primary" size="sm" to="/pricing">
               + Beli Credits
-            </Link>
+            </Button>
           </div>
 
           {/* Quick links to History */}

@@ -18,6 +18,7 @@ import { useAuthStore } from '@/store/authStore'
 import type { FaceScan, IngredientScan } from '@/types/database'
 import FaceScanDetailModal from '@/components/scans/FaceScanDetailModal'
 import IngredientScanDetailModal from '@/components/scans/IngredientScanDetailModal'
+import { Button, Badge } from '@/components/ui'
 
 export default function ScanHistoryPage() {
   const navigate = useNavigate()
@@ -147,7 +148,7 @@ export default function ScanHistoryPage() {
 
 
   return (
-    <div className="cluv-page">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Header Bar */}
       <div className="cluv-mb-6">
         <Link to="/" className="cluv-back-link cluv-mb-3">
@@ -272,10 +273,14 @@ export default function ScanHistoryPage() {
             <p className="cluv-body cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-mb-5">
               Kamu belum melakukan scan wajah. Mulai scan sekarang untuk melacak kesehatan kulitmu secara berkala!
             </p>
-            <Link to="/face-scan" className="cluv-btn is-primary is-md">
-              <Sparkles size={16} />
-              <span>Mulai Face Scan Pertama</span>
-            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              iconLeft={<Sparkles size={16} />}
+              to="/face-scan"
+            >
+              Mulai Face Scan Pertama
+            </Button>
           </div>
         ) : (
           <div className="cluv-mb-6">
@@ -314,7 +319,7 @@ export default function ScanHistoryPage() {
                         <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
                           <Calendar size={13} />
                           <span>{formattedDate} • {formattedTime}</span>
-                          {idx === 0 && <span className="cluv-badge is-teal is-sm">Terbaru</span>}
+                          {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
                         </div>
                         <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{scan.skin_status_title || 'Analisis Kondisi Kulit'}</h4>
                         <p className="cluv-micro cluv-text-muted cluv-truncate cluv-mt-1 cluv-mb-2">
@@ -351,10 +356,14 @@ export default function ScanHistoryPage() {
             <p className="cluv-body cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-mb-5">
               Periksa keamanan komposisi pembersih, toner, atau serum harianmu untuk memastikan bebas bahan berbahaya.
             </p>
-            <Link to="/ingredient-scan" className="cluv-btn is-primary is-md">
-              <FlaskConical size={16} />
-              <span>Scan Komposisi Produk Pertama</span>
-            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              iconLeft={<FlaskConical size={16} />}
+              to="/ingredient-scan"
+            >
+              Scan Komposisi Produk Pertama
+            </Button>
           </div>
         ) : (
           <div className="cluv-mb-6">
@@ -387,7 +396,7 @@ export default function ScanHistoryPage() {
                         <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
                           <Calendar size={13} />
                           <span>{formattedDate}</span>
-                          {idx === 0 && <span className="cluv-badge is-teal is-sm">Terbaru</span>}
+                          {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
                         </div>
                         <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{ing.product_name}</h4>
                         <p className="cluv-micro cluv-text-muted cluv-truncate cluv-mt-1 cluv-mb-2">
@@ -396,9 +405,9 @@ export default function ScanHistoryPage() {
                         </p>
 
                         <div className="cluv-chip-group">
-                          <span className={`cluv-badge is-sm ${isSafe ? 'is-teal' : 'is-rose'}`}>
+                          <Badge variant={isSafe ? 'teal' : 'rose'} size="sm">
                             {isSafe ? 'Formula Sangat Baik' : 'Perlu Perhatian'}
-                          </span>
+                          </Badge>
                           {Array.isArray(ing.key_ingredients) && ing.key_ingredients.slice(0, 3).map((k, i) => (
                             <span key={i} className="cluv-chip is-sm">
                               {typeof k === 'string' ? k : (k as any)?.name}

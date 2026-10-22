@@ -25,6 +25,13 @@
   user-select: none;
   line-height: 1.35;
   box-sizing: border-box;
+  margin-bottom: 0;
+}
+
+/* Section Header Eyebrow Context */
+.cluv-section-header > .cluv-badge,
+.public-section-header > .public-badge,
+.public-section-header > .cluv-badge {
   margin-bottom: 14px;
 }
 

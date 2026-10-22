@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { Button, Badge } from '@/components/ui'
 
 export interface Tier {
   id?: string
@@ -139,10 +140,9 @@ export default function PricingPage() {
         <div className="cluv-container">
           {/* HEADER CERITA PAKET */}
           <header className="cluv-section-header cluv-reveal">
-            <div className="cluv-badge is-teal cluv-mb-3">
-              <Sparkles size={14} />
-              <span>Pilihan Paket Sahabat</span>
-            </div>
+            <Badge variant="teal" icon={<Sparkles size={14} />} className="cluv-mb-3">
+              Pilihan Paket Sahabat
+            </Badge>
             <h1 className="cluv-title-hero">Pilih Cara Nyamanmu Merawat Diri</h1>
             <p className="cluv-lead cluv-mt-3">
               Sekali bayar untuk 30 hari penuh ketenangan. Tanpa perpanjangan otomatis diam-diam, tanpa jebakan kartu kredit.
@@ -180,10 +180,12 @@ export default function PricingPage() {
                 >
                   {/* Badge Status / Promo */}
                   <div className="cluv-mb-4">
-                    <span className={`cluv-badge ${isTierPro ? 'is-gold' : isTierGlow ? 'is-teal' : 'is-slate'}`}>
-                      {isTierPro ? <Crown size={12} /> : isTierGlow ? <HeartHandshake size={12} /> : <Sparkles size={12} />}
-                      <span>{tier.promo_badge || (isTierPro ? 'Favorit Sahabat' : isTierGlow ? 'Ramah Kantong' : 'Akses Awal')}</span>
-                    </span>
+                    <Badge
+                      variant={isTierPro ? 'gold' : isTierGlow ? 'teal' : 'slate'}
+                      icon={isTierPro ? <Crown size={12} /> : isTierGlow ? <HeartHandshake size={12} /> : <Sparkles size={12} />}
+                    >
+                      {tier.promo_badge || (isTierPro ? 'Favorit Sahabat' : isTierGlow ? 'Ramah Kantong' : 'Akses Awal')}
+                    </Badge>
                   </div>
 
                   {/* Nama Paket & Deskripsi */}
@@ -196,10 +198,10 @@ export default function PricingPage() {
                       {hasOriginalPrice ? (
                         <>
                           <del className="cluv-caption cluv-text-muted">Rp {tier.original_price_idr!.toLocaleString('id-ID')}</del>
-                          <span className="cluv-badge is-gold is-sm">Hemat {discountPct}%</span>
+                          <Badge variant="gold" size="sm">Hemat {discountPct}%</Badge>
                         </>
                       ) : (
-                        <span className="cluv-badge is-slate is-sm">Bebas Biaya</span>
+                        <Badge variant="slate" size="sm">Bebas Biaya</Badge>
                       )}
                     </div>
 
@@ -230,18 +232,19 @@ export default function PricingPage() {
                   <div className="cluv-mt-auto">
                     {isTierFree ? (
                       user ? (
-                        <button type="button" className="cluv-btn is-secondary is-md is-block" disabled>
+                        <Button variant="secondary" size="md" block disabled>
                           {isFree ? 'Paket Aktif Saat Ini' : 'Paket Dasar (Bawaan)'}
-                        </button>
+                        </Button>
                       ) : (
-                        <button
-                          type="button"
-                          className="cluv-btn is-secondary is-md is-block"
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          block
+                          iconRight={<ArrowRight size={14} />}
                           onClick={() => handleSelectPlan('free')}
                         >
-                          <span>Mulai Gratis Sekarang</span>
-                          <ArrowRight size={14} />
-                        </button>
+                          Mulai Gratis Sekarang
+                        </Button>
                       )
                     ) : isTierGlow ? (
                       user && isGlow ? (
@@ -250,18 +253,19 @@ export default function PricingPage() {
                           <span>Paket GLOW Aktif</span>
                         </div>
                       ) : user && isPro ? (
-                        <button type="button" className="cluv-btn is-secondary is-md is-block" disabled>
+                        <Button variant="secondary" size="md" block disabled>
                           Sudah Termasuk di PRO
-                        </button>
+                        </Button>
                       ) : (
-                        <button
-                          type="button"
-                          className="cluv-btn is-secondary is-md is-block"
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          block
+                          iconRight={<ArrowRight size={14} />}
                           onClick={() => handleSelectPlan('glow')}
                         >
-                          <span>Beli GLOW (Rp {tier.price_idr.toLocaleString('id-ID')})</span>
-                          <ArrowRight size={14} />
-                        </button>
+                          Beli GLOW (Rp {tier.price_idr.toLocaleString('id-ID')})
+                        </Button>
                       )
                     ) : isTierPro ? (
                       user && isPro ? (
@@ -270,15 +274,16 @@ export default function PricingPage() {
                           <span>Paket PRO Aktif</span>
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          className="cluv-btn is-primary is-md is-block"
+                        <Button
+                          variant="primary"
+                          size="md"
+                          block
+                          iconLeft={<Crown size={15} />}
+                          iconRight={<ArrowRight size={14} />}
                           onClick={() => handleSelectPlan('pro')}
                         >
-                          <Crown size={15} />
-                          <span>Pilih PRO (Rp {tier.price_idr.toLocaleString('id-ID')})</span>
-                          <ArrowRight size={14} />
-                        </button>
+                          Pilih PRO (Rp {tier.price_idr.toLocaleString('id-ID')})
+                        </Button>
                       )
                     ) : null}
                   </div>

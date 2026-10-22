@@ -109,7 +109,7 @@
 
 @media (max-width: 640px) {
   .cluv-bento-card {
-    padding: 16px;
+    padding: 16px 14px;
     border-radius: var(--cluv-radius-lg, 16px);
   }
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Clock, CheckCircle2, CreditCard, ExternalLink, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { Button, Badge } from '@/components/ui'
 
 export default function TransactionHistoryPage() {
   const { session } = useAuthStore()
@@ -41,7 +42,7 @@ export default function TransactionHistoryPage() {
   })
 
   return (
-    <div className="cluv-focused-ledger cluv-animate-fade">
+    <div className="cluv-canvas-focused cluv-animate-fade">
       {/* Back Link to Billing */}
       <Link to="/profile/billing" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1">
         <ArrowLeft size={16} />
@@ -100,9 +101,9 @@ export default function TransactionHistoryPage() {
             <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md">
               Kamu belum memiliki riwayat transaksi di Skincluv.
             </p>
-            <Link to="/pricing" className="cluv-btn is-primary is-sm cluv-mt-4">
+            <Button variant="primary" size="sm" to="/pricing" className="cluv-mt-4">
               Upgrade ke PRO
-            </Link>
+            </Button>
           </div>
         ) : (
           filteredInvoices.map((inv) => {
@@ -124,19 +125,17 @@ export default function TransactionHistoryPage() {
                     <span className="cluv-ledger-date">{dateFormatted}</span>
                   </div>
                   {isPaid ? (
-                    <span className="cluv-badge is-teal">
-                      <CheckCircle2 size={12} />
-                      <span>LUNAS</span>
-                    </span>
+                    <Badge variant="teal" icon={<CheckCircle2 size={12} />}>
+                      LUNAS
+                    </Badge>
                   ) : isUnpaid ? (
-                    <span className="cluv-badge is-gold">
-                      <Clock size={12} />
-                      <span>BELUM DIBAYAR</span>
-                    </span>
+                    <Badge variant="gold" icon={<Clock size={12} />}>
+                      BELUM DIBAYAR
+                    </Badge>
                   ) : (
-                    <span className="cluv-badge is-rose">
-                      <span>KADALUARSA</span>
-                    </span>
+                    <Badge variant="rose">
+                      KADALUARSA
+                    </Badge>
                   )}
                 </div>
 
@@ -154,10 +153,14 @@ export default function TransactionHistoryPage() {
                   </div>
 
                   {isUnpaid && (
-                    <Link to={`/checkout/${inv.merchant_ref}`} className="cluv-btn is-primary is-sm">
-                      <span>Bayar Sekarang</span>
-                      <ExternalLink size={13} />
-                    </Link>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      iconRight={<ExternalLink size={13} />}
+                      to={`/checkout/${inv.merchant_ref}`}
+                    >
+                      Bayar Sekarang
+                    </Button>
                   )}
                 </div>
               </div>

@@ -12,6 +12,7 @@ import {
   History, ArrowRight, ShieldCheck, Zap, LogOut,
 } from 'lucide-react'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
+import { Button, Badge } from '@/components/ui'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
@@ -129,7 +130,7 @@ export default function ProfilePage() {
   const concernsCount = activeSkinProfile?.skin_concerns?.length || 0
 
   return (
-    <div className="cluv-page">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Header */}
       <div className="cluv-mb-6">
         <h1 className="cluv-title-page">Profil & Pengaturan</h1>
@@ -150,27 +151,36 @@ export default function ProfilePage() {
                 <span className="cluv-caption cluv-text-muted">{profile?.username || 'Pelanggan Skincluv'}</span>
               </div>
             </div>
-            <button
-              type="button"
-              className="cluv-btn is-ghost is-sm cluv-text-rose"
+            <Button
+              variant="ghost"
+              size="sm"
+              iconLeft={<LogOut size={15} />}
               onClick={handleSignOut}
               title="Keluar dari akun"
+              className="cluv-text-rose"
             >
-              <LogOut size={15} /> Keluar
-            </button>
+              Keluar
+            </Button>
           </div>
 
           {/* Membership & Quota Summary */}
           <div className="cluv-card cluv-flex-col cluv-gap-4">
             <div className="cluv-flex-between cluv-items-center">
-              <span className={`cluv-badge ${isPro ? 'is-gold' : isGlow ? 'is-teal' : 'is-slate'}`}>
-                {isPro ? <Crown size={13} /> : <Zap size={13} />}
+              <Badge
+                variant={isPro ? 'gold' : isGlow ? 'teal' : 'slate'}
+                icon={isPro ? <Crown size={13} /> : <Zap size={13} />}
+              >
                 {tierLabel}
-              </span>
+              </Badge>
               {!isPro && (
-                <Link to="/pricing" className="cluv-btn is-outline is-sm">
-                  <Crown size={13} /> Upgrade
-                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  iconLeft={<Crown size={13} />}
+                  to="/pricing"
+                >
+                  Upgrade
+                </Button>
               )}
             </div>
 
@@ -207,10 +217,16 @@ export default function ProfilePage() {
               </span>
             </div>
 
-            <Link to="/profile/billing" className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-between cluv-mt-1">
-              <span>Kelola Kuota & Tagihan</span>
-              <ArrowRight size={15} />
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              block
+              iconRight={<ArrowRight size={15} />}
+              to="/profile/billing"
+              className="cluv-mt-1 cluv-justify-between"
+            >
+              Kelola Kuota &amp; Tagihan
+            </Button>
           </div>
 
           {/* AI Credits Balance Card */}
@@ -226,9 +242,9 @@ export default function ProfilePage() {
                 </span>
               </div>
             </div>
-            <Link to="/pricing" className="cluv-btn is-primary is-sm">
+            <Button variant="primary" size="sm" to="/pricing">
               + Beli Credits
-            </Link>
+            </Button>
           </div>
         </div>
 
@@ -249,18 +265,24 @@ export default function ProfilePage() {
             </div>
 
             <div className="cluv-flex-row cluv-gap-2 cluv-flex-wrap">
-              <span className="cluv-badge is-slate">
+              <Badge variant="slate">
                 Tipe Kulit: <strong className="cluv-ml-1">{skinTypeLabel}</strong>
-              </span>
-              <span className="cluv-badge is-slate">
+              </Badge>
+              <Badge variant="slate">
                 Target &amp; Sensitivitas: <strong className="cluv-ml-1">{concernsCount} Dipilih</strong>
-              </span>
+              </Badge>
             </div>
 
-            <Link to="/profile/skin" className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-between">
-              <span>Kelola Profil &amp; Preferensi Kulit</span>
-              <ArrowRight size={15} />
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              block
+              iconRight={<ArrowRight size={15} />}
+              to="/profile/skin"
+              className="cluv-justify-between"
+            >
+              Kelola Profil &amp; Preferensi Kulit
+            </Button>
           </div>
 
           {/* Hub Card 2: Pusat Privasi & Hak Hapus Data */}
@@ -278,18 +300,24 @@ export default function ProfilePage() {
             </div>
 
             <div className="cluv-flex-row cluv-gap-2 cluv-flex-wrap">
-              <span className="cluv-badge is-teal">
+              <Badge variant="teal">
                 Perlindungan: <strong className="cluv-ml-1">UU PDP No. 27/2022</strong>
-              </span>
-              <span className="cluv-badge is-slate">
+              </Badge>
+              <Badge variant="slate">
                 Biometrik: <strong className="cluv-ml-1">Terkontrol</strong>
-              </span>
+              </Badge>
             </div>
 
-            <Link to="/privacy-center" className="cluv-btn is-outline is-sm cluv-w-full cluv-justify-between">
-              <span>Buka Pusat Privasi &amp; Data</span>
-              <ArrowRight size={15} />
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              block
+              iconRight={<ArrowRight size={15} />}
+              to="/privacy-center"
+              className="cluv-justify-between"
+            >
+              Buka Pusat Privasi &amp; Data
+            </Button>
           </div>
 
           {/* Hub Card 3: Akses Riwayat Aktivitas & Tagihan */}

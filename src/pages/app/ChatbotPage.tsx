@@ -28,6 +28,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { hasPaidAiQuota, getFeatureCreditCost } from '@/utils/subscriptionHelpers'
+import { Button } from '@/components/ui'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import FormattedMarkdown from '@/components/ui/FormattedMarkdown'
 import ChatAttachmentSlot, { type ChatAttachmentDescriptor } from '@/components/chat/ChatAttachmentSlot'
@@ -691,7 +692,7 @@ export default function ChatbotPage() {
   const activeSession = sessions.find((s) => s.id === sessionId)
 
   return (
-    <div className="cluv-chat-root">
+    <div className="cluv-canvas-bleed cluv-chat-root">
       {/* COIN CONFIRMATION MODAL */}
       {pendingCoinConfirm && (
         <CoinConfirmModal
@@ -738,22 +739,29 @@ export default function ChatbotPage() {
           </div>
         </div>
 
-        <div className="cluv-chat-util-right">
+        <div className="cluv-chat-util-right cluv-flex-row cluv-gap-2">
           {sessionId && messages.length > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              iconLeft={<Trash2 size={15} />}
               onClick={handleResetCurrentSession}
-              className="cluv-chat-util-btn is-reset"
               title="Kosongkan pesan dalam sesi ini"
             >
-              <Trash2 size={15} />
-              <span>Reset Sesi</span>
-            </button>
+              Reset Sesi
+            </Button>
           )}
 
-          <button onClick={handleCreateNewChat} className="cluv-chat-util-btn is-primary" title="Mulai Percakapan Baru">
-            <Plus size={16} />
-            <span>Chat Baru</span>
-          </button>
+          <Button
+            variant="primary"
+            size="sm"
+            radius="pill"
+            iconLeft={<Plus size={15} />}
+            onClick={handleCreateNewChat}
+            title="Mulai Percakapan Baru"
+          >
+            Chat Baru
+          </Button>
         </div>
       </div>
 

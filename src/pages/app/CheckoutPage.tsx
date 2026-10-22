@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Copy, Check, RefreshCw, QrCode, CreditCard, Store, Clock, ExternalLink, ArrowLeft, ShieldAlert, CheckCircle2, ChevronRight, Crown, ShoppingBag, Sparkles, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { Button, Badge } from '@/components/ui'
 
 interface PaymentChannel {
   code: string
@@ -262,7 +263,7 @@ export default function CheckoutPage() {
                     <input type="radio" name="payment_method" value={ch.code} checked={selectedMethod === ch.code} readOnly />
                     <div className="cluv-channel-label">
                       <span>{ch.name}</span>
-                      <span className="cluv-badge is-teal is-sm">{ch.iconLabel}</span>
+                      <Badge variant="teal" size="sm">{ch.iconLabel}</Badge>
                     </div>
                   </label>
                 ))}
@@ -280,7 +281,7 @@ export default function CheckoutPage() {
                     <input type="radio" name="payment_method" value={ch.code} checked={selectedMethod === ch.code} readOnly />
                     <div className="cluv-channel-label">
                       <span>{ch.name}</span>
-                      <span className="cluv-badge is-slate is-sm">{ch.iconLabel}</span>
+                      <Badge variant="slate" size="sm">{ch.iconLabel}</Badge>
                     </div>
                   </label>
                 ))}
@@ -298,7 +299,7 @@ export default function CheckoutPage() {
                     <input type="radio" name="payment_method" value={ch.code} checked={selectedMethod === ch.code} readOnly />
                     <div className="cluv-channel-label">
                       <span>{ch.name}</span>
-                      <span className="cluv-badge is-gold is-sm">{ch.iconLabel}</span>
+                      <Badge variant="gold" size="sm">{ch.iconLabel}</Badge>
                     </div>
                   </label>
                 ))}
@@ -343,24 +344,17 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <button
-                type="button"
-                className="cluv-btn is-primary is-md is-block cluv-mt-5"
+              <Button
+                variant="primary"
+                size="md"
+                block
+                loading={isSubmitting}
+                iconRight={!isSubmitting ? <ChevronRight size={16} /> : undefined}
                 onClick={handleProceedToPayment}
-                disabled={isSubmitting}
+                className="cluv-mt-5"
               >
-                {isSubmitting ? (
-                  <>
-                    <RefreshCw size={16} className="animate-spin" />
-                    <span>Memproses Tagihan...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Lanjut ke Pembayaran Tripay</span>
-                    <ChevronRight size={16} />
-                  </>
-                )}
-              </button>
+                {isSubmitting ? 'Memproses Tagihan...' : 'Lanjut ke Pembayaran Tripay'}
+              </Button>
             </div>
           </div>
         </div>
@@ -383,9 +377,9 @@ export default function CheckoutPage() {
             <p className="cluv-body cluv-text-muted cluv-mb-5">
               Nomor referensi <code>{reference}</code> tidak valid atau tidak terdaftar.
             </p>
-            <Link to="/transactions" className="cluv-btn is-secondary is-md">
+            <Button variant="secondary" size="md" to="/transactions">
               Lihat Riwayat Transaksi
-            </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -401,9 +395,8 @@ export default function CheckoutPage() {
   const isExpired = invoice?.status === 'EXPIRED' || timeLeft === 'Expired'
 
   return (
-    <div className="cluv-page">
-      <div className="cluv-focused-ledger">
-        <div className="cluv-mb-4">
+    <div className="cluv-canvas-focused cluv-animate-fade">
+      <div className="cluv-mb-4">
           <Link to="/transactions" className="cluv-back-link">
             <ArrowLeft size={16} />
             <span>Riwayat Transaksi</span>
@@ -420,11 +413,11 @@ export default function CheckoutPage() {
             <div className="cluv-flex-row cluv-items-center cluv-gap-2">
               <span className="cluv-caption cluv-font-bold cluv-text-dark">Status:</span>
               {isPaid ? (
-                <span className="cluv-badge is-teal is-sm"><CheckCircle2 size={13} /> LUNAS</span>
+                <Badge variant="teal" size="sm"><CheckCircle2 size={13} /> LUNAS</Badge>
               ) : isExpired ? (
-                <span className="cluv-badge is-rose is-sm">KADALUARSA</span>
+                <Badge variant="rose" size="sm">KADALUARSA</Badge>
               ) : (
-                <span className="cluv-badge is-gold is-sm">BELUM DIBAYAR</span>
+                <Badge variant="gold" size="sm">BELUM DIBAYAR</Badge>
               )}
             </div>
             {!isPaid && !isExpired && (
@@ -488,10 +481,14 @@ export default function CheckoutPage() {
                 </span>
                 <div className="cluv-code-box">
                   <span className="cluv-code-val">{payCode}</span>
-                  <button type="button" className="cluv-btn is-outline is-sm" onClick={() => copyToClipboard(payCode)}>
-                    {copied ? <Check size={14} /> : <Copy size={14} />}
-                    <span>{copied ? 'Tersalin!' : 'Salin'}</span>
-                  </button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    iconLeft={copied ? <Check size={14} className="cluv-text-teal" /> : <Copy size={14} />}
+                    onClick={() => copyToClipboard(payCode)}
+                  >
+                    {copied ? 'Tersalin!' : 'Salin'}
+                  </Button>
                 </div>
                 <p className="cluv-micro cluv-text-muted cluv-max-w-sm cluv-mx-auto cluv-mt-1 cluv-m-0">
                   Salin nomor di atas dan masukkan pada menu transfer Bank/Virtual Account kamu.
@@ -502,21 +499,30 @@ export default function CheckoutPage() {
 
           {/* Interactive Action Footer */}
           <div className="cluv-flex-col cluv-gap-3 cluv-text-center">
-            <button
-              type="button"
-              className="cluv-btn is-primary is-md is-block"
+            <Button
+              variant="primary"
+              size="md"
+              block
+              loading={isCheckingStatus}
+              disabled={isPaid}
+              iconLeft={!isCheckingStatus ? <RefreshCw size={16} /> : undefined}
               onClick={() => fetchInvoiceStatus(true)}
-              disabled={isCheckingStatus || isPaid}
             >
-              <RefreshCw size={16} className={isCheckingStatus ? 'animate-spin' : ''} />
-              <span>{isCheckingStatus ? 'Mengecek ke Server...' : 'Cek Status Pembayaran'}</span>
-            </button>
+              {isCheckingStatus ? 'Mengecek ke Server...' : 'Cek Status Pembayaran'}
+            </Button>
 
             {invoice.checkout_url && (
-              <a href={invoice.checkout_url} target="_blank" rel="noreferrer" className="cluv-btn is-secondary is-md is-block">
-                <span>Buka Halaman Pembayaran Tripay</span>
-                <ExternalLink size={16} />
-              </a>
+              <Button
+                variant="secondary"
+                size="md"
+                block
+                href={invoice.checkout_url}
+                target="_blank"
+                rel="noreferrer"
+                iconRight={<ExternalLink size={16} />}
+              >
+                Buka Halaman Pembayaran Tripay
+              </Button>
             )}
 
             <Link to="/transactions" className="cluv-caption cluv-text-muted cluv-font-bold cluv-mt-1">
@@ -525,6 +531,5 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-    </div>
   )
 }
