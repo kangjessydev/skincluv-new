@@ -1,6 +1,6 @@
 // src/pages/app/AppFaqPage.tsx
-// Pusat Bantuan & Tanya Jawab Khusus Dashboard / App (Smart In-App Knowledge Hub)
-// 100% Pure Cluv Micro-Framework, Zero Inline Styles, Responsive Isolation Contract
+// Pusat Bantuan & Tanya Jawab Khusus Dashboard / App (Unified Bento Cards — Opsi 1)
+// 100% Pure Cluv Micro-Framework, Zero Inline Styles, Zero Raw Emojis, No Accordion Duplication
 // Kepatuhan: Invarian 13 (Defensible claims), Invarian 18 (Prepaid pricing), Invarian 19 (Non-therapeutic)
 
 import { useState, useMemo } from 'react'
@@ -17,8 +17,9 @@ import {
   Mail,
   Zap,
   Camera,
+  Crown,
   X,
-  Flame,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { Button, Badge } from '@/components/ui'
 
@@ -26,9 +27,8 @@ export interface FaqItem {
   id: string
   category: 'paket' | 'ai' | 'privasi' | 'credits'
   categoryLabel: string
-  isTopFaq?: boolean
-  topFaqSummary?: string
-  topFaqIcon?: React.ReactNode
+  isPopular?: boolean
+  icon: React.ReactNode
   question: string
   answer: React.ReactNode
   tags: string[]
@@ -40,9 +40,8 @@ const FAQ_LIST: FaqItem[] = [
     id: 'pay-1',
     category: 'paket',
     categoryLabel: 'Paket & Tagihan',
-    isTopFaq: true,
-    topFaqIcon: <Zap size={20} />,
-    topFaqSummary: '100% Prabayar 30 Hari via Tripay, tidak ada auto-debit atau pemotongan saldo tersembunyi.',
+    isPopular: true,
+    icon: <Zap size={18} />,
     question: 'Apakah saldo rekening atau e-wallet saya akan terpotong otomatis tiap bulan?',
     tags: ['auto debit', 'autodebit', 'langganan', 'tagihan', 'tripay', 'potong'],
     answer: (
@@ -61,15 +60,14 @@ const FAQ_LIST: FaqItem[] = [
     id: 'pay-2',
     category: 'paket',
     categoryLabel: 'Paket & Tagihan',
-    isTopFaq: true,
-    topFaqIcon: <Sparkles size={20} />,
-    topFaqSummary: 'GLOW (Rp 25.000 / 100 kuota) untuk observasi berkala vs PRO (Rp 49.000 / 500 kuota) + Chatbot AI tanpa batas.',
+    isPopular: true,
+    icon: <Crown size={18} />,
     question: 'Apa perbedaan utama antara paket Skincluv GLOW dan Skincluv PRO?',
     tags: ['glow', 'pro', 'premium', 'beda', 'harga', 'perbedaan', 'kuota'],
     answer: (
       <div className="cluv-flex-col cluv-gap-3">
         <p className="cluv-body cluv-m-0">
-          Keduanya adalah paket akses 30 hari tanpa batasan frekuensi harian. Perbedaan utamanya ada pada kapasitas kuota dan pendampingan AI:
+          Keduanya adalah paket akses prabayar 30 hari tanpa batasan frekuensi harian. Perbedaan utamanya ada pada kapasitas kuota dan pendampingan AI:
         </p>
         <div className="cluv-grid cols-2 cluv-gap-3">
           <div className="cluv-card is-compact cluv-flex-col cluv-gap-1">
@@ -94,6 +92,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'pay-3',
     category: 'paket',
     categoryLabel: 'Paket & Tagihan',
+    icon: <CreditCard size={18} />,
     question: 'Bagaimana jika pembayaran saya melalui QRIS atau Virtual Account belum terverifikasi?',
     tags: ['qris', 'va', 'bca', 'mandiri', 'bri', 'pending', 'menunggu', 'tripay', 'verifikasi'],
     answer: (
@@ -113,6 +112,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'pay-4',
     category: 'paket',
     categoryLabel: 'Paket & Tagihan',
+    icon: <CreditCard size={18} />,
     question: 'Apakah pembayaran saya bisa dikembalikan (Kebijakan Refund)?',
     tags: ['refund', 'kembali', 'dana', 'batal', 'uang'],
     answer: (
@@ -125,6 +125,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'pay-5',
     category: 'paket',
     categoryLabel: 'Paket & Tagihan',
+    icon: <CreditCard size={18} />,
     question: 'Dapatkah saya upgrade dari paket GLOW ke PRO sebelum masa aktif 30 hari berakhir?',
     tags: ['upgrade', 'pindah', 'naik', 'glow ke pro', 'tambah'],
     answer: (
@@ -139,9 +140,8 @@ const FAQ_LIST: FaqItem[] = [
     id: 'ai-1',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
-    isTopFaq: true,
-    topFaqIcon: <Camera size={20} />,
-    topFaqSummary: 'Sistem Face Validation 0-Kredit gratis menyaring foto buram/gelap sebelum kuota terpotong.',
+    isPopular: true,
+    icon: <Camera size={18} />,
     question: 'Mengapa foto wajah saya terkadang ditolak saat proses pemindaian?',
     tags: ['foto ditolak', 'buram', 'gelap', 'kamera', 'face validation', 'gagal scan'],
     answer: (
@@ -164,6 +164,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'ai-2',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
+    icon: <Sparkles size={18} />,
     question: 'Apa itu Kuota Universal AI (Universal AI Quota)?',
     tags: ['kuota universal', 'universal ai', 'cara kerja kuota', 'hitung kuota'],
     answer: (
@@ -183,6 +184,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'ai-3',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
+    icon: <Sparkles size={18} />,
     question: 'Apakah hasil analisis Skincluv merupakan diagnosis medis dokter spesialis kulit?',
     tags: ['medis', 'dokter', 'diagnosis', 'resep', 'klinis', 'obat', 'hukum'],
     answer: (
@@ -195,6 +197,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'ai-4',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
+    icon: <Sparkles size={18} />,
     question: 'Bagaimana cara AI mendeteksi bahaya interaksi bahan aktif skincare?',
     tags: ['bahan aktif', 'interaksi', 'retinol', 'aha bha', 'layering', 'botol'],
     answer: (
@@ -209,9 +212,8 @@ const FAQ_LIST: FaqItem[] = [
     id: 'priv-1',
     category: 'privasi',
     categoryLabel: 'Privasi & UU PDP',
-    isTopFaq: true,
-    topFaqIcon: <ShieldCheck size={20} />,
-    topFaqSummary: 'Foto wajah disimpan di Cloud Storage terenkripsi privat, diproses anonim, dan patuh UU PDP No. 27/2022.',
+    isPopular: true,
+    icon: <ShieldCheck size={18} />,
     question: 'Bagaimana Skincluv melindungi data foto wajah dan privasi biometrik saya?',
     tags: ['privasi', 'uu pdp', 'foto', 'biometrik', 'keamanan', 'enkripsi', 'bocor'],
     answer: (
@@ -231,6 +233,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'priv-2',
     category: 'privasi',
     categoryLabel: 'Privasi & UU PDP',
+    icon: <ShieldCheck size={18} />,
     question: 'Bagaimana cara menggunakan Hak untuk Dihapus (Right to be Forgotten)?',
     tags: ['hapus akun', 'hapus data', 'right to be forgotten', 'lupa', 'musnahkan'],
     answer: (
@@ -244,6 +247,7 @@ const FAQ_LIST: FaqItem[] = [
     id: 'priv-3',
     category: 'privasi',
     categoryLabel: 'Privasi & UU PDP',
+    icon: <ShieldCheck size={18} />,
     question: 'Apakah riwayat percakapan konsultasi dengan Skinsistant AI bersifat rahasia?',
     tags: ['chat', 'percakapan', 'rahasia', 'curhat', 'memori'],
     answer: (
@@ -257,7 +261,8 @@ const FAQ_LIST: FaqItem[] = [
   {
     id: 'cred-1',
     category: 'credits',
-    categoryLabel: 'AI Credits & Misi',
+    categoryLabel: 'Credits & Misi',
+    icon: <Coins size={18} />,
     question: 'Apa perbedaan antara AI Credits (Koin) dengan Kuota Universal AI?',
     tags: ['credits', 'koin', 'kuota', 'misi', 'beda credits'],
     answer: (
@@ -274,7 +279,8 @@ const FAQ_LIST: FaqItem[] = [
   {
     id: 'cred-2',
     category: 'credits',
-    categoryLabel: 'AI Credits & Misi',
+    categoryLabel: 'Credits & Misi',
+    icon: <Coins size={18} />,
     question: 'Bagaimana cara mengumpulkan AI Credits gratis setiap hari?',
     tags: ['credits gratis', 'klaim hadiah', 'misi harian', 'koin gratis'],
     answer: (
@@ -286,7 +292,8 @@ const FAQ_LIST: FaqItem[] = [
   {
     id: 'cred-3',
     category: 'credits',
-    categoryLabel: 'AI Credits & Misi',
+    categoryLabel: 'Credits & Misi',
+    icon: <Coins size={18} />,
     question: 'Apa yang terjadi jika Kuota Universal AI bulanan saya habis sebelum 30 hari?',
     tags: ['kuota habis', 'tambah kuota', 'habis', 'saldo habis'],
     answer: (
@@ -300,19 +307,19 @@ const FAQ_LIST: FaqItem[] = [
 type CategoryKey = 'all' | 'paket' | 'ai' | 'privasi' | 'credits'
 
 const CATEGORY_TABS: { key: CategoryKey; label: string; icon: React.ReactNode }[] = [
-  { key: 'all', label: 'Semua Tanya Jawab', icon: <CircleHelp size={15} /> },
-  { key: 'paket', label: 'Paket & Tagihan', icon: <CreditCard size={15} /> },
-  { key: 'ai', label: 'AI & Analisis Kulit', icon: <Sparkles size={15} /> },
-  { key: 'privasi', label: 'Privasi & UU PDP', icon: <ShieldCheck size={15} /> },
-  { key: 'credits', label: 'Credits & Misi', icon: <Coins size={15} /> },
+  { key: 'all', label: 'Semua Pertanyaan', icon: <CircleHelp size={14} /> },
+  { key: 'paket', label: 'Paket & Tagihan', icon: <CreditCard size={14} /> },
+  { key: 'ai', label: 'AI & Analisis Kulit', icon: <Sparkles size={14} /> },
+  { key: 'privasi', label: 'Privasi & UU PDP', icon: <ShieldCheck size={14} /> },
+  { key: 'credits', label: 'Credits & Misi', icon: <Coins size={14} /> },
 ]
 
-const QUICK_TOPIC_PILLS = [
-  { label: '⚡ Bebas Auto-Debit', query: 'auto debit', faqId: 'pay-1' },
-  { label: '👑 Beda GLOW vs PRO', query: 'glow vs pro', faqId: 'pay-2' },
-  { label: '📸 Kenapa Foto Ditolak?', query: 'foto ditolak', faqId: 'ai-1' },
-  { label: '🛡️ Privasi Foto & UU PDP', query: 'privasi', faqId: 'priv-1' },
-  { label: '🪙 AI Credits Gratis', query: 'credits gratis', faqId: 'cred-2' },
+const QUICK_SEARCH_CHIPS = [
+  { label: 'Bebas Auto-Debit', query: 'auto debit', icon: <Zap size={13} /> },
+  { label: 'Beda GLOW vs PRO', query: 'glow vs pro', icon: <Crown size={13} /> },
+  { label: 'Foto Ditolak', query: 'foto ditolak', icon: <Camera size={13} /> },
+  { label: 'Privasi Foto (UU PDP)', query: 'privasi', icon: <ShieldCheck size={13} /> },
+  { label: 'AI Credits Gratis', query: 'credits gratis', icon: <Coins size={13} /> },
 ]
 
 export default function AppFaqPage() {
@@ -336,27 +343,24 @@ export default function AppFaqPage() {
     })
   }, [activeCategory, searchQuery])
 
-  // Handle accordion toggle
-  const toggleAccordion = (id: string) => {
+  // Toggle card expansion in-place
+  const toggleCard = (id: string) => {
     setOpenIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     )
   }
 
-  // Handle quick topic click
-  const handleSelectQuickTopic = (query: string, faqId: string) => {
+  // Pilih quick topic chip
+  const handleSelectQuickChip = (query: string) => {
     setSearchQuery(query)
     setActiveCategory('all')
-    if (!openIds.includes(faqId)) {
-      setOpenIds((prev) => [...prev, faqId])
+    const match = FAQ_LIST.find((f) =>
+      f.question.toLowerCase().includes(query.toLowerCase()) ||
+      f.tags.some((t) => t.includes(query.toLowerCase()))
+    )
+    if (match && !openIds.includes(match.id)) {
+      setOpenIds((prev) => [...prev, match.id])
     }
-    // Smooth scroll ke elemen FAQ target bila ada
-    setTimeout(() => {
-      const el = document.getElementById(`faq-${faqId}`)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }, 100)
   }
 
   // Reset pencarian
@@ -366,14 +370,9 @@ export default function AppFaqPage() {
     setOpenIds(['pay-1'])
   }
 
-  // 4 Top FAQ items untuk zona rekomendasi paling sering dibuka
-  const topFaqs = useMemo(() => {
-    return FAQ_LIST.filter((item) => item.isTopFaq)
-  }, [])
-
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* ── 1. HEADER PUSAT BANTUAN BERSIH & FOKUS ── */}
+      {/* ── 1. HEADER HALAMAN FOKUS ── */}
       <header className="cluv-mb-6">
         <div className="cluv-badge is-teal is-sm cluv-mb-2">
           <CircleHelp size={13} />
@@ -385,12 +384,12 @@ export default function AppFaqPage() {
         </p>
       </header>
 
-      {/* ── 2. ZONA HERO SEARCH & QUICK TOPIC CHIPS ── */}
+      {/* ── 2. SEARCH BAR & QUICK TOPIC CHIPS ── */}
       <div className="cluv-card cluv-mb-6">
-        {/* Search Input Bar */}
+        {/* Search Input dengan class resmi Cluv FW (has-leading-icon & is-leading) */}
         <div className="cluv-field cluv-mb-3">
-          <div className="cluv-input-wrap">
-            <Search size={18} className="cluv-input-icon cluv-text-muted" />
+          <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
+            <Search size={18} className="cluv-input-icon is-leading" />
             <input
               type="text"
               className="cluv-input"
@@ -399,7 +398,6 @@ export default function AppFaqPage() {
               onChange={(e) => {
                 const val = e.target.value
                 setSearchQuery(val)
-                // Jika mencari, otomatis buka accordion hasil pertama
                 if (val.trim().length > 1) {
                   const match = FAQ_LIST.find((f) =>
                     f.question.toLowerCase().includes(val.toLowerCase()) ||
@@ -414,7 +412,7 @@ export default function AppFaqPage() {
             {searchQuery && (
               <button
                 type="button"
-                className="cluv-btn is-ghost is-sm cluv-p-1"
+                className="cluv-input-icon is-trailing"
                 onClick={() => setSearchQuery('')}
                 title="Hapus pencarian"
               >
@@ -424,23 +422,24 @@ export default function AppFaqPage() {
           </div>
         </div>
 
-        {/* Quick Search Chips (5 Topik Paling Hangat) */}
+        {/* Quick Topic Chips (SVG Icons murni, Zero Emoji) */}
         <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
           <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
-            <Flame size={13} className="cluv-text-gold" />
+            <SlidersHorizontal size={13} />
             Topik Hangat:
           </span>
           <div className="cluv-chip-group cluv-flex-1">
-            {QUICK_TOPIC_PILLS.map((pill) => {
-              const isActive = searchQuery.toLowerCase() === pill.query.toLowerCase()
+            {QUICK_SEARCH_CHIPS.map((chip) => {
+              const isActive = searchQuery.toLowerCase() === chip.query.toLowerCase()
               return (
                 <button
-                  key={pill.faqId}
+                  key={chip.label}
                   type="button"
                   className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
-                  onClick={() => handleSelectQuickTopic(pill.query, pill.faqId)}
+                  onClick={() => handleSelectQuickChip(chip.query)}
                 >
-                  <span>{pill.label}</span>
+                  {chip.icon}
+                  <span>{chip.label}</span>
                 </button>
               )
             })}
@@ -448,61 +447,7 @@ export default function AppFaqPage() {
         </div>
       </div>
 
-      {/* ── 3. ZONA TOP FAQS (4 PERTANYAAN PALING SERING DIBUKA) ── */}
-      {!searchQuery && activeCategory === 'all' && (
-        <section className="cluv-mb-6">
-          <div className="cluv-flex-between cluv-items-center cluv-mb-3">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-              <span className="cluv-badge is-gold is-sm">
-                <Flame size={12} />
-                <span>PALING SERING DITANYAKAN</span>
-              </span>
-              <h2 className="cluv-title-card cluv-m-0">Pertanyaan Terpopuler</h2>
-            </div>
-            <span className="cluv-micro cluv-text-muted cluv-hide-mobile">4 Jawaban Cepat Terpenting</span>
-          </div>
-
-          <div className="cluv-grid cols-2 cluv-gap-4">
-            {topFaqs.map((faq) => {
-              const isOpen = openIds.includes(faq.id)
-              return (
-                <div
-                  key={`top-${faq.id}`}
-                  className="cluv-card is-interactive cluv-flex-col cluv-justify-between"
-                  onClick={() => toggleAccordion(faq.id)}
-                >
-                  <div>
-                    <div className="cluv-flex-between cluv-items-center cluv-mb-2">
-                      <div className="cluv-card-icon-wrap is-sm is-teal">
-                        {faq.topFaqIcon || <CircleHelp size={16} />}
-                      </div>
-                      <Badge variant="slate" size="sm">{faq.categoryLabel}</Badge>
-                    </div>
-                    <h3 className="cluv-body cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-2">
-                      {faq.question}
-                    </h3>
-                    <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-line-relaxed">
-                      {faq.topFaqSummary}
-                    </p>
-                  </div>
-
-                  <div className="cluv-pt-3 cluv-mt-3 cluv-border-t cluv-flex-between cluv-items-center">
-                    <span className="cluv-micro cluv-font-bold cluv-text-teal">
-                      {isOpen ? 'Tutup Rincian ↑' : 'Baca Jawaban Lengkap ↓'}
-                    </span>
-                    <ChevronDown
-                      size={15}
-                      className={`cluv-text-teal ${isOpen ? 'rotate' : ''}`}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ── 4. ZONA TAB KATEGORI TEMATIK (UMUM VS KHUSUS) ── */}
+      {/* ── 3. FILTER TAB KATEGORI TEMATIK ── */}
       <div className="cluv-tabs cluv-mb-5 cluv-w-full">
         {CATEGORY_TABS.map((tab) => {
           const isActive = activeCategory === tab.key
@@ -530,78 +475,102 @@ export default function AppFaqPage() {
         })}
       </div>
 
-      {/* ── 5. DAFTAR TANYA JAWAB (ACCORDIONS KANONIKAL) ── */}
-      <div className="cluv-accordion cluv-mb-6">
-        {filteredFaqs.length > 0 ? (
-          filteredFaqs.map((faq) => {
+      {/* ── 4. UNIFIED BENTO CARDS GRID (ZERO ACCORDION DUMP) ── */}
+      {filteredFaqs.length > 0 ? (
+        <div className="cluv-grid cols-2 cluv-gap-4 cluv-mb-6">
+          {filteredFaqs.map((faq) => {
             const isOpen = openIds.includes(faq.id)
+
             return (
               <div
                 key={faq.id}
-                id={`faq-${faq.id}`}
-                className={`cluv-accordion-item ${isOpen ? 'is-open' : ''}`}
+                className={`cluv-card is-interactive cluv-flex-col cluv-justify-between ${
+                  faq.isPopular ? 'is-highlight' : ''
+                }`}
+                onClick={() => toggleCard(faq.id)}
               >
-                <button
-                  type="button"
-                  className="cluv-accordion-trigger"
-                  onClick={() => toggleAccordion(faq.id)}
-                  aria-expanded={isOpen}
-                >
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-text-left cluv-flex-1">
-                    <Badge variant="slate" size="sm">
-                      {faq.categoryLabel}
-                    </Badge>
-                    <span className="cluv-body cluv-font-bold cluv-text-dark cluv-m-0">
-                      {faq.question}
-                    </span>
-                  </div>
-                  <ChevronDown
-                    size={18}
-                    className={`cluv-accordion-chevron ${isOpen ? 'rotate' : ''}`}
-                  />
-                </button>
+                <div>
+                  {/* Header Kartu: Icon + Badge Kategori / Populer */}
+                  <div className="cluv-flex-between cluv-items-center cluv-mb-3">
+                    <div className={`cluv-card-icon-wrap is-sm ${faq.isPopular ? 'is-gold' : 'is-teal'}`}>
+                      {faq.icon}
+                    </div>
 
-                {isOpen && (
-                  <div className="cluv-accordion-body cluv-animate-fade">
-                    {faq.answer}
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
+                      {faq.isPopular && (
+                        <Badge variant="gold" size="sm">
+                          Topik Populer
+                        </Badge>
+                      )}
+                      <Badge variant="slate" size="sm">
+                        {faq.categoryLabel}
+                      </Badge>
+                    </div>
                   </div>
-                )}
+
+                  {/* Judul Pertanyaan */}
+                  <h3 className="cluv-title-card cluv-m-0 cluv-mb-2">
+                    {faq.question}
+                  </h3>
+
+                  {/* Jawaban yang Mengembang Langsung di Tempat (In-Place) */}
+                  {isOpen ? (
+                    <div className="cluv-pt-3 cluv-mt-3 cluv-border-t cluv-animate-fade">
+                      {faq.answer}
+                    </div>
+                  ) : (
+                    <p className="cluv-caption cluv-text-muted cluv-m-0">
+                      Klik untuk membaca penjelasan lengkap...
+                    </p>
+                  )}
+                </div>
+
+                {/* Footer Kartu: Toggle Status */}
+                <div className="cluv-pt-3 cluv-mt-3 cluv-border-t cluv-flex-between cluv-items-center">
+                  <span className={`cluv-micro cluv-font-bold ${isOpen ? 'cluv-text-muted' : 'cluv-text-teal'}`}>
+                    {isOpen ? 'Tutup Penjelasan ↑' : 'Buka Penjelasan Lengkap ↓'}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`cluv-text-teal ${isOpen ? 'rotate' : ''}`}
+                  />
+                </div>
               </div>
             )
-          })
-        ) : (
-          /* Empty State Pencarian */
-          <div className="cluv-card cluv-text-center cluv-p-6">
-            <div className="cluv-card-icon-wrap is-lg is-slate cluv-mx-auto cluv-mb-3">
-              <CircleHelp size={28} />
-            </div>
-            <h3 className="cluv-title-card cluv-m-0">Pertanyaan Tidak Ditemukan</h3>
-            <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md cluv-mx-auto">
-              Tidak ada jawaban yang cocok dengan kata kunci "<strong>{searchQuery}</strong>". Kamu bisa mereset pencarian atau menanyakannya langsung ke asisten AI kami.
-            </p>
-
-            <div className="cluv-flex-center cluv-gap-3 cluv-mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetSearch}
-              >
-                Reset Pencarian
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                iconLeft={<Sparkles size={15} />}
-                to={`/chatbot?initial=${encodeURIComponent(searchQuery)}`}
-              >
-                Tanyakan ke Skinsistant AI
-              </Button>
-            </div>
+          })}
+        </div>
+      ) : (
+        /* Empty State Pencarian */
+        <div className="cluv-card cluv-text-center cluv-p-6 cluv-mb-6">
+          <div className="cluv-card-icon-wrap is-lg is-slate cluv-mx-auto cluv-mb-3">
+            <CircleHelp size={28} />
           </div>
-        )}
-      </div>
+          <h3 className="cluv-title-card cluv-m-0">Pertanyaan Tidak Ditemukan</h3>
+          <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md cluv-mx-auto">
+            Tidak ada jawaban yang cocok dengan kata kunci "<strong>{searchQuery}</strong>". Kamu bisa mereset pencarian atau menanyakannya langsung ke asisten AI kami.
+          </p>
 
-      {/* ── 6. JEMBATAN KE SKINSISTANT AI & CUSTOMER SUPPORT ── */}
+          <div className="cluv-flex-center cluv-gap-3 cluv-mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetSearch}
+            >
+              Reset Pencarian
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              iconLeft={<Sparkles size={14} />}
+              to={`/chatbot?initial=${encodeURIComponent(searchQuery)}`}
+            >
+              Tanyakan ke Skinsistant AI
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. JEMBATAN KE SKINSISTANT AI & CUSTOMER SUPPORT ── */}
       <div className="cluv-card is-highlight cluv-mb-6">
         <div className="cluv-flex-responsive cluv-gap-4">
           <div className="cluv-flex-row cluv-items-center cluv-gap-4">
