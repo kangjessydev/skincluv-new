@@ -530,6 +530,35 @@ Arsitektur komponen Skincluv memadukan kelincahan **Design Tokens atomik** (sepe
      - `.cluv-bento-footer`: Tautan footer / secondary action dengan border-top tipis.
    - **Disiplin Padding**: Desktop `24px`; Mobile (`<= 640px`) **wajib `16px 14px`** dengan sudut membulat `16px`.
 
+---
+
+### 5.15 Kontrak Isolasi Responsif: Generic Dual-Safe vs Modifier Eksklusif (Anti-Regresi Desktop & Mobile)
+
+> **Latar Belakang**: Insiden rusaknya layout mobile saat desktop dirapikan (dan sebaliknya) membuktikan bahwa mengandalkan `flex-wrap` polosan tanpa aturan arah yang sengaja adalah antipattern. Kontrak ini memisahkan secara tegas antara perilaku default generic (yang aman di dua layar) dengan modifier eksklusif saat perilaku desktop dan mobile harus berbeda.
+
+#### 1. Dua Tingkatan Desain Responsif
+1. **Tingkat 1: Generic Default (Dual-Safe by Default)**
+   - Saat menulis class generic (`.cluv-btn`, `.cluv-card`, `.cluv-badge`), elemen **HARUS AMAN DAN NORMAL DI KEDUA LAYAR** tanpa asumsi sempit.
+   - **Invarian Tombol**: `.cluv-btn` **WAJIB selalu `white-space: nowrap;`** di semua ukuran layar (desktop & mobile). DILARANG memaksakan `white-space: normal` pada tombol secara global di mobile karena akan memecah teks 2 kata (seperti *"Riwayat Tagihan"*) dan merusak letak ikon. Teks panjang yang sengaja ingin wrap wajib menggunakan modifier khusus `.is-multiline`.
+   - **Invarian Tipografi Inline**: Teks inline dengan bullet pemisah (`[Judul] • [Keterangan]`) di desktop dilarang dibiarkan wrap telanjang di mobile karena titik bulat akan menggantung sendirian di baris 1. Bullet bulat wajib diberi `.cluv-hide-mobile`, dan keterangan di mobile dialihkan menjadi baris subtitle `.cluv-hide-desktop`.
+
+2. **Tingkat 2: Exclusive Modifiers (Sengaja Berbeda)**
+   - Ketika layout dituntut memiliki struktur yang berbeda antara Desktop vs Mobile, **WAJIB menggunakan Modifier Eksklusif resmi** dari `src/styles/cluv/utilities.css`:
+
+| Modifier Eksklusif | Perilaku di Desktop (>= 768px) | Perilaku di Mobile (<= 768px) | Target Pemakaian |
+| :--- | :--- | :--- | :--- |
+| **`.cluv-flex-responsive`** | `flex-direction: row; justify-content: space-between; align-items: center;` | `flex-direction: column !important; align-items: stretch !important; gap: 12px;` | Bar status, header seksi dengan tombol aksi, toolbar. |
+| **`.cluv-w-full-mobile`** | `width: auto;` (sesuai konten) | `width: 100% !important;` | Grup tombol aksi, kontainer filter di mobile. |
+| **`.cluv-flex-1-mobile`** | `flex: 0 1 auto;` (lebar wajar) | `flex: 1 1 0% !important;` | Dua tombol berdampingan agar membagi rata 50/50 di mobile. |
+| **`.cluv-hide-mobile`** | Ditampilkan normal (`display: block / inline`) | Disembunyikan total (`display: none !important;`) | Bullet separator `•`, ikon dekoratif desktop, teks deskripsi panjang. |
+| **`.cluv-hide-desktop`** | Disembunyikan total (`display: none !important;`) | Ditampilkan normal | Subtitle khusus mobile, drawer trigger, mobile badge. |
+
+#### 2. Checklist Wajib Sebelum Rilis Komponen Baru
+- [ ] Diuji di Desktop (1440px / 1080px): Sejajar rata kiri 40px, proporsional, tidak ada ruang kosong menganga.
+- [ ] Diuji di Mobile (360px - 390px): Teks tombol tidak patah kata, ikon tidak melayang aneh, tidak ada bullet separator menggantung, dan zero horizontal overflow (*layar tidak bisa digeser ke kanan-kiri*).
+- [ ] Tidak ada rule `@media (max-width: ...)` ad-hoc di CSS halaman; seluruh adaptasi mobile menggunakan modifier kanonikal di atas.
+
+
 
 
 

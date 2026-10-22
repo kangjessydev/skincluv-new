@@ -26,12 +26,12 @@
   max-width: 100%;
 }
 
-@media (max-width: 640px) {
-  .cluv-btn {
-    white-space: normal;
-    text-align: center;
-    line-height: 1.35;
-  }
+/* Generic Safe: Buttons maintain nowrap by default across all screens (desktop & mobile).
+   Only explicit multiline buttons (.cluv-btn.is-multiline) wrap text. */
+.cluv-btn.is-multiline {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
 }
 
 

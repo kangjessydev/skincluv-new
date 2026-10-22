@@ -160,19 +160,34 @@ export default function AppPricingPage() {
         </p>
       </header>
 
-      {/* ── 2. COMPACT STATUS BAR (1 Baris Ramping, Bebas Kotak Bertumpuk) ── */}
+      {/* ── 2. COMPACT STATUS BAR (Desktop 1-Line vs Mobile Clean Stack) ── */}
       <div className="cluv-card is-compact cluv-mb-6">
-        <div className="cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-3">
+        <div className="cluv-flex-responsive cluv-gap-3">
+          {/* Sisi Kiri (Desktop) / Atas (Mobile): Icon & Status */}
           <div className="cluv-flex-row cluv-items-center cluv-gap-3">
             <div className={`cluv-card-icon-wrap is-sm ${isPro ? 'is-gold' : isGlow ? 'is-teal' : 'is-slate'}`}>
               {isPro ? <Crown size={18} /> : isGlow ? <Zap size={18} /> : <Sparkles size={18} />}
             </div>
-            <div className="cluv-flex-row cluv-items-center cluv-flex-wrap cluv-gap-2">
-              <span className="cluv-caption cluv-font-bold cluv-text-dark">
-                {isPro ? 'Skincluv PRO Aktif' : isGlow ? 'Skincluv GLOW Aktif' : 'Tier Dasar Free Explorer'}
-              </span>
-              <span className="cluv-caption cluv-text-muted">•</span>
-              <span className="cluv-caption cluv-text-muted">
+            <div className="cluv-flex-col cluv-gap-0.5">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                  {isPro ? 'Skincluv PRO Aktif' : isGlow ? 'Skincluv GLOW Aktif' : 'Tier Dasar Free Explorer'}
+                </span>
+                {/* Di desktop: Bullet point pemisah satu baris */}
+                <span className="cluv-caption cluv-text-muted cluv-hide-mobile">•</span>
+                <span className="cluv-caption cluv-text-muted cluv-hide-mobile">
+                  {isPro || isGlow ? (
+                    <>
+                      Berakhir <strong>{new Date(subscription!.expires_at!).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>{' '}
+                      <span className="cluv-text-teal cluv-font-bold">({daysRemaining} hari tersisa)</span>
+                    </>
+                  ) : (
+                    <>Saldo: <strong>{coinBalance?.balance ?? 0} AI Credits</strong></>
+                  )}
+                </span>
+              </div>
+              {/* Di mobile: Subtitle keterangan rapi di baris kedua tanpa bullet menggantung */}
+              <div className="cluv-micro cluv-text-muted cluv-hide-desktop">
                 {isPro || isGlow ? (
                   <>
                     Berakhir <strong>{new Date(subscription!.expires_at!).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>{' '}
@@ -181,16 +196,18 @@ export default function AppPricingPage() {
                 ) : (
                   <>Saldo: <strong>{coinBalance?.balance ?? 0} AI Credits</strong></>
                 )}
-              </span>
+              </div>
             </div>
           </div>
 
-          <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+          {/* Sisi Kanan (Desktop) / Bawah (Mobile): Tombol Aksi */}
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-w-full-mobile">
             <Button
               variant="ghost"
               size="sm"
               iconLeft={<Receipt size={14} />}
               to="/transactions"
+              className="cluv-flex-1-mobile"
             >
               Riwayat Tagihan
             </Button>
@@ -198,6 +215,7 @@ export default function AppPricingPage() {
               variant="ghost"
               size="sm"
               to="/profile/billing"
+              className="cluv-flex-1-mobile"
             >
               Kelola di Billing →
             </Button>

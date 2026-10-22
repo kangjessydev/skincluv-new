@@ -567,6 +567,18 @@ Seluruh 6 kartu bento di `DashboardPage.tsx` telah dimutasi ke arsitektur slot m
    - **Zero Inline Styles**: Menambahkan modifier `.cluv-card.is-tint-teal` dan `.cluv-card.is-tint-gold` di `cards.css`.
 21. **Cheatsheet & Snippet Quick-Lookup**:
    - Memperbarui Section 11 B di `CLUV_FRAMEWORK_CHEATSHEET.md` dengan contoh prop lengkap `<Button />`.
+22. **Kontrak Isolasi Responsif: Generic Dual-Safe vs Modifier Eksklusif (Anti-Regresi Desktop & Mobile)**:
+   - **Scope**: `src/styles/cluv/components/buttons.css`, `src/styles/cluv/utilities.css`, `src/pages/app/AppPricingPage.tsx`, `AGENTS.md` (Section 5.15), `.agents/skills/skincluv-frontend/SKILL.md` (Section 2.E), `CLUV_FRAMEWORK_CHEATSHEET.md`.
+   - **Akar Masalah yang Diselesaikan**:
+     1. Teks tombol memecah menjadi 2 baris cacat di mobile karena paksaan `white-space: normal` pada `@media (max-width: 640px)`.
+     2. Tombol kanan di baris status terhimpit horizontal di mobile (`cluv-flex-row`) dan terpotong tanpa tata letak yang sengaja.
+     3. Titik pemisah inline (`•`) menggantung sendirian di baris pertama pada layar sempit.
+   - **Solusi Arsitektural**:
+     1. **Generic Dual-Safe**: `.cluv-btn` dikembalikan ke `white-space: nowrap;` di semua breakpoint. Hanya tombol dengan modifier `.is-multiline` yang diizinkan wrap.
+     2. **Modifier Eksklusif**: Menambahkan `.cluv-flex-responsive` (Desktop Row space-between -> Mobile Column stretch), `.cluv-w-full-mobile`, `.cluv-flex-1-mobile` (bagi rata 50/50), dan utilitas visibilitas `.cluv-hide-desktop` / `.cluv-hide-mobile`.
+     3. **Implementasi Nyata di `AppPricingPage.tsx`**: Status bar di desktop tetap 1 baris ramping elegan, di mobile bermutasi menjadi kartu vertikal dengan judul + subtitle bersih dan 2 tombol aksi 50/50 berteks utuh tanpa horizontal overflow.
+   - **Catatan & Janji Pengingat (Pending Milestone)**:
+     - *REMINDER*: Sesuai permintaan pengguna, seluruh kontrak styling & arsitektur responsif ini akan dihimpun menjadi **Satu Kontrak Keseluruhan Frontend Skincluv (Master Frontend Contract)** setelah seluruh halaman backlog tuntas disempurnakan.
 
 ### 📌 4. Halaman Ditandai untuk Perbaikan Penuh (Backlog Full Redesign)
 Sesuai instruksi pengguna, halaman-halaman berikut tidak sekadar distandarisasi tombolnya, melainkan ditandai untuk penyesuaian arsitektur visual & layout secara penuh pada sesi tersendiri:
