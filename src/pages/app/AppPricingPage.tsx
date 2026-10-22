@@ -91,10 +91,11 @@ export default function AppPricingPage() {
           const paidOnly = data.filter((t: any) => t.slug !== 'free')
           const mapped: Tier[] = paidOnly.map((t: any) => {
             const isTierPro = t.slug === 'premium' || t.slug === 'pro'
+            const isTierGlow = t.slug === 'glow'
             return {
               id: t.id,
               slug: t.slug,
-              name: isTierPro ? 'Skincluv PRO' : t.name,
+              name: isTierPro ? 'Skincluv PRO' : isTierGlow ? 'Skincluv GLOW' : t.name,
               price_idr: t.price_idr,
               original_price_idr: t.original_price_idr || (isTierPro ? 89000 : 45000),
               features_list: isTierPro
@@ -253,8 +254,8 @@ export default function AppPricingPage() {
               }`}
             >
               <div>
-                {/* Header Kartu */}
-                <div className="cluv-flex-between cluv-items-center cluv-mb-3">
+                {/* 1. Header Kartu: Cukup Promo Badge (Lapang & Tidak Berdesakan) */}
+                <div className="cluv-mb-4">
                   <Badge
                     variant={isTierPro ? 'gold' : 'teal'}
                     size="sm"
@@ -262,35 +263,42 @@ export default function AppPricingPage() {
                   >
                     {tier.promo_badge}
                   </Badge>
-                  {hasOriginalPrice && (
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
-                      <del className="cluv-caption cluv-text-muted">
-                        Rp {tier.original_price_idr?.toLocaleString('id-ID')}
-                      </del>
-                      <Badge variant={isTierPro ? 'rose' : 'teal'} size="sm">
-                        Hemat {discountPct}%
-                      </Badge>
-                    </div>
-                  )}
                 </div>
 
-                <h3 className="cluv-title-card cluv-m-0">{tier.name}</h3>
-                <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-mb-4">{subtitle}</p>
+                {/* 2. Judul & Deskripsi Baku Cluv FW */}
+                <h3 className="cluv-title-card cluv-mb-2">{tier.name}</h3>
+                <p className="cluv-body cluv-pricing-desc cluv-mb-4">{subtitle}</p>
 
-                {/* Slot Harga & Nilai Harian */}
+                {/* 3. Slot Harga Menggunakan .cluv-price-discount-slot yang Resmi */}
                 <div className="cluv-mb-5 cluv-pb-4 cluv-border-b">
+                  <div className="cluv-price-discount-slot">
+                    {hasOriginalPrice ? (
+                      <>
+                        <del className="cluv-caption cluv-text-muted">
+                          Rp {tier.original_price_idr?.toLocaleString('id-ID')}
+                        </del>
+                        <Badge variant={isTierPro ? 'rose' : 'teal'} size="sm">
+                          Hemat {discountPct}%
+                        </Badge>
+                      </>
+                    ) : (
+                      <span className="cluv-caption cluv-text-muted">Harga Standar</span>
+                    )}
+                  </div>
+
                   <div className="cluv-price-val">
                     <span>
                       Rp {tier.price_idr.toLocaleString('id-ID')}{' '}
                       <span className="cluv-price-period">/ 30 hari</span>
                     </span>
                   </div>
-                  <div className={`cluv-micro cluv-font-bold cluv-mt-1.5 ${isTierPro ? 'cluv-text-gold' : 'cluv-text-teal'}`}>
+
+                  <div className={`cluv-micro cluv-font-bold cluv-mt-2 ${isTierPro ? 'cluv-text-gold' : 'cluv-text-teal'}`}>
                     Hanya {dailyPrice} per hari • Sekali bayar tanpa auto-debit
                   </div>
                 </div>
 
-                {/* Daftar Fitur Ringkas & Bernapas */}
+                {/* 4. Daftar Fitur Ringkas & Bernapas */}
                 <ul className="cluv-feature-list cluv-mb-6">
                   {features.map((feat, idx) => (
                     <li key={idx} className="cluv-feature-item">
