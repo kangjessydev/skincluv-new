@@ -580,10 +580,22 @@ Seluruh 6 kartu bento di `DashboardPage.tsx` telah dimutasi ke arsitektur slot m
    - **Catatan & Janji Pengingat (Pending Milestone)**:
      - *REMINDER*: Sesuai permintaan pengguna, seluruh kontrak styling & arsitektur responsif ini akan dihimpun menjadi **Satu Kontrak Keseluruhan Frontend Skincluv (Master Frontend Contract)** setelah seluruh halaman backlog tuntas disempurnakan.
 
+23. **Rombak Total Pusat Bantuan App (`AppFaqPage.tsx`) — Smart In-App Knowledge Hub**:
+   - **Scope**: `src/pages/app/AppFaqPage.tsx` (`/faq` di dalam App Shell).
+   - **Akar Masalah yang Diselesaikan**:
+     1. Tampilan lama terasa monoton, melelahkan (*claustrophobic*), dan hanya berupa deretan akordeon abu-abu vertikal tanpa hirarki jelas.
+     2. Tidak ada pembeda antara pertanyaan paling sering dicari (*Top FAQs*) dengan pertanyaan umum/khusus.
+     3. Pencarian pasif tanpa tombol hapus cepat, tanpa chip pencarian 1-tap, dan tanpa jembatan otomatis ke chatbot AI saat kata kunci tidak ditemukan.
+   - **Arsitektur Baru (4 Zona Cerdas)**:
+     1. **Zona Hero Search & Quick Topic Chips**: Search bar interaktif dengan tombol clear `(X)`, dilengkapi 5 tombol chip 1-tap (`⚡ Bebas Auto-Debit`, `👑 Beda GLOW vs PRO`, `📸 Kenapa Foto Ditolak?`, `🛡️ Privasi Foto & UU PDP`, `🪙 AI Credits Gratis`). Mengetik pencarian otomatis membuka akordeon hasil terkait (*auto-expand*).
+     2. **Zona Top FAQ (4 Kartu Bento Interaktif 2x2 Grid)**: Mengangkat 4 isu terpopuler langsung ke kartu bento bagian atas lengkap dengan ikon tematik, ringkasan 1-kalimat to-the-point, dan tombol baca rincian. Pengguna mendapatkan jawaban cepat tanpa harus scroll.
+     3. **Zona Kategori Tematik (Tab Bar Segmen)**: Penyekatan 4 kategori inti: *Paket & Tagihan (5)*, *AI & Analisis Kulit (4)*, *Privasi & UU PDP (3)*, dan *Credits & Misi (3)*.
+     4. **Jembatan Cerdas ke Skinsistant AI & CS**: Saat pencarian kosong, otomatis menyajikan kartu penenang dengan tombol 1-tap `<Button to={`/chatbot?initial=...`}>` yang langsung membuka konsultasi AI dengan pertanyaan terisi, plus opsi email ke tim CS.
+   - **Standar Frontend**: 100% Cluv Framework (`<Button>`, `<Badge>`, `.cluv-card`, `.cluv-chip`, `.cluv-accordion`, `.cluv-flex-responsive`), zero inline styles, patuh Invarian 13 (No overclaim), 18 (Prepaid pricing), dan 19 (Non-therapeutic).
+
 ### 📌 4. Halaman Ditandai untuk Perbaikan Penuh (Backlog Full Redesign)
-Sesuai instruksi pengguna, halaman-halaman berikut tidak sekadar distandarisasi tombolnya, melainkan ditandai untuk penyesuaian arsitektur visual & layout secara penuh pada sesi tersendiri:
+Sesuai instruksi pengguna, halaman berikut ditandai untuk penyesuaian arsitektur visual & layout secara penuh pada sesi tersendiri:
 1. **`ScanHistoryPage.tsx` (`/scan-history`)**: Penyesuaian arsitektur tab, visualisasi riwayat observasi wajah, cards histori ingredients, filter kronologis, dan empty state interaktif.
-2. **`AppFaqPage.tsx` (`/faq`)**: Penyesuaian penuh struktur tanya-jawab, integrasi accordion/kategori Cluv Framework, search bar FAQ, dan navigasi kontekstual.
 
 
 

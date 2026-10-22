@@ -1,6 +1,7 @@
 // src/pages/app/AppFaqPage.tsx
-// Pusat Bantuan & Tanya Jawab Khusus Dashboard / App (100% Cluv Micro-Framework)
-// Kepatuhan: Invarian 13 (No overclaim), Invarian 18 (Prepaid pricing), Invarian 19 (Non-therapeutic)
+// Pusat Bantuan & Tanya Jawab Khusus Dashboard / App (Smart In-App Knowledge Hub)
+// 100% Pure Cluv Micro-Framework, Zero Inline Styles, Responsive Isolation Contract
+// Kepatuhan: Invarian 13 (Defensible claims), Invarian 18 (Prepaid pricing), Invarian 19 (Non-therapeutic)
 
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -14,119 +15,216 @@ import {
   Coins,
   MessageCircle,
   Mail,
-  Activity,
-  Layers,
-  ArrowRight,
+  Zap,
+  Camera,
+  X,
+  Flame,
 } from 'lucide-react'
+import { Button, Badge } from '@/components/ui'
 
-interface FaqItem {
+export interface FaqItem {
   id: string
   category: 'paket' | 'ai' | 'privasi' | 'credits'
   categoryLabel: string
+  isTopFaq?: boolean
+  topFaqSummary?: string
+  topFaqIcon?: React.ReactNode
   question: string
   answer: React.ReactNode
+  tags: string[]
 }
 
 const FAQ_LIST: FaqItem[] = [
-  // ── 1. Paket & Pembayaran ──
+  // ── 1. Paket, Tagihan & Pembayaran ──
   {
     id: 'pay-1',
     category: 'paket',
-    categoryLabel: 'Paket & Pembayaran',
+    categoryLabel: 'Paket & Tagihan',
+    isTopFaq: true,
+    topFaqIcon: <Zap size={20} />,
+    topFaqSummary: '100% Prabayar 30 Hari via Tripay, tidak ada auto-debit atau pemotongan saldo tersembunyi.',
     question: 'Apakah saldo rekening atau e-wallet saya akan terpotong otomatis tiap bulan?',
+    tags: ['auto debit', 'autodebit', 'langganan', 'tagihan', 'tripay', 'potong'],
     answer: (
-      <p className="cluv-body cluv-m-0">
-        <strong>Sama sekali tidak — Skincluv 100% bebas dari auto-debit!</strong> Sistem kami menggunakan{' '}
-        <strong>Prepaid 30-Day Pass</strong>: kamu hanya membayar satu kali saat mengaktifkan paket lewat gerbang pembayaran berizin Bank Indonesia (Tripay). Tidak ada data kartu kredit atau akses debet otomatis yang tersimpan di sistem kami.
-      </p>
+      <div className="cluv-flex-col cluv-gap-2">
+        <p className="cluv-body cluv-m-0">
+          <strong>Sama sekali tidak — Skincluv 100% bebas dari auto-debit!</strong> Sistem kami menggunakan{' '}
+          <strong>Prepaid 30-Day Pass</strong>: kamu hanya membayar satu kali saat mengaktifkan paket lewat gerbang pembayaran berizin resmi Bank Indonesia (Tripay).
+        </p>
+        <p className="cluv-body cluv-m-0">
+          Tidak ada data kartu kredit yang tersimpan di sistem kami, dan tidak ada tagihan susulan diam-diam saat masa aktif 30 hari selesai. Jika masa aktif habis, akunmu otomatis kembali ke tier dasar Free Explorer tanpa denda apapun.
+        </p>
+      </div>
     ),
   },
   {
     id: 'pay-2',
     category: 'paket',
-    categoryLabel: 'Paket & Pembayaran',
-    question: 'Apa perbedaan antara paket GLOW (Rp 25.000) dan PRO (Rp 49.000)?',
+    categoryLabel: 'Paket & Tagihan',
+    isTopFaq: true,
+    topFaqIcon: <Sparkles size={20} />,
+    topFaqSummary: 'GLOW (Rp 25.000 / 100 kuota) untuk observasi berkala vs PRO (Rp 49.000 / 500 kuota) + Chatbot AI tanpa batas.',
+    question: 'Apa perbedaan utama antara paket Skincluv GLOW dan Skincluv PRO?',
+    tags: ['glow', 'pro', 'premium', 'beda', 'harga', 'perbedaan', 'kuota'],
     answer: (
-      <div className="cluv-flex-col cluv-gap-2">
+      <div className="cluv-flex-col cluv-gap-3">
         <p className="cluv-body cluv-m-0">
-          Keduanya memberikan akses prepaid 30 hari penuh tanpa batas harian. Perbedaannya terletak pada volume kuota dan fitur kecerdasan visual:
+          Keduanya adalah paket akses 30 hari tanpa batasan frekuensi harian. Perbedaan utamanya ada pada kapasitas kuota dan pendampingan AI:
         </p>
-        <ul className="cluv-caption cluv-m-0 cluv-pl-4">
-          <li><strong>Skincluv GLOW (Rp 25.000)</strong>: Mendapatkan 100x Kuota Universal AI bulanan, ideal untuk observasi kulit mingguan dan cek bahan skincare harian.</li>
-          <li><strong>Skincluv PRO (Rp 49.000)</strong>: Mendapatkan 500x Kuota Universal AI, prioritas komputasi OCR vision foto kemasan kosmetik, penalaran AI mendalam tentang interaksi bahan aktif, serta Avatar PRO dengan Glowing Iridescent Ring.</li>
-        </ul>
+        <div className="cluv-grid cols-2 cluv-gap-3">
+          <div className="cluv-card is-compact cluv-flex-col cluv-gap-1">
+            <Badge variant="teal" size="sm">Skincluv GLOW (Rp 25.000)</Badge>
+            <span className="cluv-caption cluv-font-bold cluv-mt-1">Smart Starter (~Rp 830/hari)</span>
+            <span className="cluv-micro cluv-text-muted">
+              Mendapatkan 100 Kuota Universal AI. Ideal untuk observasi kulit 1–2 kali per minggu dan cek kecocokan botol kosmetik baru.
+            </span>
+          </div>
+          <div className="cluv-card is-compact cluv-flex-col cluv-gap-1">
+            <Badge variant="gold" size="sm">Skincluv PRO (Rp 49.000)</Badge>
+            <span className="cluv-caption cluv-font-bold cluv-mt-1">Paling Diminati (~Rp 1.600/hari)</span>
+            <span className="cluv-micro cluv-text-muted">
+              Mendapatkan 500 Kuota Universal AI (5x lipat) + <strong>Akses Penuh Skinsistant AI Chatbot Sepuasnya</strong> untuk konsultasi formulasi kapanpun.
+            </span>
+          </div>
+        </div>
       </div>
     ),
   },
   {
     id: 'pay-3',
     category: 'paket',
-    categoryLabel: 'Paket & Pembayaran',
+    categoryLabel: 'Paket & Tagihan',
     question: 'Bagaimana jika pembayaran saya melalui QRIS atau Virtual Account belum terverifikasi?',
+    tags: ['qris', 'va', 'bca', 'mandiri', 'bri', 'pending', 'menunggu', 'tripay', 'verifikasi'],
     answer: (
-      <p className="cluv-body cluv-m-0">
-        Verifikasi pembayaran melalui Tripay biasanya instan dalam 5–15 detik. Jika status masih menunggu lebih dari 15 menit, kamu dapat memeriksa status di halaman{' '}
-        <Link to="/transactions" className="cluv-link is-muted">Riwayat Tagihan</Link> atau menyapa tim dukungan kami dengan menyebutkan nomor referensi tagihan (contoh: <code>INV-...</code>).
-      </p>
+      <div className="cluv-flex-col cluv-gap-2">
+        <p className="cluv-body cluv-m-0">
+          Verifikasi pembayaran melalui Tripay biasanya instan dalam 5–15 detik setelah transfer berhasil. Jika status tagihan masih tertahan "Menunggu Pembayaran":
+        </p>
+        <ul className="cluv-caption cluv-m-0 cluv-pl-4 cluv-flex-col cluv-gap-1">
+          <li>Buka halaman <Link to="/transactions" className="cluv-link">Riwayat Tagihan</Link> dan klik tombol <strong>"Cek Status"</strong> untuk memicu sinkronisasi manual gateway.</li>
+          <li>Pastikan nominal transfer sesuai persis hingga 3 digit kode unik (bila menggunakan metode transfer manual).</li>
+          <li>Jika dalam 15 menit status belum berubah, hubungi Customer Support kami dengan melampirkan nomor referensi tagihan (contoh: <code>INV-PRO-...</code>).</li>
+        </ul>
+      </div>
     ),
   },
   {
     id: 'pay-4',
     category: 'paket',
-    categoryLabel: 'Paket & Pembayaran',
-    question: 'Apakah pembayaran saya bisa dikembalikan (Refund)?',
+    categoryLabel: 'Paket & Tagihan',
+    question: 'Apakah pembayaran saya bisa dikembalikan (Kebijakan Refund)?',
+    tags: ['refund', 'kembali', 'dana', 'batal', 'uang'],
     answer: (
       <p className="cluv-body cluv-m-0">
-        Sesuai UU Perlindungan Konsumen No. 8/1999 dan kebijakan resmi Skincluv, kami menjamin pengembalian dana 100% jika terjadi pemotongan ganda (*double charge*) atau jika pass gagal aktif akibat kendala teknis pada sistem verifikasi gateway pembayaran.
+        Sesuai UU Perlindungan Konsumen No. 8/1999 dan kebijakan resmi Skincluv, kami menjamin pengembalian dana 100% jika terjadi pemotongan saldo ganda (*double charge*) atau jika paket akses gagal aktif akibat kendala sinkronisasi gateway pembayaran. Pengajuan refund dapat dilakukan via email ke <code>support@skincluv.com</code> dengan menyertakan bukti mutasi bank.
+      </p>
+    ),
+  },
+  {
+    id: 'pay-5',
+    category: 'paket',
+    categoryLabel: 'Paket & Tagihan',
+    question: 'Dapatkah saya upgrade dari paket GLOW ke PRO sebelum masa aktif 30 hari berakhir?',
+    tags: ['upgrade', 'pindah', 'naik', 'glow ke pro', 'tambah'],
+    answer: (
+      <p className="cluv-body cluv-m-0">
+        Bisa! Kamu dapat langsung memilih paket <strong>Skincluv PRO</strong> di menu <Link to="/paket" className="cluv-link">Kelola Paket</Link> kapan saja. Saat upgrade berhasil, sisa masa aktif akan diperpanjang 30 hari penuh dan kuotamu langsung bertambah menjadi 500 Kuota Universal AI.
       </p>
     ),
   },
 
-  // ── 2. AI & Analisis Kulit ──
+  // ── 2. AI, Analisis Kulit & Kamera ──
   {
     id: 'ai-1',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
-    question: 'Apa itu Kuota Universal AI (Universal AI Quota)?',
+    isTopFaq: true,
+    topFaqIcon: <Camera size={20} />,
+    topFaqSummary: 'Sistem Face Validation 0-Kredit gratis menyaring foto buram/gelap sebelum kuota terpotong.',
+    question: 'Mengapa foto wajah saya terkadang ditolak saat proses pemindaian?',
+    tags: ['foto ditolak', 'buram', 'gelap', 'kamera', 'face validation', 'gagal scan'],
     answer: (
-      <p className="cluv-body cluv-m-0">
-        Universal AI Quota adalah sistem kuota fleksibel gabungan. Kamu tidak dibatasi aturan kaku (seperti "hanya 1 scan per hari"). Satu kuota universal bebas kamu gunakan untuk pemindaian wajah mandiri, verifikasi label komposisi kosmetik, maupun konsultasi intensif bersama Skinsistant AI.
-      </p>
+      <div className="cluv-flex-col cluv-gap-2">
+        <p className="cluv-body cluv-m-0">
+          Skincluv memiliki gerbang perlindungan <strong>Face Validation (0 Kredit / Gratis)</strong>. Sistem akan menolak foto sebelum kuota/kreditmu terpotong apabila:
+        </p>
+        <ul className="cluv-caption cluv-m-0 cluv-pl-4 cluv-flex-col cluv-gap-1">
+          <li>Pencahayaan terlalu redup, backlight kuat, atau wajah tidak menghadap lurus ke depan.</li>
+          <li>Lensa kamera buram atau resolusi foto terlalu rendah.</li>
+          <li>Wajah tertutup sebagian oleh masker, kacamata hitam, atau rambut tebal.</li>
+        </ul>
+        <p className="cluv-body cluv-m-0 cluv-mt-1">
+          Hal ini kami rancang demi melindungi pengguna agar tidak membuang kuota berharga pada foto yang tidak memenuhi standar observasi visual dermatologi.
+        </p>
+      </div>
     ),
   },
   {
     id: 'ai-2',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
-    question: 'Apakah hasil observasi Skincluv merupakan diagnosis medis dokter spesialis kulit?',
+    question: 'Apa itu Kuota Universal AI (Universal AI Quota)?',
+    tags: ['kuota universal', 'universal ai', 'cara kerja kuota', 'hitung kuota'],
     answer: (
-      <p className="cluv-body cluv-m-0">
-        <strong>Bukan.</strong> Sesuai batas regulasi (UU Kesehatan No. 17/2023 &amp; Permenkes No. 20/2019), Skincluv adalah perangkat lunak edukasi kosmetik mandiri berbasis kecerdasan buatan (*non-therapeutic cosmetic guidance*). Hasil pemindaian berupa observasi visual indikator kelembapan, minyak, dan pori, serta analisis kecocokan bahan kosmetik. Jika kamu mengalami keluhan kulit kronis atau infeksi, silakan berkonsultasi langsung ke dokter spesialis dermatologi.
-      </p>
+      <div className="cluv-flex-col cluv-gap-2">
+        <p className="cluv-body cluv-m-0">
+          <strong>Universal AI Quota</strong> adalah kuota terpadu yang fleksibel. Tidak ada batasan kaku harian; kamu bebas membagi pemakaian kuota sesuai kebutuhan pribadi:
+        </p>
+        <ul className="cluv-caption cluv-m-0 cluv-pl-4 cluv-flex-col cluv-gap-1">
+          <li><strong>1x Scan Wajah AI</strong> = 5 Kuota Universal (termasuk analisis pori, kelembapan, sebum, dan tren).</li>
+          <li><strong>1x Scan Komposisi Skincare</strong> = 3 Kuota Universal (OCR vision label botol + analisis kontraindikasi bahan aktif).</li>
+          <li><strong>Tanya Jawab Skinsistant AI</strong> = Gratis tanpa batas bagi pengguna paket PRO.</li>
+        </ul>
+      </div>
     ),
   },
   {
     id: 'ai-3',
     category: 'ai',
     categoryLabel: 'AI & Analisis Kulit',
-    question: 'Mengapa foto wajah saya terkadang ditolak saat proses pemindaian?',
+    question: 'Apakah hasil analisis Skincluv merupakan diagnosis medis dokter spesialis kulit?',
+    tags: ['medis', 'dokter', 'diagnosis', 'resep', 'klinis', 'obat', 'hukum'],
     answer: (
       <p className="cluv-body cluv-m-0">
-        Skincluv dilengkapi fitur gerbang <em>Face Validation</em> gratis. Jika foto wajah terlalu gelap, buram, tertutup masker/kacamata, atau miring, sistem akan meminta foto ulang sebelum kredit/kuota terpotong. Ini bertujuan agar hasil analisis AI benar-benar presisi dan tidak menghasilkan analisa yang keliru.
+        <strong>Bukan.</strong> Sesuai batas regulasi kesehatan (UU Kesehatan No. 17/2023 &amp; Permenkes No. 20/2019), Skincluv beroperasi sebagai panduan kosmetik mandiri berbasis kecerdasan buatan (<em>non-therapeutic cosmetic observation</em>). Hasil analisis berupa pemetaan kondisi visual kelembapan dan keamanan formula kosmetik. Skincluv tidak mengeluarkan resep obat keras dan bukan pengganti konsultasi tatap muka dengan dokter spesialis dermatologi.
+      </p>
+    ),
+  },
+  {
+    id: 'ai-4',
+    category: 'ai',
+    categoryLabel: 'AI & Analisis Kulit',
+    question: 'Bagaimana cara AI mendeteksi bahaya interaksi bahan aktif skincare?',
+    tags: ['bahan aktif', 'interaksi', 'retinol', 'aha bha', 'layering', 'botol'],
+    answer: (
+      <p className="cluv-body cluv-m-0">
+        Mesin OCR Vision kami membaca daftar komposisi (*ingredients list*) pada botol atau kemasan kosmetik, lalu mencocokkannya ke basis data interaksi deterministik terverifikasi. Jika ada kombinasi yang berpotensi memicu iritasi (seperti Retinol bersamaan dengan AHA/BHA konsentrasi tinggi), sistem akan langsung memberikan kartu peringatan kuning/merah beserta anjuran pemakaian bertahap.
       </p>
     ),
   },
 
-  // ── 3. Privasi & UU PDP ──
+  // ── 3. Privasi, Foto Biometrik & UU PDP ──
   {
     id: 'priv-1',
     category: 'privasi',
     categoryLabel: 'Privasi & UU PDP',
+    isTopFaq: true,
+    topFaqIcon: <ShieldCheck size={20} />,
+    topFaqSummary: 'Foto wajah disimpan di Cloud Storage terenkripsi privat, diproses anonim, dan patuh UU PDP No. 27/2022.',
     question: 'Bagaimana Skincluv melindungi data foto wajah dan privasi biometrik saya?',
+    tags: ['privasi', 'uu pdp', 'foto', 'biometrik', 'keamanan', 'enkripsi', 'bocor'],
     answer: (
-      <p className="cluv-body cluv-m-0">
-        Kami tunduk patuh pada <strong>UU Perlindungan Data Pribadi No. 27 Tahun 2022</strong>. Foto wajahmu disimpan di Cloud Storage terenkripsi privat, diproses secara anonim, dan tidak pernah dijual atau diserahkan ke pihak ketiga manapun.
-      </p>
+      <div className="cluv-flex-col cluv-gap-2">
+        <p className="cluv-body cluv-m-0">
+          Skincluv tunduk patuh penuh pada <strong>UU Perlindungan Data Pribadi No. 27 Tahun 2022</strong>. Kami menerapkan prinsip minimalisasi data yang ketat:
+        </p>
+        <ul className="cluv-caption cluv-m-0 cluv-pl-4 cluv-flex-col cluv-gap-1">
+          <li>Foto wajah diisolasi di Cloud Storage terenkripsi privat dan hanya bisa diakses oleh akun pemilik melalui token URL bertenggat waktu singkat (Signed URL).</li>
+          <li>Customer Support dan tim non-klinis dilarang keras mengakses foto wajah pengguna.</li>
+          <li>Foto wajahmu <strong>tidak pernah dijual</strong> atau digunakan untuk melatih model publik pihak ketiga tanpa izin eksplisit.</li>
+        </ul>
+      </div>
     ),
   },
   {
@@ -134,25 +232,43 @@ const FAQ_LIST: FaqItem[] = [
     category: 'privasi',
     categoryLabel: 'Privasi & UU PDP',
     question: 'Bagaimana cara menggunakan Hak untuk Dihapus (Right to be Forgotten)?',
+    tags: ['hapus akun', 'hapus data', 'right to be forgotten', 'lupa', 'musnahkan'],
     answer: (
       <p className="cluv-body cluv-m-0">
-        Kamu memegang kendali 100% atas datamu. Kamu dapat menghapus riwayat obrolan AI, menghapus riwayat scan tertentu, atau menghapus seluruh akun beserta seluruh foto biometrik secara permanen melalui halaman{' '}
-        <Link to="/privacy-center" className="cluv-link is-muted">Pusat Privasi &amp; Data</Link>.
+        Kamu memegang kendali 100% atas datamu. Kamu dapat menghapus riwayat obrolan AI, menghapus riwayat foto scan tertentu, atau memusnahkan seluruh akun beserta seluruh foto biometrik secara permanen melalui menu{' '}
+        <Link to="/profile/privacy" className="cluv-link">Pusat Privasi &amp; Data</Link>. Seluruh foto fisik di cloud storage akan dimusnahkan seketika.
+      </p>
+    ),
+  },
+  {
+    id: 'priv-3',
+    category: 'privasi',
+    categoryLabel: 'Privasi & UU PDP',
+    question: 'Apakah riwayat percakapan konsultasi dengan Skinsistant AI bersifat rahasia?',
+    tags: ['chat', 'percakapan', 'rahasia', 'curhat', 'memori'],
+    answer: (
+      <p className="cluv-body cluv-m-0">
+        Ya, seluruh riwayat percakapan bersifat privat. Skincluv menyediakan tombol toggle <em>Memory Consent</em> di halaman chatbot. Jika kamu mematikan toggle ini, seluruh ringkasan memori percakapan akan otomatis dibersihkan dan AI tidak akan mengingat konteks obrolan masa lalu.
       </p>
     ),
   },
 
-  // ── 4. AI Credits & Misi ──
+  // ── 4. AI Credits, Koin & Misi Harian ──
   {
     id: 'cred-1',
     category: 'credits',
     categoryLabel: 'AI Credits & Misi',
-    question: 'Apa perbedaan antara AI Credits dengan Kuota Universal AI paket langganan?',
+    question: 'Apa perbedaan antara AI Credits (Koin) dengan Kuota Universal AI?',
+    tags: ['credits', 'koin', 'kuota', 'misi', 'beda credits'],
     answer: (
-      <p className="cluv-body cluv-m-0">
-        <strong>Kuota Universal AI</strong> berasal dari paket aktifmu (GLOW atau PRO) yang otomatis di-reset setiap siklus 30 hari. Sementara <strong>AI Credits</strong> adalah saldo koin mandiri yang kamu dapatkan gratis dari menyelesaikan rutinitas di menu{' '}
-        <Link to="/missions" className="cluv-link is-muted">Misi Glow</Link>. AI Credits tidak pernah kedaluwarsa dan menjadi cadangan aman saat kuota bulananmu habis.
-      </p>
+      <div className="cluv-flex-col cluv-gap-2">
+        <p className="cluv-body cluv-m-0">
+          <strong>Kuota Universal AI</strong> adalah fasilitas bulanan dari paket aktifmu (GLOW atau PRO) yang otomatis diperbarui setiap siklus 30 hari.
+        </p>
+        <p className="cluv-body cluv-m-0">
+          Sementara <strong>AI Credits</strong> adalah saldo koin permanen yang kamu dapatkan secara cuma-cuma dari menyelesaikan misi harian di <Link to="/missions" className="cluv-link">Misi Glow</Link>. AI Credits tidak memiliki tanggal kedaluwarsa dan otomatis menjadi saldo cadangan ketika kuota paket bulananmu habis.
+        </p>
+      </div>
     ),
   },
   {
@@ -160,9 +276,22 @@ const FAQ_LIST: FaqItem[] = [
     category: 'credits',
     categoryLabel: 'AI Credits & Misi',
     question: 'Bagaimana cara mengumpulkan AI Credits gratis setiap hari?',
+    tags: ['credits gratis', 'klaim hadiah', 'misi harian', 'koin gratis'],
     answer: (
       <p className="cluv-body cluv-m-0">
-        Buka menu <Link to="/missions" className="cluv-link is-muted">Misi Glow</Link> di sidebar. Selesaikan misi ringan seperti melakukan observasi kulit harian (+3 Credits), cek bahan skincare baru (+3 Credits), atau konsultasi ke Skinsistant (+2 Credits). Tekan tombol "Klaim Hadiah" saat misi selesai untuk menambahkan saldo ke dompetmu!
+        Buka menu <Link to="/missions" className="cluv-link">Misi Glow</Link> di navigasi aplikasi. Selesaikan misi ringan seperti observasi kulit harian (+3 Credits), scan bahan skincare baru (+3 Credits), atau tanya Skinsistant (+2 Credits). Setelah misi berstatus selesai, klik tombol <strong>"Klaim Hadiah"</strong> untuk memasukkan kredit langsung ke akunmu.
+      </p>
+    ),
+  },
+  {
+    id: 'cred-3',
+    category: 'credits',
+    categoryLabel: 'AI Credits & Misi',
+    question: 'Apa yang terjadi jika Kuota Universal AI bulanan saya habis sebelum 30 hari?',
+    tags: ['kuota habis', 'tambah kuota', 'habis', 'saldo habis'],
+    answer: (
+      <p className="cluv-body cluv-m-0">
+        Jika Kuota Universal AI paketmu habis, sistem secara otomatis akan menggunakan saldo <strong>AI Credits</strong> yang kamu kumpulkan dari Misi Glow. Kamu juga dapat melakukan perpanjangan paket atau upgrade ke tier PRO kapan saja untuk mendapatkan suntikan 500 kuota baru seketika.
       </p>
     ),
   },
@@ -170,132 +299,270 @@ const FAQ_LIST: FaqItem[] = [
 
 type CategoryKey = 'all' | 'paket' | 'ai' | 'privasi' | 'credits'
 
+const CATEGORY_TABS: { key: CategoryKey; label: string; icon: React.ReactNode }[] = [
+  { key: 'all', label: 'Semua Tanya Jawab', icon: <CircleHelp size={15} /> },
+  { key: 'paket', label: 'Paket & Tagihan', icon: <CreditCard size={15} /> },
+  { key: 'ai', label: 'AI & Analisis Kulit', icon: <Sparkles size={15} /> },
+  { key: 'privasi', label: 'Privasi & UU PDP', icon: <ShieldCheck size={15} /> },
+  { key: 'credits', label: 'Credits & Misi', icon: <Coins size={15} /> },
+]
+
+const QUICK_TOPIC_PILLS = [
+  { label: '⚡ Bebas Auto-Debit', query: 'auto debit', faqId: 'pay-1' },
+  { label: '👑 Beda GLOW vs PRO', query: 'glow vs pro', faqId: 'pay-2' },
+  { label: '📸 Kenapa Foto Ditolak?', query: 'foto ditolak', faqId: 'ai-1' },
+  { label: '🛡️ Privasi Foto & UU PDP', query: 'privasi', faqId: 'priv-1' },
+  { label: '🪙 AI Credits Gratis', query: 'credits gratis', faqId: 'cred-2' },
+]
+
 export default function AppFaqPage() {
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [openIds, setOpenIds] = useState<string[]>(['pay-1'])
 
+  // Filter FAQ berdasarkan kategori & live search query
+  const filteredFaqs = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim()
+    return FAQ_LIST.filter((item) => {
+      const matchesCategory = activeCategory === 'all' || item.category === activeCategory
+      if (!q) return matchesCategory
+
+      const matchesSearch =
+        item.question.toLowerCase().includes(q) ||
+        item.categoryLabel.toLowerCase().includes(q) ||
+        item.tags.some((t) => t.includes(q))
+
+      return matchesCategory && matchesSearch
+    })
+  }, [activeCategory, searchQuery])
+
+  // Handle accordion toggle
   const toggleAccordion = (id: string) => {
     setOpenIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     )
   }
 
-  const filteredFaqs = useMemo(() => {
-    return FAQ_LIST.filter((item) => {
-      const matchesCategory = activeCategory === 'all' || item.category === activeCategory
-      const q = searchQuery.toLowerCase().trim()
-      const matchesSearch =
-        !q ||
-        item.question.toLowerCase().includes(q) ||
-        item.categoryLabel.toLowerCase().includes(q)
-      return matchesCategory && matchesSearch
-    })
-  }, [activeCategory, searchQuery])
+  // Handle quick topic click
+  const handleSelectQuickTopic = (query: string, faqId: string) => {
+    setSearchQuery(query)
+    setActiveCategory('all')
+    if (!openIds.includes(faqId)) {
+      setOpenIds((prev) => [...prev, faqId])
+    }
+    // Smooth scroll ke elemen FAQ target bila ada
+    setTimeout(() => {
+      const el = document.getElementById(`faq-${faqId}`)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 100)
+  }
+
+  // Reset pencarian
+  const handleResetSearch = () => {
+    setSearchQuery('')
+    setActiveCategory('all')
+    setOpenIds(['pay-1'])
+  }
+
+  // 4 Top FAQ items untuk zona rekomendasi paling sering dibuka
+  const topFaqs = useMemo(() => {
+    return FAQ_LIST.filter((item) => item.isTopFaq)
+  }, [])
 
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* ── HEADER HALAMAN ── */}
+      {/* ── 1. HEADER PUSAT BANTUAN BERSIH & FOKUS ── */}
       <header className="cluv-mb-6">
-        <div className="cluv-badge is-teal cluv-mb-2">
-          <CircleHelp size={14} />
+        <div className="cluv-badge is-teal is-sm cluv-mb-2">
+          <CircleHelp size={13} />
           <span>PUSAT BANTUAN SAHABAT</span>
         </div>
         <h1 className="cluv-title-section cluv-m-0">Bantuan &amp; Tanya Jawab</h1>
         <p className="cluv-subtitle cluv-mt-1">
-          Jawaban praktis dan transparan seputar paket akses, kuota AI, verifikasi pembayaran Tripay, dan keamanan datamu.
+          Temukan jawaban langsung seputar paket prabayar, kuota analisis AI, verifikasi Tripay, dan keamanan datamu.
         </p>
       </header>
 
-      {/* ── SEARCH & CATEGORY FILTER ── */}
+      {/* ── 2. ZONA HERO SEARCH & QUICK TOPIC CHIPS ── */}
       <div className="cluv-card cluv-mb-6">
-        <div className="cluv-field cluv-mb-4">
+        {/* Search Input Bar */}
+        <div className="cluv-field cluv-mb-3">
           <div className="cluv-input-wrap">
             <Search size={18} className="cluv-input-icon cluv-text-muted" />
             <input
               type="text"
               className="cluv-input"
-              placeholder="Cari pertanyaan... (contoh: auto-debit, refund, kuota, qris, privasi foto)"
+              placeholder="Cari kendala atau pertanyaan... (contoh: refund, auto debit, scan ditolak, kuota)"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                setSearchQuery(val)
+                // Jika mencari, otomatis buka accordion hasil pertama
+                if (val.trim().length > 1) {
+                  const match = FAQ_LIST.find((f) =>
+                    f.question.toLowerCase().includes(val.toLowerCase()) ||
+                    f.tags.some((t) => t.includes(val.toLowerCase()))
+                  )
+                  if (match && !openIds.includes(match.id)) {
+                    setOpenIds((prev) => [...prev, match.id])
+                  }
+                }
+              }}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                className="cluv-btn is-ghost is-sm cluv-p-1"
+                onClick={() => setSearchQuery('')}
+                title="Hapus pencarian"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Tab Filter Kategori */}
-        <div className="cluv-tabs">
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeCategory === 'all' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('all')}
-          >
-            <span>Semua Tanya Jawab</span>
-            <span className="cluv-tab-badge">{FAQ_LIST.length}</span>
-          </button>
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeCategory === 'paket' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('paket')}
-          >
-            <span>Paket &amp; Pembayaran</span>
-          </button>
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeCategory === 'ai' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('ai')}
-          >
-            <span>AI &amp; Analisis Kulit</span>
-          </button>
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeCategory === 'privasi' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('privasi')}
-          >
-            <span>Privasi &amp; UU PDP</span>
-          </button>
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeCategory === 'credits' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('credits')}
-          >
-            <span>Credits &amp; Misi</span>
-          </button>
+        {/* Quick Search Chips (5 Topik Paling Hangat) */}
+        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
+          <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
+            <Flame size={13} className="cluv-text-gold" />
+            Topik Hangat:
+          </span>
+          <div className="cluv-chip-group cluv-flex-1">
+            {QUICK_TOPIC_PILLS.map((pill) => {
+              const isActive = searchQuery.toLowerCase() === pill.query.toLowerCase()
+              return (
+                <button
+                  key={pill.faqId}
+                  type="button"
+                  className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
+                  onClick={() => handleSelectQuickTopic(pill.query, pill.faqId)}
+                >
+                  <span>{pill.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      {/* ── DAFTAR FAQ ACCORDIONS ── */}
+      {/* ── 3. ZONA TOP FAQS (4 PERTANYAAN PALING SERING DIBUKA) ── */}
+      {!searchQuery && activeCategory === 'all' && (
+        <section className="cluv-mb-6">
+          <div className="cluv-flex-between cluv-items-center cluv-mb-3">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+              <span className="cluv-badge is-gold is-sm">
+                <Flame size={12} />
+                <span>PALING SERING DITANYAKAN</span>
+              </span>
+              <h2 className="cluv-title-card cluv-m-0">Pertanyaan Terpopuler</h2>
+            </div>
+            <span className="cluv-micro cluv-text-muted cluv-hide-mobile">4 Jawaban Cepat Terpenting</span>
+          </div>
+
+          <div className="cluv-grid cols-2 cluv-gap-4">
+            {topFaqs.map((faq) => {
+              const isOpen = openIds.includes(faq.id)
+              return (
+                <div
+                  key={`top-${faq.id}`}
+                  className="cluv-card is-interactive cluv-flex-col cluv-justify-between"
+                  onClick={() => toggleAccordion(faq.id)}
+                >
+                  <div>
+                    <div className="cluv-flex-between cluv-items-center cluv-mb-2">
+                      <div className="cluv-card-icon-wrap is-sm is-teal">
+                        {faq.topFaqIcon || <CircleHelp size={16} />}
+                      </div>
+                      <Badge variant="slate" size="sm">{faq.categoryLabel}</Badge>
+                    </div>
+                    <h3 className="cluv-body cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-2">
+                      {faq.question}
+                    </h3>
+                    <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-line-relaxed">
+                      {faq.topFaqSummary}
+                    </p>
+                  </div>
+
+                  <div className="cluv-pt-3 cluv-mt-3 cluv-border-t cluv-flex-between cluv-items-center">
+                    <span className="cluv-micro cluv-font-bold cluv-text-teal">
+                      {isOpen ? 'Tutup Rincian ↑' : 'Baca Jawaban Lengkap ↓'}
+                    </span>
+                    <ChevronDown
+                      size={15}
+                      className={`cluv-text-teal ${isOpen ? 'rotate' : ''}`}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── 4. ZONA TAB KATEGORI TEMATIK (UMUM VS KHUSUS) ── */}
+      <div className="cluv-tabs cluv-mb-5 cluv-w-full">
+        {CATEGORY_TABS.map((tab) => {
+          const isActive = activeCategory === tab.key
+          const count = tab.key === 'all'
+            ? FAQ_LIST.length
+            : FAQ_LIST.filter((f) => f.category === tab.key).length
+
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              className={`cluv-tab-btn ${isActive ? 'is-active' : ''}`}
+              onClick={() => {
+                setActiveCategory(tab.key)
+                setSearchQuery('')
+              }}
+            >
+              <span className="cluv-flex-row cluv-items-center cluv-gap-1.5">
+                {tab.icon}
+                <span>{tab.label}</span>
+              </span>
+              <span className="cluv-tab-badge">{count}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── 5. DAFTAR TANYA JAWAB (ACCORDIONS KANONIKAL) ── */}
       <div className="cluv-accordion cluv-mb-6">
         {filteredFaqs.length > 0 ? (
           filteredFaqs.map((faq) => {
             const isOpen = openIds.includes(faq.id)
             return (
-              <div key={faq.id} className="cluv-accordion-item">
+              <div
+                key={faq.id}
+                id={`faq-${faq.id}`}
+                className={`cluv-accordion-item ${isOpen ? 'is-open' : ''}`}
+              >
                 <button
                   type="button"
                   className="cluv-accordion-trigger"
                   onClick={() => toggleAccordion(faq.id)}
                   aria-expanded={isOpen}
                 >
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-text-left">
-                    <span className="cluv-badge is-slate is-sm" style={{ flexShrink: 0 }}>
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-text-left cluv-flex-1">
+                    <Badge variant="slate" size="sm">
                       {faq.categoryLabel}
-                    </span>
-                    <span className="cluv-title-card cluv-m-0" style={{ fontSize: '1rem' }}>
+                    </Badge>
+                    <span className="cluv-body cluv-font-bold cluv-text-dark cluv-m-0">
                       {faq.question}
                     </span>
                   </div>
                   <ChevronDown
                     size={18}
-                    className="cluv-accordion-chevron"
-                    style={{
-                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                      flexShrink: 0,
-                    }}
+                    className={`cluv-accordion-chevron ${isOpen ? 'rotate' : ''}`}
                   />
                 </button>
+
                 {isOpen && (
-                  <div className="cluv-accordion-body">
+                  <div className="cluv-accordion-body cluv-animate-fade">
                     {faq.answer}
                   </div>
                 )}
@@ -303,51 +570,71 @@ export default function AppFaqPage() {
             )
           })
         ) : (
-          <div className="cluv-card cluv-text-center cluv-py-8">
-            <CircleHelp size={32} className="cluv-text-muted cluv-mb-2" />
-            <h4 className="cluv-title-card cluv-m-0">Pertanyaan tidak ditemukan</h4>
-            <p className="cluv-caption cluv-text-muted cluv-mt-1">
-              Tidak ada jawaban yang cocok dengan kata kunci "{searchQuery}". Coba kata kunci lain atau tanyakan langsung pada AI.
+          /* Empty State Pencarian */
+          <div className="cluv-card cluv-text-center cluv-p-6">
+            <div className="cluv-card-icon-wrap is-lg is-slate cluv-mx-auto cluv-mb-3">
+              <CircleHelp size={28} />
+            </div>
+            <h3 className="cluv-title-card cluv-m-0">Pertanyaan Tidak Ditemukan</h3>
+            <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md cluv-mx-auto">
+              Tidak ada jawaban yang cocok dengan kata kunci "<strong>{searchQuery}</strong>". Kamu bisa mereset pencarian atau menanyakannya langsung ke asisten AI kami.
             </p>
-            <button
-              type="button"
-              className="cluv-btn is-outline is-sm cluv-mt-3"
-              onClick={() => {
-                setSearchQuery('')
-                setActiveCategory('all')
-              }}
-            >
-              Reset Pencarian
-            </button>
+
+            <div className="cluv-flex-center cluv-gap-3 cluv-mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetSearch}
+              >
+                Reset Pencarian
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                iconLeft={<Sparkles size={15} />}
+                to={`/chatbot?initial=${encodeURIComponent(searchQuery)}`}
+              >
+                Tanyakan ke Skinsistant AI
+              </Button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* ── BANTUAN TAMBAHAN & CTA CHAT AI ── */}
-      <div className="cluv-card is-highlight">
-        <div className="cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-4">
+      {/* ── 6. JEMBATAN KE SKINSISTANT AI & CUSTOMER SUPPORT ── */}
+      <div className="cluv-card is-highlight cluv-mb-6">
+        <div className="cluv-flex-responsive cluv-gap-4">
           <div className="cluv-flex-row cluv-items-center cluv-gap-4">
             <div className="cluv-card-icon-wrap is-lg is-teal">
               <MessageCircle size={24} />
             </div>
-            <div>
+            <div className="cluv-flex-col cluv-gap-0.5">
               <h3 className="cluv-title-card cluv-m-0">Masih punya pertanyaan yang belum terjawab?</h3>
-              <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                Skinsistant AI siap diajak berdiskusi 24/7, atau hubungi tim Customer Support kami untuk bantuan kendala pembayaran.
+              <p className="cluv-caption cluv-text-muted cluv-m-0">
+                Skinsistant AI siap berdiskusi edukatif 24/7, atau hubungi tim bantuan kami untuk kendala verifikasi transaksi.
               </p>
             </div>
           </div>
 
-          <div className="cluv-flex-row cluv-gap-2">
-            <Link to="/chatbot" className="cluv-btn is-primary is-sm">
-              <Sparkles size={14} /> Tanya Skinsistant AI
-            </Link>
-            <a
-              href="mailto:support@skincluv.com?subject=Pertanyaan%20Skincluv"
-              className="cluv-btn is-outline is-sm"
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-w-full-mobile">
+            <Button
+              variant="primary"
+              size="sm"
+              iconLeft={<Sparkles size={14} />}
+              to="/chatbot"
+              className="cluv-flex-1-mobile"
             >
-              <Mail size={14} /> Email Support
-            </a>
+              Tanya Skinsistant AI
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              iconLeft={<Mail size={14} />}
+              href="mailto:support@skincluv.com?subject=Bantuan%20Aplikasi%20Skincluv"
+              className="cluv-flex-1-mobile"
+            >
+              Email Support
+            </Button>
           </div>
         </div>
       </div>
