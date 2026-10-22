@@ -553,7 +553,19 @@ Seluruh 6 kartu bento di `DashboardPage.tsx` telah dimutasi ke arsitektur slot m
      - Paket Free: `<Button variant="secondary" size="md" block disabled={user ? true : false} iconRight={!user ? <ArrowRight size={14} /> : undefined} ...>`.
      - Paket GLOW: `<Button variant="secondary" size="md" block disabled={user && isPro} iconRight={<ArrowRight size={14} />} onClick={() => handleSelectPlan('glow')}>`.
      - Paket PRO: `<Button variant="primary" size="md" block iconLeft={<Crown size={15} />} iconRight={<ArrowRight size={14} />} onClick={() => handleSelectPlan('pro')}>`.
-20. **Cheatsheet & Snippet Quick-Lookup**:
+20. **Rombak Total Halaman Paket App (`AppPricingPage.tsx`) — Zen & Focused Minimalist Standard**:
+   - **Eliminasi Total "Box Fatigue" & Clutter**: Merespons feedback pengguna mengenai layout lama yang terasa penuh, sesak, dan banyak kotak di dalam kotak (*card overdose*). Seluruh bento edukasi bertingkat, 3 kartu reassurance berlebih, dan 4-accordion FAQ dieliminasi demi ruang bernapas (*negative space*) yang lega.
+   - **Compact 1-Line Status Bar**: Mengganti banner besar dengan 1 baris ramping `.cluv-card.is-compact` (16px) yang memuat status langganan aktif pengguna (contoh: `Skincluv PRO Aktif • Berakhir 26 Okt 2026 (4 hari tersisa)`) serta tombol shortcut cepat `Riwayat Tagihan` dan `Kelola di Billing →`.
+   - **2-Bento Card Head-to-Head (GLOW vs PRO)**:
+     - Mengeliminasi kartu Free yang tidak relevan bagi user login.
+     - **Kartu Kiri (GLOW - Rp 25.000 / 30 Hari)**: Smart Starter untuk cek berkala (~Rp 830/hari), 100 Kuota Universal AI.
+     - **Kartu Kanan (PRO - Rp 49.000 / 30 Hari)**: Elevated flagship dengan golden badge `👑 Paling Diminati (85% Sahabat)`, 500 Kuota Universal AI (5x lipat), dan akses Skinsistant AI tanpa batas.
+     - **Contextual CTA Buttons**: Tombol cerdas mendeteksi status pengguna (`Perpanjang PRO`, `Upgrade ke PRO`, atau `Pilih PRO`).
+     - **Bullet Poin Singkat & Tajam**: 5-6 poin esensial per kartu tanpa paragraf panjang yang melelahkan mata.
+   - **Zen Footer Strip**: 1 baris footer ramping dan bersih: `🛡️ 100% Prabayar 30 Hari • Tanpa auto-debit • Pembayaran resmi via Tripay (QRIS & VA)` dengan tautan ke FAQ.
+   - **Single Viewport Fit**: Halaman langsung pas dalam satu layar 1080p tanpa scroll fatigue.
+   - **Zero Inline Styles**: Menambahkan modifier `.cluv-card.is-tint-teal` dan `.cluv-card.is-tint-gold` di `cards.css`.
+21. **Cheatsheet & Snippet Quick-Lookup**:
    - Memperbarui Section 11 B di `CLUV_FRAMEWORK_CHEATSHEET.md` dengan contoh prop lengkap `<Button />`.
 
 ### 📌 4. Halaman Ditandai untuk Perbaikan Penuh (Backlog Full Redesign)

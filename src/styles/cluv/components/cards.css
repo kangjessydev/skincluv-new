@@ -48,6 +48,16 @@
   background: var(--cluv-rose-soft, #fdf2f4);
 }
 
+.cluv-card.is-tint-teal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-card.is-tint-gold {
+  background: var(--cluv-gold-soft, #fef8ee);
+  border-color: var(--cluv-gold-line, #fae0b8);
+}
+
 /* Horizontal Row Layout Modifier (.cluv-card.is-row) */
 .cluv-card.is-row {
   flex-direction: row;
