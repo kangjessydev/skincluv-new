@@ -594,9 +594,22 @@ Seluruh 6 kartu bento di `DashboardPage.tsx` telah dimutasi ke arsitektur slot m
      5. **Jembatan Cerdas ke Skinsistant AI**: Fallback ramah jika pencarian kosong, lengkap dengan tombol langsung ke obrolan AI dengan pertanyaan terisi.
    - **Standar Frontend**: 100% Cluv Framework (`<Button>`, `<Badge>`, `.cluv-card`, `.cluv-chip`, `.cluv-flex-responsive`), zero inline styles, patuh Invarian 13, 18, dan 19.
 
+24. **Rombak Total Skin Journey & Riwayat Analisis (`ScanHistoryPage.tsx`) — Zen Chronological Feed & Slide-Over Inspector**:
+   - **Scope**: `src/pages/app/ScanHistoryPage.tsx`, `src/components/scans/FaceScanDetailDrawer.tsx`, `src/components/scans/IngredientScanDetailDrawer.tsx`, `src/components/scans/FaceScanDetailModal.tsx`, `src/styles/cluv/layout.css`.
+   - **Akar Masalah yang Dihapus & Dibenahi**:
+     1. **Eliminasi Kartu List Sumpek**: Menghapus paragraf panjang AI yang dipaksakan berjejer horizontal. Kartu kini berupa timeline feed yang lega dan fokus pada ringkasan kunci.
+     2. **Kepatuhan Invarian 19 (UU Kesehatan & Non-Therapeutic Claim Boundary)**: Menghapus label ilegal `REKAM MEDIS KLINIS` dari seluruh modal dan drawer detail, digantikan dengan label defensible `Observasi Visual Terarsip (Non-Klinis)`.
+     3. **Kepatuhan Invarian 13 (PerBPOM No. 3/2022)**: Menghapus klaim kosmetik absolut `Bebas Toksin`, digantikan dengan terminologi kualitatif defensible `Formula Terverifikasi Baik`.
+     4. **Kepatuhan Invarian 14 (MCID Guardrail)**: Memperbaiki logika perbandingan tren agar tidak lagi menghasilkan klaim menyesatkan seperti `+0 Poin Meningkat`. Perbedaan < 5 poin kini dinyatakan sebagai `Stabil (Variasi normal pencahayaan)`.
+   - **Fitur Baru & Interaksi Ergonomis**:
+     1. **Slide-Over Detail Drawer (`.cluv-drawer.is-wide`)**: Menggantikan modal pop-up tengah yang kaku dengan Slide-Over Drawer elegan yang meluncur dari kanan layar. Pengguna dapat menginspeksi evaluasi per area wajah (dahi, pipi, hidung, dagu) atau rincian formula produk tanpa kehilangan posisi scroll timeline feed.
+     2. **Bento Health Overview Grid**: 3 kartu KPI bento minimalis di bagian atas yang menghitung Skor Rata-rata, Konsistensi Sesi, dan Dinamika Terkini berbasis MCID.
+     3. **Filter & Live Search Bar**: Filter chips instan (`Semua`, `Kondisi Optimal 80+`, `Perlu Perhatian <80` / `Formula Baik`) serta search bar untuk mencari riwayat berdasarkan kondisi, produk, atau brand.
+     4. **Jembatan Konsultasi Kontekstual**: Tombol langsung di setiap drawer untuk menanyakan hasil scan ke Skinsistant AI.
+   - **Kompilasi & Tipe**: 100% Cluv Framework (`<Button>`, `<Badge>`, `.cluv-score-ring`, `.cluv-score-badge`, `.cluv-drawer`), zero raw emojis, lolos verifikasi `tsc -b` 0 error.
+
 ### 📌 4. Halaman Ditandai untuk Perbaikan Penuh (Backlog Full Redesign)
-Sesuai instruksi pengguna, halaman berikut ditandai untuk penyesuaian arsitektur visual & layout secara penuh pada sesi tersendiri:
-1. **`ScanHistoryPage.tsx` (`/scan-history`)**: Penyesuaian arsitektur tab, visualisasi riwayat observasi wajah, cards histori ingredients, filter kronologis, dan empty state interaktif.
+1. **`ScanHistoryPage.tsx` (`/scan-history`)**: ✅ **SELESAI** (Dirombak penuh menjadi Zen Chronological Feed & Slide-Over Inspector pada v3.0).
 
 
 

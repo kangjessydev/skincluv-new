@@ -463,6 +463,16 @@
   overflow: hidden;
 }
 
+.cluv-drawer.is-wide {
+  max-width: 580px;
+}
+
+@media (max-width: 640px) {
+  .cluv-drawer.is-wide {
+    max-width: 100%;
+  }
+}
+
 .cluv-drawer-backdrop.is-open .cluv-drawer {
   transform: translateX(0);
 }
@@ -507,10 +517,21 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 20px 24px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 16px;
+}
+
+.cluv-drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--cluv-neutral-200);
+  background: var(--cluv-current-card-bg, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 /* =============================================================================

@@ -104,7 +104,7 @@ export default function FaceScanDetailModal({ scan, onClose, onConsult }: FaceSc
                     <Sparkles size={12} /> TIPE KULIT: {String(scan.skin_type || 'NORMAL').toUpperCase()}
                   </span>
                   <span className="hero-confidence-badge">
-                    <ShieldCheck size={12} /> REKAM MEDIS KLINIS
+                    <ShieldCheck size={12} /> OBSERVASI VISUAL TERARSIP
                   </span>
                 </div>
                 <p className="hero-notes-text">{scan.analysis_notes}</p>
