@@ -1,27 +1,29 @@
 // src/pages/app/ScanHistoryPage.tsx
-// Zero-Emoji, Defensible Copywriting, 100% Cluv Framework Master-Detail Skin Journey
+// Zero-Emoji, Defensible Copywriting, 100% Pure Cluv Framework
+// Architecture: Unified Bento Cards with In-Place Expansion (Canonical Cluv Standard)
+// Compliance: Invariant 13 (Defensible claims), Invariant 14 (MCID Guardrail), Invariant 19 (Non-therapeutic)
+
 import React, { useEffect, useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Calendar,
   Sparkles,
-  TrendingUp,
   ScanFace,
-  ChevronRight,
-  Award,
-  RefreshCw,
+  ChevronDown,
+  ChevronUp,
   FlaskConical,
   CheckCircle2,
   ShieldCheck,
-  ShieldAlert,
   Search,
   X,
+  Filter,
   Target,
   Layers,
   AlertTriangle,
   Tag,
   MessageSquare,
+  RefreshCw,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -36,19 +38,16 @@ export default function ScanHistoryPage() {
 
   // Face Scans State
   const [scans, setScans] = useState<FaceScan[]>([])
-  const [selectedScan, setSelectedScan] = useState<FaceScan | null>(null)
+  const [expandedFaceIds, setExpandedFaceIds] = useState<string[]>([])
 
   // Ingredient Scans State
   const [ingredientScans, setIngredientScans] = useState<IngredientScan[]>([])
-  const [selectedIngredientScan, setSelectedIngredientScan] = useState<IngredientScan | null>(null)
+  const [expandedIngIds, setExpandedIngIds] = useState<string[]>([])
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('')
   const [faceFilter, setFaceFilter] = useState<'all' | 'optimal' | 'attention'>('all')
   const [ingFilter, setIngFilter] = useState<'all' | 'safe' | 'attention'>('all')
-
-  // Mobile navigation state
-  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
 
   const fetchAllHistory = async () => {
     let targetUid = session?.user?.id || user?.id || profile?.id
@@ -73,7 +72,8 @@ export default function ScanHistoryPage() {
 
       if (!faceErr && faceData && faceData.length > 0) {
         setScans(faceData as FaceScan[])
-        setSelectedScan(faceData[0] as FaceScan)
+        // Auto-expand latest scan
+        setExpandedFaceIds([faceData[0].id])
       } else {
         // Fallback skin_profiles jika face_scans kosong
         const { data: profileScan } = await supabase
@@ -99,10 +99,10 @@ export default function ScanHistoryPage() {
             created_at: profileScan.created_at || new Date().toISOString(),
           }
           setScans([fallbackScan])
-          setSelectedScan(fallbackScan)
+          setExpandedFaceIds([fallbackScan.id])
         } else {
           setScans([])
-          setSelectedScan(null)
+          setExpandedFaceIds([])
         }
       }
 
@@ -115,10 +115,10 @@ export default function ScanHistoryPage() {
 
       if (!ingErr && ingData && ingData.length > 0) {
         setIngredientScans(ingData as IngredientScan[])
-        setSelectedIngredientScan(ingData[0] as IngredientScan)
+        setExpandedIngIds([ingData[0].id])
       } else {
         setIngredientScans([])
-        setSelectedIngredientScan(null)
+        setExpandedIngIds([])
       }
     } catch (err) {
       console.warn('Fetch history error:', err)
@@ -134,55 +134,27 @@ export default function ScanHistoryPage() {
 
   // Face Scan Statistics
   const totalFaceScans = scans.length
-  const avgFaceScore =
-    totalFaceScans > 0
-      ? Math.round(scans.reduce((acc, s) => acc + (s.overall_score || 0), 0) / totalFaceScans)
-      : 0
-  const latestFaceScore = scans[0]?.overall_score || 0
-  const previousFaceScore = scans[1]?.overall_score || latestFaceScore
-  const faceScoreDiff = latestFaceScore - previousFaceScore
-
-  // MCID Guardrail Computation (Invariant 14)
-  const faceTrendMeta = useMemo(() => {
-    if (totalFaceScans < 2) {
-      return {
-        label: 'Basis Awal',
-        val: '-',
-        sub: 'Sesi analisis perdana',
-        badge: 'neutral' as const,
-      }
-    }
-    if (Math.abs(faceScoreDiff) < 5) {
-      return {
-        label: 'Stabil',
-        val: '0 Poin',
-        sub: 'Variasi normal pencahayaan (MCID)',
-        badge: 'teal' as const,
-      }
-    }
-    if (faceScoreDiff >= 5) {
-      return {
-        label: 'Meningkat',
-        val: `+${faceScoreDiff} Poin`,
-        sub: 'Peningkatan kondisi terukur',
-        badge: 'teal' as const,
-      }
-    }
-    return {
-      label: 'Penyesuaian',
-      val: `${faceScoreDiff} Poin`,
-      sub: 'Perlu fokus perawatan',
-      badge: 'gold' as const,
-    }
-  }, [totalFaceScans, faceScoreDiff])
+  const optimalFaceCount = scans.filter((s) => (s.overall_score || 0) >= 80).length
+  const attentionFaceCount = scans.filter((s) => (s.overall_score || 0) < 80).length
 
   // Ingredient Scan Statistics
   const totalIngScans = ingredientScans.length
   const safeProductsCount = ingredientScans.filter((i) => i.is_safe && (i.safety_score ?? 80) >= 65).length
-  const avgSafetyScore =
-    totalIngScans > 0
-      ? Math.round(ingredientScans.reduce((acc, s) => acc + (s.safety_score || 0), 0) / totalIngScans)
-      : 0
+  const attentionIngCount = totalIngScans - safeProductsCount
+
+  // Toggle Face Expansion
+  const toggleFaceExpand = (id: string) => {
+    setExpandedFaceIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    )
+  }
+
+  // Toggle Ingredient Expansion
+  const toggleIngExpand = (id: string) => {
+    setExpandedIngIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    )
+  }
 
   // Filtered Face Scans
   const filteredFaceScans = useMemo(() => {
@@ -228,171 +200,144 @@ export default function ScanHistoryPage() {
     })
   }, [ingredientScans, ingFilter, searchQuery])
 
-  // Parse Raw Response for Selected Face Scan
-  const selectedFaceRaw = useMemo(() => {
-    if (!selectedScan) return {}
-    try {
-      if (typeof selectedScan.raw_ai_response === 'string') {
-        return JSON.parse(selectedScan.raw_ai_response)
-      }
-      if (selectedScan.raw_ai_response && typeof selectedScan.raw_ai_response === 'object') {
-        return selectedScan.raw_ai_response as Record<string, any>
-      }
-    } catch {
-      return {}
-    }
-    return {}
-  }, [selectedScan])
-
-  const parsedAreas = useMemo(() => {
-    if (!selectedScan) return []
-    if (Array.isArray(selectedScan.area_evaluations) && selectedScan.area_evaluations.length > 0) {
-      return selectedScan.area_evaluations
-    }
-    if (Array.isArray(selectedFaceRaw?.area_evaluations)) {
-      return selectedFaceRaw.area_evaluations
-    }
-    return []
-  }, [selectedScan, selectedFaceRaw])
-
-  const tipsAvoid = Array.isArray(selectedFaceRaw?.personal_tips?.avoid) ? selectedFaceRaw.personal_tips.avoid : []
-  const tipsReduce = Array.isArray(selectedFaceRaw?.personal_tips?.reduce) ? selectedFaceRaw.personal_tips.reduce : []
-  const tipsDo = Array.isArray(selectedFaceRaw?.personal_tips?.do) ? selectedFaceRaw.personal_tips.do : []
-
-  // Parse Raw Response for Selected Ingredient Scan
-  const selectedIngRaw = useMemo(() => {
-    if (!selectedIngredientScan) return {}
-    try {
-      if (typeof selectedIngredientScan.raw_ai_response === 'string') {
-        return JSON.parse(selectedIngredientScan.raw_ai_response)
-      }
-      if (selectedIngredientScan.raw_ai_response && typeof selectedIngredientScan.raw_ai_response === 'object') {
-        return selectedIngredientScan.raw_ai_response as Record<string, any>
-      }
-    } catch {
-      return {}
-    }
-    return {}
-  }, [selectedIngredientScan])
-
-  const ingBreakdown = Array.isArray(selectedIngredientScan?.ingredients_breakdown)
-    ? (selectedIngredientScan.ingredients_breakdown as any[])
-    : Array.isArray(selectedIngRaw?.ingredients_breakdown)
-    ? selectedIngRaw.ingredients_breakdown
-    : []
-
-  const heroIngredients = Array.isArray(selectedIngRaw?.hero_actives)
-    ? selectedIngRaw.hero_actives
-    : Array.isArray(selectedIngredientScan?.key_ingredients)
-    ? selectedIngredientScan.key_ingredients
-    : []
-
-  const dangerCombos = Array.isArray(selectedIngRaw?.layering_guide?.danger_combos)
-    ? selectedIngRaw.layering_guide.danger_combos
-    : []
-
-  const personalNotes = Array.isArray(selectedIngRaw?.personal_contraindications)
-    ? selectedIngRaw.personal_contraindications
-    : []
-
-  // SVG Gauge calculations for Face
-  const faceScore = selectedScan?.overall_score || 80
-  const isOptimal = faceScore >= 80
-  const isGood = faceScore >= 65 && faceScore < 80
-  const radius = 40
-  const circumference = 2 * Math.PI * radius
-  const strokeDashoffset = circumference - (faceScore / 100) * circumference
-
-  // SVG Gauge calculations for Ingredient
-  const ingScore = selectedIngredientScan?.safety_score ?? 80
-  const isVerySafe = ingScore >= 85
-  const isSafe = (selectedIngredientScan?.is_safe ?? true) && ingScore >= 65
-  const ingDashoffset = circumference - (ingScore / 100) * circumference
-
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* 1. Header & Navigation */}
-      <div className="cluv-mb-6">
-        <Link to="/" className="cluv-back-link cluv-mb-3">
-          <ArrowLeft size={16} />
-          <span>Kembali ke Dashboard</span>
-        </Link>
-        <h1 className="cluv-title-page">Skin Journey &amp; Riwayat Analisis</h1>
-        <p className="cluv-caption cluv-text-muted">
+      {/* ── 1. NAVIGASI KEMBALI KANONIKAL ── */}
+      <button
+        type="button"
+        className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3"
+        onClick={() => navigate('/')}
+      >
+        <ArrowLeft size={16} />
+        <span>Kembali ke Dashboard</span>
+      </button>
+
+      {/* ── 2. HEADER HALAMAN KANONIKAL (100% Selaras dengan AppFaq & AppPricing) ── */}
+      <header className="cluv-mb-5">
+        <div className="cluv-badge is-teal is-sm cluv-mb-2">
+          <ScanFace size={13} />
+          <span>SKIN JOURNEY</span>
+        </div>
+        <h1 className="cluv-title-section cluv-m-0">Skin Journey &amp; Riwayat Analisis</h1>
+        <p className="cluv-subtitle cluv-mt-1">
           Pantau perkembangan kesehatan kulit dan riwayat analisis formula skincare secara berkala.
         </p>
+      </header>
 
-        {/* Tab Switcher & Compact 1-Line Status Bar */}
-        <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-4 cluv-flex-wrap cluv-mt-5">
-          <div className="cluv-tabs">
-            <button
-              type="button"
-              className={`cluv-tab-btn ${activeTab === 'face' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('face')
-                setSearchQuery('')
-                setMobileView('list')
-              }}
-            >
-              <ScanFace size={16} />
-              <span>Analisis Wajah AI ({totalFaceScans})</span>
-            </button>
-            <button
-              type="button"
-              className={`cluv-tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('ingredient')
-                setSearchQuery('')
-                setMobileView('list')
-              }}
-            >
-              <FlaskConical size={16} />
-              <span>Evaluasi Formula Skincare ({totalIngScans})</span>
-            </button>
-          </div>
+      {/* ── 3. TAB NAVIGASI MANDIRI ── */}
+      <div className="cluv-tabs cluv-mb-5">
+        <button
+          type="button"
+          className={`cluv-tab-btn ${activeTab === 'face' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('face')
+            setSearchQuery('')
+          }}
+        >
+          <ScanFace size={16} />
+          <span>Analisis Wajah AI ({totalFaceScans})</span>
+        </button>
+        <button
+          type="button"
+          className={`cluv-tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('ingredient')
+            setSearchQuery('')
+          }}
+        >
+          <FlaskConical size={16} />
+          <span>Evaluasi Formula Skincare ({totalIngScans})</span>
+        </button>
+      </div>
 
-          {/* Slim 1-Line Metric Summary Bar */}
-          <div className="cluv-card cluv-py-2 cluv-px-4 cluv-flex-row cluv-items-center cluv-gap-4 cluv-bg-surface-soft">
-            {activeTab === 'face' ? (
-              <>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Rata-rata:</span>
-                  <span className="cluv-caption cluv-font-bold cluv-text-teal">{avgFaceScore}/100</span>
-                </div>
-                <span className="cluv-text-muted">•</span>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Sesi:</span>
-                  <span className="cluv-caption cluv-font-bold cluv-text-dark">{totalFaceScans} Kali</span>
-                </div>
-                <span className="cluv-text-muted">•</span>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Tren MCID:</span>
-                  <Badge variant={faceTrendMeta.badge} size="sm">{faceTrendMeta.label}</Badge>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Total Produk:</span>
-                  <span className="cluv-caption cluv-font-bold cluv-text-teal">{totalIngScans}</span>
-                </div>
-                <span className="cluv-text-muted">•</span>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Rata-rata Safety:</span>
-                  <span className="cluv-caption cluv-font-bold cluv-text-dark">{avgSafetyScore}/100</span>
-                </div>
-                <span className="cluv-text-muted">•</span>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Formula Baik:</span>
-                  <span className="cluv-caption cluv-font-bold cluv-text-teal">{safeProductsCount}</span>
-                </div>
-              </>
+      {/* ── 4. SEARCH & FILTER BAR KANONIKAL (Pola Baku AppFaqPage) ── */}
+      <div className="cluv-card cluv-mb-6">
+        <div className="cluv-field cluv-mb-3">
+          <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
+            <Search size={18} className="cluv-input-icon is-leading" />
+            <input
+              type="text"
+              className="cluv-input"
+              placeholder={
+                activeTab === 'face'
+                  ? 'Cari kondisi kulit, keluhan, atau tanggal...'
+                  : 'Cari nama produk atau brand skincare...'
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="cluv-input-icon is-trailing"
+                onClick={() => setSearchQuery('')}
+                title="Hapus pencarian"
+              >
+                <X size={16} />
+              </button>
             )}
           </div>
         </div>
+
+        {/* Quick Filter Chips */}
+        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
+          <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
+            <Filter size={13} />
+            Filter Status:
+          </span>
+          {activeTab === 'face' ? (
+            <>
+              <button
+                type="button"
+                className={`cluv-chip is-sm ${faceFilter === 'all' ? 'is-active' : ''}`}
+                onClick={() => setFaceFilter('all')}
+              >
+                Semua ({totalFaceScans})
+              </button>
+              <button
+                type="button"
+                className={`cluv-chip is-sm ${faceFilter === 'optimal' ? 'is-active' : ''}`}
+                onClick={() => setFaceFilter('optimal')}
+              >
+                Kondisi Optimal 80+ ({optimalFaceCount})
+              </button>
+              <button
+                type="button"
+                className={`cluv-chip is-sm ${faceFilter === 'attention' ? 'is-active' : ''}`}
+                onClick={() => setFaceFilter('attention')}
+              >
+                Perlu Perhatian ({attentionFaceCount})
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={`cluv-chip is-sm ${ingFilter === 'all' ? 'is-active' : ''}`}
+                onClick={() => setIngFilter('all')}
+              >
+                Semua ({totalIngScans})
+              </button>
+              <button
+                type="button"
+                className={`cluv-chip is-sm ${ingFilter === 'safe' ? 'is-active' : ''}`}
+                onClick={() => setIngFilter('safe')}
+              >
+                Formula Baik ({safeProductsCount})
+              </button>
+              <button
+                type="button"
+                className={`cluv-chip is-sm ${ingFilter === 'attention' ? 'is-active' : ''}`}
+                onClick={() => setIngFilter('attention')}
+              >
+                Perlu Perhatian ({attentionIngCount})
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* 2. Master-Detail Interactive Canvas */}
+      {/* ── 5. UNIFIED BENTO CARDS GRID (2 Kolom Desktop, In-Place Expansion) ── */}
       {loading ? (
         <div className="cluv-card cluv-empty cluv-text-center cluv-py-12">
           <RefreshCw size={28} className="cluv-text-teal animate-spin cluv-mx-auto cluv-mb-3" />
@@ -401,783 +346,535 @@ export default function ScanHistoryPage() {
           </p>
         </div>
       ) : activeTab === 'face' ? (
-        /* TAB 1: FACE SCANS MASTER-DETAIL */
-        scans.length === 0 ? (
+        /* TAB 1: FACE SCANS BENTO GRID */
+        filteredFaceScans.length === 0 ? (
           <div className="cluv-card cluv-empty cluv-text-center cluv-py-12">
             <div className="cluv-card-icon-wrap is-xl cluv-mx-auto cluv-mb-4 is-teal">
               <ScanFace size={36} />
             </div>
-            <h3 className="cluv-title-card cluv-mb-2">Belum Ada Riwayat Scan Wajah</h3>
+            <h3 className="cluv-title-card cluv-mb-2">
+              {scans.length === 0
+                ? 'Belum Ada Riwayat Scan Wajah'
+                : 'Tidak Ditemukan Riwayat yang Sesuai'}
+            </h3>
             <p className="cluv-body cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-mb-5">
-              Kamu belum melakukan pemindaian wajah. Mulai sekarang untuk melacak perkembangan kesehatan kulitmu!
+              {scans.length === 0
+                ? 'Kamu belum melakukan pemindaian wajah. Mulai sekarang untuk melacak kesehatan kulitmu secara berkala!'
+                : 'Coba ubah kata kunci pencarian atau reset filter untuk melihat data riwayat lainnya.'}
             </p>
-            <Button
-              variant="primary"
-              size="md"
-              iconLeft={<Sparkles size={16} />}
-              to="/face-scan"
-            >
-              Mulai Face Scan Pertama
-            </Button>
+            {scans.length === 0 ? (
+              <Button
+                variant="primary"
+                size="md"
+                iconLeft={<Sparkles size={16} />}
+                to="/face-scan"
+              >
+                Mulai Face Scan Pertama
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('')
+                  setFaceFilter('all')
+                }}
+              >
+                Reset Filter
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="cluv-master-detail">
-            {/* 2.1 LEFT COLUMN: MASTER FEED */}
-            <div className={`cluv-master-pane ${mobileView === 'detail' ? 'cluv-hide-mobile' : ''}`}>
-              {/* Search & Filters */}
-              <div className="cluv-card cluv-p-3 cluv-flex-col cluv-gap-2">
-                <div className="cluv-input-wrap cluv-w-full">
-                  <span className="cluv-input-icon-left">
-                    <Search size={14} />
-                  </span>
-                  <input
-                    type="text"
-                    className="cluv-input cluv-input-with-icon"
-                    placeholder="Cari kondisi kulit..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      className="cluv-input-clear-btn"
-                      onClick={() => setSearchQuery('')}
-                      aria-label="Hapus Pencarian"
+          <div className="cluv-grid cols-2 cluv-gap-4">
+            {filteredFaceScans.map((scan, idx) => {
+              const isExpanded = expandedFaceIds.includes(scan.id)
+              const score = scan.overall_score || 0
+              const isOptimal = score >= 80
+              const isCaution = score >= 65 && score < 80
+
+              const dateObj = new Date(scan.created_at)
+              const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })
+              const formattedTime = dateObj.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+
+              let rawResponse: Record<string, any> = {}
+              try {
+                if (typeof scan.raw_ai_response === 'string') {
+                  rawResponse = JSON.parse(scan.raw_ai_response)
+                } else if (scan.raw_ai_response && typeof scan.raw_ai_response === 'object') {
+                  rawResponse = scan.raw_ai_response as Record<string, any>
+                }
+              } catch {
+                rawResponse = {}
+              }
+
+              const areaList =
+                Array.isArray(scan.area_evaluations) && scan.area_evaluations.length > 0
+                  ? scan.area_evaluations
+                  : Array.isArray(rawResponse.area_evaluations)
+                  ? rawResponse.area_evaluations
+                  : []
+
+              const tipsAvoid = Array.isArray(rawResponse?.personal_tips?.avoid)
+                ? rawResponse.personal_tips.avoid
+                : []
+              const tipsReduce = Array.isArray(rawResponse?.personal_tips?.reduce)
+                ? rawResponse.personal_tips.reduce
+                : []
+              const tipsDo = Array.isArray(rawResponse?.personal_tips?.do)
+                ? rawResponse.personal_tips.do
+                : []
+
+              return (
+                <div
+                  key={scan.id}
+                  className="cluv-card is-interactive cluv-flex-col cluv-gap-3"
+                  onClick={() => toggleFaceExpand(scan.id)}
+                >
+                  {/* Card Header */}
+                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2">
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
+                      <Calendar size={13} />
+                      <span>{formattedDate} • {formattedTime}</span>
+                      {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
+                    </div>
+
+                    <Badge variant={isOptimal ? 'teal' : isCaution ? 'gold' : 'rose'} size="sm">
+                      {isOptimal ? 'Kondisi Optimal' : isCaution ? 'Kondisi Baik' : 'Perlu Perhatian'}
+                    </Badge>
+                  </div>
+
+                  {/* Card Main Body */}
+                  <div className="cluv-flex-row cluv-items-start cluv-gap-3">
+                    <div
+                      className={`cluv-score-badge ${
+                        isOptimal ? 'is-optimal' : isCaution ? 'is-caution' : 'is-alert'
+                      }`}
                     >
-                      <X size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="cluv-flex-row cluv-items-center cluv-gap-1 cluv-flex-wrap">
-                  <button
-                    type="button"
-                    className={`cluv-chip is-sm ${faceFilter === 'all' ? 'is-active' : ''}`}
-                    onClick={() => setFaceFilter('all')}
-                  >
-                    Semua ({totalFaceScans})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cluv-chip is-sm ${faceFilter === 'optimal' ? 'is-active' : ''}`}
-                    onClick={() => setFaceFilter('optimal')}
-                  >
-                    Optimal 80+
-                  </button>
-                  <button
-                    type="button"
-                    className={`cluv-chip is-sm ${faceFilter === 'attention' ? 'is-active' : ''}`}
-                    onClick={() => setFaceFilter('attention')}
-                  >
-                    Perlu Perhatian
-                  </button>
-                </div>
-              </div>
-
-              {/* Scrollable Session Items */}
-              <div className="cluv-flex-col cluv-gap-2">
-                {filteredFaceScans.length === 0 ? (
-                  <div className="cluv-card cluv-p-6 cluv-text-center cluv-text-muted cluv-caption">
-                    Tidak ada sesi yang cocok dengan filter.
-                  </div>
-                ) : (
-                  filteredFaceScans.map((scan, idx) => {
-                    const isSelected = selectedScan?.id === scan.id
-                    const sScore = scan.overall_score || 0
-                    const isOpt = sScore >= 80
-                    const isCtn = sScore >= 65 && sScore < 80
-
-                    const dateObj = new Date(scan.created_at)
-                    const dateFormatted = dateObj.toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })
-                    const timeFormatted = dateObj.toLocaleTimeString('id-ID', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-
-                    return (
-                      <div
-                        key={scan.id}
-                        className={`cluv-session-item ${isSelected ? 'is-selected' : ''}`}
-                        onClick={() => {
-                          setSelectedScan(scan)
-                          setMobileView('detail')
-                        }}
-                      >
-                        {/* Mini Score Badge */}
-                        <div
-                          className={`cluv-score-badge ${
-                            isOpt ? 'is-optimal' : isCtn ? 'is-caution' : 'is-alert'
-                          }`}
-                        >
-                          <span className="cluv-score-badge-val">{sScore}</span>
-                          <span className="cluv-score-badge-label">Skor</span>
-                        </div>
-
-                        {/* Title & Date */}
-                        <div className="cluv-flex-col cluv-gap-05 cluv-min-w-0 cluv-flex-1">
-                          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
-                            <span>{dateFormatted} • {timeFormatted}</span>
-                            {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
-                          </div>
-                          <span className="cluv-caption cluv-font-bold cluv-text-dark cluv-truncate">
-                            {scan.skin_status_title || 'Analisis Kondisi Kulit'}
-                          </span>
-                          <span className="cluv-micro cluv-text-muted cluv-truncate">
-                            Tipe: {String(scan.skin_type || 'Normal').toUpperCase()}
-                          </span>
-                        </div>
-
-                        <ChevronRight
-                          size={16}
-                          className={`cluv-flex-shrink-0 ${
-                            isSelected ? 'cluv-text-teal' : 'cluv-text-muted'
-                          }`}
-                        />
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* 2.2 RIGHT COLUMN: LIVE INSPECTION CANVAS */}
-            {selectedScan ? (
-              <div className={`cluv-detail-pane ${mobileView === 'list' ? 'cluv-hide-mobile' : ''}`}>
-                {/* Mobile Back Button to Master Feed */}
-                <div className="cluv-hide-desktop cluv-mb-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    iconLeft={<ArrowLeft size={14} />}
-                    onClick={() => setMobileView('list')}
-                  >
-                    Kembali ke Daftar Sesi
-                  </Button>
-                </div>
-
-                <div className="cluv-card cluv-p-6 cluv-flex-col cluv-gap-5">
-                  {/* Top Bar of Canvas */}
-                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-border-b cluv-pb-4 cluv-gap-4 cluv-flex-wrap">
-                    <div>
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
-                        <Calendar size={13} />
-                        <span>
-                          {new Date(selectedScan.created_at).toLocaleDateString('id-ID', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                      <h2 className="cluv-title-card cluv-m-0">
-                        {selectedScan.skin_status_title || 'Laporan Analisis Kondisi Kulit'}
-                      </h2>
+                      <span className="cluv-score-badge-val">{score}</span>
+                      <span className="cluv-score-badge-label">Skor</span>
                     </div>
 
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        iconLeft={<MessageSquare size={14} />}
-                        onClick={() => navigate('/chatbot')}
-                      >
-                        Tanya Skinsistant
-                      </Button>
-                    </div>
-                  </div>
+                    <div className="cluv-flex-col cluv-gap-1 cluv-flex-1 cluv-min-w-0">
+                      <h3 className="cluv-title-card is-sm cluv-m-0">
+                        {scan.skin_status_title || 'Analisis Kondisi Kulit'}
+                      </h3>
+                      <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-line-clamp-2">
+                        {scan.analysis_notes || 'Hasil pemetaan kondisi kulit mandiri.'}
+                      </p>
 
-                  {/* Hero Gauge Section */}
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-5 cluv-flex-wrap">
-                    {/* SVG Gauge */}
-                    <div className="cluv-score-ring is-lg">
-                      <svg className="cluv-score-svg" viewBox="0 0 100 100">
-                        <circle
-                          className="cluv-score-bg-circle"
-                          cx="50"
-                          cy="50"
-                          r={radius}
-                          strokeWidth="8"
-                        />
-                        <circle
-                          className={`cluv-score-fg-circle ${
-                            isOptimal ? 'is-optimal' : isGood ? 'is-good' : 'is-alert'
-                          }`}
-                          cx="50"
-                          cy="50"
-                          r={radius}
-                          strokeWidth="8"
-                          strokeDasharray={circumference}
-                          strokeDashoffset={strokeDashoffset}
-                        />
-                      </svg>
-                      <div className="cluv-score-center">
-                        <span className="cluv-score-val">{faceScore}</span>
-                        <span className="cluv-score-max">/100</span>
-                      </div>
-                    </div>
-
-                    {/* Headline Metadata */}
-                    <div className="cluv-flex-col cluv-gap-2 cluv-flex-1 cluv-min-w-xs">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
-                        <Badge variant={isOptimal ? 'teal' : isGood ? 'info' : 'rose'} size="sm">
-                          {isOptimal ? 'Kondisi Optimal' : isGood ? 'Kondisi Baik' : 'Perlu Perhatian'}
-                        </Badge>
+                      <div className="cluv-chip-group cluv-mt-1">
                         <span className="cluv-chip is-sm">
-                          <Sparkles size={12} /> Tipe: {String(selectedScan.skin_type || 'Normal').toUpperCase()}
+                          Tipe: {String(scan.skin_type || 'Normal').toUpperCase()}
                         </span>
-                        {Array.isArray(selectedScan.skin_concerns) &&
-                          selectedScan.skin_concerns.map((c, i) => (
-                            <span key={i} className="cluv-chip is-sm">
-                              #{c}
+                        {Array.isArray(scan.skin_concerns) &&
+                          scan.skin_concerns.slice(0, 2).map((concern, cIdx) => (
+                            <span key={cIdx} className="cluv-chip is-sm">
+                              {concern}
                             </span>
                           ))}
                       </div>
-
-                      <div className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
-                        <ShieldCheck size={14} className="cluv-text-teal" />
-                        <span>Observasi Visual Terarsip (Non-Klinis)</span>
-                      </div>
-
-                      {selectedScan.analysis_notes && (
-                        <p className="cluv-body cluv-text-muted cluv-m-0 cluv-mt-1">
-                          {selectedScan.analysis_notes}
-                        </p>
-                      )}
                     </div>
                   </div>
 
-                  {/* Granular Area Evaluations (2-column Bento Grid) */}
-                  {parsedAreas.length > 0 && (
-                    <div className="cluv-flex-col cluv-gap-3 cluv-pt-3 cluv-border-t">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                        <div className="cluv-card-icon-wrap is-sm is-teal">
-                          <Layers size={14} />
+                  {/* In-Place Expanded Detail View */}
+                  {isExpanded && (
+                    <div
+                      className="cluv-flex-col cluv-gap-4 cluv-pt-4 cluv-border-t cluv-mt-1 cluv-animate-fade"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Observasi Note */}
+                      <div className="cluv-p-3 cluv-bg-surface-soft cluv-rounded-md cluv-border">
+                        <div className="cluv-flex-row cluv-items-center cluv-gap-1 cluv-caption cluv-text-muted cluv-mb-1">
+                          <ShieldCheck size={14} className="cluv-text-teal" />
+                          <span className="cluv-font-bold cluv-text-dark">Observasi Visual Terarsip (Non-Klinis):</span>
                         </div>
-                        <h3 className="cluv-title-card cluv-m-0">
-                          Evaluasi Kondisi Kulit Per Area ({parsedAreas.length} Area)
-                        </h3>
+                        <p className="cluv-body cluv-text-muted cluv-m-0">
+                          {scan.analysis_notes}
+                        </p>
                       </div>
 
-                      <div className="cluv-grid cols-2 cluv-gap-3">
-                        {parsedAreas.map((area: any, aIdx: number) => {
-                          const areaScore = area.score || 80
-                          const isAreaOpt = areaScore >= 80
+                      {/* Granular Area Evaluations */}
+                      {areaList.length > 0 && (
+                        <div className="cluv-flex-col cluv-gap-2">
+                          <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                            <Layers size={14} className="cluv-text-teal" />
+                            <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                              Evaluasi Area Wajah ({areaList.length} Area)
+                            </span>
+                          </div>
 
-                          return (
-                            <div key={aIdx} className="cluv-card cluv-p-4 cluv-flex-col cluv-gap-2 cluv-bg-surface-soft">
-                              <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2">
-                                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                                  <Target size={14} className="cluv-text-teal" />
-                                  <span className="cluv-font-bold cluv-text-dark">
-                                    {area.area_name || area.name || `Area ${aIdx + 1}`}
-                                  </span>
+                          <div className="cluv-flex-col cluv-gap-2">
+                            {areaList.map((area: any, aIdx: number) => {
+                              const aScore = area.score || 80
+                              const isAreaOpt = aScore >= 80
+
+                              return (
+                                <div key={aIdx} className="cluv-p-3 cluv-bg-surface-soft cluv-rounded-sm cluv-border">
+                                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2 cluv-mb-1">
+                                    <div className="cluv-flex-row cluv-items-center cluv-gap-1">
+                                      <Target size={13} className="cluv-text-teal" />
+                                      <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                                        {area.area_name || area.name || `Area ${aIdx + 1}`}
+                                      </span>
+                                    </div>
+                                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                                      <Badge variant={isAreaOpt ? 'teal' : 'gold'} size="sm">
+                                        {area.status || (isAreaOpt ? 'Optimal' : 'Perlu Perhatian')}
+                                      </Badge>
+                                      <span className="cluv-micro cluv-font-bold cluv-text-dark">
+                                        {aScore}/100
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {area.finding && (
+                                    <p className="cluv-caption cluv-text-muted cluv-m-0">
+                                      {area.finding}
+                                    </p>
+                                  )}
+                                  {area.action_plan && (
+                                    <p className="cluv-micro cluv-text-teal cluv-font-bold cluv-mt-1 cluv-mb-0">
+                                      Rencana: {area.action_plan}
+                                    </p>
+                                  )}
                                 </div>
-                                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                                  <Badge variant={isAreaOpt ? 'teal' : 'gold'} size="sm">
-                                    {area.status || (isAreaOpt ? 'Optimal' : 'Perlu Perhatian')}
-                                  </Badge>
-                                  <span className="cluv-caption cluv-font-bold cluv-text-dark">
-                                    {areaScore}/100
-                                  </span>
-                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tips Personal */}
+                      {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
+                        <div className="cluv-flex-col cluv-gap-2">
+                          <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                            Saran Rutinitas &amp; Kebiasaan:
+                          </span>
+                          <div className="cluv-grid cols-1 cluv-gap-2">
+                            {tipsDo.length > 0 && (
+                              <div className="cluv-p-3 cluv-border-teal cluv-rounded-sm cluv-bg-surface-soft">
+                                <span className="cluv-micro cluv-font-bold cluv-text-teal cluv-block cluv-mb-1">
+                                  Rekomendasi Rutin:
+                                </span>
+                                <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted">
+                                  {tipsDo.map((t: string, i: number) => (
+                                    <li key={i}>{t}</li>
+                                  ))}
+                                </ul>
                               </div>
-
-                              {area.finding && (
-                                <p className="cluv-caption cluv-text-muted cluv-m-0">
-                                  <span className="cluv-font-bold cluv-text-dark">Analisis: </span>
-                                  {area.finding}
-                                </p>
-                              )}
-
-                              {area.action_plan && (
-                                <p className="cluv-micro cluv-text-teal cluv-m-0 cluv-font-bold">
-                                  <span className="cluv-text-dark">Rencana: </span>
-                                  {area.action_plan}
-                                </p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Personalized Tips Section */}
-                  {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
-                    <div className="cluv-flex-col cluv-gap-3 cluv-pt-3 cluv-border-t">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                        <div className="cluv-card-icon-wrap is-sm is-gold">
-                          <CheckCircle2 size={14} />
+                            )}
+                            {tipsAvoid.length > 0 && (
+                              <div className="cluv-p-3 cluv-border-rose cluv-rounded-sm cluv-bg-surface-soft">
+                                <span className="cluv-micro cluv-font-bold cluv-text-danger cluv-block cluv-mb-1">
+                                  Hindari:
+                                </span>
+                                <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted">
+                                  {tipsAvoid.map((t: string, i: number) => (
+                                    <li key={i}>{t}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <h3 className="cluv-title-card cluv-m-0">
-                          Saran Rutinitas &amp; Tips Mandiri
-                        </h3>
-                      </div>
+                      )}
 
-                      <div className="cluv-grid cols-3 cluv-gap-3">
-                        {tipsDo.length > 0 && (
-                          <div className="cluv-card cluv-p-3 cluv-border-teal">
-                            <span className="cluv-micro cluv-font-bold cluv-text-teal cluv-block cluv-mb-1 cluv-uppercase">
-                              Rekomendasi Rutin:
-                            </span>
-                            <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted cluv-flex-col cluv-gap-1">
-                              {tipsDo.map((t: string, i: number) => (
-                                <li key={i}>{t}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {tipsReduce.length > 0 && (
-                          <div className="cluv-card cluv-p-3 cluv-border-gold">
-                            <span className="cluv-micro cluv-font-bold cluv-text-gold cluv-block cluv-mb-1 cluv-uppercase">
-                              Kurangi Kebiasaan:
-                            </span>
-                            <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted cluv-flex-col cluv-gap-1">
-                              {tipsReduce.map((t: string, i: number) => (
-                                <li key={i}>{t}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {tipsAvoid.length > 0 && (
-                          <div className="cluv-card cluv-p-3 cluv-border-rose">
-                            <span className="cluv-micro cluv-font-bold cluv-text-danger cluv-block cluv-mb-1 cluv-uppercase">
-                              Hindari:
-                            </span>
-                            <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted cluv-flex-col cluv-gap-1">
-                              {tipsAvoid.map((t: string, i: number) => (
-                                <li key={i}>{t}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                      {/* Action CTA */}
+                      <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-pt-2 cluv-gap-3 cluv-flex-wrap">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          iconLeft={<MessageSquare size={14} />}
+                          onClick={() => navigate('/chatbot')}
+                        >
+                          Konsultasikan ke Skinsistant
+                        </Button>
+                        <span className="cluv-micro cluv-text-muted">
+                          Bukan pengganti diagnosis dokter kulit
+                        </span>
                       </div>
                     </div>
                   )}
 
-                  {/* Defensible Legal Disclaimer */}
-                  <div className="cluv-alert is-neutral cluv-mt-2">
-                    <ShieldCheck size={16} className="cluv-text-muted cluv-flex-shrink-0" />
-                    <p className="cluv-micro cluv-text-muted cluv-m-0">
-                      Analisis ini adalah pemetaan observasi visual mandiri berbasis AI dan bukan merupakan diagnosis medis, resep, atau terapi dermatologi pengganti dokter spesialis kulit.
-                    </p>
+                  {/* Expansion Footer Toggle */}
+                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-pt-2 cluv-border-t cluv-mt-auto">
+                    <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-flex-row cluv-items-center cluv-gap-1">
+                      {isExpanded ? (
+                        <>
+                          <span>Tutup Rincian Analisis</span>
+                          <ChevronUp size={15} />
+                        </>
+                      ) : (
+                        <>
+                          <span>Buka Rincian Lengkap</span>
+                          <ChevronDown size={15} />
+                        </>
+                      )}
+                    </span>
+                    <span className="cluv-micro cluv-text-muted">
+                      {areaList.length > 0 ? `${areaList.length} Area Dianalisis` : 'Observasi AI'}
+                    </span>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="cluv-card cluv-p-8 cluv-text-center cluv-text-muted cluv-body">
-                Pilih salah satu sesi di sebelah kiri untuk melihat rincian pemetaan kondisi kulit.
-              </div>
-            )}
+              )
+            })}
           </div>
         )
       ) : (
-        /* TAB 2: INGREDIENT SCANS MASTER-DETAIL */
-        ingredientScans.length === 0 ? (
+        /* TAB 2: INGREDIENT SCANS BENTO GRID */
+        filteredIngScans.length === 0 ? (
           <div className="cluv-card cluv-empty cluv-text-center cluv-py-12">
             <div className="cluv-card-icon-wrap is-xl cluv-mx-auto cluv-mb-4 is-teal">
               <FlaskConical size={36} />
             </div>
-            <h3 className="cluv-title-card cluv-mb-2">Belum Ada Riwayat Formula Skincare</h3>
+            <h3 className="cluv-title-card cluv-mb-2">
+              {ingredientScans.length === 0
+                ? 'Belum Ada Riwayat Formula Skincare'
+                : 'Tidak Ditemukan Produk yang Sesuai'}
+            </h3>
             <p className="cluv-body cluv-text-muted cluv-max-w-md cluv-mx-auto cluv-mb-5">
-              Periksa keamanan formula pembersih, toner, atau serum harianmu untuk memastikan kompatibilitasnya dengan kulitmu.
+              {ingredientScans.length === 0
+                ? 'Periksa keamanan formula pembersih, toner, atau serum harianmu untuk memastikan kompatibilitasnya dengan kulitmu.'
+                : 'Coba ubah kata kunci pencarian atau reset filter untuk melihat data riwayat lainnya.'}
             </p>
-            <Button
-              variant="primary"
-              size="md"
-              iconLeft={<FlaskConical size={16} />}
-              to="/ingredient-scan"
-            >
-              Scan Komposisi Produk Pertama
-            </Button>
+            {ingredientScans.length === 0 ? (
+              <Button
+                variant="primary"
+                size="md"
+                iconLeft={<FlaskConical size={16} />}
+                to="/ingredient-scan"
+              >
+                Scan Komposisi Produk Pertama
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('')
+                  setIngFilter('all')
+                }}
+              >
+                Reset Filter
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="cluv-master-detail">
-            {/* 2.1 LEFT COLUMN: MASTER FEED */}
-            <div className={`cluv-master-pane ${mobileView === 'detail' ? 'cluv-hide-mobile' : ''}`}>
-              {/* Search & Filters */}
-              <div className="cluv-card cluv-p-3 cluv-flex-col cluv-gap-2">
-                <div className="cluv-input-wrap cluv-w-full">
-                  <span className="cluv-input-icon-left">
-                    <Search size={14} />
-                  </span>
-                  <input
-                    type="text"
-                    className="cluv-input cluv-input-with-icon"
-                    placeholder="Cari nama produk / brand..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      className="cluv-input-clear-btn"
-                      onClick={() => setSearchQuery('')}
-                      aria-label="Hapus Pencarian"
+          <div className="cluv-grid cols-2 cluv-gap-4">
+            {filteredIngScans.map((ing, idx) => {
+              const isExpanded = expandedIngIds.includes(ing.id)
+              const score = ing.safety_score ?? 80
+              const isSafe = ing.is_safe && score >= 65
+
+              const dateObj = new Date(ing.created_at)
+              const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
+
+              let ingRawResponse: Record<string, any> = {}
+              try {
+                if (typeof ing.raw_ai_response === 'string') {
+                  ingRawResponse = JSON.parse(ing.raw_ai_response)
+                } else if (ing.raw_ai_response && typeof ing.raw_ai_response === 'object') {
+                  ingRawResponse = ing.raw_ai_response as Record<string, any>
+                }
+              } catch {
+                ingRawResponse = {}
+              }
+
+              const ingBreakdown = Array.isArray(ing.ingredients_breakdown)
+                ? (ing.ingredients_breakdown as any[])
+                : Array.isArray(ingRawResponse?.ingredients_breakdown)
+                ? ingRawResponse.ingredients_breakdown
+                : []
+
+              const heroIngredients = Array.isArray(ingRawResponse?.hero_actives)
+                ? ingRawResponse.hero_actives
+                : Array.isArray(ing.key_ingredients)
+                ? ing.key_ingredients
+                : []
+
+              const dangerCombos = Array.isArray(ingRawResponse?.layering_guide?.danger_combos)
+                ? ingRawResponse.layering_guide.danger_combos
+                : []
+
+              return (
+                <div
+                  key={ing.id}
+                  className="cluv-card is-interactive cluv-flex-col cluv-gap-3"
+                  onClick={() => toggleIngExpand(ing.id)}
+                >
+                  {/* Card Header */}
+                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2">
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
+                      <Calendar size={13} />
+                      <span>{formattedDate}</span>
+                      {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
+                    </div>
+
+                    <Badge variant={isSafe ? 'teal' : 'rose'} size="sm">
+                      {isSafe ? 'Formula Baik' : 'Perlu Perhatian'}
+                    </Badge>
+                  </div>
+
+                  {/* Card Main Body */}
+                  <div className="cluv-flex-row cluv-items-start cluv-gap-3">
+                    <div
+                      className={`cluv-score-badge ${isSafe ? 'is-optimal' : 'is-alert'}`}
                     >
-                      <X size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="cluv-flex-row cluv-items-center cluv-gap-1 cluv-flex-wrap">
-                  <button
-                    type="button"
-                    className={`cluv-chip is-sm ${ingFilter === 'all' ? 'is-active' : ''}`}
-                    onClick={() => setIngFilter('all')}
-                  >
-                    Semua ({totalIngScans})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cluv-chip is-sm ${ingFilter === 'safe' ? 'is-active' : ''}`}
-                    onClick={() => setIngFilter('safe')}
-                  >
-                    Formula Baik ({safeProductsCount})
-                  </button>
-                  <button
-                    type="button"
-                    className={`cluv-chip is-sm ${ingFilter === 'attention' ? 'is-active' : ''}`}
-                    onClick={() => setIngFilter('attention')}
-                  >
-                    Perlu Perhatian
-                  </button>
-                </div>
-              </div>
-
-              {/* Scrollable Product Items */}
-              <div className="cluv-flex-col cluv-gap-2">
-                {filteredIngScans.length === 0 ? (
-                  <div className="cluv-card cluv-p-6 cluv-text-center cluv-text-muted cluv-caption">
-                    Tidak ada produk yang cocok dengan filter.
-                  </div>
-                ) : (
-                  filteredIngScans.map((ing, idx) => {
-                    const isSelected = selectedIngredientScan?.id === ing.id
-                    const sScore = ing.safety_score ?? 80
-                    const isItemSafe = ing.is_safe && sScore >= 65
-
-                    const dateObj = new Date(ing.created_at)
-                    const dateFormatted = dateObj.toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })
-
-                    return (
-                      <div
-                        key={ing.id}
-                        className={`cluv-session-item ${isSelected ? 'is-selected' : ''}`}
-                        onClick={() => {
-                          setSelectedIngredientScan(ing)
-                          setMobileView('detail')
-                        }}
-                      >
-                        {/* Safety Score Badge */}
-                        <div
-                          className={`cluv-score-badge ${
-                            isItemSafe ? 'is-optimal' : 'is-alert'
-                          }`}
-                        >
-                          <span className="cluv-score-badge-val">{sScore}</span>
-                          <span className="cluv-score-badge-label">Safety</span>
-                        </div>
-
-                        {/* Product Title & Brand */}
-                        <div className="cluv-flex-col cluv-gap-05 cluv-min-w-0 cluv-flex-1">
-                          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
-                            <span>{dateFormatted}</span>
-                            {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
-                          </div>
-                          <span className="cluv-caption cluv-font-bold cluv-text-dark cluv-truncate">
-                            {ing.product_name}
-                          </span>
-                          <span className="cluv-micro cluv-text-muted cluv-truncate">
-                            {ing.brand ? `Brand: ${ing.brand}` : 'Skincare Terdaftar'}
-                          </span>
-                        </div>
-
-                        <ChevronRight
-                          size={16}
-                          className={`cluv-flex-shrink-0 ${
-                            isSelected ? 'cluv-text-teal' : 'cluv-text-muted'
-                          }`}
-                        />
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* 2.2 RIGHT COLUMN: LIVE INSPECTION CANVAS */}
-            {selectedIngredientScan ? (
-              <div className={`cluv-detail-pane ${mobileView === 'list' ? 'cluv-hide-mobile' : ''}`}>
-                {/* Mobile Back Button to Master Feed */}
-                <div className="cluv-hide-desktop cluv-mb-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    iconLeft={<ArrowLeft size={14} />}
-                    onClick={() => setMobileView('list')}
-                  >
-                    Kembali ke Daftar Produk
-                  </Button>
-                </div>
-
-                <div className="cluv-card cluv-p-6 cluv-flex-col cluv-gap-5">
-                  {/* Top Bar of Canvas */}
-                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-border-b cluv-pb-4 cluv-gap-4 cluv-flex-wrap">
-                    <div>
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
-                        <Calendar size={13} />
-                        <span>
-                          {new Date(selectedIngredientScan.created_at).toLocaleDateString('id-ID', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                      <h2 className="cluv-title-card cluv-m-0">
-                        {selectedIngredientScan.product_name}
-                      </h2>
+                      <span className="cluv-score-badge-val">{score}</span>
+                      <span className="cluv-score-badge-label">Safety</span>
                     </div>
 
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        iconLeft={<MessageSquare size={14} />}
-                        onClick={() => navigate('/chatbot')}
-                      >
-                        Tanya Produk ke AI
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Hero Safety Section */}
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-5 cluv-flex-wrap">
-                    {/* SVG Gauge */}
-                    <div className="cluv-score-ring is-lg">
-                      <svg className="cluv-score-svg" viewBox="0 0 100 100">
-                        <circle
-                          className="cluv-score-bg-circle"
-                          cx="50"
-                          cy="50"
-                          r={radius}
-                          strokeWidth="8"
-                        />
-                        <circle
-                          className={`cluv-score-fg-circle ${
-                            isVerySafe ? 'is-optimal' : isSafe ? 'is-good' : 'is-alert'
-                          }`}
-                          cx="50"
-                          cy="50"
-                          r={radius}
-                          strokeWidth="8"
-                          strokeDasharray={circumference}
-                          strokeDashoffset={ingDashoffset}
-                        />
-                      </svg>
-                      <div className="cluv-score-center">
-                        <span className="cluv-score-val">{ingScore}</span>
-                        <span className="cluv-score-max">/100</span>
-                      </div>
-                    </div>
-
-                    {/* Headline Metadata */}
-                    <div className="cluv-flex-col cluv-gap-2 cluv-flex-1 cluv-min-w-xs">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
-                        <Badge variant={isVerySafe ? 'teal' : isSafe ? 'info' : 'rose'} size="sm">
-                          {isVerySafe ? 'Formula Sangat Baik' : isSafe ? 'Formula Baik' : 'Perlu Perhatian'}
-                        </Badge>
-                        {selectedIngredientScan.brand && (
-                          <span className="cluv-chip is-sm">
-                            <FlaskConical size={12} /> {selectedIngredientScan.brand.toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
-                        {isSafe ? (
-                          <ShieldCheck size={14} className="cluv-text-teal" />
-                        ) : (
-                          <ShieldAlert size={14} className="cluv-text-gold" />
-                        )}
-                        <span>
-                          {isSafe
-                            ? 'Formula kompatibel & minim resiko iritasi'
-                            : 'Mengandung bahan yang memerlukan perhatian'}
-                        </span>
-                      </div>
-
-                      <p className="cluv-body cluv-text-muted cluv-m-0 cluv-mt-1">
-                        {selectedIngRaw?.summary || 'Analisis komposisi bahan aktif, kestabilan formula, dan kompatibilitas kulit.'}
+                    <div className="cluv-flex-col cluv-gap-1 cluv-flex-1 cluv-min-w-0">
+                      <h3 className="cluv-title-card is-sm cluv-m-0">
+                        {ing.product_name}
+                      </h3>
+                      <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-line-clamp-2">
+                        {ing.brand ? `Brand: ${ing.brand} • ` : ''}
+                        {isSafe
+                          ? 'Formula kompatibel & minim resiko iritasi.'
+                          : 'Formula memiliki bahan yang perlu diperhatikan.'}
                       </p>
+
+                      <div className="cluv-chip-group cluv-mt-1">
+                        {Array.isArray(ing.key_ingredients) &&
+                          ing.key_ingredients.slice(0, 3).map((k, kIdx) => (
+                            <span key={kIdx} className="cluv-chip is-sm">
+                              {typeof k === 'string' ? k : (k as any)?.name}
+                            </span>
+                          ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Hero Actives */}
-                  {heroIngredients.length > 0 && (
-                    <div className="cluv-flex-col cluv-gap-3 cluv-pt-3 cluv-border-t">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                        <div className="cluv-card-icon-wrap is-sm is-teal">
-                          <Sparkles size={14} />
-                        </div>
-                        <h3 className="cluv-title-card cluv-m-0">
-                          Hero Actives &amp; Bahan Kunci
-                        </h3>
+                  {/* In-Place Expanded Detail View */}
+                  {isExpanded && (
+                    <div
+                      className="cluv-flex-col cluv-gap-4 cluv-pt-4 cluv-border-t cluv-mt-1 cluv-animate-fade"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Summary */}
+                      <div className="cluv-p-3 cluv-bg-surface-soft cluv-rounded-md cluv-border">
+                        <span className="cluv-micro cluv-font-bold cluv-text-dark cluv-uppercase cluv-block cluv-mb-1">
+                          Ringkasan Komposisi:
+                        </span>
+                        <p className="cluv-body cluv-text-muted cluv-m-0">
+                          {ingRawResponse?.summary || 'Analisis komposisi bahan aktif dan keamanan formula skincare.'}
+                        </p>
                       </div>
 
-                      <div className="cluv-flex-row cluv-flex-wrap cluv-gap-2">
-                        {heroIngredients.map((item: any, idx: number) => {
-                          const name = typeof item === 'string' ? item : item.name
-                          const func = typeof item === 'object' ? item.function : null
-                          return (
-                            <div key={idx} className="cluv-chip is-active cluv-flex-row cluv-items-center cluv-gap-1">
-                              <span className="cluv-font-bold">{name}</span>
-                              {func && <span className="cluv-micro cluv-opacity-80">({func})</span>}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Danger Layering Combos */}
-                  {dangerCombos.length > 0 && (
-                    <div className="cluv-flex-col cluv-gap-3 cluv-pt-3 cluv-border-t">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                        <div className="cluv-card-icon-wrap is-sm is-rose">
-                          <AlertTriangle size={14} />
-                        </div>
-                        <h3 className="cluv-title-card cluv-m-0 cluv-text-danger">
-                          Peringatan Kombinasi Pemakaian (Layering)
-                        </h3>
-                      </div>
-
-                      <div className="cluv-flex-col cluv-gap-2">
-                        {dangerCombos.map((dc: any, idx: number) => (
-                          <div key={idx} className="cluv-card cluv-p-3 cluv-border-rose cluv-bg-surface-soft">
-                            <span className="cluv-caption cluv-font-bold cluv-text-danger cluv-block cluv-mb-1">
-                              {Array.isArray(dc.pair) ? dc.pair.join(' + ') : 'Inkompatibilitas Bahan'}
-                            </span>
-                            <p className="cluv-caption cluv-text-muted cluv-m-0">
-                              {dc.warning || dc.reason}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Personal Contraindications */}
-                  {personalNotes.length > 0 && (
-                    <div className="cluv-flex-col cluv-gap-3 cluv-pt-3 cluv-border-t">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                        <div className="cluv-card-icon-wrap is-sm is-gold">
-                          <Tag size={14} />
-                        </div>
-                        <h3 className="cluv-title-card cluv-m-0">
-                          Catatan Khusus untuk Kondisi Kulitmu
-                        </h3>
-                      </div>
-
-                      <div className="cluv-flex-col cluv-gap-2">
-                        {personalNotes.map((pc: any, idx: number) => (
-                          <div key={idx} className="cluv-card cluv-p-3 cluv-border-gold cluv-bg-surface-soft">
-                            <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2 cluv-mb-1">
-                              <span className="cluv-caption cluv-font-bold cluv-text-dark">
-                                {pc.ingredient}
-                              </span>
-                              <span className="cluv-chip is-sm">
-                                Untuk: {pc.user_condition}
-                              </span>
-                            </div>
-                            <p className="cluv-caption cluv-text-muted cluv-m-0">
-                              {pc.warning}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Full Ingredients Breakdown */}
-                  {ingBreakdown.length > 0 && (
-                    <div className="cluv-flex-col cluv-gap-3 cluv-pt-3 cluv-border-t">
-                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                        <div className="cluv-card-icon-wrap is-sm is-blue">
-                          <Layers size={14} />
-                        </div>
-                        <h3 className="cluv-title-card cluv-m-0">
-                          Komposisi Lengkap ({ingBreakdown.length} Bahan)
-                        </h3>
-                      </div>
-
-                      <div className="cluv-card cluv-p-3 cluv-flex-col cluv-gap-2 cluv-max-h-64 cluv-overflow-y-auto cluv-bg-surface-soft">
-                        {ingBreakdown.map((item: any, idx: number) => {
-                          const badge = String(item.badge || 'safe').toLowerCase()
-                          const isSafeItem = badge === 'safe' || badge === 'aman'
-                          const isCautionItem = badge === 'caution' || badge === 'perhatian'
-
-                          return (
-                            <div
-                              key={idx}
-                              className="cluv-flex-row cluv-items-center cluv-justify-between cluv-py-2 cluv-border-b cluv-last-border-0 cluv-gap-2"
-                            >
-                              <div className="cluv-flex-col cluv-gap-05 cluv-min-w-0">
-                                <span className="cluv-caption cluv-font-bold cluv-text-dark cluv-truncate">
-                                  {item.name}
+                      {/* Hero Actives */}
+                      {heroIngredients.length > 0 && (
+                        <div className="cluv-flex-col cluv-gap-2">
+                          <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                            Hero Actives &amp; Bahan Kunci:
+                          </span>
+                          <div className="cluv-flex-row cluv-flex-wrap cluv-gap-1">
+                            {heroIngredients.map((item: any, hIdx: number) => {
+                              const name = typeof item === 'string' ? item : item.name
+                              const func = typeof item === 'object' ? item.function : null
+                              return (
+                                <span key={hIdx} className="cluv-chip is-active is-sm">
+                                  {name} {func ? `(${func})` : ''}
                                 </span>
-                                {item.function && (
-                                  <span className="cluv-micro cluv-text-muted">
-                                    {item.function}
-                                  </span>
-                                )}
-                              </div>
-                              <Badge
-                                variant={isSafeItem ? 'teal' : isCautionItem ? 'gold' : 'rose'}
-                                size="sm"
-                              >
-                                {isSafeItem
-                                  ? 'Sangat Baik'
-                                  : isCautionItem
-                                  ? 'Perlu Perhatian'
-                                  : 'Hindari'}
-                              </Badge>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Layering Combos Warning */}
+                      {dangerCombos.length > 0 && (
+                        <div className="cluv-flex-col cluv-gap-2">
+                          <span className="cluv-caption cluv-font-bold cluv-text-danger cluv-flex-row cluv-items-center cluv-gap-1">
+                            <AlertTriangle size={14} />
+                            Peringatan Kombinasi (Layering):
+                          </span>
+                          {dangerCombos.map((dc: any, dIdx: number) => (
+                            <div key={dIdx} className="cluv-p-2 cluv-border-rose cluv-rounded-sm cluv-bg-surface-soft">
+                              <span className="cluv-micro cluv-font-bold cluv-text-danger cluv-block">
+                                {Array.isArray(dc.pair) ? dc.pair.join(' + ') : 'Inkompatibilitas'}
+                              </span>
+                              <p className="cluv-caption cluv-text-muted cluv-m-0">
+                                {dc.warning || dc.reason}
+                              </p>
                             </div>
-                          )
-                        })}
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Ingredients Breakdown Mini */}
+                      {ingBreakdown.length > 0 && (
+                        <div className="cluv-flex-col cluv-gap-2">
+                          <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                            Komposisi Lengkap ({ingBreakdown.length} Bahan):
+                          </span>
+                          <div className="cluv-card cluv-p-2 cluv-max-h-48 cluv-overflow-y-auto cluv-flex-col cluv-gap-1 cluv-bg-surface-soft">
+                            {ingBreakdown.map((item: any, bIdx: number) => {
+                              const badge = String(item.badge || 'safe').toLowerCase()
+                              const isSafeItem = badge === 'safe' || badge === 'aman'
+                              return (
+                                <div key={bIdx} className="cluv-flex-row cluv-items-center cluv-justify-between cluv-py-1 cluv-border-b cluv-last-border-0">
+                                  <span className="cluv-caption cluv-text-dark">{item.name}</span>
+                                  <Badge variant={isSafeItem ? 'teal' : 'rose'} size="sm">
+                                    {isSafeItem ? 'Baik' : 'Perhatian'}
+                                  </Badge>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action CTA */}
+                      <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-pt-2 cluv-gap-3 cluv-flex-wrap">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          iconLeft={<MessageSquare size={14} />}
+                          onClick={() => navigate('/chatbot')}
+                        >
+                          Tanya Produk ke AI
+                        </Button>
+                        <span className="cluv-micro cluv-text-muted">
+                          Estimasi keamanan bahan publik (BPOM/FDA)
+                        </span>
                       </div>
                     </div>
                   )}
 
-                  {/* Defensible Disclaimer */}
-                  <div className="cluv-alert is-neutral cluv-mt-2">
-                    <ShieldCheck size={16} className="cluv-text-muted cluv-flex-shrink-0" />
-                    <p className="cluv-micro cluv-text-muted cluv-m-0">
-                      Verifikasi formula ini adalah estimasi keamanan bahan kosmetik berbasis data ilmiah publik dan regulasi kosmetik (BPOM/FDA). Bukan merupakan jaminan medis bebas reaksi alergi individual.
-                    </p>
+                  {/* Expansion Footer Toggle */}
+                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-pt-2 cluv-border-t cluv-mt-auto">
+                    <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-flex-row cluv-items-center cluv-gap-1">
+                      {isExpanded ? (
+                        <>
+                          <span>Tutup Evaluasi</span>
+                          <ChevronUp size={15} />
+                        </>
+                      ) : (
+                        <>
+                          <span>Buka Evaluasi Formula</span>
+                          <ChevronDown size={15} />
+                        </>
+                      )}
+                    </span>
+                    <span className="cluv-micro cluv-text-muted">
+                      {ingBreakdown.length > 0 ? `${ingBreakdown.length} Bahan Terurai` : 'Analisis Skincare'}
+                    </span>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="cluv-card cluv-p-8 cluv-text-center cluv-text-muted cluv-body">
-                Pilih salah satu produk di sebelah kiri untuk melihat rincian evaluasi formula.
-              </div>
-            )}
+              )
+            })}
           </div>
         )
       )}
