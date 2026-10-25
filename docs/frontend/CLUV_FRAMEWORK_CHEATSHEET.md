@@ -1,6 +1,8 @@
 # ⚡ CLUV Micro-Framework: AI Quick-Reference & Cheat-Sheet
 
 > **Tujuan Dokumen**: Referensi ringkas, terstruktur, dan berdensitas tinggi (*AI-optimized cheat-sheet*) untuk seluruh model AI (Antigravity, Claude, ChatGPT, DeepSeek, Kimi). AI **TIDAK PERLU** membaca ribuan baris file CSS `src/styles/cluv/` untuk mengetahui class apa yang harus dipakai. Cukup jadikan file ini sebagai panduan cepat saat menulis kode JSX/TSX.
+>
+> 🌐 **Living Documentation Portal**: Kunjungi `/design-system` (atau `/docs`) di browser untuk melihat katalog interaktif, render langsung seluruh komponen, dan Viewport Simulator (Desktop 100%, Tablet 768px, Mobile 375px).
 
 ---
 
@@ -62,7 +64,7 @@
 | **Accordions** | `.cluv-accordion` | - | `.cluv-accordion-item`<br>`.cluv-accordion-trigger`<br>`.cluv-accordion-chevron`<br>`.cluv-accordion-body` | Buka-tutup tanya jawab (FAQ) dan rincian transaksi. |
 | **Forms** | `.cluv-field` | `.is-invalid`<br>`.is-valid` | `.cluv-label`<br>`.cluv-input`<br>`.cluv-input-wrap`<br>`.cluv-input-icon`<br>`.cluv-select`<br>`.cluv-textarea`<br>`.cluv-field-help`<br>`.cluv-field-error` | Grup formulir dengan focus ring teal, input wrap + icon, validasi border, dan pesan error/bantuan. |
 | **Adaptive Select** | `<CluvSelect />`<br>`.cluv-select-root` | `.is-open`<br>`.is-selected` | `.cluv-select-trigger`<br>`.cluv-select-popover` (Desktop)<br>`.cluv-select-backdrop`<br>`.cluv-select-sheet` (Mobile)<br>`.cluv-select-item` | Dropdown adaptif Cluv FW (Desktop: floating popover; Mobile: bottom sheet drawer laci jempol). |
-| **Alerts** | `.cluv-alert` | `.is-info`<br>`.is-success`<br>`.is-warning`<br>`.is-danger`<br>`.is-collapsible` | `.cluv-alert-icon`<br>`.cluv-alert-content`<br>`.cluv-alert-header`<br>`.cluv-alert-toggle-btn`<br>`.cluv-alert-title`<br>`.cluv-alert-message` | Kotak notifikasi sukses, peringatan, info, atau pesan bahaya. Mendukung `.is-collapsible` untuk toggle buka-tutup di mobile. |
+| **Alerts & Banners** | `<Alert />`<br>`.cluv-alert` | `.is-info`<br>`.is-success`<br>`.is-warning`<br>`.is-danger`<br>`.is-compact`<br>`.is-collapsible` | `.cluv-alert-icon`<br>`.cluv-alert-content`<br>`.cluv-alert-title`<br>`.cluv-alert-message`<br>`.cluv-alert-actions`<br>`.cluv-alert-close`<br>`.cluv-alert-toggle-btn` | Kotak notifikasi sistem dengan slot arsitektur terstandarisasi. Di mobile (&le;640px), tombol dismiss X terkunci absolut di kanan atas, teks melebar bebas, dan tombol aksi otomatis turun rapi ke baris baru (*stacked mobile action*). |
 | **Document Layout** | `.cluv-doc-layout` | - | `.cluv-doc-sidebar`<br>`.cluv-doc-toc`<br>`.cluv-doc-content` | Tata letak dokumen hukum/kebijakan (Desktop: 280px sticky sidebar + 1fr article; Mobile: 1fr). |
 | **FAB (Floating Button)** | `.cluv-fab` | `.is-active` | `.cluv-fab-badge` | Tombol aksi mengambang di kanan bawah mobile (misal untuk buka TOC drawer) dengan safe-area inset. |
 | **Slide-Over Drawer** | `.cluv-drawer-backdrop` | `.is-open` | `.cluv-drawer`<br>`.cluv-drawer-header`<br>`.cluv-drawer-title`<br>`.cluv-drawer-close`<br>`.cluv-drawer-body` | Panel laci slide-over dari kanan dengan backdrop blur untuk mobile view navigation. |

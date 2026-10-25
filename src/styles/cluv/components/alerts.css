@@ -138,6 +138,70 @@
   transform: rotate(180deg);
 }
 
+/* =============================================================================
+ * 6. ALERT ACTIONS & DISMISS SLOTS
+ * ============================================================================= */
+.cluv-alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cluv-alert-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--cluv-radius-sm, 6px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  line-height: 1;
+}
+
+.cluv-alert-close:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* =============================================================================
+ * 7. MOBILE RESPONSIVE DISCIPLINE (Anti-Text Squeeze)
+ * ============================================================================= */
+@media (max-width: 640px) {
+  .cluv-alert {
+    flex-wrap: wrap;
+    position: relative;
+    padding-right: 44px; /* Reserve space for absolute close button */
+  }
+
+  .cluv-alert-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .cluv-alert-actions {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .cluv-alert-actions > * {
+    flex: 1;
+  }
+
+  .cluv-alert-actions .cluv-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 768px) {
   .cluv-alert-toggle-btn {
     display: inline-flex;

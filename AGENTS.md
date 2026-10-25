@@ -100,7 +100,7 @@ Sebelum memberikan saran atau me-review kode, AI reviewer harus memahami invaria
 
 ---
 
-## 3. Enam Standar Kesiapan Produksi (Production Readiness Checklist)
+## 3. Tujuh Standar Kesiapan Produksi (Production Readiness Checklist)
 
 Setiap fitur yang disetujui untuk masuk ke `main` branch harus memenuhi kriteria ini:
 
@@ -110,6 +110,7 @@ Setiap fitur yang disetujui untuk masuk ke `main` branch harus memenuhi kriteria
 * [ ] **4. Privacy & Compliance**: Tidak menyimpan log percakapan sensitif tanpa consent, dan mendukung pembersihan data saat consent dicabut.
 * [ ] **5. Type Safety & Validation**: Payload API di Edge Functions wajib divalidasi ketat (Zod / strongly typed).
 * [ ] **6. Clean Build**: Bebas dari linting error, lolos uji compile `tsc -b && vite build`.
+* [ ] **7. FE ↔ BE Parity Invariant**: Dilarang meloloskan halaman frontend yang masih menggunakan data array lokal (dummy mock) untuk fitur data klinis/transaksi. Seluruh aksi UI wajib terhubung ke RPC/endpoint Supabase yang valid, dan seluruh RPC baru di backend wajib memiliki antarmuka pengguna di frontend (merujuk ke `docs/architecture/FE_BE_PARITY_MATRIX.md`).
 
 ---
 
@@ -185,7 +186,7 @@ Jika sudah ada -> gunakan yang lama. Jangan buat implementasi paralel dengan nam
 
 ### 5.5 SOP Frontend & UI Design System: Doktrin Cluv Micro-Framework (`cluv-*`)
 
-> ⚡ **AI FAST SCAN REFERENCE**: Sebelum menulis JSX/TSX atau CSS, seluruh AI **WAJIB membaca cheat-sheet ringkas**: [docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md](file:///home/kangjessy/Documents/projects/skinscan/skincluv/docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md). File tersebut berisi kamus cepat seluruh class universal (`cluv-*`), snippet siap pakai, dan anti-hallucination checklist agar AI tidak perlu membuka file CSS berukuran besar!
+> ⚡ **AI FAST SCAN REFERENCE**: Sebelum menulis JSX/TSX atau CSS, seluruh AI **WAJIB membaca cheat-sheet ringkas**: [docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md](file:///home/kangjessy/Documents/projects/skinscan/skincluv/docs/frontend/CLUV_FRAMEWORK_CHEATSHEET.md) atau mengakses **Living Documentation Portal** di browser pada rute `/design-system` (atau `/docs`). File dan portal tersebut memuat katalog live komponen, visualisasi X-Ray layout, dan anti-hallucination checklist agar AI tidak perlu membuka file CSS berukuran besar!
 
 > **Prinsip Utama**: AI dilarang keras membuat class CSS ad-hoc atau membangkitkan class non-cluv. Seluruh komponen antarmuka yang akan dibuat **WAJIB** dicek terlebih dahulu apakah sudah memiliki padanan kanonikal di Cluv Framework (`src/styles/cluv/`).
 
@@ -212,12 +213,12 @@ Tabel ini adalah **sumber kebenaran tunggal** untuk penamaan class UI di seluruh
 | **Kanvas Focused / Ledger (Tipe B)** | `.cluv-canvas-focused` | `.v0-profile-page`, wrapper margin auto sempit |
 | **Kanvas Full-Bleed (Tipe C)** | `.cluv-canvas-bleed` | Kanvas dengan padding luar yang menjepit chat |
 | **Kartu Kontainer Utama (Card)** | `.cluv-card`, `.cluv-bento-card` | `.v0-profile-card`, `.v0-subpage-card`, `.glass-card` |
-| **Tombol Universal** | `.cluv-btn` (`.is-primary`, `.is-outline`, `.is-sm`) | `.v0-profile-save-btn`, `.btn-primary`, `.btn-save` |
+| **Tombol Universal** | `.cluv-btn` (`.is-primary`, `.is-outline`, `.is-sm`), `<Button />` | `.v0-profile-save-btn`, `.btn-primary`, `.btn-save` |
 | **Tombol Seleksi / Chip** | `.cluv-chip` (`.is-active`) | `.v0-profile-chip`, `.tag-pill`, `.chip-btn` |
 | **Tautan Navigasi Kembali** | `.cluv-link.is-muted`, `.cluv-back-link` | `.v0-profile-back-link`, `.btn-back-link`, `.back-arrow` |
 | **Grup Formulir & Input** | `.cluv-field`, `.cluv-input`, `.cluv-label` | `.v0-profile-form-section`, `.form-group-custom` |
 | **Icon Wrapper Seksi** | `.cluv-card-icon-wrap` (`.is-teal`, `.is-gold`) | `.v0-profile-section-icon`, `.icon-box-custom` |
-| **Kotak Notifikasi Feedback** | `.cluv-alert` (`.is-success`, `.is-danger`) | `.v0-profile-message`, `.v0-subpage-alert`, `.alert-box` |
+| **Kotak Notifikasi Feedback** | `.cluv-alert` (`.is-success`, `.is-danger`), `<Alert />` | `.v0-profile-message`, `.v0-subpage-alert`, `.alert-box` |
 
 ---
 

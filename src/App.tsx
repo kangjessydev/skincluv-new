@@ -64,6 +64,7 @@ const AboutPage = lazy(() => import('@/pages/public/AboutPage'))
 const FaqPage = lazy(() => import('@/pages/public/FaqPage'))
 const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'))
 const PublicLayout = lazy(() => import('@/components/layout/PublicLayout'))
+const DesignSystemPage = lazy(() => import('@/pages/DesignSystemPage'))
 
 export default function App() {
   useAuthInit()
@@ -105,6 +106,10 @@ export default function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
         </Route>
+
+        {/* Cluv Framework Living Design System Documentation Portal */}
+        <Route path="/design-system" element={<DesignSystemPage />} />
+        <Route path="/docs" element={<Navigate to="/design-system" replace />} />
 
         {/* Protected app routes */}
         <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>

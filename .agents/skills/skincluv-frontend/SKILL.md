@@ -208,6 +208,36 @@ Pola Arsitektur: **Design Tokens & Utilities (Lapis 1)** ➔ **CSS Component Bas
    - 3 Slot Card: `.cluv-bento-header` (opsi `.is-inline`), `.cluv-bento-body`, `.cluv-bento-footer`.
    - Padding: Desktop `24px`; Mobile `16px 14px` (radius `16px`).
 
+4. **Alert & Banners (`.cluv-alert` & `<Alert />`)**:
+   - Pola: Base class `.cluv-alert` + `.is-[info|success|warning|danger]` + `.is-compact` (opsional).
+   - Slot Anatomi Kanonikal:
+     - `.cluv-alert-icon`: Ikon semantik di sisi kiri (info/shield/triangle).
+     - `.cluv-alert-content`: Kontainer teks (terdiri dari `.cluv-alert-title` dan `.cluv-alert-message`).
+     - `.cluv-alert-actions`: Slot tombol aksi samping (misal: tombol "Perpanjang Paket" atau "Tutup").
+     - `.cluv-alert-close`: Tombol dismiss (X).
+   - **Kontrak Responsif Mobile (&le;640px)**:
+     - Tombol dismiss X (`.cluv-alert-close`) **terkunci absolut di kanan atas** (`position: absolute; top: 12px; right: 12px`).
+     - Konten teks (`.cluv-alert-content`) mengambil lebar penuh (100%), mencegah bug teks tertekan menjadi 1 kata per baris.
+     - Tombol aksi (`.cluv-alert-actions`) otomatis turun rapi ke baris baru dan melebar penuh (*stacked full-width action*).
+   - React Atom: `<Alert variant="warning" title="..." action={<Button ... />}>{children}</Alert>`.
+
+### 4.6 Master Contract: Public Containers & Spacing Scale
+1. **Public Containers (`.cluv-container`)**:
+   - Default: `1200px` (sejajar dengan Navbar & Footer).
+   - `.is-narrow` (720px): Formulir checkout, focused reading, terms.
+   - `.is-reading` / `.is-sm` (860px): Artikel editorial, single FAQ.
+   - `.is-md` (1040px): Feature split 2 kolom seimbang.
+   - `.is-wide` (1360px): Tabel telemetri data lebar & showcase bento.
+   - `.is-fluid` (100%): Full-width dengan safe-gutter lateral.
+2. **Skala Spacing Baku (Scale 0 &mdash; 9)**:
+   - Skala piksel: `0=0px`, `1=4px`, `2=8px`, `3=12px`, `4=16px`, `5=20px`, `6=24px`, `7=32px`, `8=40px`, `9=48px`.
+   - Utility resmi: `.cluv-mt-[0-9]`, `.cluv-mb-[0-9]`, `.cluv-my-[0-8]`, `.cluv-p-[0-8]`, `.cluv-gap-[1-7]`.
+   - Responsive Direction: `.cluv-flex-responsive` (Desktop horizontal row &rarr; Mobile &le;768px column stretch).
+
+### 4.7 Living Documentation Portal Reference
+🌐 Seluruh komponen, kanvas skematik X-Ray, penggaris kontainer publik, dan simulator viewport aktif di:  
+**`http://localhost:5173/design-system`** (atau rute `/docs`). AI wajib merujuk ke portal ini untuk melihat visualisasi nyata kelas antarmuka.
+
 ---
 
 ## 📋 5. Checklist Verifikasi Sebelum Menyerahkan Kode

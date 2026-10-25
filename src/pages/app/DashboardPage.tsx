@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData, type DashboardMissionItem } from '@/hooks/useDashboardData'
-import { Badge, Button, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
+import { Alert, Badge, Button, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
 import '@/styles/cluv/app/dashboard.css'
 
@@ -197,25 +197,19 @@ export default function DashboardPage() {
     <div className="cluv-canvas-grid cluv-dashboard-view cluv-animate-fade">
       {/* SUBSCRIPTION EXPIRY REMINDER (Quiet & Sleek) */}
       {showExpiryAlert && (
-        <div className="cluv-alert is-warning">
-          <div className="cluv-alert-icon">
-            {daysRemaining === 1 ? <AlertTriangle size={18} /> : <Clock size={18} />}
-          </div>
-          <div className="cluv-alert-content">
-            <div className="cluv-alert-title">Masa Aktif Paket Segera Berakhir</div>
-            <p className="cluv-alert-message">
-              Paket Akses kamu tersisa <strong>{daysRemaining} hari</strong> ({subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'segera'}).
-            </p>
-          </div>
-          <div className="cluv-flex-row cluv-gap-2">
+        <Alert
+          variant="warning"
+          icon={daysRemaining === 1 ? <AlertTriangle size={18} /> : <Clock size={18} />}
+          title="Masa Aktif Paket Segera Berakhir"
+          action={
             <Button variant="primary" size="sm" to="/pricing">
               Perpanjang
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setShowExpiryBanner(false)} aria-label="Tutup">
-              <X size={16} />
-            </Button>
-          </div>
-        </div>
+          }
+          onClose={() => setShowExpiryBanner(false)}
+        >
+          Paket Akses kamu tersisa <strong>{daysRemaining} hari</strong> ({subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'segera'}).
+        </Alert>
       )}
 
       {/* =====================================================================
