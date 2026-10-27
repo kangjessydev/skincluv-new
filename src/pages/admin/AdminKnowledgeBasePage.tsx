@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { SkincareIngredient } from '@/types/database'
+import '@/styles/admin-knowledge-base.css'
 
 interface FormState {
   id: string
@@ -184,69 +185,36 @@ export default function AdminKnowledgeBasePage() {
   }
 
   return (
-    <div className="admin-page-container">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Header */}
-      <div className="admin-page-header">
+      <div className="akb-page-header">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: '#e0e7ff',
-                color: '#4f46e5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+          <div className="akb-header-title-row">
+            <div className="akb-header-icon-wrap">
               <BookOpen size={22} />
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
+            <h1 className="akb-header-title">
               Kamus Bahan Skincare (Knowledge Base AI)
             </h1>
           </div>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
+          <p className="akb-header-subtitle">
             Ensiklopedia bahan kosmetik terstandar yang secara otomatis dipelajari dan diperkaya oleh AI dari setiap scan pengguna.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="akb-header-actions">
           <button
+            type="button"
             onClick={loadIngredients}
             disabled={isLoading}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 8,
-              border: '1px solid #d1d5db',
-              background: '#ffffff',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: 'pointer',
-              color: '#374151',
-            }}
+            className="cluv-btn is-outline is-sm"
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Segarkan
           </button>
           <button
+            type="button"
             onClick={startNew}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: '#111827',
-              color: '#ffffff',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="cluv-btn is-primary is-sm"
           >
             <Plus size={16} /> Entri Bahan Baru
           </button>
@@ -255,298 +223,118 @@ export default function AdminKnowledgeBasePage() {
 
       {/* Feedback Banner */}
       {feedback && (
-        <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
-            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
-            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-          }}
-        >
+        <div className={`cluv-alert cluv-mb-4 ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`}>
           {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{feedback.message}</span>
         </div>
       )}
 
       {/* Top Metric Cards */}
-      <div className="admin-grid-cards">
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#eff6ff',
-              color: '#2563eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+      <div className="akb-stats-grid">
+        <div className="akb-stat-card">
+          <div className="akb-stat-icon-wrap is-teal">
             <BookOpen size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Bahan Terindeks
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.total} bahan
-            </div>
+            <div className="akb-stat-label">Bahan Terindeks</div>
+            <div className="akb-stat-value cluv-tabular-nums">{metrics.total} bahan</div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#ecfdf5',
-              color: '#059669',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="akb-stat-card">
+          <div className="akb-stat-icon-wrap is-teal">
             <Sparkles size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Bahan Aktif Klinis
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.actives} bahan
-            </div>
+            <div className="akb-stat-label">Bahan Aktif Klinis</div>
+            <div className="akb-stat-value cluv-tabular-nums">{metrics.actives} bahan</div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#fffbeb',
-              color: '#d97706',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="akb-stat-card">
+          <div className="akb-stat-icon-wrap is-gold">
             <AlertTriangle size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Potensi Iritasi / Waspada
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.cautions} bahan
-            </div>
+            <div className="akb-stat-label">Potensi Iritasi / Waspada</div>
+            <div className="akb-stat-value cluv-tabular-nums">{metrics.cautions} bahan</div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#fdf2f8',
-              color: '#db2777',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="akb-stat-card">
+          <div className="akb-stat-icon-wrap is-rose">
             <Hash size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Akumulasi Deteksi Scan
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.totalDetections.toLocaleString('id-ID')} kali
-            </div>
+            <div className="akb-stat-label">Akumulasi Deteksi Scan</div>
+            <div className="akb-stat-value cluv-tabular-nums">{metrics.totalDetections.toLocaleString('id-ID')} kali</div>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          marginBottom: 20,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            minWidth: 260,
-            display: 'flex',
-            gap: 10,
-            background: '#ffffff',
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #e5e7eb',
-            alignItems: 'center',
-          }}
-        >
-          <Search size={16} color="#9ca3af" />
+      <div className="akb-filter-card">
+        <div className="akb-search-wrap">
+          <Search size={16} className="text-slate-400" />
           <input
             type="text"
             placeholder="Cari nama bahan, nama INCI, atau deskripsi klinis..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              border: 'none',
-              outline: 'none',
-              fontSize: 13,
-              width: '100%',
-              color: '#111827',
-            }}
+            className="akb-search-input"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: '#9ca3af',
-              }}
+              className="cluv-link is-muted"
+              aria-label="Bersihkan pencarian"
             >
               <X size={14} />
             </button>
           )}
         </div>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #d1d5db',
-            background: '#ffffff',
-            fontSize: 13,
-            fontWeight: 500,
-            color: '#374151',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="all">Semua Kategori</option>
-          <option value="Active">Active</option>
-          <option value="Hydrating">Hydrating</option>
-          <option value="Antioxidant">Antioxidant</option>
-          <option value="Preservative">Preservative</option>
-          <option value="Other">Other</option>
-        </select>
+        <div className="akb-filter-group">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="akb-filter-select"
+          >
+            <option value="all">Semua Kategori</option>
+            <option value="Active">Active</option>
+            <option value="Hydrating">Hydrating</option>
+            <option value="Antioxidant">Antioxidant</option>
+            <option value="Preservative">Preservative</option>
+            <option value="Other">Other</option>
+          </select>
 
-        <select
-          value={safetyFilter}
-          onChange={(e) => setSafetyFilter(e.target.value)}
-          style={{
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #d1d5db',
-            background: '#ffffff',
-            fontSize: 13,
-            fontWeight: 500,
-            color: '#374151',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="all">Semua Rating Keamanan</option>
-          <option value="aman">Aman</option>
-          <option value="hati">Perlu Perhatian</option>
-          <option value="hindari">Hindari</option>
-        </select>
+          <select
+            value={safetyFilter}
+            onChange={(e) => setSafetyFilter(e.target.value)}
+            className="akb-filter-select"
+          >
+            <option value="all">Semua Rating Keamanan</option>
+            <option value="aman">Aman</option>
+            <option value="hati">Perlu Perhatian</option>
+            <option value="hindari">Hindari</option>
+          </select>
+        </div>
       </div>
 
       {/* Table Container */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div className="akb-table-card">
+        <div className="akb-table-wrap">
+          <table className="akb-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Nama Bahan & INCI
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Kategori
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Rating Keamanan
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Komedogenik (0-5)
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Deteksi Scan
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Verifikasi Ahli
-                </th>
-                <th style={{ textAlign: 'right', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Aksi
-                </th>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Nama Bahan &amp; INCI</th>
+                <th style={{ textAlign: 'center' }}>Kategori</th>
+                <th style={{ textAlign: 'center' }}>Rating Keamanan</th>
+                <th style={{ textAlign: 'center' }}>Komedogenik (0-5)</th>
+                <th style={{ textAlign: 'center' }}>Deteksi Scan</th>
+                <th style={{ textAlign: 'center' }}>Verifikasi Ahli</th>
+                <th style={{ textAlign: 'right' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -940,36 +728,18 @@ export default function AdminKnowledgeBasePage() {
                 </label>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+              <div className="akb-drawer-footer">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    background: '#ffffff',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
+                  className="cluv-btn is-outline is-sm"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#111827',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: '#ffffff',
-                    cursor: isSaving ? 'not-allowed' : 'pointer',
-                  }}
+                  className="cluv-btn is-primary is-sm"
                 >
                   {isSaving ? 'Menyimpan...' : 'Simpan Parameter'}
                 </button>

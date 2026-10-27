@@ -115,13 +115,7 @@ export default function ProfilePage() {
   const usedPercent = Math.min(Math.round((usedCount / limitCount) * 100), 100)
   const remainingPercent = Math.max(0, 100 - usedPercent)
 
-  const barColor =
-    usedPercent >= 90 ? 'var(--color-status-alert)' :
-    usedPercent >= 75 ? 'var(--color-status-attention)' :
-    'var(--color-teal)'
-
   const tierLabel = isPro ? 'VIP PRO MEMBER' : isGlow ? 'GLOW MEMBER' : 'FREE ACCOUNT'
-  const tierClass = isPro ? 'pro' : isGlow ? 'glow' : 'free'
 
   // Summary counts for skin profile
   const skinTypeLabel = activeSkinProfile?.skin_type

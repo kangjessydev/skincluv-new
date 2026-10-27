@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Sparkles, ArrowRight, LogIn, LayoutDashboard, Menu, X, Heart, MessageCircle, ChevronDown } from 'lucide-react'
+import { Sparkles, ArrowRight, LogIn, LayoutDashboard, Menu, X, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import '@/styles/public-layout.css'
 

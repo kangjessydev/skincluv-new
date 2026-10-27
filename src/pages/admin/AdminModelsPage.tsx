@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Cpu, CheckCircle2, AlertCircle, ShieldCheck, Plus, RefreshCw, Zap, X, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import '@/styles/admin-models.css'
 
 interface AiFeature {
   id: string
@@ -272,107 +273,62 @@ export default function AdminModelsPage() {
   }
 
   return (
-    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
+    <div className="admin-page-container admin-models-page">
       {/* Header */}
-      <div className="admin-page-header">
+      <div className="admin-models-header">
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h1 className="admin-models-title">
             Model & API Key
           </h1>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
+          <p className="admin-models-subtitle">
             Atur AI Provider, nama model, dan API Key per fitur. API Key disimpan terenkripsi di Supabase Vault.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={loadData}
           disabled={isLoading}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 12px',
-            borderRadius: 8,
-            border: '1px solid #d1d5db',
-            background: '#ffffff',
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: 'pointer',
-          }}
+          className="cluv-btn is-outline is-sm"
         >
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Segarkan
         </button>
       </div>
 
       {feedback && (
-        <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
-            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
-            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-          }}
-        >
+        <div className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`} style={{ marginBottom: 20 }}>
           {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{feedback.message}</span>
         </div>
       )}
+
       {/* Test Connection Result Banner */}
       {testResult && (
-        <div
-          style={{
-            marginBottom: 24,
-            padding: '16px 20px',
-            borderRadius: 10,
-            border: testResult.success ? '1px solid #86efac' : '1px solid #fca5a5',
-            background: testResult.success ? '#f0fdf4' : '#fef2f2',
-            position: 'relative',
-          }}
-        >
+        <div className={`admin-models-test-banner ${testResult.success ? 'is-success' : 'is-error'}`}>
           <button
             type="button"
             onClick={() => setTestResult(null)}
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#6b7280',
-            }}
+            className="admin-models-test-close-btn"
             title="Tutup notifikasi"
           >
             <X size={16} />
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div className="admin-models-test-content">
             {testResult.success ? (
-              <CheckCircle2 size={22} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
+              <CheckCircle2 size={22} color="var(--cluv-teal)" style={{ flexShrink: 0, marginTop: 2 }} />
             ) : (
               <AlertCircle size={22} color="#dc2626" style={{ flexShrink: 0, marginTop: 2 }} />
             )}
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 15,
-                    color: testResult.success ? '#15803d' : '#b91c1c',
-                  }}
-                >
+                <span className={`admin-models-test-heading ${testResult.success ? 'is-success' : 'is-error'}`}>
                   {testResult.success ? 'Tes Koneksi Model AI Berhasil!' : 'Tes Koneksi Gagal!'}
                 </span>
                 {testResult.latency_ms !== undefined && (
                   <span
+                    className="cluv-tabular-nums"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -381,8 +337,8 @@ export default function AdminModelsPage() {
                       borderRadius: 9999,
                       fontSize: 12,
                       fontWeight: 600,
-                      background: testResult.latency_ms < 600 ? '#bbf7d0' : '#fed7aa',
-                      color: testResult.latency_ms < 600 ? '#166534' : '#9a3412',
+                      background: testResult.latency_ms < 600 ? 'var(--cluv-teal-100, #bbf7d0)' : '#fed7aa',
+                      color: testResult.latency_ms < 600 ? 'var(--cluv-teal-800, #166534)' : '#9a3412',
                     }}
                   >
                     <Clock size={12} /> {testResult.latency_ms} ms
@@ -390,10 +346,11 @@ export default function AdminModelsPage() {
                 )}
                 {testResult.tokens_used !== undefined && (
                   <span
+                    className="cluv-tabular-nums"
                     style={{
                       fontSize: 12,
-                      color: '#4b5563',
-                      background: '#f3f4f6',
+                      color: 'var(--cluv-text-muted)',
+                      background: 'var(--cluv-surface-subtle)',
                       padding: '2px 8px',
                       borderRadius: 4,
                     }}
@@ -405,29 +362,18 @@ export default function AdminModelsPage() {
 
               {testResult.success ? (
                 <div style={{ marginTop: 8 }}>
-                  <p style={{ fontSize: 13, color: '#166534', margin: '0 0 6px 0' }}>
+                  <p style={{ fontSize: 13, color: 'var(--cluv-teal-800, #166534)', margin: '0 0 6px 0' }}>
                     Model <strong>{testResult.model_name}</strong> via{' '}
                     <strong>{testResult.provider?.toUpperCase()}</strong> merespons dengan sukses:
                   </p>
-                  <blockquote
-                    style={{
-                      margin: 0,
-                      padding: '8px 12px',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: 6,
-                      borderLeft: '3px solid #22c55e',
-                      fontStyle: 'italic',
-                      fontSize: 13,
-                      color: '#1f2937',
-                    }}
-                  >
+                  <blockquote className="admin-models-test-quote">
                     "{testResult.output}"
                   </blockquote>
                 </div>
               ) : (
                 <div style={{ marginTop: 6, fontSize: 13, color: '#991b1b' }}>
                   <p style={{ margin: 0 }}>{testResult.error}</p>
-                  <p style={{ margin: '6px 0 0 0', fontSize: 12, color: '#6b7280' }}>
+                  <p style={{ margin: '6px 0 0 0', fontSize: 12, color: 'var(--cluv-text-muted)' }}>
                     Tips: Pastikan nama model valid di provider tersebut dan API key di Supabase Vault atau form masih aktif.
                   </p>
                 </div>
@@ -438,32 +384,24 @@ export default function AdminModelsPage() {
       )}
 
       {/* Tabel Konfigurasi Saat Ini */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          padding: 24,
-          marginBottom: 32,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Cpu size={18} color="#4b5563" />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
+      <div className="admin-models-card">
+        <div className="admin-models-card-header">
+          <Cpu size={18} color="var(--cluv-text-muted)" />
+          <h2 className="admin-models-card-title">
             Konfigurasi Model Aktif & Tersimpan
           </h2>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="admin-models-table-wrap">
+          <table className="admin-models-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Fitur</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Provider</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Nama Model</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Rujukan Secret Vault</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Uji Coba</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Status</th>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Fitur</th>
+                <th style={{ textAlign: 'left' }}>Provider</th>
+                <th style={{ textAlign: 'left' }}>Nama Model</th>
+                <th style={{ textAlign: 'left' }}>Rujukan Secret Vault</th>
+                <th style={{ textAlign: 'center' }}>Uji Coba</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -471,73 +409,53 @@ export default function AdminModelsPage() {
                 const feature = features.find((f) => f.id === c.feature_id)
                 const isTestingThis = testingConfigId === c.id
 
-                const badgeColors =
-                  c.provider === 'google'
-                    ? { bg: '#e0e7ff', color: '#3730a3' }
-                    : c.provider === 'anthropic'
-                    ? { bg: '#ffedd5', color: '#9a3412' }
-                    : c.provider === 'groq'
-                    ? { bg: '#fef3c7', color: '#b45309' }
-                    : { bg: '#dcfce7', color: '#166534' }
-
                 return (
                   <tr
                     key={c.id}
                     style={{
-                      borderBottom: '1px solid #f3f4f6',
-                      background: c.is_active ? '#ffffff' : '#fafafa',
-                      color: c.is_active ? '#111827' : '#9ca3af',
+                      background: c.is_active ? 'var(--cluv-surface)' : 'var(--cluv-surface-subtle)',
+                      color: c.is_active ? 'var(--cluv-text-main)' : 'var(--cluv-text-muted)',
                     }}
                   >
-                    <td style={{ padding: '12px', fontWeight: 600 }}>
+                    <td style={{ fontWeight: 600 }}>
                       {feature?.name ?? c.feature_id}
-                      <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#6b7280' }}>
+                      <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: 'var(--cluv-text-muted)' }}>
                         {feature?.slug}
                       </span>
                     </td>
-                    <td style={{ padding: '12px', textTransform: 'capitalize' }}>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          background: badgeColors.bg,
-                          color: badgeColors.color,
-                        }}
-                      >
+                    <td>
+                      <span className={`admin-models-provider-badge is-${c.provider}`}>
                         {c.provider}
                       </span>
                     </td>
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ fontFamily: 'monospace', fontWeight: 600, color: '#111827' }}>
+                    <td>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--cluv-text-main)' }}>
                         {c.model_name}
                       </div>
                       {c.provider === 'google' && (
                         <div style={{ marginTop: 4 }}>
                           {c.parameters?.thinking_budget === 0 ? (
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                            <span className="admin-models-thinking-tag is-zero">
                               Thinking: 0 (Fast OCR)
                             </span>
                           ) : c.parameters?.thinking_budget !== undefined ? (
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                            <span className="admin-models-thinking-tag is-budget">
                               Thinking: {c.parameters.thinking_budget}
                             </span>
                           ) : (
-                            <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}>
+                            <span className="admin-models-thinking-tag is-default">
                               Default Reasoning
                             </span>
                           )}
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: '12px' }}>
-                      <code style={{ background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, fontSize: 12 }}>
+                    <td>
+                      <code style={{ background: 'var(--cluv-surface-subtle)', padding: '3px 8px', borderRadius: 4, fontSize: 12 }}>
                         {c.api_key_secret}
                       </code>
                     </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       <button
                         type="button"
                         onClick={() =>
@@ -549,27 +467,14 @@ export default function AdminModelsPage() {
                           })
                         }
                         disabled={isTestingThis}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '4px 10px',
-                          borderRadius: 6,
-                          border: '1px solid #d1d5db',
-                          background: '#ffffff',
-                          color: '#374151',
-                          fontSize: 12,
-                          fontWeight: 500,
-                          cursor: isTestingThis ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
+                        className="cluv-btn is-outline is-sm"
                         title="Tes koneksi live model menggunakan secret di Vault"
                       >
-                        <Zap size={13} color={isTestingThis ? '#9ca3af' : '#f59e0b'} />
+                        <Zap size={13} color={isTestingThis ? 'var(--cluv-text-muted)' : '#f59e0b'} />
                         {isTestingThis ? 'Menguji...' : 'Tes Koneksi'}
                       </button>
                     </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       {c.is_active ? (
                         <span
                           style={{
@@ -578,8 +483,8 @@ export default function AdminModelsPage() {
                             gap: 4,
                             padding: '3px 10px',
                             borderRadius: 9999,
-                            background: '#dcfce7',
-                            color: '#15803d',
+                            background: 'var(--cluv-teal-100, #dcfce7)',
+                            color: 'var(--cluv-teal-800, #15803d)',
                             fontSize: 11,
                             fontWeight: 600,
                           }}
@@ -591,17 +496,7 @@ export default function AdminModelsPage() {
                           type="button"
                           onClick={() => handleActivateConfig(c.id)}
                           disabled={isSaving}
-                          style={{
-                            padding: '4px 12px',
-                            borderRadius: 6,
-                            border: '1px solid #d1d5db',
-                            background: '#ffffff',
-                            color: '#1f2937',
-                            fontSize: 12,
-                            fontWeight: 500,
-                            cursor: isSaving ? 'not-allowed' : 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
+                          className="cluv-btn is-sm"
                         >
                           Aktifkan
                         </button>
@@ -612,7 +507,7 @@ export default function AdminModelsPage() {
               })}
               {configs.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>
+                  <td colSpan={6} style={{ padding: 24, textAlign: 'center', color: 'var(--cluv-text-muted)' }}>
                     Belum ada konfigurasi model.
                   </td>
                 </tr>
@@ -623,41 +518,28 @@ export default function AdminModelsPage() {
       </div>
 
       {/* Form Tambah / Ganti Konfigurasi */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          padding: 24,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Plus size={18} color="#4b5563" />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
+      <div className="admin-models-card" style={{ marginBottom: 0 }}>
+        <div className="admin-models-card-header">
+          <Plus size={18} color="var(--cluv-text-muted)" />
+          <h2 className="admin-models-card-title">
             Tambah / Perbarui Konfigurasi Model
           </h2>
         </div>
-        <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 20px 0' }}>
+        <p style={{ fontSize: 13, color: 'var(--cluv-text-muted)', margin: '0 0 20px 0' }}>
           Mengaktifkan konfigurasi baru akan otomatis menonaktifkan konfigurasi model lama pada fitur yang sama.
         </p>
 
         <form onSubmit={handleSaveConfig} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="admin-grid-2col">
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Target Fitur AI <span style={{ color: '#ef4444' }}>*</span>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                Target Fitur AI <span style={{ color: 'var(--cluv-danger, #ef4444)' }}>*</span>
               </label>
               <select
                 value={selectedFeatureId}
                 onChange={(e) => setSelectedFeatureId(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  fontSize: 14,
-                  background: '#ffffff',
-                }}
+                className="cluv-input"
+                style={{ width: '100%' }}
                 required
               >
                 <option value="">-- Pilih Fitur --</option>
@@ -670,20 +552,14 @@ export default function AdminModelsPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                AI Provider <span style={{ color: '#ef4444' }}>*</span>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                AI Provider <span style={{ color: 'var(--cluv-danger, #ef4444)' }}>*</span>
               </label>
               <select
                 value={provider}
                 onChange={(e) => handleProviderChange(e.target.value as any)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  fontSize: 14,
-                  background: '#ffffff',
-                }}
+                className="cluv-input"
+                style={{ width: '100%' }}
                 required
               >
                 <option value="groq">Groq (Ultra-Fast LPU / Rekomendasi Chatbot)</option>
@@ -696,46 +572,31 @@ export default function AdminModelsPage() {
 
           <div className="admin-grid-2col">
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Nama Model AI <span style={{ color: '#ef4444' }}>*</span>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                Nama Model AI <span style={{ color: 'var(--cluv-danger, #ef4444)' }}>*</span>
               </label>
               <input
                 type="text"
                 placeholder="misal: llama-3.3-70b-versatile atau gemini-2.5-flash"
                 value={modelName}
                 onChange={(e) => setModelName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  fontSize: 14,
-                  boxSizing: 'border-box',
-                }}
+                className="cluv-input"
+                style={{ width: '100%' }}
                 required
               />
 
               {/* Rekomendasi Model Cepat */}
               <div style={{ marginTop: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cluv-text-muted)', display: 'block', marginBottom: 4 }}>
                   Pilihan Rekomendasi {provider.toUpperCase()}:
                 </span>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div className="admin-models-recommendations">
                   {RECOMMENDED_MODELS[provider]?.map((m) => (
                     <button
                       key={m.name}
                       type="button"
                       onClick={() => setModelName(m.name)}
-                      style={{
-                        fontSize: 11,
-                        padding: '3px 8px',
-                        borderRadius: 4,
-                        border: modelName === m.name ? '1px solid #2563eb' : '1px solid #e5e7eb',
-                        background: modelName === m.name ? '#eff6ff' : '#f9fafb',
-                        color: modelName === m.name ? '#1d4ed8' : '#4b5563',
-                        cursor: 'pointer',
-                        fontWeight: modelName === m.name ? 600 : 400,
-                      }}
+                      className={`admin-models-rec-btn ${modelName === m.name ? 'is-active' : ''}`}
                       title={m.desc}
                     >
                       {m.name}
@@ -746,47 +607,34 @@ export default function AdminModelsPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Nama Rujukan Secret Vault <span style={{ color: '#ef4444' }}>*</span>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                Nama Rujukan Secret Vault <span style={{ color: 'var(--cluv-danger, #ef4444)' }}>*</span>
               </label>
               <input
                 type="text"
                 placeholder="misal: groq_api_key atau gemini_api_key"
                 value={secretName}
                 onChange={(e) => setSecretName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  fontSize: 14,
-                  boxSizing: 'border-box',
-                }}
+                className="cluv-input"
+                style={{ width: '100%' }}
                 required
               />
-              <span style={{ fontSize: 11, color: '#6b7280', marginTop: 4, display: 'block' }}>
+              <span style={{ fontSize: 11, color: 'var(--cluv-text-muted)', marginTop: 4, display: 'block' }}>
                 Nama kunci identitas secret di Supabase Vault.
               </span>
             </div>
           </div>
 
           {provider === 'google' && (
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: 14 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 4 }}>
+            <div className="admin-models-thinking-box">
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-teal-800, #166534)', marginBottom: 4 }}>
                 Thinking Budget (Gemini Reasoning)
               </label>
               <select
                 value={thinkingBudget}
                 onChange={(e) => setThinkingBudget(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #86efac',
-                  fontSize: 13,
-                  background: '#ffffff',
-                  color: '#1e293b',
-                }}
+                className="cluv-input"
+                style={{ width: '100%' }}
               >
                 <option value="">Default Gemini (Reasoning Bawaan AI — Rekomendasi untuk Face Analysis & Diagnosa)</option>
                 <option value="0">0 — Matikan Reasoning (Ultra Cepat ~3-9s — Rekomendasi untuk Ingredient Scan / OCR)</option>
@@ -794,16 +642,16 @@ export default function AdminModelsPage() {
                 <option value="1024">1024 Tokens (Reasoning Sedang)</option>
                 <option value="2048">2048 Tokens (Reasoning Mendalam)</option>
               </select>
-              <span style={{ fontSize: 11, color: '#15803d', marginTop: 6, display: 'block' }}>
+              <span style={{ fontSize: 11, color: 'var(--cluv-teal-700, #15803d)', marginTop: 6, display: 'block' }}>
                 Tersimpan langsung di <code>model_configs.parameters</code> per-fitur tanpa hardcode di kode server.
               </span>
             </div>
           )}
 
-          <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 8, padding: 16 }}>
+          <div className="admin-models-vault-box">
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <ShieldCheck size={16} color="#059669" />
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>
+              <ShieldCheck size={16} color="var(--cluv-teal)" />
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)' }}>
                 Nilai API Key Mentah (Opsional):
               </label>
             </div>
@@ -812,18 +660,11 @@ export default function AdminModelsPage() {
               placeholder="Masukkan API key baru di sini jika ingin membuat/memperbarui isi secret..."
               value={secretValue}
               onChange={(e) => setSecretValue(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: 8,
-                border: '1px solid #cbd5e1',
-                fontSize: 14,
-                boxSizing: 'border-box',
-                background: '#ffffff',
-              }}
+              className="cluv-input"
+              style={{ width: '100%' }}
               autoComplete="new-password"
             />
-            <p style={{ fontSize: 12, color: '#64748b', margin: '6px 0 0 0' }}>
+            <p style={{ fontSize: 12, color: 'var(--cluv-text-muted)', margin: '6px 0 0 0' }}>
               Kosongkan jika secret dengan nama di atas sudah pernah disimpan di Vault sebelumnya dan Anda hanya ingin mengganti nama model. Nilai key tidak pernah disimpan di database biasa, melainkan langsung dienkripsi ke Supabase Vault.
             </p>
           </div>
@@ -832,17 +673,7 @@ export default function AdminModelsPage() {
             <button
               type="submit"
               disabled={isSaving || isTestingForm}
-              style={{
-                padding: '10px 24px',
-                fontSize: 14,
-                fontWeight: 600,
-                borderRadius: 8,
-                border: 'none',
-                background: isSaving ? '#9ca3af' : '#111827',
-                color: '#ffffff',
-                cursor: isSaving || isTestingForm ? 'not-allowed' : 'pointer',
-                transition: 'background 0.15s ease',
-              }}
+              className="cluv-btn is-primary"
             >
               {isSaving ? 'Menyimpan & Menulis ke Vault...' : 'Simpan & Aktifkan Model'}
             </button>
@@ -858,20 +689,7 @@ export default function AdminModelsPage() {
                 })
               }
               disabled={isSaving || isTestingForm || !modelName.trim() || !secretName.trim()}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '10px 18px',
-                fontSize: 14,
-                fontWeight: 600,
-                borderRadius: 8,
-                border: '1px solid #d1d5db',
-                background: '#ffffff',
-                color: '#374151',
-                cursor: isSaving || isTestingForm || !modelName.trim() || !secretName.trim() ? 'not-allowed' : 'pointer',
-                transition: 'all 0.15s ease',
-              }}
+              className="cluv-btn is-outline"
               title="Coba koneksi langsung ke provider AI dengan key di Vault / key yang sedang diketik"
             >
               <Zap size={15} color="#f59e0b" />

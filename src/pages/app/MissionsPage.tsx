@@ -2,7 +2,6 @@
 // Data-bound Missions & Rewards Page — Connected to missions, user_missions & coin_transactions
 
 import { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import {
   CheckCircle2,
   Gift,

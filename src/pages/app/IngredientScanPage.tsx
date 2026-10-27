@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import {
   FlaskConical,
   Upload,
@@ -422,7 +421,9 @@ PETUNJUK OCR & ANALISIS WAJIB:
   ], [])
 
   // Normalization Helpers for Ingredient Breakdown
-  const rawIngredientsList = scanResult?.ingredients_breakdown || scanResult?.key_ingredients || []
+  const rawIngredientsList = useMemo(() => {
+    return scanResult?.ingredients_breakdown || scanResult?.key_ingredients || []
+  }, [scanResult?.ingredients_breakdown, scanResult?.key_ingredients])
 
   const displayIngredientsList: IngredientItem[] = useMemo(() => {
     if (!rawIngredientsList.length) return []

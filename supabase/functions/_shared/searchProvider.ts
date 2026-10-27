@@ -129,7 +129,7 @@ export function buildSearchQuery(
 
   // Hilangkan kata ganti personal, kata filler, kata trigger sumber, dan tanda baca
   const strippedMsg = cleanMsg
-    .replace(/[,\.\?!;:"'()\[\]{}]/g, ' ')
+    .replace(/[,.?!;:"'()[\]{}]/g, ' ')
     .replace(/\b(aku|saya|gue|gw|ku|kamu|anda|kulitku|wajahku|badanku|leherku|i|me|my)\b/gi, ' ')
     .replace(/(\b(tolong|bantu|coba|carikan|cari|cek|ada|mana|minta|mohon|berikan)\b|\b(sumber(nya)?|sumbenr(ya)?|sumbr(nya)?|bukti(nya)?|referensi(nya)?|jurnal(nya)?|studi(nya)?|penelitian(nya)?)\b|\b(ga|dong|ya|sih|kan|kah|kok)\b)/gi, ' ')
     .replace(/\s+/g, ' ')

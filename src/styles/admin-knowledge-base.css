@@ -1,0 +1,284 @@
+/* src/styles/admin-knowledge-base.css
+   =============================================================================
+   Admin Knowledge Base Page Stylesheet (Cluv Framework Compliant)
+   Replaces legacy inline styles with CSS variables and standard components.
+   ============================================================================= */
+
+.akb-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.akb-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.akb-header-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--cluv-radius-md);
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.akb-header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  margin: 0;
+}
+
+.akb-header-subtitle {
+  color: var(--cluv-neutral-500);
+  font-size: 0.875rem;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.akb-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Metrics Grid */
+.akb-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.akb-stat-card {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.akb-stat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--cluv-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.akb-stat-icon-wrap.is-teal {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+}
+
+.akb-stat-icon-wrap.is-gold {
+  background: var(--cluv-gold-soft);
+  color: var(--cluv-gold);
+}
+
+.akb-stat-icon-wrap.is-rose {
+  background: var(--cluv-rose-soft);
+  color: var(--cluv-rose);
+}
+
+.akb-stat-icon-wrap.is-neutral {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
+}
+
+.akb-stat-label {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.akb-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  line-height: 1.2;
+}
+
+/* Filter Card */
+.akb-filter-card {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.akb-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 8px 14px;
+  min-width: 280px;
+  flex: 1;
+}
+
+.akb-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  width: 100%;
+  color: var(--cluv-neutral-900);
+}
+
+.akb-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.akb-filter-select {
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  background: var(--cluv-surface);
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-700);
+  cursor: pointer;
+  outline: none;
+}
+
+.akb-filter-select:focus {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+/* Table Card */
+.akb-table-card {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.akb-table-wrap {
+  overflow-x: auto;
+}
+
+.akb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.akb-table th {
+  background: var(--cluv-neutral-50);
+  border-bottom: 1px solid var(--cluv-border);
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--cluv-neutral-700);
+  font-size: 0.8125rem;
+}
+
+.akb-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cluv-neutral-100);
+  color: var(--cluv-neutral-800);
+  vertical-align: middle;
+}
+
+.akb-table tr:hover td {
+  background: var(--cluv-neutral-50);
+}
+
+.akb-table-ingredient-name {
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
+
+.akb-table-inci-name {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.akb-table-desc {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-600);
+  margin-top: 4px;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Drawer / Modal */
+.akb-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+  animation: cluvFadeIn 0.2s ease;
+}
+
+.akb-drawer-content {
+  width: 100%;
+  max-width: 540px;
+  height: 100%;
+  background: var(--cluv-surface);
+  box-shadow: var(--cluv-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: cluvSlideLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.akb-drawer-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--cluv-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.akb-drawer-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.akb-drawer-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--cluv-border);
+  background: var(--cluv-neutral-50);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

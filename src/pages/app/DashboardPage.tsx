@@ -18,7 +18,6 @@ import {
   FlaskConical,
   AlertTriangle,
   Clock,
-  X,
   Bot,
   Zap,
   MessageCircle,

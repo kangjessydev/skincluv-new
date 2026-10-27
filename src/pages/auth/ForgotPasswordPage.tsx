@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
           return prev - 1
         })
       }, 1000)
-    } catch (err: any) {
+    } catch {
       setError('Terjadi kendala saat mengirim instruksi. Periksa koneksi Anda.')
     } finally {
       setIsLoading(false)

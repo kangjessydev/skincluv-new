@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Skincluv</string>
+    <string name="title_activity_main">Skincluv</string>
+    <string name="package_name">com.skincluv.app</string>
+    <string name="custom_url_scheme">com.skincluv.app</string>
+</resources>

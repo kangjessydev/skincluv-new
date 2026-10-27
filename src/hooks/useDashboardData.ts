@@ -88,9 +88,10 @@ export function useDashboardData() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const userId = user?.id || session?.user?.id
+
   const fetchDashboard = useCallback(async () => {
-    const activeUser = user || session?.user
-    if (!activeUser) {
+    if (!userId) {
       setLoading(false)
       return
     }
@@ -113,7 +114,7 @@ export function useDashboardData() {
     } finally {
       setLoading(false)
     }
-  }, [user?.id, session?.user?.id])
+  }, [userId])
 
   useEffect(() => {
     fetchDashboard()

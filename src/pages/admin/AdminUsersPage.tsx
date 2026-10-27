@@ -437,7 +437,6 @@ export default function AdminUsersPage() {
                 filteredUsers.map((u) => {
                   const isPro = u.tierSlug === 'premium' || u.tierSlug === 'pro'
                   const isGlow = u.tierSlug === 'glow'
-                  const isAdmin = u.role === 'admin'
                   const joinDate = new Date(u.created_at).toLocaleDateString('id-ID', {
                     day: 'numeric',
                     month: 'short',

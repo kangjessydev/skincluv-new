@@ -1,0 +1,237 @@
+/* ==========================================================================
+   Admin Prompts & AI Features — Cluv Framework Extension
+   Tokens: var(--cluv-*)
+   ========================================================================== */
+
+.admin-prompts-page {
+  max-width: 1200px;
+  width: 100%;
+}
+
+.admin-prompts-header {
+  margin-bottom: 28px;
+}
+
+.admin-prompts-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cluv-text-main);
+  margin: 0;
+}
+
+.admin-prompts-subtitle {
+  color: var(--cluv-text-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.admin-prompts-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .admin-prompts-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sidebar List */
+.admin-prompts-sidebar {
+  background: var(--cluv-surface);
+  border-radius: var(--cluv-radius-lg, 14px);
+  border: 1px solid var(--cluv-border);
+  padding: 16px;
+  height: fit-content;
+}
+
+.admin-prompts-sidebar-heading {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cluv-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+
+.admin-prompts-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-prompts-feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--cluv-radius, 8px);
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-prompts-feature-item:hover {
+  background: var(--cluv-surface-subtle);
+}
+
+.admin-prompts-feature-item.is-selected {
+  background: var(--cluv-teal-50, #f0fdf4);
+  border-color: var(--cluv-teal-300, #86efac);
+}
+
+.admin-prompts-feature-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.admin-prompts-feature-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cluv-text-main);
+}
+
+.admin-prompts-feature-item.is-selected .admin-prompts-feature-name {
+  font-weight: 600;
+  color: var(--cluv-teal-800, #166534);
+}
+
+.admin-prompts-feature-version {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--cluv-surface-subtle);
+  color: var(--cluv-text-muted);
+}
+
+.admin-prompts-feature-item.is-selected .admin-prompts-feature-version {
+  background: var(--cluv-teal-100, #bbf7d0);
+  color: var(--cluv-teal-700, #15803d);
+}
+
+.admin-prompts-feature-slug {
+  font-size: 11px;
+  color: var(--cluv-text-muted);
+  margin-top: 2px;
+  font-family: monospace;
+}
+
+/* Editor Panel */
+.admin-prompts-editor-panel {
+  background: var(--cluv-surface);
+  border-radius: var(--cluv-radius-lg, 14px);
+  border: 1px solid var(--cluv-border);
+  padding: 24px;
+}
+
+.admin-prompts-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.admin-prompts-selected-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cluv-text-main);
+  margin: 0;
+}
+
+.admin-prompts-selected-slug {
+  font-size: 13px;
+  color: var(--cluv-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.admin-prompts-slug-badge {
+  background: var(--cluv-surface-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.admin-prompts-active-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--cluv-teal-50, #f0fdf4);
+  color: var(--cluv-teal-700, #15803d);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--cluv-teal-200, #bbf7d0);
+}
+
+.admin-prompts-textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 13px;
+  font-family: Consolas, Monaco, "Courier New", monospace;
+  line-height: 1.5;
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius, 8px);
+  background: var(--cluv-surface-subtle);
+  box-sizing: border-box;
+  outline: none;
+  resize: vertical;
+  color: var(--cluv-text-main);
+}
+
+.admin-prompts-textarea:focus {
+  border-color: var(--cluv-teal);
+  background: var(--cluv-surface);
+}
+
+/* History List */
+.admin-prompts-history-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cluv-border);
+}
+
+.admin-prompts-history-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cluv-text-main);
+  margin-bottom: 12px;
+}
+
+.admin-prompts-history-card {
+  padding: 10px 14px;
+  border-radius: var(--cluv-radius, 8px);
+  border: 1px solid var(--cluv-border);
+  background: var(--cluv-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.admin-prompts-history-card.is-active {
+  background: var(--cluv-teal-50, #f0fdf4);
+  border-color: var(--cluv-teal-200, #bbf7d0);
+}
+
+.admin-prompts-history-ver {
+  font-weight: 700;
+  color: var(--cluv-text-main);
+  font-family: monospace;
+}
+
+.admin-prompts-history-card.is-active .admin-prompts-history-ver {
+  color: var(--cluv-teal-700, #15803d);
+}

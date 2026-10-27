@@ -37,8 +37,8 @@ export default function CoinConfirmModal({
           <div className={`coin-modal-icon ${isInsufficient ? 'insufficient' : ''}`}>
             {isInsufficient ? <AlertTriangle size={24} /> : <Coins size={24} />}
           </div>
-          <button className="coin-modal-close" onClick={onCancel} aria-label="Tutup">
-            <X size={18} />
+          <button type="button" className="coin-modal-close" onClick={onCancel} aria-label="Tutup dialog">
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -47,14 +47,14 @@ export default function CoinConfirmModal({
           {isInsufficient ? (
             <>
               <div className="modal-badge-pill insufficient-badge">
-                <Coins size={12} />
+                <Coins size={12} aria-hidden="true" />
                 <span>Saldo Tidak Mencukupi</span>
               </div>
               <h3 className="modal-title">Credits Kamu Tidak Cukup</h3>
               <p className="modal-desc">
                 Fitur <strong>{featureName}</strong> membutuhkan{' '}
-                <span className="text-highlight">{coinCost} Credits</span>, sedangkan saldo kamu saat ini{' '}
-                <span className="text-highlight">{currentBalance} Credits</span>.
+                <span className="text-highlight cluv-tabular-nums">{coinCost} Credits</span>, sedangkan saldo kamu saat ini{' '}
+                <span className="text-highlight cluv-tabular-nums">{currentBalance} Credits</span>.
               </p>
 
               {/* 2 Pilihan Aksi Edukatif */}
@@ -66,11 +66,18 @@ export default function CoinConfirmModal({
                     onCancel()
                     navigate('/missions')
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onCancel()
+                      navigate('/missions')
+                    }
+                  }}
                   role="button"
                   tabIndex={0}
                 >
                   <div className="option-icon-box trophy-bg">
-                    <Trophy size={20} />
+                    <Trophy size={20} aria-hidden="true" />
                   </div>
                   <div className="option-info">
                     <div className="option-title-row">
@@ -80,7 +87,7 @@ export default function CoinConfirmModal({
                     <p>Dapatkan Credits gratis setiap hari dari check-in & misi skincare.</p>
                   </div>
                   <div className="option-arrow">
-                    <ArrowRight size={16} />
+                    <ArrowRight size={16} aria-hidden="true" />
                   </div>
                 </div>
 
@@ -91,11 +98,18 @@ export default function CoinConfirmModal({
                     onCancel()
                     navigate('/pricing')
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onCancel()
+                      navigate('/pricing')
+                    }
+                  }}
                   role="button"
                   tabIndex={0}
                 >
                   <div className="option-icon-box crown-bg">
-                    <Crown size={20} />
+                    <Crown size={20} aria-hidden="true" />
                   </div>
                   <div className="option-info">
                     <div className="option-title-row">
@@ -105,7 +119,7 @@ export default function CoinConfirmModal({
                     <p>Nikmati kuota bulanan AI tanpa perlu khawatir saldo Credits habis.</p>
                   </div>
                   <div className="option-arrow">
-                    <ArrowRight size={16} />
+                    <ArrowRight size={16} aria-hidden="true" />
                   </div>
                 </div>
               </div>
@@ -121,16 +135,16 @@ export default function CoinConfirmModal({
               <div className="coin-breakdown">
                 <div className="breakdown-row">
                   <span>Biaya penggunaan</span>
-                  <span className="breakdown-cost">-{coinCost} Credits</span>
+                  <span className="breakdown-cost cluv-tabular-nums">-{coinCost} Credits</span>
                 </div>
                 <div className="breakdown-row">
                   <span>Saldo kamu</span>
-                  <span>{currentBalance} Credits</span>
+                  <span className="cluv-tabular-nums">{currentBalance} Credits</span>
                 </div>
                 <div className="breakdown-divider" />
                 <div className="breakdown-row breakdown-result">
                   <span>Sisa setelah pemotongan</span>
-                  <span className="text-success">{balanceAfter} Credits</span>
+                  <span className="text-success cluv-tabular-nums">{balanceAfter} Credits</span>
                 </div>
               </div>
             </>
@@ -139,12 +153,12 @@ export default function CoinConfirmModal({
 
         {/* Actions */}
         <div className="coin-modal-actions">
-          <button className="btn btn-outline" onClick={onCancel}>
+          <button type="button" className="btn btn-outline" onClick={onCancel}>
             {isInsufficient ? 'Nanti Saja' : 'Batal'}
           </button>
           {!isInsufficient && (
-            <button className="btn btn-primary" onClick={onConfirm}>
-              <Sparkles size={16} />
+            <button type="button" className="btn btn-primary" onClick={onConfirm}>
+              <Sparkles size={16} aria-hidden="true" />
               Gunakan {coinCost} Credits
             </button>
           )}

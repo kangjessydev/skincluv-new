@@ -6,14 +6,11 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   Sparkles,
-  Layers,
-  LayoutGrid,
   Check,
   Copy,
   Smartphone,
   Tablet,
   Monitor,
-  AlertTriangle,
   ArrowRight,
   ArrowLeft,
   ShieldCheck,
@@ -24,19 +21,13 @@ import {
   History,
   CheckCircle2,
   ExternalLink,
-  Search,
   ChevronDown,
   X,
   Flame,
   Zap,
   Lock,
   CreditCard,
-  FileText,
   Bot,
-  Box,
-  Maximize2,
-  Ruler,
-  AlignLeft,
 } from 'lucide-react'
 import { Alert, Badge, Button, EmptyState } from '@/components/ui'
 import '@/styles/cluv/docs.css'

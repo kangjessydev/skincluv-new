@@ -37,7 +37,7 @@ export default function AuthCallbackPage() {
         }
 
         // Ambil dan pastikan sesi Supabase aktif dari pertukaran kode PKCE
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        const { error: sessionError } = await supabase.auth.getSession()
 
         if (sessionError) {
           throw sessionError

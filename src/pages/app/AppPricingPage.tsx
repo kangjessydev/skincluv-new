@@ -67,13 +67,11 @@ const DEFAULT_TIERS: Tier[] = [
 
 export default function AppPricingPage() {
   const navigate = useNavigate()
-  const { user, subscription, coinBalance } = useAuthStore()
+  const { subscription, coinBalance } = useAuthStore()
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS)
-  const [loading, setLoading] = useState(false)
 
   const isPro = isActivePremium(subscription)
   const isGlow = isActiveGlow(subscription)
-  const isFree = !isPro && !isGlow
 
   useEffect(() => {
     let isMounted = true
@@ -125,8 +123,6 @@ export default function AppPricingPage() {
         }
       } catch (err) {
         console.warn('[AppPricingPage] Using default tiers fallback:', err)
-      } finally {
-        if (isMounted) setLoading(false)
       }
     }
 
@@ -144,8 +140,6 @@ export default function AppPricingPage() {
   const daysRemaining = subscription?.expires_at
     ? Math.max(0, Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null
-
-  const activeTierLabel = isPro ? 'Skincluv PRO ✨' : isGlow ? 'Skincluv GLOW ⚡' : 'Free Explorer 🌱'
 
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Sparkles, CheckCircle2, AlertCircle, History } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import '@/styles/admin-prompts.css'
 
 interface AiFeature {
   id: string
@@ -142,95 +143,53 @@ export default function AdminPromptsPage() {
   const selectedHistory = allVersions.filter((v) => v.feature_id === selectedFeatureId)
 
   return (
-    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
+    <div className="admin-page-container admin-prompts-page">
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
+      <div className="admin-prompts-header">
+        <h1 className="admin-prompts-title">
           Prompt & AI Features
         </h1>
-        <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
+        <p className="admin-prompts-subtitle">
           Kelola system prompt per fitur AI. Versi baru langsung aktif dan versi lama otomatis dinonaktifkan oleh database.
         </p>
       </div>
 
       {feedback && (
-        <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
-            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
-            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-          }}
-        >
+        <div className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`} style={{ marginBottom: 20 }}>
           {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{feedback.message}</span>
         </div>
       )}
 
-      <div className="admin-split-prompts">
+      <div className="admin-prompts-layout">
         {/* Sidebar Fitur */}
-        <div
-          style={{
-            background: '#ffffff',
-            borderRadius: 12,
-            border: '1px solid #e5e7eb',
-            padding: 16,
-            height: 'fit-content',
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
+        <div className="admin-prompts-sidebar">
+          <div className="admin-prompts-sidebar-heading">
             Daftar Fitur AI ({features.length})
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="admin-prompts-feature-list">
             {features.map((f) => {
               const isSelected = selectedFeatureId === f.id
               const hasActive = !!activePrompts[f.id]
               return (
                 <button
                   key={f.id}
+                  type="button"
                   onClick={() => selectFeature(f.id)}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    textAlign: 'left',
-                    background: isSelected ? '#f0fdf4' : 'transparent',
-                    border: `1px solid ${isSelected ? '#86efac' : 'transparent'}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
+                  className={`admin-prompts-feature-item ${isSelected ? 'is-selected' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <span style={{ fontSize: 14, fontWeight: isSelected ? 600 : 500, color: isSelected ? '#166534' : '#1f2937' }}>
+                  <div className="admin-prompts-feature-meta">
+                    <span className="admin-prompts-feature-name">
                       {f.name}
                     </span>
                     {hasActive && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: isSelected ? '#bbf7d0' : '#e5e7eb',
-                          color: isSelected ? '#15803d' : '#4b5563',
-                        }}
-                      >
+                      <span className="admin-prompts-feature-version">
                         v{activePrompts[f.id]?.version}
                       </span>
                     )}
                   </div>
-                  <span style={{ fontSize: 11, color: '#6b7280', marginTop: 2, fontFamily: 'monospace' }}>
+                  <span className="admin-prompts-feature-slug">
                     {f.slug}
                   </span>
                 </button>
@@ -240,45 +199,26 @@ export default function AdminPromptsPage() {
         </div>
 
         {/* Editor Form */}
-        <div
-          style={{
-            background: '#ffffff',
-            borderRadius: 12,
-            border: '1px solid #e5e7eb',
-            padding: 24,
-          }}
-        >
+        <div className="admin-prompts-editor-panel">
           {selectedFeature ? (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div className="admin-prompts-editor-header">
                 <div>
-                  <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>
+                  <h2 className="admin-prompts-selected-title">
                     {selectedFeature.name}
                   </h2>
-                  <p style={{ fontSize: 13, color: '#6b7280', margin: '4px 0 0 0' }}>
-                    Slug: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>{selectedFeature.slug}</code>
+                  <p className="admin-prompts-selected-slug">
+                    Slug: <code className="admin-prompts-slug-badge">{selectedFeature.slug}</code>
                     {selectedFeature.description && ` — ${selectedFeature.description}`}
                   </p>
                 </div>
 
                 {currentActivePrompt && (
                   <div style={{ textAlign: 'right' }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '4px 10px',
-                        borderRadius: 9999,
-                        background: '#dcfce7',
-                        color: '#15803d',
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
+                    <span className="admin-prompts-active-tag">
                       <Sparkles size={13} /> Aktif: v{currentActivePrompt.version}
                     </span>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: 'var(--cluv-text-muted)', marginTop: 4 }}>
                       {new Date(currentActivePrompt.created_at).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
@@ -290,32 +230,20 @@ export default function AdminPromptsPage() {
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
                   System Prompt:
                 </label>
                 <textarea
                   value={draftPrompt}
                   onChange={(e) => setDraftPrompt(e.target.value)}
                   rows={16}
-                  style={{
-                    width: '100%',
-                    padding: 12,
-                    fontSize: 13,
-                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                    lineHeight: 1.5,
-                    border: '1px solid #d1d5db',
-                    borderRadius: 8,
-                    background: '#fcfcfc',
-                    boxSizing: 'border-box',
-                    outline: 'none',
-                    resize: 'vertical',
-                  }}
+                  className="admin-prompts-textarea"
                   placeholder="Ketik system prompt di sini..."
                 />
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
                   Catatan Versi (Opsional):
                 </label>
                 <input
@@ -323,85 +251,55 @@ export default function AdminPromptsPage() {
                   placeholder="Contoh: Kalibrasi respon panjang, perketat rekomendasi"
                   value={draftNotes}
                   onChange={(e) => setDraftNotes(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    fontSize: 13,
-                    border: '1px solid #d1d5db',
-                    borderRadius: 8,
-                    boxSizing: 'border-box',
-                  }}
+                  className="cluv-input"
+                  style={{ width: '100%' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <button
+                  type="button"
                   onClick={handleSavePrompt}
                   disabled={isSaving || !draftPrompt.trim()}
-                  style={{
-                    padding: '10px 20px',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    borderRadius: 8,
-                    border: 'none',
-                    background: isSaving || !draftPrompt.trim() ? '#9ca3af' : '#111827',
-                    color: '#ffffff',
-                    cursor: isSaving || !draftPrompt.trim() ? 'not-allowed' : 'pointer',
-                    transition: 'background 0.15s ease',
-                  }}
+                  className="cluv-btn is-primary"
                 >
                   {isSaving ? 'Menyimpan ke Database...' : 'Simpan & Aktifkan Versi Baru'}
                 </button>
 
-                <span style={{ fontSize: 12, color: '#6b7280' }}>
+                <span style={{ fontSize: 12, color: 'var(--cluv-text-muted)' }}>
                   Versi baru akan otomatis mendapatkan nomor versi berikutnya.
                 </span>
               </div>
 
               {/* Riwayat Versi */}
               {selectedHistory.length > 0 && (
-                <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #e5e7eb' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>
+                <div className="admin-prompts-history-section">
+                  <div className="admin-prompts-history-title">
                     <History size={16} /> Riwayat Versi ({selectedHistory.length})
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div>
                     {selectedHistory.map((ver) => (
                       <div
                         key={ver.id}
-                        style={{
-                          padding: '10px 14px',
-                          borderRadius: 8,
-                          border: '1px solid #e5e7eb',
-                          background: ver.is_active ? '#f0fdf4' : '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          fontSize: 13,
-                        }}
+                        className={`admin-prompts-history-card ${ver.is_active ? 'is-active' : ''}`}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span
-                            style={{
-                              fontWeight: 700,
-                              color: ver.is_active ? '#166534' : '#4b5563',
-                              fontFamily: 'monospace',
-                            }}
-                          >
+                          <span className="admin-prompts-history-ver">
                             v{ver.version}
                           </span>
                           {ver.is_active && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: '#166534', background: '#dcfce7', padding: '2px 6px', borderRadius: 4 }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cluv-teal-700, #15803d)', background: 'var(--cluv-teal-100, #dcfce7)', padding: '2px 6px', borderRadius: 4 }}>
                               Sedang Aktif
                             </span>
                           )}
-                          <span style={{ color: '#6b7280' }}>
+                          <span style={{ color: 'var(--cluv-text-muted)' }}>
                             {ver.notes ? ver.notes : 'Tanpa catatan'}
                           </span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                          <span style={{ fontSize: 11, color: 'var(--cluv-text-muted)' }}>
                             {new Date(ver.created_at).toLocaleDateString('id-ID', {
                               day: 'numeric',
                               month: 'short',
@@ -416,17 +314,7 @@ export default function AdminPromptsPage() {
                                 type="button"
                                 onClick={() => handleDirectActivate(ver.id, ver.version)}
                                 disabled={isSaving}
-                                style={{
-                                  padding: '4px 10px',
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  borderRadius: 4,
-                                  border: '1px solid #86efac',
-                                  background: '#f0fdf4',
-                                  color: '#166534',
-                                  cursor: isSaving ? 'not-allowed' : 'pointer',
-                                  transition: 'all 0.15s ease',
-                                }}
+                                className="cluv-btn is-outline is-sm"
                               >
                                 Aktifkan Langsung
                               </button>
@@ -436,16 +324,7 @@ export default function AdminPromptsPage() {
                                   setDraftPrompt(ver.system_prompt)
                                   setDraftNotes(`Restore dari versi v${ver.version}`)
                                 }}
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: 11,
-                                  fontWeight: 500,
-                                  borderRadius: 4,
-                                  border: '1px solid #d1d5db',
-                                  background: '#f9fafb',
-                                  color: '#374151',
-                                  cursor: 'pointer',
-                                }}
+                                className="cluv-btn is-sm"
                               >
                                 Salin ke Editor
                               </button>
@@ -459,7 +338,7 @@ export default function AdminPromptsPage() {
               )}
             </>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9ca3af' }}>
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--cluv-text-muted)' }}>
               {isLoading ? 'Memuat data...' : 'Pilih fitur di sebelah kiri untuk melihat dan mengedit prompt.'}
             </div>
           )}

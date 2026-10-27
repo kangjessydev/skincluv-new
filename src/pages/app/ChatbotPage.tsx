@@ -119,8 +119,8 @@ export default function ChatbotPage() {
 
   useEffect(() => {
     const promptQuery = searchParams.get('q')
-    if (promptQuery && !inputText) {
-      setInputText(promptQuery)
+    if (promptQuery) {
+      setInputText((prev) => prev || promptQuery)
     }
   }, [searchParams])
   const [isSending, setIsSending] = useState(false)
@@ -805,8 +805,13 @@ export default function ChatbotPage() {
                 <ShieldCheck size={18} className="text-teal-600" />
                 <h3>Memori Percakapan &amp; Hak Privasi</h3>
               </div>
-              <button onClick={() => setShowMemoryModal(false)} className="cluv-chat-drawer-close">
-                <X size={18} />
+              <button
+                type="button"
+                onClick={() => setShowMemoryModal(false)}
+                className="cluv-chat-drawer-close"
+                aria-label="Tutup modal privasi & memori"
+              >
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 
@@ -942,8 +947,13 @@ export default function ChatbotPage() {
           <div className="cluv-chat-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="cluv-chat-drawer-header">
               <h3>Riwayat Percakapan</h3>
-              <button onClick={() => setShowHistoryModal(false)} className="cluv-chat-drawer-close">
-                ×
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(false)}
+                className="cluv-chat-drawer-close"
+                aria-label="Tutup riwayat percakapan"
+              >
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
             <div className="cluv-chat-drawer-body">

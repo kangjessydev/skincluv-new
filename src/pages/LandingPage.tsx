@@ -22,7 +22,6 @@ import {
   Gift,
   CheckCircle2,
   Scan,
-  MessageCircle,
   LayoutDashboard,
 } from 'lucide-react'
 import '@/styles/landing.css'
@@ -157,6 +156,10 @@ export default function LandingPage() {
                   src="/images/notion-2d-girl.jpg"
                   alt="Ilustrasi manis 2D cermin selfie santai ditemani stiker skincare"
                   className="sweet-hero-img"
+                  width={600}
+                  height={600}
+                  fetchPriority="high"
+                  decoding="async"
                 />
                 <div className="sweet-hero-floating-bubble cluv-animate-float">
                   <div className="cluv-flex-row cluv-gap-2 cluv-mb-1">
@@ -414,6 +417,10 @@ export default function LandingPage() {
                 src="/images/skincare-routine-warmth.jpg"
                 alt="Botol skincare di meja rias yang hangat"
                 className="sweet-story-img"
+                width={560}
+                height={420}
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>

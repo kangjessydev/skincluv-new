@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
           // Tidak ada sesi recovery aktif
           setError('Sesi pemulihan tidak ditemukan atau telah kedaluwarsa. Silakan ajukan permohonan reset sandi kembali.')
         }
-      } catch (err) {
+      } catch {
         setError('Gagal memverifikasi sesi pemulihan.')
       } finally {
         setSessionChecking(false)

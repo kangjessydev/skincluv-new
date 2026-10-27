@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Camera,
   X,
@@ -111,7 +110,7 @@ const CLINICAL_FACIAL_TIPS = [
 ]
 
 // Kimi & BPOM Approved Clinical Severity Bands (RFC 011)
-export function getClinicalSeverityBand(score: number): {
+function getClinicalSeverityBand(score: number): {
   band: 'optimal' | 'mild_attention' | 'needs_attention' | 'consult_dermatologist'
   label: string
   descriptor: string

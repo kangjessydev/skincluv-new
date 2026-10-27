@@ -460,10 +460,14 @@
 .cluv-z-1 {
   z-index: 1 !important;
 }
-
 .cluv-overflow-hidden {
   overflow: hidden !important;
 }
 
-
-
+/* =============================================================================
+ * 11. TYPOGRAPHY & NUMERIC UTILITIES (ANTI-AI SLOP)
+ * ============================================================================= */
+.cluv-tabular-nums,
+.tabular-nums {
+  font-variant-numeric: tabular-nums !important;
+}

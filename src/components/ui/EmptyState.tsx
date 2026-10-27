@@ -2,7 +2,7 @@
 // Reusable empty state placeholder — RFC 019 T4
 // Digunakan saat data kosong, bukan sebagai error state
 
-import { type ReactNode, type ElementType } from 'react'
+import { type ElementType } from 'react'
 import { ScanFace, PackageSearch, MessageSquare, History } from 'lucide-react'
 
 interface EmptyStateProps {
