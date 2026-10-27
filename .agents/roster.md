@@ -23,6 +23,7 @@ Status: ✅ ada · 📝 direncanakan
 | `/role-research` | 📝 | Riset (termasuk rekomendasi stack berbasis bukti terkini) | Tidak |
 | `/role-blueprint` | 📝 | Rancangan kasar dan kontrak API/DB | Tidak |
 | `/role-frontend` | ✅ | UI dan frontend (anti-slop, schema mirroring, micro-interactions) | Ya |
+| `/role-mobile` | ✅ | Aplikasi mobile native/hybrid (Capacitor, Android, permissions, APK) | Ya (mobile/native) |
 | `/role-motion` | 📝 | Konsultan & auditor animasi/motion UI (timing, easing, performa, anti-AI slop) | Tidak |
 | `/role-backend` | ✅ | Backend/API (arsitektur 4 lapis, validasi ketat, anti-race condition) | Ya |
 | `/role-database` | ✅ | Skema, migrasi aman, relasi, indexing, RLS, zero data loss | Ya |
