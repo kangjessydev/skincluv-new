@@ -62,6 +62,7 @@ const RefundPolicyPage = lazy(() => import('@/pages/public/RefundPolicyPage'))
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'))
 const AboutPage = lazy(() => import('@/pages/public/AboutPage'))
 const FaqPage = lazy(() => import('@/pages/public/FaqPage'))
+const DownloadPage = lazy(() => import('@/pages/public/DownloadPage'))
 const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'))
 const PublicLayout = lazy(() => import('@/components/layout/PublicLayout'))
 const DesignSystemPage = lazy(() => import('@/pages/DesignSystemPage'))
@@ -105,6 +106,8 @@ export default function App() {
           <Route path="/medical-disclaimer" element={<MedicalDisclaimerPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/download" element={<DownloadPage />} />
+          <Route path="/unduh" element={<Navigate to="/download" replace />} />
         </Route>
 
         {/* Cluv Framework Living Design System Documentation Portal */}

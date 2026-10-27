@@ -25,6 +25,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Smartphone,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData, type DashboardMissionItem } from '@/hooks/useDashboardData'
@@ -83,6 +84,7 @@ export default function DashboardPage() {
   const isNight = currentHour >= 17 || currentHour < 4
 
   const [showExpiryBanner, setShowExpiryBanner] = useState(true)
+  const [showAppBanner, setShowAppBanner] = useState(() => !localStorage.getItem('skincluv_dismiss_app_banner'))
 
   const weather = getEnvironmentalWeather()
 
@@ -208,6 +210,26 @@ export default function DashboardPage() {
           onClose={() => setShowExpiryBanner(false)}
         >
           Paket Akses kamu tersisa <strong>{daysRemaining} hari</strong> ({subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'segera'}).
+        </Alert>
+      )}
+
+      {/* NATIVE ANDROID APP PROMO BANNER (Quiet & Dismissible) */}
+      {showAppBanner && (
+        <Alert
+          variant="info"
+          icon={<Smartphone size={18} />}
+          title="Aplikasi Android Skincluv Sudah Tersedia"
+          action={
+            <Button variant="primary" size="sm" to="/download">
+              Unduh APK
+            </Button>
+          }
+          onClose={() => {
+            localStorage.setItem('skincluv_dismiss_app_banner', 'true')
+            setShowAppBanner(false)
+          }}
+        >
+          Akses kamera langsung tanpa lag, bebas klik izin browser berulang, dan hemat kuota data.
         </Alert>
       )}
 

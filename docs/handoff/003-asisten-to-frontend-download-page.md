@@ -3,7 +3,7 @@
 - **Dari Peran**: `/role-asisten`
 - **Ke Peran**: `/role-frontend`
 - **Tanggal**: 2026-10-27
-- **Status**: open
+- **Status**: completed
 - **Tujuan**: Membangun Halaman Khusus Unduh APK Android (`/download`) dan menghubungkan tombol unduh di Landing Page serta Dashboard Pengguna.
 
 ---

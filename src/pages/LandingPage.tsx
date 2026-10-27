@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Scan,
   LayoutDashboard,
+  Smartphone,
 } from 'lucide-react'
 import '@/styles/landing.css'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
@@ -114,9 +115,9 @@ export default function LandingPage() {
                     <span>Yuk, Mulai Cerita Kulitmu</span>
                   </Link>
                 )}
-                <Link to="/about" className="cluv-btn is-secondary is-lg">
-                  <Smile size={16} />
-                  <span>Kenapa Kami Berbeda?</span>
+                <Link to="/download" className="cluv-btn is-secondary is-lg">
+                  <Smartphone size={16} />
+                  <span>Unduh Aplikasi Android</span>
                 </Link>
               </div>
 
@@ -673,18 +674,22 @@ export default function LandingPage() {
             </p>
             <div className="cluv-btn-group is-center is-stack-mobile">
               {user ? (
-                <Link to="/dashboard" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '420px' }}>
+                <Link to="/dashboard" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '320px' }}>
                   <LayoutDashboard size={16} />
                   <span>Buka Dashboard Saya</span>
                   <ArrowRight size={16} />
                 </Link>
               ) : (
-                <Link to="/register" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '420px' }}>
+                <Link to="/register" className="cluv-btn is-primary is-lg" style={{ width: '100%', maxWidth: '320px' }}>
                   <Heart size={16} />
                   <span>Yuk, Mulai Cerita Kulitmu</span>
                   <ArrowRight size={16} />
                 </Link>
               )}
+              <Link to="/download" className="cluv-btn is-secondary is-lg" style={{ width: '100%', maxWidth: '320px' }}>
+                <Smartphone size={16} />
+                <span>Unduh Aplikasi Android</span>
+              </Link>
             </div>
             
             {/* Reassurance Micro-Copy Trust Strip */}

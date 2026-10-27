@@ -23,6 +23,12 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - Refactoring 4 halaman admin ke doktrin kanonikal Cluv Micro-Framework.
   - Perbaikan transisi CSS anti-jank 60fps di `admin-users.css` dan `admin-transactions.css`.
   - Penerapan `.cluv-tabular-nums` dan audit a11y (0 warning Oxlint).
+- **Halaman Khusus Unduh APK Android (`/download`)**:
+  - Rilis halaman `src/pages/public/DownloadPage.tsx` dengan panduan instalasi 3 langkah dan FAQ.
+  - Bucket Supabase Storage publik `app-releases` (migration 086).
+  - Tautan navigasi desktop navbar, mobile drawer, dan footer di `PublicLayout.tsx`.
+  - Tombol aksi sekunder di Hero dan Bottom CTA `LandingPage.tsx`.
+  - Alert banner ramah Android di `DashboardPage.tsx`.
 
 ### Diubah & Diperbaiki
 - **Isolasi Java Extension Lokal**: Menonaktifkan Language Server Red Hat Java di `.vscode/settings.json` dan mengecualikan folder `android/` agar laptop developer bebas dari download background.

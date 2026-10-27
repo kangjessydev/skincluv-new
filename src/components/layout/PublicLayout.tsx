@@ -65,6 +65,7 @@ export default function PublicLayout() {
             <Link to="/about" className={location.pathname === '/about' ? 'active' : ''}>Tentang Kami</Link>
             <Link to="/paket" className={location.pathname === '/paket' ? 'active' : ''}>Paket</Link>
             <Link to="/faq" className={location.pathname === '/faq' ? 'active' : ''}>Pusat Bantuan</Link>
+            <Link to="/download" className={location.pathname === '/download' ? 'active' : ''}>Unduh Aplikasi</Link>
             <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>Kontak</Link>
           </nav>
 
@@ -141,6 +142,9 @@ export default function PublicLayout() {
               </Link>
               <Link to="/faq" className={location.pathname === '/faq' ? 'active' : ''} onClick={closeMenu}>
                 <span>Pusat Bantuan</span>
+              </Link>
+              <Link to="/download" className={location.pathname === '/download' ? 'active' : ''} onClick={closeMenu}>
+                <span>Unduh Aplikasi Android</span>
               </Link>
               <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>
                 <span>Kontak Sahabat CS</span>
@@ -219,6 +223,7 @@ export default function PublicLayout() {
                 <li><Link to="/">Beranda Sahabat</Link></li>
                 <li><Link to="/about">Tentang Kami &amp; Cerita Meja Rias</Link></li>
                 <li><Link to="/paket">Pilihan Paket 30 Hari</Link></li>
+                <li><Link to="/download">Unduh Aplikasi Android (.APK)</Link></li>
                 <li><Link to="/faq">Tanya Jawab (FAQ)</Link></li>
               </ul>
             </div>
