@@ -3,7 +3,7 @@
 - **Dari Peran**: `/role-asisten`
 - **Ke Peran**: `/role-frontend`
 - **Tanggal**: 2026-10-28
-- **Status**: in-progress
+- **Status**: completed
 - **Tujuan**: Merombak total `src/pages/app/FaceScanPage.tsx` menjadi standar Bento Grid Human Scale dengan UX Mobile-First, mempertahankan 100% data klinis backend tanpa ada yang hilang.
 
 ---
@@ -21,7 +21,7 @@ Merujuk pada konsensus di `docs/reports/2026-10-28-asisten-konsensus-bento-scann
 
 ## 2. Cakupan Perubahan UI (In Scope)
 1. **Stage Upload / Kamera**:
-   - Tampilan ramah jempol (Thumb-Friendly): Tombol aksi utama "Ambil Foto Wajah" dan "Pilih dari Galeri" (minimal 48×48px).
+   - Tampilan ramah jempol (Thumb-Friendly): Tombol aksi utama "Buka Kamera" (`capture="user"`) dan "Galeri Foto" (minimal 48×48px).
    - Preview foto proporsional dengan rasio wajah yang bersih.
    - Pilihan "Ganti Foto" dan "Mulai Analisis Wajah" yang jelas.
 2. **Stage Scanning**:
@@ -37,7 +37,8 @@ Merujuk pada konsensus di `docs/reports/2026-10-28-asisten-konsensus-bento-scann
 ---
 
 ## 3. Kriteria Selesai (Definition of Done)
-- [ ] 100% data backend tetap tampil utuh (terverifikasi oleh inspektur paritas).
-- [ ] Tampilan responsif di mobile (HP layar 360px - 430px) maupun desktop (>960px).
-- [ ] Lolos uji `oxlint` (0 warning) dan `tsc -b && vite build` (0 error).
-- [ ] Aset disinkronkan ke native Android via `npx cap sync android`.
+- [x] 100% data backend tetap tampil utuh (terverifikasi oleh inspektur paritas).
+- [x] Tampilan responsif di mobile (HP layar 360px - 430px) maupun desktop (>960px).
+- [x] Lolos uji `oxlint` (0 warning) dan `tsc -b && vite build` (0 error).
+- [x] Aset disinkronkan ke native Android via `npx cap sync android`.
+
