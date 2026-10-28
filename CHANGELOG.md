@@ -48,3 +48,7 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
    - *Gejala*: Kompilasi Gradle gagal pada task `:app:checkDebugAarMetadata` dengan exit code 1.
    - *Penyebab*: Library Capacitor 8 (`@capacitor/android: 8.5.3`) menetapkan `minCompileSdk = 36` di dalam metadata `.aar`-nya. Saat `compileSdkVersion` diturunkan ke 35, validator AAR Gradle menolak karena versi SDK aplikasi lebih rendah dari syarat library.
    - *Solusi & Pencegahan*: Mengembalikan `compileSdkVersion = 36` dan `targetSdkVersion = 36` di `variables.gradle`, serta menambahkan instalasi resmi `platforms;android-36` melalui `sdkmanager` pada runner GitHub Actions.
+4. **Pelajaran UX Mobile App vs Desktop (Bento Grid Parity)**:
+   - *Gejala*: Setelah APK berhasil diuji coba, antarmuka halaman selain Dashboard (`FaceScanPage`, `IngredientScanPage`, dll.) terasa kaku, tidak ergonomis untuk disentuh jempol di HP, dan terasa hambar di desktop.
+   - *Penyebab*: Halaman-halaman selain Dashboard masih menggunakan template lama (dropzone desktop, tampilan hasil vertikal padat teks tanpa progressive disclosure).
+   - *Solusi & Pencegahan*: Menetapkan Konsensus Tripartit (BE x Inspektur x FE) untuk merombak halaman scanner menjadi arsitektur Bento Grid Human Scale dengan standar mobile-first, tanpa menghilangkan satu pun dari 14 data analitik klinis backend.
