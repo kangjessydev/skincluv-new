@@ -52,3 +52,18 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
    - *Gejala*: Setelah APK berhasil diuji coba, antarmuka halaman selain Dashboard (`FaceScanPage`, `IngredientScanPage`, dll.) terasa kaku, tidak ergonomis untuk disentuh jempol di HP, dan terasa hambar di desktop.
    - *Penyebab*: Halaman-halaman selain Dashboard masih menggunakan template lama (dropzone desktop, tampilan hasil vertikal padat teks tanpa progressive disclosure).
    - *Solusi & Pencegahan*: Menetapkan Konsensus Tripartit (BE x Inspektur x FE) untuk merombak halaman scanner menjadi arsitektur Bento Grid Human Scale dengan standar mobile-first, tanpa menghilangkan satu pun dari 14 data analitik klinis backend.
+5. **Pelajaran Arsitektur UI: Distraksi Micro-Framework Kustom & Paradigma Mobile-First (28 Okt 2026)**:
+   - *Gejala*: Upaya refactoring scanner sempat menghasilkan "Card Soup" (border kartu bertumpuk), regresi tipografi (`.cluv-micro` 11px kekecilan), dan AI terbebani ribuan aturan token kustom. Halaman terasa panjang dan melelahkan di smartphone.
+   - *Penyebab*: Terlalu fokus pada abstraksi micro-framework daripada fondasi antarmuka mobile nyata, serta pendekatan desktop-first yang hanya sekadar menumpuk kolom ke bawah (`flex-direction: column`).
+   - *Solusi & Pencegahan*: Mengesampingkan doktrin micro-framework yang kaku. Menetapkan standar **Adaptive Presentation Branching** (mengadopsi pola sukses `DashboardPage.tsx`: 1 data hook, 2 cabang visual terpisah untuk desktop vs mobile, penggunaan Bottom Sheet, Inset Grouped List, dan Thumb Zone).
+
+---
+
+## [Unreleased] - 2026-10-28
+
+### Ditambahkan
+- **Laporan Audit Inspeksi Halaman App Mandiri (`docs/reports/2026-10-28-asisten-audit-arsitektur-mobile-first-dan-inspeksi-halaman.md`)**:
+  - Audit page-by-page terhadap seluruh 15 halaman aplikasi di `src/pages/app/` dan `src/pages/profile/`.
+  - Pemetaan kanvas (`cluv-canvas-grid`, `cluv-canvas-focused`, `cluv-canvas-bleed`), inkonsistensi layout, dan antipattern modal desktop di perangkat seluler.
+  - Roadmap 4 fase pengerjaan (Fase 1: Core Scanning Workflows, Fase 2: Riwayat & Drawer/Sheet, Fase 3: Gamifikasi Misi, Fase 4: Pengaturan & Kanvas).
+
