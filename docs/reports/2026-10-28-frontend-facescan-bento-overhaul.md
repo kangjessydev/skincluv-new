@@ -26,28 +26,25 @@ Hasil pemindaian wajah kini disajikan dalam format **Bento Grid Human Scale** ya
 ### B. Stage 2: HUD Pemindaian AI yang Responsif
 - Mempertahankan animasi laser scanning HUD, status biometrik real-time, dan rotasi tips dermatologi klinis tanpa risiko overflow horizontal di layar 360px.
 
-### C. Stage 3: Arsitektur Bento Modular (100% Paritas Data Terjamin)
-Semua 14 titik data klinis dari backend dijamin tetap hadir utuh:
-1. **Bento Card 1 (Hero Metric & Ringkasan Wajah - Split 60:40)**:
-   - Skor lingkaran visual (`.cluv-score-circle`) 1–100 dengan indikator warna status klinis (Optimal, Perhatian Ringan, Perlu Perhatian, Konsultasi Spesialis).
-   - Thumbnail foto wajah teranalisis dengan badge terverifikasi.
-   - Badge tipe kulit dan pills masalah kulit (`skin_concerns`).
-   - Judul kondisi kulit (`skin_status_title`) dan narasi Gen Z Pro (`analysis_notes`).
-2. **Bento Card 2 (Interactive 3-Zone Deep-Dive - Segmented Controller)**:
-   - Mengubah 3 tumpukan kartu vertikal yang panjang menjadi **Segmented Chips Control** (`.cluv-chip`):
-     - Chip Dahi (Forehead) + skor & status
-     - Chip Hidung & Pipi (T-Zone & Cheeks) + skor & status
-     - Chip Dagu & Sekitar Mulut (Chin & Perioral) + skor & status
-   - Mengeliminasi kelelahan scrolling di ponsel. Pengguna cukup mengetuk chip untuk langsung membaca:
+### C. Stage 3: Tata Letak Editorial Anti-Slop (100% Paritas Data Terjamin)
+Semua 14 titik data klinis dari backend tetap hadir utuh dengan pendekatan editorial mewah dan tenang (bebas card soup & icon clutter):
+1. **Hero Observation Section (SVG Score Ring Kanonikal)**:
+   - Menggunakan komponen resmi **`.cluv-score-ring` SVG** (sama persis dengan Dashboard dan Modal Riwayat).
+   - Tipe kulit dan status klinis disajikan dalam badge halus (`optimal`, `attention`, `alert`).
+   - Narasi observasi Gen Z Pro disajikan dengan tipografi nyaman dibaca (`.cluv-body` 15px, line-height 1.65), bukan teks kerdil semut.
+   - Thumbnail foto wajah terverifikasi disematkan proporsional.
+2. **Evaluasi 3 Zona Wajah Interaktif (Segmented Chips Control)**:
+   - Chip Dahi (Forehead), Hidung & Pipi (T-Zone), dan Dagu & Mulut (Chin) dengan skor tertera di chip.
+   - Menggantikan tumpukan kartu bertingkat dengan box observasi bersih:
      - 🔬 **Hasil Observasi**: `area.finding`
-     - 💡 **Penjelasan Sederhana**: `area.analogy` (Gold Box)
-     - ⚡ **Rencana Tindakan**: `area.action_plan` (Green/Teal Action Box)
-3. **Bento Card 3 (Hero Actives & Formulasi Kosmetik)**:
-   - Menampilkan grid bahan aktif (`recommended_ingredients`) dengan badge prioritas (`essential` vs `recommended`), tujuan fungsi kosmetik, tautan pencarian Marketplace Shopee, dan tombol konsultasi cara pakai ke AI Chatbot.
-4. **Bento Card 4 (Panduan Kebiasaan Personal Harian)**:
-   - Filter chips interaktif (Semua, Rutin Lakukan, Kurangi, Hindari) yang mengelompokkan `tips_do`, `tips_reduce`, dan `tips_avoid`.
+     - 💡 **Penjelasan Sederhana**: `area.analogy` (Kotak Emas Halus)
+     - ⚡ **Rencana Tindakan**: `area.action_plan` (Kotak Aksi Hijau Halus)
+3. **Hero Actives & Formulasi Kosmetik**:
+   - Grid bahan aktif dengan badge prioritas (`essential` vs `recommended`), fungsi kosmetik, tautan Shopee, dan tombol tanya cara pakai ke AI Chatbot.
+4. **Panduan Kebiasaan Personal Harian (Do, Reduce, Avoid)**:
+   - 3 kolom bersih (Rutin Lakukan, Kurangi, Hindari) dengan tipografi yang lapang.
 5. **Sticky / Bottom Action Bar**:
-   - Tombol utama ramah jempol: `Konsultasikan Rutinitas ke Skinsistant AI` (terkoneksi langsung dengan parameter query `scan_id`) dan `Scan Foto Baru`.
+   - Tombol utama ramah jempol: `Konsultasikan Rutinitas ke Skinsistant AI` (terkoneksi langsung dengan `scan_id`) dan `Scan Foto Baru`.
 
 ---
 
@@ -56,9 +53,10 @@ Semua 14 titik data klinis dari backend dijamin tetap hadir utuh:
 | Item Pengujian | Standar | Hasil |
 | :--- | :--- | :--- |
 | **Linting** | `npx oxlint` | ✅ **0 Warning, 0 Error** |
-| **Type Check & Bundle** | `npm run build` (`tsc -b && vite build`) | ✅ **Berhasil (3.55s), 0 Error** |
-| **Android Capacitor Sync** | `npx cap sync android` | ✅ **Berhasil (0.366s), aset web tersalin ke APK** |
+| **Type Check & Bundle** | `npm run build` (`tsc -b && vite build`) | ✅ **Berhasil (2.78s), 0 Error** |
+| **Android Capacitor Sync** | `npx cap sync android` | ✅ **Berhasil (0.685s), aset web tersalin ke APK** |
 | **Pewarnaan** | Cluv CSS Variables (`var(--cluv-*)`) | ✅ **100% mematuhi aturan zero hardcoded colors** |
+| **Anti-Slop Compliance** | Vercel Guidelines & RFC 018 | ✅ **Zero card soup, SVG ring, body text 15px** |
 | **Paritas Data** | Audit 14 data points backend | ✅ **100% data hadir utuh** |
 
 ---
