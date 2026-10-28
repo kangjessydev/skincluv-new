@@ -25,6 +25,7 @@ import {
   RotateCcw,
   LayoutGrid,
   ListFilter,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
@@ -33,7 +34,7 @@ import { supabase } from '@/lib/supabase'
 import CoinConfirmModal from '@/components/ui/CoinConfirmModal'
 import { compressImageForAI } from '@/utils/imageQualityValidator'
 import { detectHumanFace } from '@/utils/faceLandmarkDetector'
-import { Button, Badge } from '@/components/ui'
+import { Button, Badge, BottomSheet } from '@/components/ui'
 
 type ScanStage = 'upload' | 'scanning' | 'result'
 type BadgeFilter = 'all' | 'aman' | 'hati' | 'hindari'
@@ -150,7 +151,9 @@ export default function IngredientScanPage() {
   const [tipIndex, setTipIndex] = useState(0)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const topResultRef = useRef<HTMLDivElement>(null)
+  const [showGuideSheet, setShowGuideSheet] = useState(false)
 
   // Stage 2 Scanning Timers (Natural Pacing & Tip Rotation)
   useEffect(() => {
@@ -531,40 +534,107 @@ PETUNJUK OCR & ANALISIS WAJIB:
             </div>
           )}
 
-          {/* STAGE 1: PHOTO-FIRST UPLOAD */}
+          {/* STAGE 1: PHOTO-FIRST UPLOAD (Adaptive Mobile-First) */}
           {stage === 'upload' && (
-            <div className="cluv-card cluv-gap-4">
-              <div
-                className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''}`}
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
+            <>
+              {/* Mobile Quick Context Strip & Guide Trigger */}
+              <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-hide-desktop cluv-mb-3 cluv-gap-2">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
+                  <span className="cluv-badge is-teal is-sm">Profil: {userSkinType}</span>
+                </div>
+                <button
+                  type="button"
+                  className="cluv-chip"
+                  onClick={() => setShowGuideSheet(true)}
+                  aria-label="Buka panduan membaca label komposisi"
+                >
+                  <BookOpen size={13} className="cluv-text-teal" />
+                  <span>Panduan Label</span>
+                </button>
+              </div>
+
+              <div className="cluv-card cluv-gap-4">
                 {previewUrl ? (
-                  <div className="cluv-dropzone-preview">
-                    <img src={previewUrl} alt="Preview label komposisi" className="cluv-dropzone-preview-img" />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      iconLeft={<X size={14} />}
-                      onClick={handleClearImage}
-                    >
-                      Ganti / Hapus Foto
-                    </Button>
+                  <div className="cluv-flex-col cluv-items-center cluv-gap-3 cluv-w-full cluv-py-2">
+                    <div className="cluv-dropzone-preview" style={{ maxWidth: '320px', width: '100%' }}>
+                      <img src={previewUrl} alt="Preview label komposisi" className="cluv-dropzone-preview-img" style={{ maxHeight: '260px', objectFit: 'contain' }} />
+                    </div>
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        iconLeft={<RotateCcw size={14} />}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Ganti Foto
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconLeft={<X size={14} />}
+                        onClick={handleClearImage}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
                   </div>
                 ) : (
-                  <>
-                    <div className="cluv-dropzone-icon">
-                      <Camera size={26} />
+                  <div className="cluv-flex-col cluv-gap-3 cluv-w-full">
+                    {/* 2 Thumb-Friendly Buttons for Mobile & Quick Action */}
+                    <div className="cluv-grid cols-2 cluv-gap-2">
+                      <Button
+                        variant="primary"
+                        size="md"
+                        iconLeft={<Camera size={18} />}
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
+                        Kamera Kemasan
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="md"
+                        iconLeft={<ImageIcon size={18} />}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Galeri Foto
+                      </Button>
                     </div>
-                    <h3 className="cluv-dropzone-title">Ambil / Unggah Foto Label Komposisi</h3>
-                    <p className="cluv-dropzone-subtitle">Pastikan teks komposisi pada kemasan terlihat jelas dan terang</p>
-                    <div className="cluv-dropzone-btn-fake">
-                      <Upload size={14} /> Pilih File atau Jepret Kamera
+
+                    {/* Desktop Dropzone (Hidden on phone screens) */}
+                    <div
+                      className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''} cluv-hide-mobile`}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Unggah atau pilih foto label kemasan"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
+                      }}
+                    >
+                      <div className="cluv-dropzone-icon">
+                        <Camera size={26} />
+                      </div>
+                      <h3 className="cluv-dropzone-title">Ambil / Unggah Foto Label Komposisi</h3>
+                      <p className="cluv-dropzone-subtitle">Pastikan teks komposisi pada kemasan terlihat jelas dan terang</p>
+                      <div className="cluv-dropzone-btn-fake">
+                        <Upload size={14} /> Pilih File atau Tarik Foto ke Sini
+                      </div>
                     </div>
-                  </>
+                  </div>
                 )}
+
+                {/* Hidden Native File Inputs */}
+                <input
+                  type="file"
+                  ref={cameraInputRef}
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -572,68 +642,69 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
-              </div>
 
-              {/* Photography Tips Card */}
-              <div className="cluv-card is-highlight cluv-p-4">
-                <h4 className="cluv-font-bold cluv-text-gold cluv-flex-row cluv-items-center cluv-gap-1 cluv-m-0 cluv-text-sm">
-                  <Sparkles size={14} className="shrink-0" /> Tips Foto Kemasan Supaya 100% Akurat:
-                </h4>
-                <ul className="cluv-list-disc cluv-pl-4 cluv-mt-2 cluv-micro cluv-text-muted cluv-space-y-1 cluv-m-0">
-                  <li>
-                    <strong>Dekatkan Kamera:</strong> Fokuskan lensa langsung ke bagian teks <em>"Ingredients / Komposisi"</em> (tidak perlu seluruh botol).
-                  </li>
-                  <li>
-                    <strong>Hindari Silau Lampu:</strong> Miringkan botol sedikit agar pantulan cahaya lampu tidak menutupi tulisan.
-                  </li>
-                  <li>
-                    <strong>Pencahayaan Terang:</strong> Pastikan tulisan tidak gelap atau buram/goyang.
-                  </li>
-                </ul>
-              </div>
-
-              {/* Credit Notice if out of credits on Free tier */}
-              {isFreeTierOutOfCredits && (
-                <div className="cluv-alert is-warning is-compact cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-2">
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                    <Coins size={16} className="text-amber-600 shrink-0" />
-                    <span className="cluv-micro">
-                      Butuh <strong>{ingredientCost} Credits</strong> untuk analisis komposisi (Saldo kamu: <strong>{currentCoins} Credits</strong>).
-                    </span>
-                  </div>
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-1">
-                    <Button variant="outline" size="sm" iconLeft={<Trophy size={13} />} to="/missions">
-                      Misi Gratis
-                    </Button>
-                    <Button variant="primary" size="sm" iconLeft={<Crown size={13} />} to="/pricing">
-                      Upgrade
-                    </Button>
-                  </div>
+                {/* Photography Tips Card (Desktop only; in mobile accessible via BottomSheet) */}
+                <div className="cluv-card is-highlight cluv-p-4 cluv-hide-mobile">
+                  <h4 className="cluv-font-bold cluv-text-gold cluv-flex-row cluv-items-center cluv-gap-1 cluv-m-0 cluv-text-sm">
+                    <Sparkles size={14} className="shrink-0" /> Tips Foto Kemasan Supaya 100% Akurat:
+                  </h4>
+                  <ul className="cluv-list-disc cluv-pl-4 cluv-mt-2 cluv-micro cluv-text-muted cluv-space-y-1 cluv-m-0">
+                    <li>
+                      <strong>Dekatkan Kamera:</strong> Fokuskan lensa langsung ke bagian teks <em>"Ingredients / Komposisi"</em> (tidak perlu seluruh botol).
+                    </li>
+                    <li>
+                      <strong>Hindari Silau Lampu:</strong> Miringkan botol sedikit agar pantulan cahaya lampu tidak menutupi tulisan.
+                    </li>
+                    <li>
+                      <strong>Pencahayaan Terang:</strong> Pastikan tulisan tidak gelap atau buram/goyang.
+                    </li>
+                  </ul>
                 </div>
-              )}
 
-              {/* Action Button */}
-              <Button
-                variant="primary"
-                size="md"
-                block
-                loading={isAnalyzing}
-                disabled={isAnalyzing || !imageBase64}
-                iconLeft={<FlaskConical size={18} />}
-                onClick={() => handleStartAnalysis()}
-              >
-                Mulai Pindai Komposisi Skincare
-              </Button>
+                {/* Credit Notice if out of credits on Free tier */}
+                {isFreeTierOutOfCredits && (
+                  <div className="cluv-alert is-warning is-compact cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-2">
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                      <Coins size={16} className="text-amber-600 shrink-0" />
+                      <span className="cluv-micro">
+                        Butuh <strong>{ingredientCost} Credits</strong> untuk analisis komposisi (Saldo kamu: <strong>{currentCoins} Credits</strong>).
+                      </span>
+                    </div>
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-1">
+                      <Button variant="outline" size="sm" iconLeft={<Trophy size={13} />} to="/missions">
+                        Misi Gratis
+                      </Button>
+                      <Button variant="primary" size="sm" iconLeft={<Crown size={13} />} to="/pricing">
+                        Upgrade
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
-              {/* Medical Disclaimer (Invariant 19 compliant) */}
-              <div className="cluv-alert is-warning is-compact">
-                <Info size={16} className="shrink-0 text-amber-600" />
-                <span className="cluv-micro">
-                  <b>Penafian:</b> Hasil analisis AI ini bersifat panduan observasi kosmetik edukatif, bukan pengganti diagnosis spesialis kulit profesional.
-                </span>
+                {/* Action Button */}
+                <Button
+                  variant="primary"
+                  size="md"
+                  block
+                  loading={isAnalyzing}
+                  disabled={isAnalyzing || !imageBase64}
+                  iconLeft={<FlaskConical size={18} />}
+                  onClick={() => handleStartAnalysis()}
+                >
+                  Mulai Pindai Komposisi Skincare
+                </Button>
+
+                {/* Medical Disclaimer (Invariant 19 compliant) */}
+                <div className="cluv-alert is-warning is-compact">
+                  <Info size={16} className="shrink-0 text-amber-600" />
+                  <span className="cluv-micro">
+                    <b>Penafian:</b> Hasil analisis AI ini bersifat panduan observasi kosmetik edukatif, bukan pengganti diagnosis spesialis kulit profesional.
+                  </span>
+                </div>
               </div>
-            </div>
+            </>
           )}
+
 
           {/* STAGE 2: NEURAL AI SCANNER HUD */}
           {stage === 'scanning' && (
@@ -1058,26 +1129,31 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   </p>
                 </div>
               ) : (
-                /* CARD VIEW: Detail lengkap narasi per bahan */
-                <div className="cluv-flex-col cluv-gap-3">
+                /* INSET GROUPED LIST VIEW: Bersih, elegan, tanpa border soup */
+                <div className="cluv-inset-list">
                   {filteredIngredients.length === 0 ? (
                     <div className="cluv-card is-compact cluv-text-center cluv-text-muted">
                       Tidak ada bahan yang cocok dengan pencarian "<strong>{searchQuery}</strong>".
                     </div>
                   ) : (
                     filteredIngredients.map((ing, idx) => (
-                      <div key={idx} className="cluv-ingredient-card">
-                        <div className="cluv-ingredient-card-header">
-                          <div className="cluv-flex-col cluv-gap-1">
-                            <h4 className="cluv-ingredient-name">{ing.name}</h4>
+                      <div key={idx} className="cluv-inset-item">
+                        <div className="cluv-flex-row cluv-justify-between cluv-items-start cluv-gap-2">
+                          <div className="cluv-flex-col cluv-gap-1 cluv-flex-1">
+                            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
+                              <h4 className="cluv-ingredient-name cluv-m-0">{ing.name}</h4>
+                              {ing.is_hero_active && (
+                                <span className="cluv-badge is-teal is-sm">Hero Active</span>
+                              )}
+                            </div>
                             {ing.is_drug_or_banned && (
-                              <span className="cluv-badge is-rose is-sm">
+                              <span className="cluv-badge is-rose is-sm cluv-mt-0.5">
                                 Regulasi BPOM: Obat Keras / Zat Khusus
                               </span>
                             )}
                           </div>
-                          <div className="cluv-ingredient-badges">
-                            {typeof ing.comedogenic_score === 'number' && (
+                          <div className="cluv-flex-row cluv-items-center cluv-gap-1.5 cluv-flex-shrink-0">
+                            {typeof ing.comedogenic_score === 'number' && ing.comedogenic_score > 0 && (
                               <span className={`cluv-comedo-badge ${ing.comedogenic_score <= 1 ? 'is-low' : ing.comedogenic_score <= 3 ? 'is-med' : 'is-high'}`}>
                                 Pori: {ing.comedogenic_score}
                               </span>
@@ -1089,20 +1165,24 @@ PETUNJUK OCR & ANALISIS WAJIB:
                         </div>
 
                         {ing.function ? (
-                          <p className="cluv-ingredient-func">{ing.function}</p>
+                          <p className="cluv-body cluv-mt-2 cluv-m-0" style={{ fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--cluv-neutral-700)' }}>
+                            {ing.function}
+                          </p>
                         ) : (
-                          <p className="cluv-ingredient-func cluv-text-muted"><em>Bahan pelarut atau penstabil formula.</em></p>
+                          <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-m-0">
+                            <em>Bahan pelarut atau penstabil formula.</em>
+                          </p>
                         )}
 
                         {ing.skinType && (
-                          <div className="cluv-flex-row cluv-gap-2 cluv-micro">
+                          <div className="cluv-flex-row cluv-gap-2 cluv-micro cluv-mt-1.5">
                             <b className="cluv-text-dark">Cocok untuk:</b>
                             <span className="cluv-text-muted">{ing.skinType}</span>
                           </div>
                         )}
 
                         {ing.interaction && (
-                          <div className="cluv-flex-row cluv-gap-2 cluv-micro">
+                          <div className="cluv-flex-row cluv-gap-2 cluv-micro cluv-mt-1">
                             <b className="cluv-text-dark">Interaksi:</b>
                             <span className="cluv-text-muted">{ing.interaction}</span>
                           </div>
@@ -1110,7 +1190,7 @@ PETUNJUK OCR & ANALISIS WAJIB:
 
                         {/* Personal Skin Flag */}
                         {ing.personal?.text && (
-                          <div className={`cluv-alert is-compact ${ing.personal.ok ? 'is-success' : 'is-danger'}`}>
+                          <div className={`cluv-alert is-compact cluv-mt-2 ${ing.personal.ok ? 'is-success' : 'is-danger'}`}>
                             {ing.personal.ok ? (
                               <CheckCircle2 size={16} className="shrink-0" />
                             ) : (
@@ -1152,8 +1232,8 @@ PETUNJUK OCR & ANALISIS WAJIB:
           )}
         </div>
 
-        {/* RIGHT COLUMN: Side Summary & Active Skin Profile Panel */}
-        <div className="cluv-scan-aside">
+        {/* RIGHT COLUMN: Side Summary & Active Skin Profile Panel (Desktop Only; on mobile accessed via BottomSheet) */}
+        <div className="cluv-scan-aside cluv-hide-mobile">
           {/* Active Skin Profile Context Card */}
           <div className="cluv-card is-highlight">
             <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-2">
@@ -1199,6 +1279,53 @@ PETUNJUK OCR & ANALISIS WAJIB:
           </div>
         </div>
       </div>
+
+      {/* Mobile Bottom Sheet: Label Reading Guide & Skin Profile Context */}
+      <BottomSheet
+        isOpen={showGuideSheet}
+        onClose={() => setShowGuideSheet(false)}
+        title="Panduan Label & Profil Kulit"
+        subtitle="Cara membaca komposisi kosmetik secara mandiri"
+      >
+        <div className="cluv-flex-col cluv-gap-4">
+          <div className="cluv-card is-highlight cluv-p-3">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-1">
+              <User size={16} className="cluv-text-teal" />
+              <span className="cluv-caption cluv-font-bold cluv-text-teal">Profil Kulit Terdaftar:</span>
+            </div>
+            <p className="cluv-caption cluv-text-muted cluv-m-0">
+              Tipe <strong>{userSkinType}</strong> dengan keluhan {userConcerns.toLowerCase()}. Deteksi interaksi bahan aktif otomatis dicocokkan ke kondisi ini.
+            </p>
+          </div>
+
+          <div className="cluv-flex-col cluv-gap-3">
+            <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '1rem' }}>3 Prinsip Membaca Label</h4>
+            <div className="cluv-flex-col cluv-gap-2">
+              <div className="cluv-card is-compact">
+                <strong className="cluv-body cluv-text-dark">1. Aturan 5 Bahan Teratas</strong>
+                <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
+                  Lima bahan pertama pada label kemasan umumnya menyusun 70%–80% dari keseluruhan formula skincare.
+                </p>
+              </div>
+
+              <div className="cluv-card is-compact">
+                <strong className="cluv-body cluv-text-dark">2. Batas 1% Konsentrasi</strong>
+                <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
+                  Bahan dengan konsentrasi di bawah 1% (pewarna, pengawet, fragrance) boleh ditulis dalam urutan acak oleh pabrikan.
+                </p>
+              </div>
+
+              <div className="cluv-card is-compact">
+                <strong className="cluv-body cluv-text-dark">3. Indeks Komedogenik (0–5)</strong>
+                <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
+                  Skor 0–1 aman untuk kulit berjerawat, sedangkan skor 4–5 memiliki potensi tinggi menyumbat pori-pori wajah.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   )
 }
+

@@ -50,3 +50,29 @@
   letter-spacing: 0.04em;
   user-select: none;
 }
+
+/* =============================================================================
+ * Inset Grouped List Component (.cluv-inset-list) — Clean Mobile Anti-Card-Soup
+ * ============================================================================= */
+.cluv-inset-list {
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-border, #e2e8f0);
+  border-radius: var(--cluv-radius-lg, 16px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.cluv-inset-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--cluv-border, #e2e8f0);
+  transition: background-color 0.15s ease;
+}
+
+.cluv-inset-item:last-child {
+  border-bottom: none;
+}
+
+.cluv-inset-item.is-interactive:hover {
+  background-color: var(--cluv-neutral-50, #f8fafc);
+}
+
