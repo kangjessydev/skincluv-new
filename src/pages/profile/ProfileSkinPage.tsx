@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { SkinProfile, SkinType } from '@/types/database'
 import { Button } from '@/components/ui'
+import { ProfileSubnav } from '@/components/profile/ProfileSubnav'
 
 const SKIN_TYPES: { id: SkinType; label: string }[] = [
   { id: 'normal', label: 'Normal' },
@@ -188,6 +189,9 @@ export default function ProfileSkinPage() {
         <ArrowLeft size={16} />
         <span>Kembali ke Profil &amp; Pengaturan</span>
       </Link>
+
+      {/* Sub-navigasi Mobile (1-tap pill tabs khusus mobile, tersembunyi di desktop) */}
+      <ProfileSubnav />
 
       {/* Header */}
       <div className="cluv-mb-6">

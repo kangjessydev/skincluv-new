@@ -9,6 +9,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Komponen Sub-Navigasi Mobile Profil (`ProfileSubnav.tsx`, `ProfileSkinPage.tsx`, `tabs.css`)**:
+  - Implementasi *Horizontal Scrollable Pill Tabs* khusus mobile (`.cluv-profile-subnav-bar`, `.cluv-profile-subnav-scroll`, `.cluv-profile-subnav-pill`) untuk berpindah antar sub-halaman profil (Profil Kulit, Privasi Data, Faktur Tagihan, Mutasi Credits, Admin Panel) dalam 1 kali sentuhan tanpa perlu bolak-balik ke menu profil utama.
+  - Menggunakan utility kanonikal `.cluv-hide-desktop` sehingga tampilan di desktop tetap 100% normal dan bersih.
+  - Tab aktif disorot dengan warna `var(--cluv-teal)` bercahaya lembut dan teks putih tegas, sedangkan tab inaktif berupa kapsul soft card bertepi halus dengan *touch feedback* responsif.
 - **Gaya Navigasi Mobile-First: Grouped Menu Rows pada Halaman Profil (`ProfilePage.tsx`, `cards.css`)**:
   - Menggantikan 3 kartu konten panjang di tampilan mobile dengan tombol-tombol navigasi *Inset Grouped Menu Rows* (standar aplikasi mobile iOS/Material 3: `.cluv-menu-group` dan `.cluv-menu-row`).
   - Menghemat scroll vertikal hingga lebih dari 65% di layar ponsel kecil, menghindarkan user dari kelelahan navigasi (*scroll fatigue*).
