@@ -9,6 +9,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Standar Navigasi Mobile Native: Sembunyikan Bottom Navbar di Sub-Halaman & Grid Form 2 Kolom (`AppLayout.tsx`, `ProfileSkinPage.tsx`, `buttons.css`)**:
+  - Menerapkan standar arsitektur navigasi mobile (*hidesBottomBarWhenPushed*): Bottom Navigation Bar otomatis disembunyikan saat pengguna masuk ke sub-halaman formulir/transaksi (`/profile/skin`, `/profile/billing`, `/privacy-center`, `/transactions`, `/coin-history`, `/checkout`), mencegah salah klik menu dan membebaskan 68px ruang vertikal bawah.
+  - Memperbarui daftar pilihan opsi formulir (*Tipe Kulit Utama*, *Target Perawatan*, dan *Bahan yang Dihindari*) menjadi **Grid 2 Kolom Rapi** (`.cluv-chip-grid`), memangkas tinggi scroll vertikal hingga lebih dari 50% dan menghilangkan tumpukan chip acak-acakan.
+  - Memasang **Sticky Bottom Action Bar** (`.cluv-profile-sticky-action`) untuk tombol *Simpan Profil Kulit*, sehingga tombol aksi selalu siap dijangkau dengan jempol di bawah layar tanpa perlu scroll ke ujung bawah halaman.
+  - Tampilan desktop tetap normal 100% tanpa sticky bar dan dengan chip grid proporsional.
 - **Optimasi Ergonomi Layar Mobile Profil Kulit (`ProfileSkinPage.tsx`, `cards.css`)**:
   - Menyembunyikan judul dan subtitle in-page di mobile (`.cluv-hide-mobile`) karena informasi halaman sudah terpampang jelas di Topbar mobile, menghemat ruang vertikal.
   - Membuka pembungkus kartu putih kaku di mobile (`.cluv-card.is-mobile-flat`) menjadi layout *flat/unboxed* (tanpa border luar ganda dan padding tebal), sehingga form pilihan tipe kulit dan target perawatan bernapas lega dan terasa seperti form mobile app modern.

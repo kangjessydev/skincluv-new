@@ -95,6 +95,15 @@ export default function AppLayout() {
         .toUpperCase()
     : 'SC'
 
+  // Standard Native App Navigation: Sub-pages hide the bottom navigation bar to maximize content room (hidesBottomBarWhenPushed)
+  const isSubpage =
+    location.pathname.startsWith('/profile/skin') ||
+    location.pathname.startsWith('/profile/billing') ||
+    location.pathname.startsWith('/privacy-center') ||
+    location.pathname.startsWith('/transactions') ||
+    location.pathname.startsWith('/coin-history') ||
+    location.pathname.startsWith('/checkout')
+
   // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -405,8 +414,8 @@ export default function AppLayout() {
       </div>
 
       {/* ===================== MOBILE BOTTOM NAVIGATION BAR ===================== */}
-      {/* Thumb-friendly ergonomics on phone screens with Center FAB; Hidden on /chatbot for full input experience */}
-      {!location.pathname.startsWith('/chatbot') && (
+      {/* Thumb-friendly ergonomics on phone screens with Center FAB; Hidden on /chatbot and deep subpages (hidesBottomBarWhenPushed) */}
+      {!location.pathname.startsWith('/chatbot') && !isSubpage && (
         <nav className="cluv-mobile-bottom-bar" aria-label="Navigasi Bawah">
           {mobileBottomNavItems.map(({ to, icon: Icon, label, isCenterFab }) => {
             const isActive = to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to)

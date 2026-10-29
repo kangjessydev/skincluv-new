@@ -399,3 +399,62 @@
   flex-shrink: 0;
 }
 
+/* =============================================================================
+ * 7. BALANCED 2-COLUMN CHIP GRID (.cluv-chip-grid)
+ * ============================================================================= */
+.cluv-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.cluv-chip-grid .cluv-chip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  min-height: 44px;
+  border-radius: var(--cluv-radius-md, 12px);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  white-space: normal;
+  text-align: left;
+}
+
+.cluv-chip-grid .cluv-chip span {
+  flex: 1;
+}
+
+@media (min-width: 880px) {
+  .cluv-chip-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+/* =============================================================================
+ * 8. STICKY ACTION BAR FOR MOBILE SUBPAGES (.cluv-profile-sticky-action)
+ * ============================================================================= */
+.cluv-profile-sticky-action {
+  width: 100%;
+  padding-top: 8px;
+}
+
+@media (max-width: 879px) {
+  .cluv-profile-sticky-action {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--cluv-current-card-bg, #ffffff);
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    margin-left: -16px;
+    margin-right: -16px;
+    margin-top: 20px;
+    border-top: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 40;
+  }
+}
+

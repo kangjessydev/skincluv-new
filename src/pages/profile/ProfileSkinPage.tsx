@@ -229,17 +229,20 @@ export default function ProfileSkinPage() {
           <>
             {/* Section 1: Tipe Kulit Utama */}
             <div className="cluv-flex-col cluv-gap-3">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-                <div className="cluv-card-icon-wrap is-sm is-teal">
-                  <Activity size={16} />
+              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+                  <div className="cluv-card-icon-wrap is-sm is-teal">
+                    <Activity size={16} />
+                  </div>
+                  <div>
+                    <h3 className="cluv-body cluv-font-bold cluv-m-0">Tipe Kulit Utama</h3>
+                    <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-m-0 cluv-mt-0.5">Pilih salah satu kondisi dasar wajah yang paling menggambarkan kulitmu saat ini</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="cluv-body cluv-font-bold">Tipe Kulit Utama</h3>
-                  <p className="cluv-caption cluv-text-muted">Pilih salah satu kondisi dasar wajah yang paling menggambarkan kulitmu saat ini</p>
-                </div>
+                <span className="cluv-caption cluv-text-muted cluv-font-semibold">(Pilih 1)</span>
               </div>
 
-              <div className="cluv-chip-group">
+              <div className="cluv-chip-grid">
                 {SKIN_TYPES.map((t) => {
                   const isActive = skinType === t.id
                   return (
@@ -261,17 +264,20 @@ export default function ProfileSkinPage() {
 
             {/* Section 2: Target Perawatan */}
             <div className="cluv-flex-col cluv-gap-3">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-                <div className="cluv-card-icon-wrap is-sm is-rose">
-                  <AlertCircle size={16} />
+              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+                  <div className="cluv-card-icon-wrap is-sm is-rose">
+                    <AlertCircle size={16} />
+                  </div>
+                  <div>
+                    <h3 className="cluv-body cluv-font-bold cluv-m-0">Target Perawatan</h3>
+                    <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-m-0 cluv-mt-0.5">Dapat memilih lebih dari satu target perawatan (multi-select)</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="cluv-body cluv-font-bold">Target Perawatan &amp; Masalah Kulit</h3>
-                  <p className="cluv-caption cluv-text-muted">Dapat memilih lebih dari satu target perawatan (multi-select)</p>
-                </div>
+                <span className="cluv-caption cluv-text-muted cluv-font-semibold">(Bisa pilih &gt; 1)</span>
               </div>
 
-              <div className="cluv-chip-group">
+              <div className="cluv-chip-grid">
                 {CONCERNS_LIST.map((c) => {
                   const isActive = concerns.includes(c)
                   return (
@@ -293,19 +299,22 @@ export default function ProfileSkinPage() {
 
             {/* Section 3: Bahan yang Pernah Bikin Kulit Tidak Nyaman */}
             <div className="cluv-flex-col cluv-gap-3">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-                <div className="cluv-card-icon-wrap is-sm is-gold">
-                  <ShieldCheck size={16} />
+              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+                  <div className="cluv-card-icon-wrap is-sm is-gold">
+                    <ShieldCheck size={16} />
+                  </div>
+                  <div>
+                    <h3 className="cluv-body cluv-font-bold cluv-m-0">Bahan yang Dihindari</h3>
+                    <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-m-0 cluv-mt-0.5">
+                      Peringatan otomatis jika terdeteksi dalam produk yang Anda pindai
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="cluv-body cluv-font-bold">Bahan yang Pernah Membuat Kulit Tidak Nyaman</h3>
-                  <p className="cluv-caption cluv-text-muted">
-                    Skinsistant AI dan fitur Scan Komposisi akan memberikan peringatan otomatis jika mendeteksi bahan ini dalam produk yang Anda pindai
-                  </p>
-                </div>
+                <span className="cluv-caption cluv-text-muted cluv-font-semibold">(Opsional)</span>
               </div>
 
-              <div className="cluv-chip-group">
+              <div className="cluv-chip-grid">
                 {SENSITIVITIES_LIST.map((item) => {
                   const isActive = sensitivities.includes(item)
                   return (
@@ -332,7 +341,8 @@ export default function ProfileSkinPage() {
               </div>
             )}
 
-            <div className="cluv-flex-col cluv-gap-3 cluv-pt-2">
+            {/* Sticky Action Bar di Mobile, Normal di Desktop */}
+            <div className="cluv-profile-sticky-action">
               <Button
                 variant="primary"
                 size="lg"
@@ -343,7 +353,7 @@ export default function ProfileSkinPage() {
               >
                 {loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}
               </Button>
-              <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5">
+              <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5 cluv-mt-2 cluv-mb-0 cluv-hide-mobile">
                 <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot Skincluv.
               </p>
             </div>
