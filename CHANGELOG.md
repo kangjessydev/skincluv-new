@@ -9,6 +9,9 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Standarisasi Tipografi Header Halaman Profil & Pengaturan (`ProfilePage.tsx`, `typography.css`)**:
+  - Penambahan class kanonikal `.cluv-title-page` di `src/styles/cluv/typography.css` (selaras dengan `.cluv-title-section` ukuran `clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem)` dan font-weight 800) untuk mencegah rendering default `<h1>` peramban yang terlalu besar di perangkat mobile.
+  - Penyelarasan ritme header `ProfilePage.tsx` menggunakan `.cluv-title-section.cluv-m-0` dan subtitle `.cluv-subtitle.cluv-mt-1.cluv-m-0` dalam wrapper `.cluv-mb-4`, identik dengan gaya header ringkas dan rapi pada *Ingredient Scanner*.
 - **Penyempurnaan Ergonomi Mobile Skinsistant AI (`AppLayout.tsx`, `ChatbotPage.tsx`, `shell.css`, `chat.css`)**:
   - Tombol **Chat Baru** diposisikan sebagai aksi utama di kiri dengan warna **Primary Teal Skincluv** (`.cluv-topbar-action-btn.is-primary`), kontras tinggi dan mudah dijangkau.
   - Tombol **Riwayat** dan **Memori** dikelompokkan ke dalam popover menu titik tiga vertikal (`MoreVertical`) mengambang (`.cluv-topbar-more-dropdown`), menghemat ruang horizontal topbar.

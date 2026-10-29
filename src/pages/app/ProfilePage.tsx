@@ -126,9 +126,11 @@ export default function ProfilePage() {
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Header */}
-      <div className="cluv-mb-6">
-        <h1 className="cluv-title-page">Profil & Pengaturan</h1>
-        <p className="cluv-caption cluv-text-muted">Pusat kendali akun, keanggotaan, preferensi kulit, dan privasi datamu.</p>
+      <div className="cluv-mb-4">
+        <h1 className="cluv-title-section cluv-m-0">Profil & Pengaturan</h1>
+        <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
+          Pusat kendali akun, keanggotaan, preferensi kulit, dan privasi datamu.
+        </p>
       </div>
 
       <div className="cluv-grid cols-2 cluv-gap-6">

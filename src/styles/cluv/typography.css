@@ -18,8 +18,9 @@
   margin: 0;
 }
 
-/* 2. SECTION TITLE: Distinct chapter / section heading (H2) */
+/* 2. SECTION & PAGE TITLE: Distinct chapter / section heading (H1 / H2) */
 .cluv-title-section,
+.cluv-title-page,
 .public-section-title {
   font-family: inherit;
   font-size: clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem);
