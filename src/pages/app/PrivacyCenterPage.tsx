@@ -16,6 +16,9 @@ export default function PrivacyCenterPage() {
   // State Feedback Toast Resmi
   const [toast, setToast] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null)
 
+  // State Lembaran Modal Kebijakan Privasi (Khusus Mobile)
+  const [showPrivacyDocSheet, setShowPrivacyDocSheet] = useState(false)
+
   // State untuk Hapus Scan Wajah Saja (Modal / Bottom Sheet)
   const [showDeleteScansModal, setShowDeleteScansModal] = useState(false)
   const [isDeletingScans, setIsDeletingScans] = useState(false)
@@ -186,8 +189,12 @@ export default function PrivacyCenterPage() {
               )}
             </button>
 
-            {/* Row 3: Kebijakan Privasi Lengkap */}
-            <Link to="/privacy" className="cluv-menu-row">
+            {/* Row 3: Kebijakan Privasi Lengkap (Membuka lembaran modal di mobile) */}
+            <button
+              type="button"
+              className="cluv-menu-row"
+              onClick={() => setShowPrivacyDocSheet(true)}
+            >
               <div className="cluv-menu-row-main">
                 <div className="cluv-menu-row-icon is-teal">
                   <Lock size={17} />
@@ -197,7 +204,7 @@ export default function PrivacyCenterPage() {
                   <p className="cluv-menu-row-desc">Kepatuhan UU PDP &amp; proteksi data</p>
                 </div>
               </div>
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -348,6 +355,120 @@ export default function PrivacyCenterPage() {
           </div>
         </div>
       </div>
+
+      {/* ===================== BOTTOM SHEET RESMI: DOKUMEN KEBIJAKAN PRIVASI MOBILE ===================== */}
+      <BottomSheet
+        isOpen={showPrivacyDocSheet}
+        onClose={() => setShowPrivacyDocSheet(false)}
+        title={
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+            <div className="cluv-card-icon-wrap is-sm is-teal">
+              <Lock size={16} />
+            </div>
+            <span>Kebijakan Privasi Skincluv</span>
+          </div>
+        }
+        subtitle="Kepatuhan UU Pelindungan Data Pribadi (UU PDP No. 27/2022)"
+      >
+        <div
+          className="cluv-flex-col cluv-gap-4 cluv-py-2"
+          style={{
+            fontSize: '0.8125rem',
+            lineHeight: 1.6,
+            color: 'var(--cluv-neutral-700, #334155)',
+            maxHeight: '68vh',
+            overflowY: 'auto'
+          }}
+        >
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              1. Jenis Data Pribadi yang Dikumpulkan
+            </h4>
+            <p className="cluv-m-0 cluv-mb-2 cluv-text-muted">
+              Skincluv mengumpulkan data secara terbatas untuk keperluan operasional dan analitik kosmetik:
+            </p>
+            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
+              <li><strong>Data Pribadi Umum:</strong> Alamat email akun, nama tampilan profil, dan preferensi tipe kulit pengguna.</li>
+              <li><strong>Data Pribadi Spesifik (Biometrik):</strong> Citra foto wajah untuk observasi visual kondisi kulit (Pasal 4 ayat 2 UU PDP No. 27/2022).</li>
+              <li><strong>Data Transaksi:</strong> Nomor referensi transaksi dari Tripay Payment Gateway (kami tidak menyimpan nomor kartu/PIN perbankan).</li>
+              <li><strong>Data Telemetri:</strong> Alamat IP dan jenis peramban demi pencegahan penyalahgunaan API.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              2. Dasar Hukum &amp; Tujuan Pemrosesan
+            </h4>
+            <p className="cluv-m-0 cluv-mb-2 cluv-text-muted">
+              Pemrosesan dilakukan berdasarkan persetujuan eksplisit (<em>explicit consent</em>) untuk:
+            </p>
+            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
+              <li>Mengekstraksi indikator visual kulit (kelembaban, kemerahan, sebum, dan pori-pori) melalui visi komputer.</li>
+              <li>Memberikan edukasi komposisi skincare non-terapeutik yang relevan dengan tipe kulit.</li>
+              <li>Mengelola kuota langganan AI dan riwayat grafik tren perkembangan kulit 28 hari.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              3. Keamanan, Enkripsi, &amp; Penyimpanan
+            </h4>
+            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
+              <li><strong>Enkripsi:</strong> TLS 1.3 in-transit dan enkripsi AES-256 at-rest.</li>
+              <li><strong>Private Storage:</strong> Foto wajah disimpan di cloud storage tertutup tanpa URL publik permanen, hanya dapat diakses melalui URL bertanda tangan kriptografis berbatas waktu (maksimal 60 menit).</li>
+              <li><strong>Row Level Security (RLS):</strong> Akses data terkunci di level database hanya untuk akun pemiliknya.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              4. Pihak Ketiga &amp; Pemroses AI
+            </h4>
+            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
+              <li><strong>Model AI (Google Cloud Vertex / OpenRouter):</strong> Data diproses seketika untuk inferensi dan tidak digunakan untuk melatih model publik.</li>
+              <li><strong>Gerbang Pembayaran (Tripay):</strong> Untuk verifikasi transaksi perbankan dan QRIS.</li>
+              <li><strong>Pencarian Dermatologi (Tavily):</strong> Kueri bahan disanitasi dari kata ganti orang pertama demi privasi.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              5. Hak-Hak Pemilik Data (UU PDP No. 27/2022)
+            </h4>
+            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
+              <li><strong>Hak Akses &amp; Portabilitas:</strong> Hak mengunduh salinan data pribadi (format JSON).</li>
+              <li><strong>Hak Penarikan Persetujuan:</strong> Mematikan memori AI memicu penghapusan riwayat percakapan.</li>
+              <li><strong>Hak Penghapusan Mandiri:</strong> Hak memusnahkan riwayat scan atau seluruh akun kapan saja.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              6. Siklus Penghapusan &amp; Retensi (Dual-Track)
+            </h4>
+            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
+              <li><strong>Data Biometrik:</strong> Foto wajah dan data analitik dimusnahkan secara menyeluruh seketika dari sistem aktif.</li>
+              <li><strong>Catatan Transaksi Finansial:</strong> Invoice kas dipertahankan untuk pembukuan pajak dengan melepaskan identitas personal pengguna (diset menjadi <code>NULL</code>).</li>
+              <li><strong>Cadangan Terenkripsi:</strong> Snapshot cadangan otomatis terhapus dalam siklus maksimal 30 hari.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
+              7. Kontak Petugas Pelindungan Data (DPO)
+            </h4>
+            <p className="cluv-m-0 cluv-mb-1 cluv-text-muted">
+              Pertanyaan atau permohonan hak atas data pribadi dapat dialamatkan ke:
+            </p>
+            <p className="cluv-m-0">
+              Email: <code>privacy@skincluv.com</code> / <code>support@skincluv.com</code>
+            </p>
+            <p className="cluv-m-0 cluv-caption cluv-text-muted">
+              Waktu respons maksimal 3 &times; 24 jam kerja sesuai ketentuan UU PDP.
+            </p>
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* ===================== BOTTOM SHEET RESMI: HAPUS SCAN WAJAH ===================== */}
       <BottomSheet
