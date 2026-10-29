@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import {
   Activity, Crown, Coins, Receipt,
-  History, ArrowRight, ShieldCheck, Zap, LogOut,
+  History, ArrowRight, ShieldCheck, Zap, LogOut, ChevronRight,
 } from 'lucide-react'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
 import { Button, Badge } from '@/components/ui'
@@ -207,10 +207,100 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Mobile-Only Grouped Menu Rows (Menggantikan 3 Card Panjang di Tampilan Mobile) */}
+          <div className="cluv-hide-desktop cluv-flex-col cluv-gap-4">
+            {/* Grup 1: Pengaturan Akun & Kulit */}
+            <div className="cluv-menu-group">
+              <Link to="/profile/skin" className="cluv-menu-row">
+                <div className="cluv-menu-row-main">
+                  <div className="cluv-menu-row-icon is-teal">
+                    <Activity size={18} />
+                  </div>
+                  <span className="cluv-menu-row-title">Profil &amp; Preferensi Kulit</span>
+                </div>
+                <div className="cluv-menu-row-trailing">
+                  <span className="cluv-menu-row-status">{skinTypeLabel}</span>
+                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                </div>
+              </Link>
+
+              <Link to="/privacy-center" className="cluv-menu-row">
+                <div className="cluv-menu-row-main">
+                  <div className="cluv-menu-row-icon is-gold">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <span className="cluv-menu-row-title">Pusat Privasi &amp; Data</span>
+                </div>
+                <div className="cluv-menu-row-trailing">
+                  <span className="cluv-menu-row-status">UU PDP</span>
+                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                </div>
+              </Link>
+            </div>
+
+            {/* Grup 2: Riwayat, Transaksi, & Akun */}
+            <div className="cluv-menu-group">
+              <Link to="/transactions" className="cluv-menu-row">
+                <div className="cluv-menu-row-main">
+                  <div className="cluv-menu-row-icon is-blue">
+                    <Receipt size={18} />
+                  </div>
+                  <span className="cluv-menu-row-title">Faktur &amp; Tagihan Tripay</span>
+                </div>
+                <div className="cluv-menu-row-trailing">
+                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                </div>
+              </Link>
+
+              <Link to="/coin-history" className="cluv-menu-row">
+                <div className="cluv-menu-row-main">
+                  <div className="cluv-menu-row-icon is-amber">
+                    <History size={18} />
+                  </div>
+                  <span className="cluv-menu-row-title">Mutasi AI Credits</span>
+                </div>
+                <div className="cluv-menu-row-trailing">
+                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                </div>
+              </Link>
+
+              {canAccessAdmin && (
+                <Link to="/admin" className="cluv-menu-row">
+                  <div className="cluv-menu-row-main">
+                    <div className="cluv-menu-row-icon is-rose">
+                      <ShieldCheck size={18} />
+                    </div>
+                    <span className="cluv-menu-row-title">Admin Control Center</span>
+                  </div>
+                  <div className="cluv-menu-row-trailing">
+                    <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                  </div>
+                </Link>
+              )}
+
+              {/* Keluar dari Akun (Logout dialokasikan di row akhir menu mobile) */}
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="cluv-menu-row is-danger"
+              >
+                <div className="cluv-menu-row-main">
+                  <div className="cluv-menu-row-icon is-rose">
+                    <LogOut size={18} />
+                  </div>
+                  <span className="cluv-menu-row-title">Keluar dari Akun</span>
+                </div>
+                <div className="cluv-menu-row-trailing">
+                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* ── Right Column: Hub Navigasi Sub-Pages ── */}
-        <div className="cluv-flex-col cluv-gap-5">
+        {/* ── Right Column: Hub Navigasi Sub-Pages (Hanya tampil di Desktop) ── */}
+        <div className="cluv-hide-mobile cluv-flex-col cluv-gap-5">
           {/* Hub Card 1: Profil & Preferensi Kulit */}
           <div className="cluv-card cluv-flex-col cluv-gap-4">
             <div className="cluv-flex-row cluv-items-start cluv-gap-3">

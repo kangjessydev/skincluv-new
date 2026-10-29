@@ -1990,6 +1990,124 @@
   color: var(--cluv-current-text, #1a2d42);
 }
 
+/* =============================================================================
+ * Mobile Profile Inset Menu Group & Rows (.cluv-menu-group, .cluv-menu-row)
+ * Native mobile app-style navigation buttons (iOS Inset Grouped / Material Tile)
+ * ============================================================================= */
+.cluv-menu-group {
+  display: flex;
+  flex-direction: column;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-xl, 18px);
+  overflow: hidden;
+  box-shadow: var(--cluv-shadow-sm);
+}
+
+.cluv-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.cluv-menu-row:last-child {
+  border-bottom: none;
+}
+
+.cluv-menu-row:hover,
+.cluv-menu-row:active {
+  background-color: var(--cluv-neutral-50, #f8fafc);
+}
+
+.cluv-menu-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-menu-row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cluv-menu-row-icon.is-teal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-menu-row-icon.is-gold {
+  background: var(--cluv-gold-soft, #fef8ee);
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-menu-row-icon.is-blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.cluv-menu-row-icon.is-amber {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.cluv-menu-row-icon.is-rose {
+  background: var(--cluv-rose-soft, #fdf2f4);
+  color: var(--cluv-rose-dark, #be123c);
+}
+
+.cluv-menu-row-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, #1a2d42);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.cluv-menu-row.is-danger .cluv-menu-row-title {
+  color: var(--cluv-rose-dark, #e11d48);
+}
+
+.cluv-menu-row-trailing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cluv-menu-row-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-400));
+}
+
+.cluv-menu-row-chevron {
+  color: var(--cluv-neutral-400, #94a3b8);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.cluv-menu-row:hover .cluv-menu-row-chevron {
+  color: var(--cluv-current-text, #1a2d42);
+  transform: translateX(2px);
+}
+
 
 
 

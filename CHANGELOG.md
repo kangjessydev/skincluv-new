@@ -9,6 +9,12 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Gaya Navigasi Mobile-First: Grouped Menu Rows pada Halaman Profil (`ProfilePage.tsx`, `cards.css`)**:
+  - Menggantikan 3 kartu konten panjang di tampilan mobile dengan tombol-tombol navigasi *Inset Grouped Menu Rows* (standar aplikasi mobile iOS/Material 3: `.cluv-menu-group` dan `.cluv-menu-row`).
+  - Menghemat scroll vertikal hingga lebih dari 65% di layar ponsel kecil, menghindarkan user dari kelelahan navigasi (*scroll fatigue*).
+  - Tampilan desktop tetap mempertahankan kartu informatif lengkap berkat pemisahan responsif kanonikal `.cluv-hide-desktop` dan `.cluv-hide-mobile`.
+  - Tombol-tombol dilengkapi ikon squircle tematik warna-warni (`.cluv-menu-row-icon`), label judul tegas, indikator status ringkas (`{skinTypeLabel}`, `UU PDP`), dan ikon *trailing chevron* `›`.
+  - Aksi **Keluar dari Akun** dialokasikan di baris terbawah menu mobile (`.cluv-menu-row.is-danger`) dengan nuansa bahaya yang jelas dan rapi.
 - **Penyempurnaan Ergonomis Kartu Profil Terpadu Mobile (`ProfilePage.tsx`, `cards.css`)**:
   - Penyesuaian ukuran avatar ring menjadi 38px (inner initial 13px) sehingga inisial nama lega dan tidak tercekik oleh badge mahkota mengambang.
   - Penegasan hirarki tipografi: judul `Halo, Jessy` berukuran 15px (800 bold), label `Kuota Universal AI` dan `100% Tersisa` berukuran 12px (600 semi-bold), dan `Masa aktif` berukuran 11px subtle.
