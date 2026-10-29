@@ -1747,6 +1747,57 @@
   color: var(--cluv-teal-dark, #127a75);
 }
 
+/* Floating Avatar Badge Icon */
+.cluv-avatar-badge-icon {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.cluv-avatar-badge-icon.is-pro {
+  background: var(--cluv-gold);
+  color: #ffffff;
+}
+
+.cluv-avatar-badge-icon.is-glow {
+  background: var(--cluv-teal);
+  color: #ffffff;
+}
+
+.cluv-avatar-badge-icon.is-free {
+  background: var(--cluv-neutral-300);
+  color: var(--cluv-neutral-700);
+}
+
+/* Clickable Profile Quota Box */
+.cluv-profile-quota-box {
+  cursor: pointer;
+  padding: 2px 0;
+  border-radius: var(--cluv-radius-md, 8px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.cluv-profile-quota-box:hover {
+  opacity: 0.92;
+}
+
+.cluv-profile-quota-box:hover .cluv-progress-bar {
+  filter: brightness(1.08);
+}
+
 /* Unified Interactive Credit Capsule ([ ⚡ 1.395 | + ]) */
 .cluv-credit-capsule {
   display: inline-flex;

@@ -9,11 +9,12 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
-- **Penyelarasan Kartu Profil Identik dengan Beranda Dashboard (`ProfilePage.tsx`, `cards.css`, `score-ring.css`)**:
-  - Mengadopsi arsitektur kanonikal `.cluv-mobile-unified-card` yang identik dengan kartu hero beranda Dashboard mobile ke dalam halaman Profil.
-  - Header: Avatar Ring (`.cluv-avatar-ring`) dengan inisial pengguna + sapaan `Halo, {firstName}` di kiri, serta kapsul saldo interaktif (`.cluv-credit-capsule`) `[ ⚡ {saldo} | + ]` di kanan.
-  - Body: Gauge circular SVG ring (`.cluv-score-ring.is-sm`) untuk sisa persentase kuota Universal AI bulan ini, baris chips (`[ 👑 VIP PRO MEMBER ]` + `[ Tipe Kulit ]`), teks masa aktif langganan, dan sepasang tombol pil aksi (`[ 💳 Kelola Tagihan ]` primary teal + `[ 🚪 Keluar ]` subtle).
-  - Promosi class `.cluv-mobile-unified-card`, `.cluv-avatar-ring`, `.cluv-credit-capsule`, dan `.cluv-mobile-action-pill` ke `src/styles/cluv/components/cards.css` sebagai komponen resmi universal Cluv Framework.
+- **Penyempurnaan Ergonomis Kartu Profil Terpadu Mobile (`ProfilePage.tsx`, `cards.css`)**:
+  - Badge keanggotaan kini melayang di bagian tengah bawah avatar foto profil (`.cluv-avatar-badge-icon`) dalam wujud ikon minimalis tanpa teks (`👑` untuk VIP Pro, `⚡` untuk Glow Club).
+  - Penghapusan badge jenis kulit (`Combination`) yang redundan dari kartu profil.
+  - Kuota Universal AI disajikan dalam bentuk bilah garis (*progress bar*) horizontal bersih di bawah garis pembatas dengan keterangan status `"Masa aktif: [tanggal]"`.
+  - Bilah kuota bersifat interaktif (*clickable*) yang langsung mengarahkan pengguna ke halaman `/profile/billing` saat diklik (menghilangkan tombol "Kelola Tagihan" terpisah).
+  - Penghapusan tombol "Keluar" dari kartu profil untuk diposisikan pada area navigasi khusus selanjutnya.
 - **Standarisasi Tipografi Header Halaman Profil & Pengaturan (`ProfilePage.tsx`, `typography.css`)**:
   - Penambahan class kanonikal `.cluv-title-page` di `src/styles/cluv/typography.css` (selaras dengan `.cluv-title-section` ukuran `clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem)` dan font-weight 800) untuk mencegah rendering default `<h1>` peramban yang terlalu besar di perangkat mobile.
   - Penyelarasan ritme header `ProfilePage.tsx` menggunakan `.cluv-title-section.cluv-m-0` dan subtitle `.cluv-subtitle.cluv-mt-1.cluv-m-0` dalam wrapper `.cluv-mb-4`, identik dengan gaya header ringkas dan rapi pada *Ingredient Scanner*.
