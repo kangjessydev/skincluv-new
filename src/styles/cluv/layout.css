@@ -68,11 +68,19 @@
   flex-direction: column;
 }
 
-@media (max-width: 768px) {
-  .cluv-canvas-grid,
+@media (max-width: 879px) {
+  .cluv-canvas-grid {
+    padding: 16px 16px 80px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
   .cluv-canvas-focused,
   .cluv-focused-ledger {
-    padding: 16px 16px 80px;
+    padding: 16px 16px 24px;
     width: 100%;
     max-width: 100%;
     min-width: 0;

@@ -329,7 +329,7 @@ export default function ProfileSkinPage() {
               >
                 {loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}
               </Button>
-              <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5 cluv-mt-2.5 cluv-mb-0 cluv-text-center">
+              <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5 cluv-mt-2.5 cluv-mb-0 cluv-text-center">
                 <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot.
               </p>
             </div>

@@ -9,6 +9,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Penyelarasan Spasi Bawah & Pembersihan Mikro-Teks Mobile (`ProfileSkinPage.tsx`, `layout.css`, `buttons.css`)**:
+  - Memangkas ruang kosong bawah pada layar mobile sub-halaman fokus (`.cluv-canvas-focused` dan `.cluv-focused-ledger`) dari 80px menjadi tepat **24px** (`padding: 16px 16px 24px;`), menyisakan ruang ideal 20–30px di bawah tombol aksi sesuai kenyamanan visual ponsel.
+  - Menghilangkan `margin-bottom: 32px` pada baris tombol aksi (`.cluv-profile-action-bar` menjadi `margin-bottom: 0`).
+  - Menyembunyikan mikro-teks keterangan di bawah tombol simpan (*"Preferensi tersimpan otomatis tersinkronisasi..."*) pada tampilan mobile (`.cluv-hide-mobile`) demi tampilan akhir yang bersih dan bebas distraksi, sembari tetap menampilkannya di layar desktop.
+
 - **Gaya Desain Native Mobile App: Inset Selection List & Penempatan Tombol Alami (`ProfileSkinPage.tsx`, `forms.css`, `buttons.css`)**:
   - Mengubah opsi pemilihan menjadi standar aplikasi mobile native (*iOS Settings / Health Inset Grouped List*):
     - **Single Select (Tipe Kulit Utama)**: Menggunakan baris bergaris halus dengan indikator **Custom Radio Teal** (lingkaran 20px beraksen dot teal).
