@@ -85,8 +85,9 @@ export default function PrivacyCenterPage() {
   const handlePermanentlyDeleteAccount = async () => {
     if (!user?.id) return
 
-    if (confirmationInput.trim() !== 'DELETE MY ACCOUNT') {
-      setDeleteError('Harap ketik konfirmasi DELETE MY ACCOUNT secara tepat dengan huruf besar.')
+    const targetEmail = (user.email || '').trim().toLowerCase()
+    if (confirmationInput.trim().toLowerCase() !== targetEmail) {
+      setDeleteError(`Harap ketik email akun Anda (${user.email}) secara tepat untuk konfirmasi.`)
       return
     }
 
@@ -402,18 +403,18 @@ export default function PrivacyCenterPage() {
 
           <div className="cluv-field cluv-m-0">
             <label htmlFor="confirm-delete" className="cluv-label" style={{ fontSize: '0.78125rem' }}>
-              Ketik <code>DELETE MY ACCOUNT</code> untuk konfirmasi:
+              Ketik email Anda untuk konfirmasi:
             </label>
             <input
               id="confirm-delete"
-              type="text"
+              type="email"
               className="cluv-input"
-              placeholder="DELETE MY ACCOUNT"
+              placeholder={user?.email || 'email@contoh.com'}
               value={confirmationInput}
               onChange={(e) => setConfirmationInput(e.target.value)}
               autoComplete="off"
               disabled={isDeletingAccount}
-              style={{ height: '38px', fontSize: '0.875rem' }}
+              style={{ height: '38px', fontSize: '0.8125rem' }}
             />
           </div>
 
@@ -423,7 +424,7 @@ export default function PrivacyCenterPage() {
               size="sm"
               block
               loading={isDeletingAccount}
-              disabled={confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
+              disabled={confirmationInput.trim().toLowerCase() !== (user?.email || '').trim().toLowerCase()}
               onClick={handlePermanentlyDeleteAccount}
             >
               Hapus Akun Permanen
