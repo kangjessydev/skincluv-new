@@ -1701,5 +1701,211 @@
   gap: 10px;
 }
 
+/* =============================================================================
+ * Universal Mobile Unified Card Primitive (.cluv-mobile-unified-card)
+ * Shared across Dashboard, Profile, and Mobile Overview surfaces.
+ * ============================================================================= */
+
+/* Avatar Ring Indicator (Replaces bulky PRO badge) */
+.cluv-avatar-ring {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.cluv-avatar-ring.is-pro {
+  padding: 2px;
+  background: linear-gradient(135deg, var(--cluv-teal) 0%, var(--cluv-gold) 100%);
+  box-shadow: 0 0 8px rgba(31, 157, 151, 0.28);
+}
+
+.cluv-avatar-ring.is-free {
+  padding: 1.5px;
+  background: var(--cluv-neutral-200);
+}
+
+.cluv-avatar-ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--cluv-current-card-bg, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  user-select: none;
+}
+
+.cluv-avatar-ring.is-pro .cluv-avatar-ring-inner {
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+/* Unified Interactive Credit Capsule ([ ⚡ 1.395 | + ]) */
+.cluv-credit-capsule {
+  display: inline-flex;
+  align-items: center;
+  background: var(--cluv-neutral-50, #f8fafc);
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  padding: 2px 3px 2px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cluv-credit-capsule:hover {
+  background: var(--cluv-neutral-100, #f1f5f9);
+  border-color: var(--cluv-teal-line, #bceae7);
+  transform: translateY(-1px);
+}
+
+.cluv-credit-capsule:active {
+  transform: scale(0.96);
+}
+
+.cluv-credit-capsule-val {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+.cluv-credit-capsule-val svg {
+  color: var(--cluv-amber, #f59e0b);
+  fill: var(--cluv-amber, #f59e0b);
+  flex-shrink: 0;
+}
+
+.cluv-credit-capsule-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--cluv-neutral-200, #e2e8f0);
+  margin: 0 6px;
+}
+
+.cluv-credit-capsule-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cluv-credit-capsule:hover .cluv-credit-capsule-add {
+  background: var(--cluv-teal);
+  color: #ffffff;
+}
+
+/* Mobile Unified Bento Card */
+.cluv-mobile-unified-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--cluv-current-card-bg, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-xl, 20px);
+  padding: 16px 18px;
+  box-shadow: var(--cluv-shadow-sm);
+  box-sizing: border-box;
+}
+
+.cluv-mobile-unified-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cluv-neutral-200, #e2e8f0);
+  margin-bottom: 14px;
+}
+
+.cluv-mobile-unified-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cluv-mobile-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  white-space: nowrap;
+}
+
+.cluv-mobile-skin-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cluv-mobile-skin-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cluv-mobile-skin-punchline {
+  font-size: 0.8125rem;
+  color: var(--cluv-current-text-muted, #556980);
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cluv-mobile-skin-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.cluv-mobile-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.cluv-mobile-action-pill.is-primary {
+  background: var(--cluv-teal, #1f9d97);
+  color: #ffffff;
+}
+
+.cluv-mobile-action-pill.is-subtle {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-neutral-200, #e2e8f0);
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+
 
 

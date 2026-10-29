@@ -83,6 +83,10 @@
   font-size: 1.125rem;
 }
 
+.cluv-score-ring.is-sm .cluv-score-val.is-percent {
+  font-size: 0.8125rem;
+}
+
 .cluv-score-ring.is-lg .cluv-score-val {
   font-size: 2.125rem;
 }
