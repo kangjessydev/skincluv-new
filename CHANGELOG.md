@@ -9,12 +9,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
-- **Gaya Desain Native Mobile App: Inset Grouped Settings di Privacy Center (`PrivacyCenterPage.tsx`, `cards.css`)**:
-  - Mengubah 4 kartu besar yang memakan ruang vertikal di mobile menjadi **2 Inset Grouped Menu Rows** (standar *iOS / Android Settings*: `.cluv-menu-group` dan `.cluv-menu-row`):
-    - **Grup 1: Hak Data Pribadi (UU PDP)**: *Unduh Salinan Data (JSON)*, *Hapus Data Scan Wajah Saja*, dan *Kebijakan Privasi Lengkap* dengan ikon squircle tematik, subtitle 1 baris ringkas, dan trailing chevron `›`.
-    - **Grup 2: Zona Kritis (Danger Zone)**: *Hapus Akun Saya Permanen* beraksen warna rose/merah tegas.
-  - Seluruh opsi kini muat dalam 1 layar ponsel tanpa perlu scroll lelah (*zero scroll fatigue*).
-  - Tampilan desktop tetap normal 100% mempertahankan kartu informatif lengkap dan lega (`.cluv-hide-desktop` vs `.cluv-hide-mobile`).
+- **Penyempurnaan Ergonomi Privacy Center: Bottom Sheet Konfirmasi, Floating Toast, & Eliminasi Arrow (`PrivacyCenterPage.tsx`, `alerts.css`)**:
+  - Menggantikan browser `window.confirm()` dan `alert()` dengan **Adaptive Bottom Sheet Panel** (`.cluv-sheet-panel`) yang nyaman dijangkau jempol di mobile saat mengonfirmasi penghapusan riwayat foto wajah.
+  - Memasang **Floating Toast Pill** (`.cluv-toast`) otomatis hilang dalam 3.5 detik untuk feedback sukses pengunduhan JSON dan pemusnahan foto wajah, menggantikan alert box statis yang memakan ruang.
+  - Menyembunyikan ikon panah chevron `›` di sisi kanan seluruh baris menu privasi mobile, menjaga area baris tetap bersih, lega, dan fokus pada ikon representatif di sisi kiri.
+
 
 - **Standarisasi Seluruh Sub-Halaman Mobile: Eliminasi Judul Duplikat & Penyelarasan Kanvas Focused (`ProfileBillingPage.tsx`, `PrivacyCenterPage.tsx`, `TransactionHistoryPage.tsx`, `CoinHistoryPage.tsx`, `CheckoutPage.tsx`)**:
   - Menyembunyikan tombol navigasi kembali in-page dan header judul/subtitle in-page pada perangkat mobile (`.cluv-hide-mobile`) di seluruh sub-halaman profil dan transaksi, karena Topbar mobile sudah menyediakan tombol panah kembali dan judul halaman yang presisi.

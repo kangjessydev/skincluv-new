@@ -2,9 +2,9 @@
 // Pusat Kendali Privasi & Hak Pemilik Data Pribadi (UU PDP No. 27/2022)
 // Mengimplementasikan Invarian 4 (Memory consent) & Invarian 20 (Dual-track deletion)
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye, ChevronRight } from 'lucide-react'
+import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Button, Badge } from '@/components/ui'
@@ -13,11 +13,20 @@ export default function PrivacyCenterPage() {
   const navigate = useNavigate()
   const { user, profile, activeSkinProfile, subscription, coinBalance, reset } = useAuthStore()
 
-  // State untuk Hapus Scan Wajah Saja
-  const [isDeletingScans, setIsDeletingScans] = useState(false)
-  const [scansDeletedSuccess, setScansDeletedSuccess] = useState(false)
+  // State Feedback Toast
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
-  // State untuk Hapus Akun Permanen
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 3500)
+    return () => clearTimeout(timer)
+  }, [toast])
+
+  // State untuk Hapus Scan Wajah Saja (Modal / Bottom Sheet)
+  const [showDeleteScansModal, setShowDeleteScansModal] = useState(false)
+  const [isDeletingScans, setIsDeletingScans] = useState(false)
+
+  // State untuk Hapus Akun Permanen (Modal / Bottom Sheet)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [confirmationInput, setConfirmationInput] = useState('')
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
@@ -25,34 +34,36 @@ export default function PrivacyCenterPage() {
 
   // 1. Ekspor Data Pribadi (Data Portability)
   const handleExportData = () => {
-    const exportPayload = {
-      user_id: user?.id,
-      email: user?.email,
-      profile: profile,
-      skin_profile: activeSkinProfile,
-      subscription: subscription,
-      credits: coinBalance?.balance ?? 0,
-      exported_at: new Date().toISOString(),
-      compliance: 'UU Pelindungan Data Pribadi No. 27/2022'
-    }
+    try {
+      const exportPayload = {
+        user_id: user?.id,
+        email: user?.email,
+        profile: profile,
+        skin_profile: activeSkinProfile,
+        subscription: subscription,
+        credits: coinBalance?.balance ?? 0,
+        exported_at: new Date().toISOString(),
+        compliance: 'UU Pelindungan Data Pribadi No. 27/2022'
+      }
 
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportPayload, null, 2))
-    const downloadAnchor = document.createElement('a')
-    downloadAnchor.setAttribute('href', dataStr)
-    downloadAnchor.setAttribute('download', `skincluv-data-${user?.id?.slice(0, 8)}.json`)
-    document.body.appendChild(downloadAnchor)
-    downloadAnchor.click()
-    downloadAnchor.remove()
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportPayload, null, 2))
+      const downloadAnchor = document.createElement('a')
+      downloadAnchor.setAttribute('href', dataStr)
+      downloadAnchor.setAttribute('download', `skincluv-data-${user?.id?.slice(0, 8)}.json`)
+      document.body.appendChild(downloadAnchor)
+      downloadAnchor.click()
+      downloadAnchor.remove()
+
+      setToast({ type: 'success', message: 'Data profil berhasil diunduh (JSON).' })
+    } catch {
+      setToast({ type: 'error', message: 'Gagal mengekspor berkas data profil.' })
+    }
   }
 
-  // 2. Hapus Scan Wajah Saja
-  const handleDeleteFaceScans = async () => {
+  // 2. Eksekusi Hapus Scan Wajah Saja
+  const executeDeleteFaceScans = async () => {
     if (!user?.id) return
-    const confirmed = window.confirm('Apakah Anda yakin ingin memusnahkan seluruh rekam jejak foto dan pemindaian wajah Anda? Tindakan ini tidak dapat dibatalkan.')
-    if (!confirmed) return
-
     setIsDeletingScans(true)
-    setScansDeletedSuccess(false)
 
     try {
       const { error } = await supabase.rpc('delete_user_face_scans_only', {
@@ -61,10 +72,10 @@ export default function PrivacyCenterPage() {
 
       if (error) throw error
 
-      setScansDeletedSuccess(true)
-      setTimeout(() => setScansDeletedSuccess(false), 4000)
+      setShowDeleteScansModal(false)
+      setToast({ type: 'success', message: 'Seluruh riwayat foto wajah berhasil dimusnahkan.' })
     } catch (err: any) {
-      alert(`Gagal menghapus rekam jejak scan: ${err?.message || 'Terjadi kesalahan sistem'}`)
+      setToast({ type: 'error', message: `Gagal menghapus scan: ${err?.message || 'Terjadi kesalahan sistem'}` })
     } finally {
       setIsDeletingScans(false)
     }
@@ -93,8 +104,6 @@ export default function PrivacyCenterPage() {
       // Keluar dari sesi dan bersihkan state
       await supabase.auth.signOut()
       reset()
-
-      alert('Akun dan seluruh data biometrik Anda telah dimusnahkan secara permanen dari sistem Skincluv.')
       navigate('/', { replace: true })
     } catch (err: any) {
       setDeleteError(`Gagal memproses penghapusan akun: ${err?.message || 'Terjadi kesalahan sistem'}`)
@@ -122,17 +131,6 @@ export default function PrivacyCenterPage() {
 
       {/* ===================== MOBILE INSET GROUPED LIST (Standar Native App) ===================== */}
       <div className="cluv-hide-desktop cluv-flex-col cluv-gap-4">
-        {scansDeletedSuccess && (
-          <div className="cluv-alert is-success">
-            <CheckCircle2 size={16} className="cluv-alert-icon" />
-            <div className="cluv-alert-content">
-              <p className="cluv-alert-message">
-                Seluruh riwayat pemindaian wajah Anda berhasil dimusnahkan.
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* Grup 1: Hak Data Pribadi */}
         <div>
           <div className="cluv-menu-group-label">Hak Data Pribadi (UU PDP)</div>
@@ -152,16 +150,13 @@ export default function PrivacyCenterPage() {
                   <p className="cluv-menu-row-desc">Ekspor profil, jenis kulit, dan saldo kredit</p>
                 </div>
               </div>
-              <div className="cluv-menu-row-trailing">
-                <ChevronRight size={18} className="cluv-menu-row-chevron" />
-              </div>
             </button>
 
             {/* Row 2: Hapus Scan Wajah Saja */}
             <button
               type="button"
               className="cluv-menu-row"
-              onClick={handleDeleteFaceScans}
+              onClick={() => setShowDeleteScansModal(true)}
               disabled={isDeletingScans}
             >
               <div className="cluv-menu-row-main">
@@ -173,13 +168,11 @@ export default function PrivacyCenterPage() {
                   <p className="cluv-menu-row-desc">Musnahkan foto biometrik, akun tetap aktif</p>
                 </div>
               </div>
-              <div className="cluv-menu-row-trailing">
-                {isDeletingScans ? (
+              {isDeletingScans && (
+                <div className="cluv-menu-row-trailing">
                   <span className="cluv-spinner is-sm" />
-                ) : (
-                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
-                )}
-              </div>
+                </div>
+              )}
             </button>
 
             {/* Row 3: Kebijakan Privasi Lengkap */}
@@ -192,9 +185,6 @@ export default function PrivacyCenterPage() {
                   <span className="cluv-menu-row-title">Kebijakan Privasi Lengkap</span>
                   <p className="cluv-menu-row-desc">Kepatuhan UU PDP &amp; proteksi data</p>
                 </div>
-              </div>
-              <div className="cluv-menu-row-trailing">
-                <ChevronRight size={18} className="cluv-menu-row-chevron" />
               </div>
             </Link>
           </div>
@@ -221,9 +211,6 @@ export default function PrivacyCenterPage() {
                   <span className="cluv-menu-row-title">Hapus Akun Saya Permanen</span>
                   <p className="cluv-menu-row-desc">Musnahkan akun, kuota &amp; seluruh data</p>
                 </div>
-              </div>
-              <div className="cluv-menu-row-trailing">
-                <ChevronRight size={18} className="cluv-menu-row-chevron" />
               </div>
             </button>
           </div>
@@ -276,17 +263,6 @@ export default function PrivacyCenterPage() {
             </div>
           </div>
 
-          {scansDeletedSuccess && (
-            <div className="cluv-alert is-success cluv-mt-4">
-              <CheckCircle2 size={16} className="cluv-alert-icon" />
-              <div className="cluv-alert-content">
-                <p className="cluv-alert-message">
-                  Seluruh riwayat pemindaian wajah Anda berhasil dimusnahkan secara bersih.
-                </p>
-              </div>
-            </div>
-          )}
-
           <hr className="cluv-divider is-compact cluv-my-4" />
           <div className="cluv-flex-row cluv-justify-end">
             <Button
@@ -294,7 +270,7 @@ export default function PrivacyCenterPage() {
               size="sm"
               iconLeft={<Trash2 size={15} />}
               loading={isDeletingScans}
-              onClick={handleDeleteFaceScans}
+              onClick={() => setShowDeleteScansModal(true)}
             >
               Hapus Rekam Jejak Scan Wajah Saja
             </Button>
@@ -362,10 +338,80 @@ export default function PrivacyCenterPage() {
         </div>
       </div>
 
-      {/* MODAL KONFIRMASI GANDA PENGHAPUSAN AKUN */}
+      {/* ===================== BOTTOM SHEET / MODAL: HAPUS SCAN WAJAH ===================== */}
+      {showDeleteScansModal && (
+        <div className="cluv-sheet-overlay" onClick={() => !isDeletingScans && setShowDeleteScansModal(false)}>
+          <div className="cluv-sheet-panel cluv-modal-box is-sm" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="cluv-sheet-handle-btn"
+              onClick={() => !isDeletingScans && setShowDeleteScansModal(false)}
+              aria-label="Tutup panel"
+            >
+              <span className="cluv-sheet-handle" />
+            </button>
+
+            <div className="cluv-modal-header">
+              <h2 className="cluv-modal-title cluv-flex-row cluv-items-center cluv-gap-2">
+                <div className="cluv-card-icon-wrap is-sm is-gold">
+                  <Trash2 size={16} />
+                </div>
+                <span>Hapus Rekam Jejak Wajah?</span>
+              </h2>
+              <button
+                type="button"
+                className="cluv-modal-close"
+                onClick={() => setShowDeleteScansModal(false)}
+                disabled={isDeletingScans}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="cluv-modal-body cluv-flex-col cluv-gap-3">
+              <p className="cluv-body cluv-m-0">
+                Apakah Anda yakin ingin memusnahkan seluruh rekam jejak foto dan pemindaian wajah Anda?
+              </p>
+              <p className="cluv-caption cluv-text-muted cluv-m-0">
+                Tindakan ini tidak dapat dibatalkan. Foto wajah fisik di cloud storage dan riwayat analitik visual akan dihapus bersih. Akun, kuota langganan, dan saldo AI Credits Anda akan tetap utuh.
+              </p>
+            </div>
+
+            <div className="cluv-modal-footer">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteScansModal(false)}
+                disabled={isDeletingScans}
+              >
+                Batalkan
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={isDeletingScans}
+                onClick={executeDeleteFaceScans}
+              >
+                Ya, Musnahkan Foto Wajah
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== BOTTOM SHEET / MODAL: HAPUS AKUN PERMANEN ===================== */}
       {showDeleteModal && (
-        <div className="cluv-modal-overlay">
-          <div className="cluv-modal-box is-sm">
+        <div className="cluv-sheet-overlay" onClick={() => !isDeletingAccount && setShowDeleteModal(false)}>
+          <div className="cluv-sheet-panel cluv-modal-box is-sm" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="cluv-sheet-handle-btn"
+              onClick={() => !isDeletingAccount && setShowDeleteModal(false)}
+              aria-label="Tutup panel"
+            >
+              <span className="cluv-sheet-handle" />
+            </button>
+
             <div className="cluv-modal-header">
               <h2 className="cluv-modal-title cluv-flex-row cluv-items-center cluv-gap-2 cluv-text-rose">
                 <AlertTriangle size={18} /> Pemusnahan Akun Permanen
@@ -431,6 +477,18 @@ export default function PrivacyCenterPage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===================== FLOATING TOAST NOTIFICATION ===================== */}
+      {toast && (
+        <div className={`cluv-toast is-${toast.type}`}>
+          {toast.type === 'success' ? (
+            <CheckCircle2 size={16} className="cluv-toast-icon" />
+          ) : (
+            <AlertTriangle size={16} className="cluv-toast-icon" />
+          )}
+          <span>{toast.message}</span>
         </div>
       )}
     </div>
