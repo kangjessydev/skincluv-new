@@ -236,48 +236,170 @@
 }
 
 /* =============================================================================
- * Floating Toast Pill Component (.cluv-toast) — Mobile-First Toast Feedback
+ * Skincluv Floating Toast Notification (.cluv-toast) — Bottom-Right Rich Feedback
  * ============================================================================= */
-.cluv-toast {
+.cluv-toast-container {
   position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 18px;
-  border-radius: 9999px;
-  font-family: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25), 0 4px 6px -2px rgba(15, 23, 42, 0.1);
+  bottom: 24px;
+  right: 24px;
   z-index: 10001;
-  max-width: calc(100vw - 32px);
-  width: max-content;
-  box-sizing: border-box;
-  animation: cluvSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   pointer-events: none;
 }
 
-.cluv-toast.is-success {
-  background: var(--cluv-neutral-900, #0f172a);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+@media (max-width: 640px) {
+  .cluv-toast-container {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    left: 16px;
+  }
 }
 
-.cluv-toast.is-success .cluv-toast-icon {
-  color: var(--cluv-teal, #14b8a6);
+.cluv-toast {
+  position: relative;
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-border, #e2e8f0);
+  border-radius: var(--cluv-radius-card, 16px);
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+  width: 360px;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: auto;
+  animation: cluvToastSlideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
 }
 
-.cluv-toast.is-error {
-  background: var(--cluv-rose-dark, #991b1b);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+@media (max-width: 640px) {
+  .cluv-toast {
+    width: 100%;
+    animation: cluvToastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
-.cluv-toast.is-error .cluv-toast-icon {
-  color: #fca5a5;
+.cluv-toast-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px 10px;
+}
+
+.cluv-toast-icon-wrap {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cluv-toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-toast-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900, #0f172a);
+  margin: 0 0 2px 0;
+  line-height: 1.35;
+}
+
+.cluv-toast-message {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-600, #475569);
+  line-height: 1.45;
+  margin: 0;
+  word-break: break-word;
+}
+
+.cluv-toast-close {
+  background: transparent;
+  border: none;
+  color: var(--cluv-neutral-400, #94a3b8);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  margin-top: -2px;
+  margin-right: -4px;
+}
+
+.cluv-toast-close:hover {
+  background: var(--cluv-neutral-100, #f1f5f9);
+  color: var(--cluv-neutral-700, #334155);
+}
+
+/* Auto-dismiss progress countdown bar */
+.cluv-toast-progress-track {
+  height: 3px;
+  width: 100%;
+  background: var(--cluv-neutral-100, #f1f5f9);
+  position: relative;
+  overflow: hidden;
+}
+
+.cluv-toast-progress-bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  animation: cluvToastShrink linear forwards;
+}
+
+.cluv-toast:hover .cluv-toast-progress-bar {
+  animation-play-state: paused;
+}
+
+/* Variant Accents */
+.cluv-toast.is-success .cluv-toast-progress-bar {
+  background: var(--cluv-teal, #14b8a6);
+}
+
+.cluv-toast.is-error .cluv-toast-progress-bar,
+.cluv-toast.is-danger .cluv-toast-progress-bar {
+  background: var(--cluv-rose, #f43f5e);
+}
+
+.cluv-toast.is-warning .cluv-toast-progress-bar {
+  background: var(--cluv-gold, #f59e0b);
+}
+
+.cluv-toast.is-info .cluv-toast-progress-bar {
+  background: var(--cluv-blue, #3b82f6);
+}
+
+@keyframes cluvToastShrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes cluvToastSlideInRight {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes cluvToastSlideUp {
+  from {
+    transform: translateY(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 

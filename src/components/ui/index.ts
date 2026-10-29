@@ -17,3 +17,6 @@ export {
 } from './EmptyState'
 export { default as BottomSheet } from './BottomSheet'
 export type { BottomSheetProps } from './BottomSheet'
+export { default as Toast } from './Toast'
+export type { ToastProps, ToastVariant } from './Toast'
+

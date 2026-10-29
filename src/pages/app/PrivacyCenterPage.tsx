@@ -7,20 +7,14 @@ import { useNavigate, Link } from 'react-router-dom'
 import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-import { Button, Badge, BottomSheet } from '@/components/ui'
+import { Button, Badge, BottomSheet, Toast } from '@/components/ui'
 
 export default function PrivacyCenterPage() {
   const navigate = useNavigate()
   const { user, profile, activeSkinProfile, subscription, coinBalance, reset } = useAuthStore()
 
-  // State Feedback Toast
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-
-  useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(() => setToast(null), 3500)
-    return () => clearTimeout(timer)
-  }, [toast])
+  // State Feedback Toast Resmi
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null)
 
   // State untuk Hapus Scan Wajah Saja (Modal / Bottom Sheet)
   const [showDeleteScansModal, setShowDeleteScansModal] = useState(false)
@@ -54,9 +48,17 @@ export default function PrivacyCenterPage() {
       downloadAnchor.click()
       downloadAnchor.remove()
 
-      setToast({ type: 'success', message: 'Data profil berhasil diunduh (JSON).' })
+      setToast({
+        type: 'success',
+        title: 'Berhasil Diunduh',
+        message: 'Salinan data profil dan hak privasi telah disimpan sebagai berkas JSON.'
+      })
     } catch {
-      setToast({ type: 'error', message: 'Gagal mengekspor berkas data profil.' })
+      setToast({
+        type: 'error',
+        title: 'Gagal Mengunduh',
+        message: 'Gagal mengekspor berkas data profil Anda. Silakan coba lagi.'
+      })
     }
   }
 
@@ -73,9 +75,17 @@ export default function PrivacyCenterPage() {
       if (error) throw error
 
       setShowDeleteScansModal(false)
-      setToast({ type: 'success', message: 'Seluruh riwayat foto wajah berhasil dimusnahkan.' })
+      setToast({
+        type: 'success',
+        title: 'Foto Wajah Dimusnahkan',
+        message: 'Seluruh rekam jejak foto wajah dan analitik visual telah dibersihkan secara permanen.'
+      })
     } catch (err: any) {
-      setToast({ type: 'error', message: `Gagal menghapus scan: ${err?.message || 'Terjadi kesalahan sistem'}` })
+      setToast({
+        type: 'error',
+        title: 'Gagal Menghapus Scan',
+        message: err?.message || 'Terjadi kesalahan sistem saat memproses pemusnahan foto.'
+      })
     } finally {
       setIsDeletingScans(false)
     }
@@ -434,16 +444,14 @@ export default function PrivacyCenterPage() {
       </BottomSheet>
 
       {/* ===================== FLOATING TOAST NOTIFICATION ===================== */}
-      {toast && (
-        <div className={`cluv-toast is-${toast.type}`}>
-          {toast.type === 'success' ? (
-            <CheckCircle2 size={16} className="cluv-toast-icon" />
-          ) : (
-            <AlertTriangle size={16} className="cluv-toast-icon" />
-          )}
-          <span>{toast.message}</span>
-        </div>
-      )}
+      <Toast
+        isOpen={!!toast}
+        onClose={() => setToast(null)}
+        variant={toast?.type}
+        title={toast?.title}
+        message={toast?.message}
+        duration={4000}
+      />
     </div>
   )
 }
