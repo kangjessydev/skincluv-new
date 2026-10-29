@@ -9,6 +9,13 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Gaya Desain Native Mobile App: Inset Grouped Settings di Privacy Center (`PrivacyCenterPage.tsx`, `cards.css`)**:
+  - Mengubah 4 kartu besar yang memakan ruang vertikal di mobile menjadi **2 Inset Grouped Menu Rows** (standar *iOS / Android Settings*: `.cluv-menu-group` dan `.cluv-menu-row`):
+    - **Grup 1: Hak Data Pribadi (UU PDP)**: *Unduh Salinan Data (JSON)*, *Hapus Data Scan Wajah Saja*, dan *Kebijakan Privasi Lengkap* dengan ikon squircle tematik, subtitle 1 baris ringkas, dan trailing chevron `›`.
+    - **Grup 2: Zona Kritis (Danger Zone)**: *Hapus Akun Saya Permanen* beraksen warna rose/merah tegas.
+  - Seluruh opsi kini muat dalam 1 layar ponsel tanpa perlu scroll lelah (*zero scroll fatigue*).
+  - Tampilan desktop tetap normal 100% mempertahankan kartu informatif lengkap dan lega (`.cluv-hide-desktop` vs `.cluv-hide-mobile`).
+
 - **Standarisasi Seluruh Sub-Halaman Mobile: Eliminasi Judul Duplikat & Penyelarasan Kanvas Focused (`ProfileBillingPage.tsx`, `PrivacyCenterPage.tsx`, `TransactionHistoryPage.tsx`, `CoinHistoryPage.tsx`, `CheckoutPage.tsx`)**:
   - Menyembunyikan tombol navigasi kembali in-page dan header judul/subtitle in-page pada perangkat mobile (`.cluv-hide-mobile`) di seluruh sub-halaman profil dan transaksi, karena Topbar mobile sudah menyediakan tombol panah kembali dan judul halaman yang presisi.
   - Menstandarisasi kontainer halaman ke `.cluv-canvas-focused`, menjamin jarak batas bawah layar mobile konsisten tepat **24px** tanpa ruang kosong berlebih.

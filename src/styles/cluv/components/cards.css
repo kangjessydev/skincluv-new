@@ -2085,6 +2085,23 @@
   color: var(--cluv-rose-dark, #e11d48);
 }
 
+.cluv-menu-row-desc {
+  font-size: 0.75rem;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  margin: 2px 0 0 0;
+  line-height: 1.35;
+  font-weight: 400;
+}
+
+.cluv-menu-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px 4px;
+}
+
 .cluv-menu-row-trailing {
   display: flex;
   align-items: center;

@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye } from 'lucide-react'
+import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Button, Badge } from '@/components/ui'
@@ -120,7 +120,118 @@ export default function PrivacyCenterPage() {
         </p>
       </div>
 
-      <div className="cluv-flex-col cluv-gap-5">
+      {/* ===================== MOBILE INSET GROUPED LIST (Standar Native App) ===================== */}
+      <div className="cluv-hide-desktop cluv-flex-col cluv-gap-4">
+        {scansDeletedSuccess && (
+          <div className="cluv-alert is-success">
+            <CheckCircle2 size={16} className="cluv-alert-icon" />
+            <div className="cluv-alert-content">
+              <p className="cluv-alert-message">
+                Seluruh riwayat pemindaian wajah Anda berhasil dimusnahkan.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Grup 1: Hak Data Pribadi */}
+        <div>
+          <div className="cluv-menu-group-label">Hak Data Pribadi (UU PDP)</div>
+          <div className="cluv-menu-group">
+            {/* Row 1: Unduh Salinan Data */}
+            <button
+              type="button"
+              className="cluv-menu-row"
+              onClick={handleExportData}
+            >
+              <div className="cluv-menu-row-main">
+                <div className="cluv-menu-row-icon is-blue">
+                  <Download size={17} />
+                </div>
+                <div className="cluv-flex-col">
+                  <span className="cluv-menu-row-title">Unduh Salinan Data (JSON)</span>
+                  <p className="cluv-menu-row-desc">Ekspor profil, jenis kulit, dan saldo kredit</p>
+                </div>
+              </div>
+              <div className="cluv-menu-row-trailing">
+                <ChevronRight size={18} className="cluv-menu-row-chevron" />
+              </div>
+            </button>
+
+            {/* Row 2: Hapus Scan Wajah Saja */}
+            <button
+              type="button"
+              className="cluv-menu-row"
+              onClick={handleDeleteFaceScans}
+              disabled={isDeletingScans}
+            >
+              <div className="cluv-menu-row-main">
+                <div className="cluv-menu-row-icon is-gold">
+                  <Trash2 size={17} />
+                </div>
+                <div className="cluv-flex-col">
+                  <span className="cluv-menu-row-title">Hapus Data Scan Wajah Saja</span>
+                  <p className="cluv-menu-row-desc">Musnahkan foto biometrik, akun tetap aktif</p>
+                </div>
+              </div>
+              <div className="cluv-menu-row-trailing">
+                {isDeletingScans ? (
+                  <span className="cluv-spinner is-sm" />
+                ) : (
+                  <ChevronRight size={18} className="cluv-menu-row-chevron" />
+                )}
+              </div>
+            </button>
+
+            {/* Row 3: Kebijakan Privasi Lengkap */}
+            <Link to="/privacy" className="cluv-menu-row">
+              <div className="cluv-menu-row-main">
+                <div className="cluv-menu-row-icon is-teal">
+                  <Lock size={17} />
+                </div>
+                <div className="cluv-flex-col">
+                  <span className="cluv-menu-row-title">Kebijakan Privasi Lengkap</span>
+                  <p className="cluv-menu-row-desc">Kepatuhan UU PDP &amp; proteksi data</p>
+                </div>
+              </div>
+              <div className="cluv-menu-row-trailing">
+                <ChevronRight size={18} className="cluv-menu-row-chevron" />
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Grup 2: Zona Kritis (Danger Zone) */}
+        <div>
+          <div className="cluv-menu-group-label cluv-text-rose">Zona Kritis</div>
+          <div className="cluv-menu-group">
+            <button
+              type="button"
+              className="cluv-menu-row is-danger"
+              onClick={() => {
+                setConfirmationInput('')
+                setDeleteError(null)
+                setShowDeleteModal(true)
+              }}
+            >
+              <div className="cluv-menu-row-main">
+                <div className="cluv-menu-row-icon is-rose">
+                  <AlertTriangle size={17} />
+                </div>
+                <div className="cluv-flex-col">
+                  <span className="cluv-menu-row-title">Hapus Akun Saya Permanen</span>
+                  <p className="cluv-menu-row-desc">Musnahkan akun, kuota &amp; seluruh data</p>
+                </div>
+              </div>
+              <div className="cluv-menu-row-trailing">
+                <ChevronRight size={18} className="cluv-menu-row-chevron" />
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ===================== DESKTOP DETAILED CARDS ===================== */}
+      <div className="cluv-hide-mobile cluv-flex-col cluv-gap-5">
         {/* KARTU 1: PORTABILITAS DATA */}
         <div className="cluv-card">
           <div className="cluv-flex-row cluv-items-start cluv-gap-4">
