@@ -582,15 +582,23 @@ export default function PrivacyCenterPage() {
             <p className="cluv-reader-desc">
               Untuk pertanyaan, keluhan, atau permohonan hak atas data pribadi, silakan hubungi tim DPO kami:
             </p>
-            <div className="cluv-reader-box cluv-flex-col cluv-gap-1.5">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                <strong className="cluv-reader-label">Email:</strong>
-                <span>privacy@skincluv.com / support@skincluv.com</span>
-              </div>
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                <strong className="cluv-reader-label">Waktu Respons:</strong>
-                <span>Maksimal 3 &times; 24 jam kerja sesuai ketentuan UU PDP</span>
-              </div>
+            <div className="cluv-reader-box">
+              <ul className="cluv-reader-list">
+                <li className="cluv-reader-item">
+                  <span className="cluv-reader-dot" />
+                  <div>
+                    <strong className="cluv-reader-label">Email:</strong>
+                    <span>privacy@skincluv.com / support@skincluv.com</span>
+                  </div>
+                </li>
+                <li className="cluv-reader-item">
+                  <span className="cluv-reader-dot" />
+                  <div>
+                    <strong className="cluv-reader-label">Waktu Respons:</strong>
+                    <span>Maksimal 3 &times; 24 jam kerja sesuai ketentuan UU PDP</span>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
