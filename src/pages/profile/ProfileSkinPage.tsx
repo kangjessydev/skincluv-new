@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import {
   ArrowLeft, Activity, AlertCircle, ShieldCheck,
-  Check, Save, Sparkles,
+  Check, Save, Sparkles, X,
 } from 'lucide-react'
 import type { SkinProfile, SkinType } from '@/types/database'
 import { Button } from '@/components/ui'
@@ -53,6 +53,7 @@ export default function ProfileSkinPage() {
   const [fetching, setFetching] = useState(true)
   const [message, setMessage] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isNoticeDismissed, setIsNoticeDismissed] = useState(false)
 
   // Populate from activeSkinProfile or fetch from DB
   useEffect(() => {
@@ -189,24 +190,35 @@ export default function ProfileSkinPage() {
         <span>Kembali ke Profil &amp; Pengaturan</span>
       </Link>
 
-      {/* Header */}
-      <div className="cluv-mb-6">
+      {/* Header (Desktop only; di mobile sudah terpampang di topbar) */}
+      <div className="cluv-hide-mobile cluv-mb-6">
         <h1 className="cluv-title-page">Profil &amp; Preferensi Kulit</h1>
         <p className="cluv-caption cluv-text-muted">Konfigurasikan tipe kulit dan bahan yang ingin kamu hindari untuk mempersonalisasi rekomendasi Skinsistant AI.</p>
       </div>
 
-      {/* Main card */}
-      <div className="cluv-card cluv-flex-col cluv-gap-6">
-        {/* Regulatory & Privacy Notice (Invarian 19 & UU PDP No. 27/2022) */}
-        <div className="cluv-card-note">
-          <ShieldCheck size={20} className="cluv-text-teal" />
-          <div className="cluv-flex-col cluv-gap-1">
-            <h4 className="cluv-body cluv-font-bold cluv-text-teal">Deklarasi Preferensi Konsumen Edukatif</h4>
-            <p className="cluv-caption">
-              Data ini adalah preferensi mandiri yang Anda tentukan sendiri sebagai panduan analisis Skinsistant AI. Ini bukan merupakan diagnosis klinis, rekam medis dokter, ataupun resep obat. Anda berhak mengubah preferensi ini kapan saja.
-            </p>
+      {/* Main card (Di mobile dibuat flat/unboxed agar tidak ada double border yang sempit) */}
+      <div className="cluv-card is-mobile-flat cluv-flex-col cluv-gap-6">
+        {/* Regulatory & Privacy Notice (Invarian 19 & UU PDP No. 27/2022) - Bisa ditutup */}
+        {!isNoticeDismissed && (
+          <div className="cluv-card-note is-dismissible">
+            <ShieldCheck size={18} className="cluv-text-teal" />
+            <div className="cluv-flex-col cluv-gap-1 cluv-flex-1">
+              <h4 className="cluv-body cluv-font-bold cluv-text-teal cluv-m-0">Deklarasi Preferensi Konsumen Edukatif</h4>
+              <p className="cluv-caption cluv-m-0">
+                Data ini adalah preferensi mandiri Anda sebagai panduan analisis Skinsistant AI (bukan diagnosis klinis/resep medis). Anda berhak mengubahnya kapan saja.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsNoticeDismissed(true)}
+              className="cluv-card-note-close"
+              aria-label="Tutup pemberitahuan"
+              title="Tutup pemberitahuan"
+            >
+              <X size={15} />
+            </button>
           </div>
-        </div>
+        )}
 
         {fetching ? (
           <div className="cluv-text-center cluv-py-8 cluv-flex-col cluv-items-center cluv-gap-2">

@@ -9,6 +9,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Optimasi Ergonomi Layar Mobile Profil Kulit (`ProfileSkinPage.tsx`, `cards.css`)**:
+  - Menyembunyikan judul dan subtitle in-page di mobile (`.cluv-hide-mobile`) karena informasi halaman sudah terpampang jelas di Topbar mobile, menghemat ruang vertikal.
+  - Membuka pembungkus kartu putih kaku di mobile (`.cluv-card.is-mobile-flat`) menjadi layout *flat/unboxed* (tanpa border luar ganda dan padding tebal), sehingga form pilihan tipe kulit dan target perawatan bernapas lega dan terasa seperti form mobile app modern.
+  - Menjadikan kotak notifikasi edukatif (`.cluv-card-note.is-dismissible`) lebih ramping di ponsel dengan font 11–12px dan menyediakan tombol **Tutup (`X`)**, sehingga pengguna dapat menutup notifikasi kapan saja untuk langsung melihat form.
+  - Tampilan desktop tetap normal 100% dengan judul in-page, kartu putih ber-padding penuh, dan layout 2 kolom.
 - **Penyederhanaan Alur Navigasi Mobile Sub-Halaman Profil (`ProfileSkinPage.tsx`, `PrivacyCenterPage.tsx`, `TransactionHistoryPage.tsx`, `CoinHistoryPage.tsx`)**:
   - Menghilangkan tombol in-page "Kembali ke Profil" ganda di perangkat mobile (`.cluv-hide-mobile`) karena topbar aplikasi di mobile sudah menyediakan tombol panah kembali yang intuitif (`← [Judul Halaman]`).
   - Meniadakan tab/tombol navigasi horizontal tambahan di sub-halaman agar alur pengguna tetap bersih, terarah, dan fokus pada formulir/konten yang sedang dibuka.

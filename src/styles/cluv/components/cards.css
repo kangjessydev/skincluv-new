@@ -2108,6 +2108,70 @@
   transform: translateX(2px);
 }
 
+/* =============================================================================
+ * Mobile Flat Card Modifier (.cluv-card.is-mobile-flat)
+ * Unboxes outer cards on mobile to avoid cramped double-nested borders
+ * ============================================================================= */
+@media (max-width: 879px) {
+  .cluv-card.is-mobile-flat {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+
+/* =============================================================================
+ * Dismissible Card Note (.cluv-card-note.is-dismissible)
+ * ============================================================================= */
+.cluv-card-note.is-dismissible {
+  position: relative;
+  padding-right: 38px;
+}
+
+.cluv-card-note-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--cluv-teal-dark, #127a75);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--cluv-radius-sm, 6px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.cluv-card-note-close:hover {
+  opacity: 1;
+  background: rgba(31, 157, 151, 0.15);
+}
+
+@media (max-width: 879px) {
+  .cluv-card-note {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: var(--cluv-radius-md, 10px);
+  }
+
+  .cluv-card-note.is-dismissible {
+    padding-right: 32px;
+  }
+
+  .cluv-card-note h4 {
+    font-size: 0.8125rem !important;
+  }
+
+  .cluv-card-note p {
+    font-size: 0.75rem !important;
+    line-height: 1.45 !important;
+  }
+}
+
 
 
 
