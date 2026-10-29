@@ -471,3 +471,51 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums !important;
 }
+
+/* =============================================================================
+ * 12. TEXT TRUNCATION & LINE CLAMP
+ * ============================================================================= */
+.cluv-line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cluv-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cluv-line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* =============================================================================
+ * Scan BottomSheet: Article-style Metadata Row
+ * ============================================================================= */
+.cluv-scan-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 2px;
+}
+
+.cluv-scan-meta-item,
+.cluv-scan-meta-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 450;
+  color: var(--cluv-text-muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}

@@ -11,52 +11,62 @@
  * ============================================================================= */
 .cluv-bento-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
   width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
 /* Preset Column Modifiers */
 /* 1.1 Hero Bento Split: 60:40 (1.55fr : 1fr) */
 .cluv-bento-grid.is-hero {
-  grid-template-columns: 1.55fr 1fr;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
 }
 
 /* 1.2 Equal Bento Split: 50:50 (1fr : 1fr) */
 .cluv-bento-grid.is-equal {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* 1.3 Trio Bento Split: 33:33:33 (1fr : 1fr : 1fr) */
 .cluv-bento-grid.is-trio {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 /* 1.4 Quad Bento Split: 4 columns */
 .cluv-bento-grid.is-quad {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 /* 1.5 Full-Width Bento */
 .cluv-bento-grid.is-full {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Responsive Breakpoints */
 @media (max-width: 900px) {
+  .cluv-bento-grid,
   .cluv-bento-grid.is-hero,
   .cluv-bento-grid.is-equal,
   .cluv-bento-grid.is-trio,
   .cluv-bento-grid.is-quad {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 
 @media (max-width: 640px) {
   .cluv-bento-grid {
     gap: 14px;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
 

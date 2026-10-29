@@ -17,6 +17,21 @@
   flex-direction: column;
   position: relative;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .cluv-card,
+  .public-card {
+    padding: 18px 16px;
+    border-radius: var(--cluv-radius-lg, 16px);
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* Modifiers */
@@ -56,6 +71,70 @@
 .cluv-card.is-tint-gold {
   background: var(--cluv-gold-soft, #fef8ee);
   border-color: var(--cluv-gold-line, #fae0b8);
+}
+
+/* Area Evaluation Bento Cardlet */
+.cluv-card.is-area-card {
+  padding: 16px;
+  border-radius: var(--cluv-radius-md, 12px);
+  gap: 14px;
+  box-shadow: none;
+}
+
+.cluv-card.is-area-card.is-optimal {
+  border-left: 4px solid var(--cluv-teal);
+}
+
+.cluv-card.is-area-card.is-alert {
+  border-left: 4px solid var(--cluv-gold);
+}
+
+.cluv-area-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--cluv-border, #e2e8f0);
+}
+
+.cluv-summary-box,
+.cluv-bg-surface-soft {
+  background-color: var(--cluv-surface-muted, #f8fafc) !important;
+  border: 1px solid var(--cluv-border, #e2e8f0);
+  border-radius: var(--cluv-radius-md, 12px);
+  padding: 14px 16px;
+}
+
+.cluv-summary-box.is-flush {
+  padding: 0;
+}
+
+.cluv-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cluv-border, #e2e8f0);
+}
+
+.cluv-breakdown-row:last-child {
+  border-bottom: none;
+}
+
+.cluv-breakdown-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cluv-text-dark, #0f172a);
+  word-break: break-word;
+}
+
+.cluv-breakdown-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* Horizontal Row Layout Modifier (.cluv-card.is-row) */
@@ -823,6 +902,7 @@
   max-width: 1240px;
   margin-left: 0;
   margin-right: auto;
+  box-sizing: border-box;
 }
 
 @media (min-width: 960px) {
@@ -832,11 +912,31 @@
   }
 }
 
+@media (max-width: 900px) {
+  .cluv-scan-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .cluv-scan-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
+
 .cluv-scan-main {
   display: flex;
   flex-direction: column;
   gap: 20px;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cluv-scan-aside {
@@ -850,9 +950,10 @@
  * Universal Dropzone Primitive (.cluv-dropzone)
  * ============================================================================= */
 .cluv-dropzone {
+  position: relative;
   border: 2px dashed var(--cluv-neutral-300, #cbd5e1);
   border-radius: var(--cluv-radius-xl, 20px);
-  padding: 36px 20px;
+  padding: 32px 20px;
   text-align: center;
   background: var(--cluv-surface-muted, #f8fafc);
   cursor: pointer;
@@ -863,6 +964,21 @@
   justify-content: center;
   gap: 8px;
   user-select: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .cluv-dropzone {
+    padding: 20px 14px;
+    border-radius: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
 }
 
 .cluv-dropzone:hover,
@@ -870,6 +986,35 @@
   border-color: var(--cluv-teal);
   background: var(--cluv-teal-soft);
   transform: translateY(-1px);
+}
+
+.cluv-dropzone-guide-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-border, #e2e8f0);
+  color: var(--cluv-teal-dark, #127a75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  transition: all 0.15s ease;
+  z-index: 2;
+  padding: 0;
+}
+
+.cluv-dropzone-guide-btn:hover {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-dropzone-guide-btn:active {
+  transform: scale(0.92);
 }
 
 .cluv-dropzone-icon {

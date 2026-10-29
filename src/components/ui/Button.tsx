@@ -96,7 +96,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       ) : (
         iconLeft && <span className="cluv-flex cluv-items-center cluv-flex-shrink-0">{iconLeft}</span>
       )}
-      <span>{children}</span>
+      <span className="cluv-btn-text">{children}</span>
       {!loading && iconRight && (
         <span className="cluv-flex cluv-items-center cluv-flex-shrink-0">{iconRight}</span>
       )}

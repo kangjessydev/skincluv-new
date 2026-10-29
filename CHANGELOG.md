@@ -6,9 +6,19 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 
 ---
 
-## [Unreleased] - 2026-10-27
+## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Paritas Antarmuka Riwayat Scan Komposisi (`IngredientScanDetailModal.tsx`)**:
+  - Mode Kanonikal **Detail** vs **Ringkas** pada *Komposisi Lengkap*: Mode Detail menampilkan fungsi bahan kosmetik, kecocokan tipe kulit (`Cocok untuk:`), panduan interaksi bahan (`Interaksi:`), skor komedogenik/pori, dan regulasi BPOM.
+  - Mode Ringkas menyajikan tag cloud chips interaktif dengan titik status warna (`.cluv-dot`).
+  - Penambahan modifier `.cluv-chip.is-danger`, `.cluv-chip.is-gold`, dan class `.cluv-summary-box` dengan padding lega `14px 16px`.
+- **Standarisasi Badge Evaluasi Area Wajah (Opsi A Terpadu)**:
+  - Format terpadu `[Optimal • 85]` atau `[Perlu Perhatian • 80]` pada [FaceScanDetailModal.tsx](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/components/scans/FaceScanDetailModal.tsx) tanpa redundansi kata "Skor".
+  - Subheader area `.cluv-area-card-header` dengan pembatas `border-bottom` dan bantalan 12px.
+- **Penyelarasan Header & Notice Kuota Pemindai Wajah & Komposisi**:
+  - Banner kuota dinamis yang ramah mobile di `FaceScanPage.tsx` dan `IngredientScanPage.tsx`.
+  - Filter BottomSheet di `ScanHistoryPage.tsx` dengan pemindahan tombol aksi ke bodi `children` dan indikator filter aktif warna gold kontras tinggi.
 - **Peran Baru KruAI (`/role-mobile`)**: Spesifikasi peran di `.agents/skills/role-mobile/SKILL.md` untuk mengelola Capacitor, Android platform, konfigurasi native Gradle, hardware permissions, dan build APK cloud tanpa membebani mesin lokal.
 - **Kerangka Uji Akurasi Scan Wajah (RFC 022)**:
   - Dokumen arsitektur `docs/architecture/RFC_022_FACE_SCAN_ACCURACY_BENCHMARK.md`.

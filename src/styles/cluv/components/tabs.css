@@ -10,7 +10,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px;
+  padding: 5px;
   background: var(--cluv-neutral-100, #f1f5f9);
   border-radius: 12px;
   max-width: 100%;
@@ -26,33 +26,42 @@
 .cluv-tabs.is-full {
   display: flex;
   width: 100%;
+  overflow: visible;
 }
 
 .cluv-tabs.is-full .cluv-tab-btn {
   flex: 1;
   text-align: center;
   justify-content: center;
+  padding: 10px 12px;
 }
 
 /* Tab Button */
 .cluv-tab-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 18px;
+  min-height: 42px;
+  padding: 9px 18px;
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--cluv-neutral-600);
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
-  line-height: 1;
+  line-height: 1.25;
   user-select: none;
   text-decoration: none;
+  box-sizing: border-box;
+}
+
+.cluv-tab-btn svg {
+  flex-shrink: 0;
 }
 
 .cluv-tab-btn:hover {

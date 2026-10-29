@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   FlaskConical,
-  Upload,
   X,
   CheckCircle2,
   AlertCircle,
   Info,
-  Camera,
   FileText,
   User,
   Sparkles,
@@ -25,7 +23,7 @@ import {
   RotateCcw,
   LayoutGrid,
   ListFilter,
-  Image as ImageIcon,
+  History,
 } from 'lucide-react'
 import { useInvokeAI } from '@/hooks/useInvokeAI'
 import { useAuthStore } from '@/store/authStore'
@@ -518,12 +516,21 @@ PETUNJUK OCR & ANALISIS WAJIB:
       <div className="cluv-scan-layout">
         {/* LEFT COLUMN: Main Feature Workspace */}
         <div className="cluv-scan-main">
-          {/* Header Section */}
-          <div className="cluv-mb-1">
-            <h1 className="cluv-title-section cluv-m-0">Scan Ingredient Skincare</h1>
-            <p className="cluv-subtitle cluv-mt-1">
-              Observasi keamanan komposisi bahan kosmetik secara ilmiah yang disesuaikan khusus dengan profil kulitmu.
-            </p>
+          {/* Page Header (Extracted outside bento, visible across all viewports) */}
+          <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-4">
+            <div>
+              <h1 className="cluv-title-section cluv-m-0 cluv-flex-row cluv-items-center cluv-gap-2">
+                Ingredient Scanner
+              </h1>
+              <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
+                Ketahui keamanan komposisi & cari kecocokan bahan untuk kulitmu
+              </p>
+            </div>
+            <div className="cluv-hide-mobile">
+              <Button variant="outline" size="sm" iconLeft={<History size={15} />} to="/scan-history">
+                Riwayat Scan
+              </Button>
+            </div>
           </div>
 
           {/* Alert Error Box */}
@@ -537,22 +544,6 @@ PETUNJUK OCR & ANALISIS WAJIB:
           {/* STAGE 1: PHOTO-FIRST UPLOAD (Adaptive Mobile-First) */}
           {stage === 'upload' && (
             <>
-              {/* Mobile Quick Context Strip & Guide Trigger */}
-              <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-hide-desktop cluv-mb-3 cluv-gap-2">
-                <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
-                  <span className="cluv-badge is-teal is-sm">Profil: {userSkinType}</span>
-                </div>
-                <button
-                  type="button"
-                  className="cluv-chip"
-                  onClick={() => setShowGuideSheet(true)}
-                  aria-label="Buka panduan membaca label komposisi"
-                >
-                  <BookOpen size={13} className="cluv-text-teal" />
-                  <span>Panduan Label</span>
-                </button>
-              </div>
-
               <div className="cluv-card cluv-gap-4">
                 {previewUrl ? (
                   <div className="cluv-flex-col cluv-items-center cluv-gap-3 cluv-w-full cluv-py-2">
@@ -579,50 +570,43 @@ PETUNJUK OCR & ANALISIS WAJIB:
                     </div>
                   </div>
                 ) : (
-                  <div className="cluv-flex-col cluv-gap-3 cluv-w-full">
-                    {/* 2 Thumb-Friendly Buttons for Mobile & Quick Action */}
-                    <div className="cluv-grid cols-2 cluv-gap-2">
-                      <Button
-                        variant="primary"
-                        size="md"
-                        iconLeft={<Camera size={18} />}
-                        onClick={() => cameraInputRef.current?.click()}
-                      >
-                        Kamera Kemasan
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="md"
-                        iconLeft={<ImageIcon size={18} />}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        Galeri Foto
-                      </Button>
-                    </div>
-
-                    {/* Desktop Dropzone (Hidden on phone screens) */}
-                    <div
-                      className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''} cluv-hide-mobile`}
-                      onClick={() => fileInputRef.current?.click()}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      tabIndex={0}
-                      role="button"
-                      aria-label="Unggah atau pilih foto label kemasan"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
+                  /* Unified Clean Media Upload Box with Info Guide Icon in Top-Right */
+                  <div
+                    className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    tabIndex={0}
+                    role="button"
+                    aria-label="Pilih foto label komposisi dari galeri atau kamera"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
+                    }}
+                  >
+                    {/* Panduan Label Guide Button (Top-Right inside box) */}
+                    <button
+                      type="button"
+                      className="cluv-dropzone-guide-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowGuideSheet(true)
                       }}
+                      aria-label="Panduan Membaca Label Komposisi"
+                      title="Panduan Membaca Label Komposisi"
                     >
-                      <div className="cluv-dropzone-icon">
-                        <Camera size={26} />
-                      </div>
-                      <h3 className="cluv-dropzone-title">Ambil / Unggah Foto Label Komposisi</h3>
-                      <p className="cluv-dropzone-subtitle">Pastikan teks komposisi pada kemasan terlihat jelas dan terang</p>
-                      <div className="cluv-dropzone-btn-fake">
-                        <Upload size={14} /> Pilih File atau Tarik Foto ke Sini
-                      </div>
+                      <Info size={19} />
+                    </button>
+
+                    <div className="cluv-dropzone-icon">
+                      <FlaskConical size={26} />
                     </div>
+                    <span className="cluv-body cluv-font-bold cluv-text-dark">
+                      Pilih Foto Label Komposisi
+                    </span>
+                    <span className="cluv-caption cluv-text-muted">
+                      Format JPG, PNG, atau WEBP maks 5MB
+                    </span>
                   </div>
                 )}
 
@@ -688,18 +672,18 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   block
                   loading={isAnalyzing}
                   disabled={isAnalyzing || !imageBase64}
-                  iconLeft={<FlaskConical size={18} />}
+                  iconLeft={<Sparkles size={18} />}
                   onClick={() => handleStartAnalysis()}
                 >
-                  Mulai Pindai Komposisi Skincare
+                  Analisa Sekarang
                 </Button>
 
-                {/* Medical Disclaimer (Invariant 19 compliant) */}
-                <div className="cluv-alert is-warning is-compact">
-                  <Info size={16} className="shrink-0 text-amber-600" />
-                  <span className="cluv-micro">
-                    <b>Penafian:</b> Hasil analisis AI ini bersifat panduan observasi kosmetik edukatif, bukan pengganti diagnosis spesialis kulit profesional.
-                  </span>
+                {/* Invariant 19 Non-Therapeutic Privacy & Credit Notice (Compact Notice Box) */}
+                <div className="cluv-alert is-info is-compact cluv-gap-2">
+                  <Info size={16} className="cluv-alert-icon shrink-0" />
+                  <div className="cluv-micro">
+                    Biaya <strong>{ingredientCost} Credits AI</strong> per analisis. Foto dianalisis secara privat & hasil observasi bersifat panduan edukasi mandiri 🔒
+                  </div>
                 </div>
               </div>
             </>
@@ -1302,21 +1286,21 @@ PETUNJUK OCR & ANALISIS WAJIB:
             <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '1rem' }}>3 Prinsip Membaca Label</h4>
             <div className="cluv-flex-col cluv-gap-2">
               <div className="cluv-card is-compact">
-                <strong className="cluv-body cluv-text-dark">1. Aturan 5 Bahan Teratas</strong>
+                <strong className="cluv-body cluv-text-dark">Aturan 5 Bahan Teratas</strong>
                 <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                   Lima bahan pertama pada label kemasan umumnya menyusun 70%–80% dari keseluruhan formula skincare.
                 </p>
               </div>
 
               <div className="cluv-card is-compact">
-                <strong className="cluv-body cluv-text-dark">2. Batas 1% Konsentrasi</strong>
+                <strong className="cluv-body cluv-text-dark">Batas 1% Konsentrasi</strong>
                 <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                   Bahan dengan konsentrasi di bawah 1% (pewarna, pengawet, fragrance) boleh ditulis dalam urutan acak oleh pabrikan.
                 </p>
               </div>
 
               <div className="cluv-card is-compact">
-                <strong className="cluv-body cluv-text-dark">3. Indeks Komedogenik (0–5)</strong>
+                <strong className="cluv-body cluv-text-dark">Indeks Komedogenik (0–5)</strong>
                 <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                   Skor 0–1 aman untuk kulit berjerawat, sedangkan skor 4–5 memiliki potensi tinggi menyumbat pori-pori wajah.
                 </p>

@@ -9,19 +9,19 @@ import {
   Calendar,
   Sparkles,
   ScanFace,
-  ChevronRight,
   FlaskConical,
   Search,
   X,
   Filter,
   RefreshCw,
+  Check,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import type { FaceScan, IngredientScan } from '@/types/database'
 import FaceScanDetailModal from '@/components/scans/FaceScanDetailModal'
 import IngredientScanDetailModal from '@/components/scans/IngredientScanDetailModal'
-import { Button, Badge } from '@/components/ui'
+import { Button, Badge, BottomSheet } from '@/components/ui'
 
 export default function ScanHistoryPage() {
   const navigate = useNavigate()
@@ -41,6 +41,36 @@ export default function ScanHistoryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [faceFilter, setFaceFilter] = useState<'all' | 'optimal' | 'attention'>('all')
   const [ingFilter, setIngFilter] = useState<'all' | 'safe' | 'attention'>('all')
+  const [showFilterSheet, setShowFilterSheet] = useState(false)
+
+  // Compact datetime formatter: 1/10/2026 18.32
+  const formatCompactDateTime = (isoString?: string | null): string => {
+    if (!isoString) return ''
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return ''
+    const day = d.getDate()
+    const month = d.getMonth() + 1
+    const year = d.getFullYear()
+    const hours = String(d.getHours()).padStart(2, '0')
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    return `${day}/${month}/${year} ${hours}.${minutes}`
+  }
+
+  const isFilterActive =
+    activeTab === 'face' ? faceFilter !== 'all' : ingFilter !== 'all'
+
+  const activeFilterLabel =
+    activeTab === 'face'
+      ? faceFilter === 'optimal'
+        ? 'Kondisi Optimal 80+'
+        : faceFilter === 'attention'
+        ? 'Perlu Perhatian'
+        : null
+      : ingFilter === 'safe'
+      ? 'Formula Baik'
+      : ingFilter === 'attention'
+      ? 'Perlu Perhatian'
+      : null
 
   const fetchAllHistory = async () => {
     let targetUid = session?.user?.id || user?.id || profile?.id
@@ -176,7 +206,7 @@ export default function ScanHistoryPage() {
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
       {/* ── 1. HEADER HALAMAN KANONIKAL ── */}
-      <header className="cluv-mb-5">
+      <header className="cluv-mb-4">
         <div className="cluv-badge is-teal is-sm cluv-mb-2">
           <ScanFace size={13} />
           <span>SKIN JOURNEY</span>
@@ -187,120 +217,223 @@ export default function ScanHistoryPage() {
         </p>
       </header>
 
-      {/* ── 2. TAB NAVIGASI MANDIRI (Fit-Content, Anti-Stretching) ── */}
-      <div className="cluv-flex-row cluv-mb-5">
-        <div className="cluv-tabs">
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeTab === 'face' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('face')
-              setSearchQuery('')
-            }}
-          >
-            <ScanFace size={16} />
-            <span>Analisis Wajah AI ({totalFaceScans})</span>
-          </button>
-          <button
-            type="button"
-            className={`cluv-tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('ingredient')
-              setSearchQuery('')
-            }}
-          >
-            <FlaskConical size={16} />
-            <span>Evaluasi Formula Skincare ({totalIngScans})</span>
-          </button>
-        </div>
+      {/* ── 2. TAB NAVIGASI (50:50 Segmented, Tanpa Scroll Horizontal) ── */}
+      <div className="cluv-tabs is-full cluv-mb-4">
+        <button
+          type="button"
+          className={`cluv-tab-btn ${activeTab === 'face' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('face')
+            setSearchQuery('')
+          }}
+        >
+          <ScanFace size={16} />
+          <span>Wajah ({totalFaceScans})</span>
+        </button>
+        <button
+          type="button"
+          className={`cluv-tab-btn ${activeTab === 'ingredient' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('ingredient')
+            setSearchQuery('')
+          }}
+        >
+          <FlaskConical size={16} />
+          <span>Komposisi ({totalIngScans})</span>
+        </button>
       </div>
 
-      {/* ── 3. SEARCH & FILTER BAR KANONIKAL (100% Cluv FW Forms & Chips) ── */}
-      <div className="cluv-card cluv-mb-6">
-        <div className="cluv-field cluv-mb-3">
-          <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
-            <Search size={18} className="cluv-input-icon is-leading" />
-            <input
-              type="text"
-              className="cluv-input"
-              placeholder={
-                activeTab === 'face'
-                  ? 'Cari kondisi kulit, keluhan, atau tanggal...'
-                  : 'Cari nama produk atau brand skincare...'
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="cluv-input-icon is-trailing"
-                onClick={() => setSearchQuery('')}
-                title="Hapus pencarian"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Filter Chips (100% Canonical .cluv-chip without ad-hoc modifiers) */}
-        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
-          <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
-            <Filter size={13} />
-            Filter Status:
-          </span>
-          {activeTab === 'face' ? (
-            <>
-              <button
-                type="button"
-                className={`cluv-chip ${faceFilter === 'all' ? 'is-active' : ''}`}
-                onClick={() => setFaceFilter('all')}
-              >
-                Semua ({totalFaceScans})
-              </button>
-              <button
-                type="button"
-                className={`cluv-chip ${faceFilter === 'optimal' ? 'is-active' : ''}`}
-                onClick={() => setFaceFilter('optimal')}
-              >
-                Kondisi Optimal 80+ ({optimalFaceCount})
-              </button>
-              <button
-                type="button"
-                className={`cluv-chip ${faceFilter === 'attention' ? 'is-active' : ''}`}
-                onClick={() => setFaceFilter('attention')}
-              >
-                Perlu Perhatian ({attentionFaceCount})
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                className={`cluv-chip ${ingFilter === 'all' ? 'is-active' : ''}`}
-                onClick={() => setIngFilter('all')}
-              >
-                Semua ({totalIngScans})
-              </button>
-              <button
-                type="button"
-                className={`cluv-chip ${ingFilter === 'safe' ? 'is-active' : ''}`}
-                onClick={() => setIngFilter('safe')}
-              >
-                Formula Baik ({safeProductsCount})
-              </button>
-              <button
-                type="button"
-                className={`cluv-chip ${ingFilter === 'attention' ? 'is-active' : ''}`}
-                onClick={() => setIngFilter('attention')}
-              >
-                Perlu Perhatian ({attentionIngCount})
-              </button>
-            </>
+      {/* ── 3. SEARCH & FILTER BAR HORIZONTAL (Mobile First) ── */}
+      <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-3">
+        <div className="cluv-input-wrap has-leading-icon has-trailing-icon cluv-flex-1">
+          <Search size={18} className="cluv-input-icon is-leading" />
+          <input
+            type="text"
+            className="cluv-input"
+            placeholder={
+              activeTab === 'face'
+                ? 'Cari kondisi kulit, keluhan...'
+                : 'Cari nama produk, brand...'
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="cluv-input-icon is-trailing"
+              onClick={() => setSearchQuery('')}
+              title="Hapus pencarian"
+            >
+              <X size={16} />
+            </button>
           )}
         </div>
+
+        {/* Filter Trigger Button (Sejajar di sebelah kanan) */}
+        <button
+          type="button"
+          className={`cluv-btn ${isFilterActive ? 'is-primary' : 'is-outline'}`}
+          style={{
+            minWidth: '44px',
+            width: '44px',
+            height: '44px',
+            padding: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            position: 'relative',
+          }}
+          onClick={() => setShowFilterSheet(true)}
+          title="Buka Filter Riwayat"
+          aria-label="Filter Riwayat"
+        >
+          <Filter size={18} />
+          {isFilterActive && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '7px',
+                right: '7px',
+                width: '9px',
+                height: '9px',
+                borderRadius: '9999px',
+                backgroundColor: 'var(--cluv-gold, #f59e0b)',
+                boxShadow: '0 0 0 2px #ffffff',
+              }}
+            />
+          )}
+        </button>
       </div>
+
+      {/* Active Filter Chip Indicator */}
+      {isFilterActive && activeFilterLabel && (
+        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-4">
+          <span className="cluv-micro cluv-text-muted">Filter aktif:</span>
+          <span className="cluv-badge is-teal is-sm cluv-flex-row cluv-items-center cluv-gap-1">
+            <span>{activeFilterLabel}</span>
+            <button
+              type="button"
+              className="cluv-border-0 cluv-bg-transparent cluv-p-0 cluv-flex-row cluv-items-center cluv-text-teal"
+              onClick={() => {
+                if (activeTab === 'face') setFaceFilter('all')
+                else setIngFilter('all')
+              }}
+              title="Reset filter"
+            >
+              <X size={12} />
+            </button>
+          </span>
+        </div>
+      )}
+
+      {/* ── BOTTOM SHEET FILTER (Mobile Drawer) ── */}
+      <BottomSheet
+        isOpen={showFilterSheet}
+        onClose={() => setShowFilterSheet(false)}
+        title="Filter Riwayat Scan"
+        subtitle={
+          activeTab === 'face'
+            ? 'Saring hasil analisis kondisi kulit'
+            : 'Saring hasil evaluasi formula skincare'
+        }
+      >
+        <div className="cluv-flex-col cluv-gap-4 cluv-py-2">
+          <div className="cluv-flex-col cluv-gap-2.5">
+            <span className="cluv-caption cluv-font-bold cluv-text-dark">
+              Status Hasil Observasi:
+            </span>
+            <div className="cluv-flex-col cluv-gap-2">
+              {activeTab === 'face' ? (
+                <>
+                  <button
+                    type="button"
+                    className={`cluv-chip ${faceFilter === 'all' ? 'is-active' : ''}`}
+                    style={{ width: '100%', justifyContent: 'space-between', padding: '12px 14px' }}
+                    onClick={() => setFaceFilter('all')}
+                  >
+                    <span>Semua Hasil Scan ({totalFaceScans})</span>
+                    {faceFilter === 'all' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-chip ${faceFilter === 'optimal' ? 'is-active' : ''}`}
+                    style={{ width: '100%', justifyContent: 'space-between', padding: '12px 14px' }}
+                    onClick={() => setFaceFilter('optimal')}
+                  >
+                    <span>Kondisi Optimal 80+ ({optimalFaceCount})</span>
+                    {faceFilter === 'optimal' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-chip ${faceFilter === 'attention' ? 'is-active' : ''}`}
+                    style={{ width: '100%', justifyContent: 'space-between', padding: '12px 14px' }}
+                    onClick={() => setFaceFilter('attention')}
+                  >
+                    <span>Perlu Perhatian ({attentionFaceCount})</span>
+                    {faceFilter === 'attention' && <Check size={16} />}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={`cluv-chip ${ingFilter === 'all' ? 'is-active' : ''}`}
+                    style={{ width: '100%', justifyContent: 'space-between', padding: '12px 14px' }}
+                    onClick={() => setIngFilter('all')}
+                  >
+                    <span>Semua Produk ({totalIngScans})</span>
+                    {ingFilter === 'all' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-chip ${ingFilter === 'safe' ? 'is-active' : ''}`}
+                    style={{ width: '100%', justifyContent: 'space-between', padding: '12px 14px' }}
+                    onClick={() => setIngFilter('safe')}
+                  >
+                    <span>Formula Baik ({safeProductsCount})</span>
+                    {ingFilter === 'safe' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-chip ${ingFilter === 'attention' ? 'is-active' : ''}`}
+                    style={{ width: '100%', justifyContent: 'space-between', padding: '12px 14px' }}
+                    onClick={() => setIngFilter('attention')}
+                  >
+                    <span>Perlu Perhatian ({attentionIngCount})</span>
+                    {ingFilter === 'attention' && <Check size={16} />}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons langsung di dalam bodi BottomSheet */}
+          <div className="cluv-flex-row cluv-gap-2 cluv-w-full cluv-pt-3 cluv-border-t">
+            <Button
+              variant="outline"
+              size="md"
+              className="cluv-flex-1"
+              onClick={() => {
+                if (activeTab === 'face') setFaceFilter('all')
+                else setIngFilter('all')
+                setShowFilterSheet(false)
+              }}
+            >
+              Reset Filter
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              className="cluv-flex-1"
+              onClick={() => setShowFilterSheet(false)}
+            >
+              Terapkan
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* ── 4. BENTO CARDS GRID (1 Seksi Ringkas Murni — Buka Modal saat Diklik) ── */}
       {loading ? (
@@ -356,38 +489,34 @@ export default function ScanHistoryPage() {
               const isOptimal = score >= 80
               const isCaution = score >= 65 && score < 80
 
-              const dateObj = new Date(scan.created_at)
-              const formattedDate = dateObj.toLocaleDateString('id-ID', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })
-              const formattedTime = dateObj.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-
               return (
                 <div
                   key={scan.id}
-                  className="cluv-card is-interactive cluv-flex-col cluv-gap-3"
+                  className="cluv-card is-interactive cluv-flex-col cluv-gap-2.5 cluv-p-4"
                   onClick={() => setSelectedScan(scan)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedScan(scan)
+                    }
+                  }}
                 >
-                  {/* Card Header */}
+                  {/* Card Header: Metadata Tanggal (Icon Kalender) & Badge Terbaru di Kanan */}
                   <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2">
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
-                      <Calendar size={13} />
-                      <span>{formattedDate} • {formattedTime}</span>
-                      {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-1.5 cluv-micro cluv-text-muted" style={{ fontWeight: 450 }}>
+                      <Calendar size={13} className="cluv-text-muted cluv-flex-shrink-0" />
+                      <span>{formatCompactDateTime(scan.created_at)}</span>
                     </div>
-
-                    <Badge variant={isOptimal ? 'teal' : isCaution ? 'gold' : 'rose'} size="sm">
-                      {isOptimal ? 'Kondisi Optimal' : isCaution ? 'Kondisi Baik' : 'Perlu Perhatian'}
-                    </Badge>
+                    {scan.id === scans[0]?.id && (
+                      <Badge variant="teal" size="sm">
+                        Terbaru
+                      </Badge>
+                    )}
                   </div>
 
-                  {/* Card Main Body (1 Seksi Ringkas) */}
+                  {/* Card Main Body */}
                   <div className="cluv-flex-row cluv-items-start cluv-gap-3">
                     <div
                       className={`cluv-score-badge ${
@@ -399,36 +528,13 @@ export default function ScanHistoryPage() {
                     </div>
 
                     <div className="cluv-flex-col cluv-gap-1 cluv-flex-1 cluv-min-w-0">
-                      <h3 className="cluv-title-card is-sm cluv-m-0">
+                      <h3 className="cluv-title-card is-sm cluv-m-0 cluv-line-clamp-1">
                         {scan.skin_status_title || 'Analisis Kondisi Kulit'}
                       </h3>
                       <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-line-clamp-2">
                         {scan.analysis_notes || 'Hasil pemetaan kondisi kulit mandiri.'}
                       </p>
-
-                      <div className="cluv-chip-group cluv-mt-1">
-                        <span className="cluv-chip">
-                          Tipe: {String(scan.skin_type || 'Normal').toUpperCase()}
-                        </span>
-                        {Array.isArray(scan.skin_concerns) &&
-                          scan.skin_concerns.slice(0, 2).map((concern, cIdx) => (
-                            <span key={cIdx} className="cluv-chip">
-                              {concern}
-                            </span>
-                          ))}
-                      </div>
                     </div>
-                  </div>
-
-                  {/* Card Action Link (Trigger Modal) */}
-                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-pt-2 cluv-border-t cluv-mt-auto">
-                    <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-flex-row cluv-items-center cluv-gap-1">
-                      <span>Buka Rincian Lengkap</span>
-                      <ChevronRight size={15} />
-                    </span>
-                    <span className="cluv-micro cluv-text-muted">
-                      Observasi Mandiri
-                    </span>
                   </div>
                 </div>
               )
@@ -480,33 +586,34 @@ export default function ScanHistoryPage() {
               const score = ing.safety_score ?? 80
               const isSafe = ing.is_safe && score >= 65
 
-              const dateObj = new Date(ing.created_at)
-              const formattedDate = dateObj.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })
-
               return (
                 <div
                   key={ing.id}
-                  className="cluv-card is-interactive cluv-flex-col cluv-gap-3"
+                  className="cluv-card is-interactive cluv-flex-col cluv-gap-2.5 cluv-p-4"
                   onClick={() => setSelectedIngredientScan(ing)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedIngredientScan(ing)
+                    }
+                  }}
                 >
-                  {/* Card Header */}
+                  {/* Card Header: Metadata Tanggal (Icon Kalender) & Badge Terbaru di Kanan */}
                   <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2">
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted">
-                      <Calendar size={13} />
-                      <span>{formattedDate}</span>
-                      {idx === 0 && <Badge variant="teal" size="sm">Terbaru</Badge>}
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-1.5 cluv-micro cluv-text-muted" style={{ fontWeight: 450 }}>
+                      <Calendar size={13} className="cluv-text-muted cluv-flex-shrink-0" />
+                      <span>{formatCompactDateTime(ing.created_at)}</span>
                     </div>
-
-                    <Badge variant={isSafe ? 'teal' : 'rose'} size="sm">
-                      {isSafe ? 'Formula Baik' : 'Perlu Perhatian'}
-                    </Badge>
+                    {ing.id === ingredientScans[0]?.id && (
+                      <Badge variant="teal" size="sm">
+                        Terbaru
+                      </Badge>
+                    )}
                   </div>
 
-                  {/* Card Main Body (1 Seksi Ringkas) */}
+                  {/* Card Main Body */}
                   <div className="cluv-flex-row cluv-items-start cluv-gap-3">
                     <div
                       className={`cluv-score-badge ${isSafe ? 'is-optimal' : 'is-alert'}`}
@@ -516,7 +623,7 @@ export default function ScanHistoryPage() {
                     </div>
 
                     <div className="cluv-flex-col cluv-gap-1 cluv-flex-1 cluv-min-w-0">
-                      <h3 className="cluv-title-card is-sm cluv-m-0">
+                      <h3 className="cluv-title-card is-sm cluv-m-0 cluv-line-clamp-1">
                         {ing.product_name}
                       </h3>
                       <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-line-clamp-2">
@@ -525,27 +632,7 @@ export default function ScanHistoryPage() {
                           ? 'Formula terverifikasi aman & minim resiko iritasi.'
                           : 'Formula memiliki bahan yang perlu diperhatikan.'}
                       </p>
-
-                      <div className="cluv-chip-group cluv-mt-1">
-                        {Array.isArray(ing.key_ingredients) &&
-                          ing.key_ingredients.slice(0, 3).map((k, kIdx) => (
-                            <span key={kIdx} className="cluv-chip">
-                              {typeof k === 'string' ? k : (k as any)?.name}
-                            </span>
-                          ))}
-                      </div>
                     </div>
-                  </div>
-
-                  {/* Card Action Link (Trigger Modal) */}
-                  <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-pt-2 cluv-border-t cluv-mt-auto">
-                    <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-flex-row cluv-items-center cluv-gap-1">
-                      <span>Buka Evaluasi Formula</span>
-                      <ChevronRight size={15} />
-                    </span>
-                    <span className="cluv-micro cluv-text-muted">
-                      Verifikasi Komposisi
-                    </span>
                   </div>
                 </div>
               )
@@ -558,19 +645,11 @@ export default function ScanHistoryPage() {
       <FaceScanDetailModal
         scan={selectedScan}
         onClose={() => setSelectedScan(null)}
-        onConsult={() => {
-          setSelectedScan(null)
-          navigate('/chatbot')
-        }}
       />
 
       <IngredientScanDetailModal
         scan={selectedIngredientScan}
         onClose={() => setSelectedIngredientScan(null)}
-        onConsult={() => {
-          setSelectedIngredientScan(null)
-          navigate('/chatbot')
-        }}
       />
     </div>
   )

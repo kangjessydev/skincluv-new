@@ -83,13 +83,43 @@
 }
 
 
+.cluv-btn-text {
+  min-width: 0;
+  white-space: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cluv-btn.is-block,
 .cluv-btn.block,
 .public-btn.block {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
+  .cluv-btn.is-block,
+  .cluv-btn.block,
+  .public-btn.block {
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    text-align: center;
+    line-height: 1.35;
+    padding: 12px 14px;
+    height: auto;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .cluv-btn.is-block .cluv-btn-text,
+  .cluv-btn.block .cluv-btn-text {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
   .cluv-btn.is-stack-mobile {
     width: 100% !important;
     justify-content: center !important;
@@ -343,5 +373,29 @@
 
 .cluv-chip.is-pill {
   border-radius: var(--cluv-radius-pill, 9999px);
+}
+
+.cluv-chip.is-active.is-danger,
+.cluv-chip.is-danger {
+  background: var(--cluv-rose-soft, #fef2f2);
+  color: var(--cluv-rose-dark, #991b1b);
+  border-color: var(--cluv-rose, #e11d48);
+  box-shadow: 0 0 0 1px var(--cluv-rose, #e11d48);
+}
+
+.cluv-chip.is-active.is-gold,
+.cluv-chip.is-gold {
+  background: var(--cluv-gold-soft, #fefce8);
+  color: var(--cluv-gold-dark, #854d0e);
+  border-color: var(--cluv-gold, #eab308);
+  box-shadow: 0 0 0 1px var(--cluv-gold, #eab308);
+}
+
+.cluv-chip .cluv-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
 }
 

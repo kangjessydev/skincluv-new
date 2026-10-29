@@ -680,18 +680,22 @@ export default function FaceScanPage() {
       {/* Auto-scroll anchor */}
       <div ref={topResultRef} />
 
-      {/* Header Bar */}
-      <header className="cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-5">
+      {/* Page Header (Extracted outside bento, visible across all viewports) */}
+      <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-4">
         <div>
-          <h1 className="cluv-title-section cluv-m-0">Scan Wajah AI</h1>
+          <h1 className="cluv-title-section cluv-m-0 cluv-flex-row cluv-items-center cluv-gap-2">
+            Face Scanner
+          </h1>
           <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
-            Observasi visual kondisi kulit dan skin barrier secara objektif, panduan 3 zona wajah, dan rekomendasi hero actives.
+            Ketahui kondisi kulitmu & cari cara perawatannya
           </p>
         </div>
-        <Button variant="outline" size="sm" iconLeft={<History size={15} />} to="/scan-history">
-          Riwayat Scan Kulit
-        </Button>
-      </header>
+        <div className="cluv-hide-mobile">
+          <Button variant="outline" size="sm" iconLeft={<History size={15} />} to="/scan-history">
+            Riwayat Scan
+          </Button>
+        </div>
+      </div>
 
       {/* Alert Error Box */}
       {errorMsg && (
@@ -702,108 +706,81 @@ export default function FaceScanPage() {
       )}
 
       {/* =========================================================================
-       * STAGE 1: CLEAN FOCUSED SHUTTER & GUIDELINES (Adaptive Mobile-First)
+       * STAGE 1: CLEAN FOCUSED SHUTTER & GUIDELINES (Anti-Slop Unified)
        * ========================================================================= */}
       {stage === 'upload' && (
-        <>
-          {/* Mobile Quick Context Strip & Guidelines Trigger */}
-          <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-hide-desktop cluv-mb-3 cluv-gap-2">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
-              <span className="cluv-badge is-teal is-sm">Tipe: {userSkinType}</span>
-              {userConcerns[0] && <span className="cluv-badge is-slate is-sm">{userConcerns[0]}</span>}
-            </div>
-            <button
-              type="button"
-              className="cluv-chip"
-              onClick={() => setShowGuidelineSheet(true)}
-              aria-label="Buka panduan foto"
-            >
-              <Info size={13} className="cluv-text-teal" />
-              <span>Panduan Foto</span>
-            </button>
-          </div>
-
-          <div className="cluv-bento-grid is-hero">
-            {/* Main Shutter Card */}
-            <div className="cluv-card cluv-gap-4">
-              <div>
-                <h2 className="cluv-title-card cluv-m-0">Ambil atau Unggah Foto Wajah</h2>
-                <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-m-0">
-                  Gunakan kamera depan atau pilih foto wajah dari galeri perangkatmu
-                </p>
-              </div>
-
-              {previewUrl ? (
-                /* Selected Photo Preview */
-                <div className="cluv-flex-col cluv-items-center cluv-gap-3 cluv-w-full cluv-py-2">
-                  <div className="cluv-biometric-frame" style={{ width: '220px', height: '270px' }}>
-                    <img src={previewUrl} alt="Preview Foto Wajah" className="cluv-biometric-img" />
-                    <div className="cluv-biometric-badge">
-                      <span>Foto Siap Dianalisis</span>
-                    </div>
-                  </div>
-
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      iconLeft={<RotateCcw size={14} />}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Ganti Foto
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      iconLeft={<X size={14} />}
-                      onClick={() => handleClearImage()}
-                    >
-                      Hapus
-                    </Button>
+        <div className="cluv-bento-grid is-hero">
+          {/* Main Shutter Card */}
+          <div className="cluv-card cluv-gap-4">
+            {previewUrl ? (
+              /* Selected Photo Preview */
+              <div className="cluv-flex-col cluv-items-center cluv-gap-3 cluv-w-full cluv-py-2">
+                <div className="cluv-biometric-frame" style={{ width: '220px', height: '270px' }}>
+                  <img src={previewUrl} alt="Preview Foto Wajah" className="cluv-biometric-img" />
+                  <div className="cluv-biometric-badge">
+                    <span>Foto Siap Dianalisis</span>
                   </div>
                 </div>
-              ) : (
-                /* Clean Viewfinder & Native Shutter Actions */
-                <div className="cluv-flex-col cluv-gap-3 cluv-w-full">
-                  {/* 2 Thumb-Friendly Buttons (Height 48px, min 44px touch target) */}
-                  <div className="cluv-grid cols-2 cluv-gap-2">
-                    <Button
-                      variant="primary"
-                      size="md"
-                      iconLeft={<Camera size={18} />}
-                      onClick={() => cameraInputRef.current?.click()}
-                    >
-                      Buka Kamera
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="md"
-                      iconLeft={<ImageIcon size={18} />}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Galeri Foto
-                    </Button>
-                  </div>
 
-                  {/* Subtle Desktop Dropzone (Hidden on phone screens) */}
-                  <div
-                    className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''} cluv-hide-mobile`}
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    iconLeft={<RotateCcw size={14} />}
                     onClick={() => fileInputRef.current?.click()}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    tabIndex={0}
-                    role="button"
-                    aria-label="Unggah atau pilih foto wajah"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
-                    }}
                   >
-                    <span className="cluv-body cluv-font-bold cluv-text-dark">Atau tarik foto ke sini</span>
-                    <span className="cluv-caption cluv-text-muted">Format JPG, PNG, atau WEBP maks 5MB</span>
-                  </div>
+                    Ganti Foto
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconLeft={<X size={14} />}
+                    onClick={() => handleClearImage()}
+                  >
+                    Hapus
+                  </Button>
                 </div>
-              )}
+              </div>
+            ) : (
+              /* Unified Clean Media Upload Box with Info Guide Icon in Top-Right */
+              <div
+                className={`cluv-dropzone ${isDragging ? 'is-dragging' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                tabIndex={0}
+                role="button"
+                aria-label="Pilih foto wajah dari galeri atau kamera"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
+                }}
+              >
+                {/* Panduan Foto Guide Button (Top-Right inside box) */}
+                <button
+                  type="button"
+                  className="cluv-dropzone-guide-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowGuidelineSheet(true)
+                  }}
+                  aria-label="Panduan Kualitas Foto"
+                  title="Panduan Kualitas Foto"
+                >
+                  <Info size={19} />
+                </button>
+
+                <div className="cluv-dropzone-icon">
+                  <ImageIcon size={26} />
+                </div>
+                <span className="cluv-body cluv-font-bold cluv-text-dark">
+                  Pilih Foto Wajah dari Galeri
+                </span>
+                <span className="cluv-caption cluv-text-muted">
+                  Format JPG, PNG, atau WEBP maks 5MB
+                </span>
+              </div>
+            )}
 
               {/* Hidden Native File Inputs */}
               <input
@@ -851,13 +828,16 @@ export default function FaceScanPage() {
                 onClick={handleStartFlow}
                 disabled={!imageBase64}
               >
-                Mulai Analisis Wajah AI (5 Credits)
+                Analisa Sekarang
               </Button>
 
-              {/* Invariant 19 Non-Therapeutic Privacy Footnote */}
-              <p className="cluv-caption cluv-text-muted cluv-m-0" style={{ lineHeight: '1.5' }}>
-                Foto wajah diproses murni untuk observasi kosmetik visual dan tidak dibagikan kepada pihak ketiga. Hasil analisis bersifat panduan edukasi perawatan kulit mandiri.
-              </p>
+              {/* Invariant 19 Non-Therapeutic Privacy & Credit Notice (Compact Notice Box) */}
+              <div className="cluv-alert is-info is-compact cluv-gap-2">
+                <Info size={16} className="cluv-alert-icon shrink-0" />
+                <div className="cluv-micro">
+                  Biaya <strong>{faceCost} Credits AI</strong> per analisis. Foto dianalisis secara privat & hasil observasi bersifat panduan edukasi mandiri 🔒
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Context Information (Desktop Only; on mobile accessed via BottomSheet) */}
@@ -888,7 +868,7 @@ export default function FaceScanPage() {
                   <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
                     <Sun size={18} className="text-amber-500 shrink-0 cluv-mt-1" />
                     <div>
-                      <strong className="cluv-body cluv-text-dark">1. Cahaya alami merata</strong>
+                      <strong className="cluv-body cluv-text-dark">Cahaya alami merata</strong>
                       <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                         Pencahayaan terang dari depan membantu AI membaca tekstur pori secara akurat.
                       </p>
@@ -898,7 +878,7 @@ export default function FaceScanPage() {
                   <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
                     <Sparkles size={18} className="text-teal-600 shrink-0 cluv-mt-1" />
                     <div>
-                      <strong className="cluv-body cluv-text-dark">2. Wajah bersih tanpa makeup</strong>
+                      <strong className="cluv-body cluv-text-dark">Wajah bersih tanpa makeup</strong>
                       <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                         Ambil foto setelah membersihkan wajah agar kondisi sebum alami terlihat jelas.
                       </p>
@@ -908,17 +888,16 @@ export default function FaceScanPage() {
                   <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
                     <Scan size={18} className="text-slate-600 shrink-0 cluv-mt-1" />
                     <div>
-                      <strong className="cluv-body cluv-text-dark">3. Jarak wajah sekitar 30 cm</strong>
+                      <strong className="cluv-body cluv-text-dark">Jarak wajah sekitar 30 cm</strong>
                       <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                         Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam bingkai foto.
                       </p>
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
 
@@ -1294,7 +1273,7 @@ export default function FaceScanPage() {
             <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
               <Sun size={18} className="text-amber-500 shrink-0 cluv-mt-1" />
               <div>
-                <strong className="cluv-body cluv-text-dark">1. Cahaya alami merata</strong>
+                <strong className="cluv-body cluv-text-dark">Cahaya alami merata</strong>
                 <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                   Pencahayaan terang dari depan membantu AI membaca tekstur pori secara akurat. Hindari backlight atau ruangan redup.
                 </p>
@@ -1304,7 +1283,7 @@ export default function FaceScanPage() {
             <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
               <Sparkles size={18} className="text-teal-600 shrink-0 cluv-mt-1" />
               <div>
-                <strong className="cluv-body cluv-text-dark">2. Wajah bersih tanpa riasan tebal</strong>
+                <strong className="cluv-body cluv-text-dark">Wajah bersih tanpa riasan tebal</strong>
                 <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                   Ambil foto setelah mencuci muka agar kondisi skin barrier dan sebum alami terbaca objektif.
                 </p>
@@ -1314,7 +1293,7 @@ export default function FaceScanPage() {
             <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
               <Scan size={18} className="text-slate-600 shrink-0 cluv-mt-1" />
               <div>
-                <strong className="cluv-body cluv-text-dark">3. Jarak tegak lurus ~30 cm</strong>
+                <strong className="cluv-body cluv-text-dark">Jarak tegak lurus ~30 cm</strong>
                 <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
                   Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam lingkaran frame foto tanpa tertutup rambut/masker.
                 </p>

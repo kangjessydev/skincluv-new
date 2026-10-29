@@ -19,6 +19,8 @@ import {
   Receipt,
   LogOut,
   User,
+  ArrowLeft,
+  History,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -48,8 +50,8 @@ const mobileBottomNavItems = [
 
 function getPageContextTitle(pathname: string): string {
   if (pathname === '/dashboard') return 'Beranda'
-  if (pathname.startsWith('/face-scan')) return 'Scan Wajah AI'
-  if (pathname.startsWith('/ingredient-scan')) return 'Scan Komposisi'
+  if (pathname.startsWith('/face-scan')) return 'Face Scanner'
+  if (pathname.startsWith('/ingredient-scan')) return 'Ingredient Scanner'
   if (pathname.startsWith('/scan-history')) return 'Riwayat Scan'
   if (pathname.startsWith('/chatbot')) return 'Skinsistant AI'
   if (pathname.startsWith('/missions')) return 'Misi Glow'
@@ -186,15 +188,29 @@ export default function AppLayout() {
           {/* Topbar Header (68px Desktop, 58px Mobile, Airy Glass Blur) */}
           <header className="cluv-topbar">
             <div className="cluv-topbar-left">
-              {/* Mobile Brand Logo (Replaces Hamburger on Mobile) */}
-              <Link to="/dashboard" className="cluv-topbar-mobile-brand" title="Skincluv Beranda">
-                <span className="cluv-topbar-mobile-brand-icon">
-                  <Sparkles size={18} strokeWidth={2.5} />
-                </span>
-                <span className="cluv-topbar-mobile-brand-text">
-                  skincluv<span>.</span>
-                </span>
-              </Link>
+              {/* Mobile: If Dashboard, show Brand Logo. If NOT Dashboard, show Back Button + Page Title */}
+              {location.pathname === '/dashboard' || location.pathname === '/' ? (
+                <Link to="/dashboard" className="cluv-topbar-mobile-brand" title="Skincluv Beranda">
+                  <span className="cluv-topbar-mobile-brand-icon">
+                    <Sparkles size={18} strokeWidth={2.5} />
+                  </span>
+                  <span className="cluv-topbar-mobile-brand-text">
+                    skincluv<span>.</span>
+                  </span>
+                </Link>
+              ) : (
+                <div className="cluv-topbar-mobile-subpage cluv-hide-desktop">
+                  <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="cluv-topbar-back-btn"
+                    aria-label="Kembali ke halaman sebelumnya"
+                  >
+                    <ArrowLeft size={19} />
+                  </button>
+                  <span className="cluv-topbar-mobile-title">{getPageContextTitle(location.pathname)}</span>
+                </div>
+              )}
 
               {/* Desktop Breadcrumb / Page Context Title */}
               <div className="cluv-topbar-page-context">
@@ -216,11 +232,29 @@ export default function AppLayout() {
                 <span className="cluv-credits-label">Credits</span>
               </button>
 
-              {/* Notification Bell (38px Circle) */}
-              <button type="button" className="cluv-topbar-bell-btn" aria-label="Notifikasi">
-                <Bell size={18} />
-                <span className="cluv-topbar-bell-dot" />
-              </button>
+              {/* Mobile: Bell on Dashboard, History icon ONLY on face-scan & ingredient-scan */}
+              {(location.pathname === '/dashboard' || location.pathname === '/') ? (
+                <button type="button" className="cluv-topbar-bell-btn" aria-label="Notifikasi">
+                  <Bell size={18} />
+                  <span className="cluv-topbar-bell-dot" />
+                </button>
+              ) : (location.pathname.startsWith('/face-scan') || location.pathname.startsWith('/ingredient-scan')) ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/scan-history')}
+                    className="cluv-topbar-history-btn cluv-hide-desktop"
+                    aria-label="Riwayat Scan"
+                    title="Riwayat Scan"
+                  >
+                    <History size={18} />
+                  </button>
+                  <button type="button" className="cluv-topbar-bell-btn cluv-hide-mobile" aria-label="Notifikasi">
+                    <Bell size={18} />
+                    <span className="cluv-topbar-bell-dot" />
+                  </button>
+                </>
+              ) : null}
 
               <div className="cluv-topbar-divider" />
 

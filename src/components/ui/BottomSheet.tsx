@@ -1,9 +1,10 @@
 // src/components/ui/BottomSheet.tsx
 // Universal Mobile-First Bottom Sheet & Modal Component
 // Cluv Framework standard: Responsive, Accessible (Esc key, Backdrop close, ARIA), Thumb-Friendly
+// v2: No footer, no close X button. Dismissed via drag handle or backdrop tap.
 
 import { useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 
 export interface BottomSheetProps {
   isOpen: boolean
@@ -11,8 +12,8 @@ export interface BottomSheetProps {
   title?: React.ReactNode
   subtitle?: string
   children: React.ReactNode
+  /** @deprecated Footer removed per UX spec. Pass content inside children instead. */
   footer?: React.ReactNode
-  showHandle?: boolean
   className?: string
   contentClassName?: string
 }
@@ -23,8 +24,6 @@ export default function BottomSheet({
   title,
   subtitle,
   children,
-  footer,
-  showHandle = true,
   className = '',
   contentClassName = '',
 }: BottomSheetProps) {
@@ -50,9 +49,9 @@ export default function BottomSheet({
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen || typeof document === 'undefined') return null
 
-  return (
+  return createPortal(
     <div
       className="cluv-sheet-overlay"
       onClick={onClose}
@@ -65,10 +64,17 @@ export default function BottomSheet({
         className={`cluv-sheet-panel ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile Drag Indicator Handle */}
-        {showHandle && <div className="cluv-sheet-handle" aria-hidden="true" />}
+        {/* Drag Indicator Handle — tap/drag to dismiss */}
+        <button
+          type="button"
+          className="cluv-sheet-handle-btn"
+          onClick={onClose}
+          aria-label="Tutup panel"
+        >
+          <span className="cluv-sheet-handle" aria-hidden="true" />
+        </button>
 
-        {/* Header Bar */}
+        {/* Header Bar — title + subtitle only, no close X */}
         {(title || subtitle) && (
           <div className="cluv-sheet-header">
             <div>
@@ -79,14 +85,6 @@ export default function BottomSheet({
               )}
               {subtitle && <p className="cluv-sheet-subtitle">{subtitle}</p>}
             </div>
-            <button
-              type="button"
-              className="cluv-sheet-close"
-              onClick={onClose}
-              aria-label="Tutup panel"
-            >
-              <X size={18} />
-            </button>
           </div>
         )}
 
@@ -94,14 +92,8 @@ export default function BottomSheet({
         <div className={`cluv-sheet-body ${contentClassName}`}>
           {children}
         </div>
-
-        {/* Optional Sticky Footer Actions */}
-        {footer && (
-          <div className="cluv-sheet-footer">
-            {footer}
-          </div>
-        )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -99,6 +99,17 @@
   color: #ef4444;
 }
 
+/* 5. NEUTRAL / DISCLAIMER ALERT (Soft Slate) */
+.cluv-alert.is-neutral {
+  background-color: var(--cluv-surface-muted, #f8fafc);
+  border-color: var(--cluv-border, #e2e8f0);
+  color: var(--cluv-text-muted, #64748b);
+}
+
+.cluv-alert.is-neutral .cluv-alert-icon {
+  color: var(--cluv-text-muted, #64748b);
+}
+
 /* =============================================================================
  * 5. COLLAPSIBLE ALERT MODIFIER (.is-collapsible)
  * Compact on mobile with toggle action, full display on desktop
@@ -174,9 +185,19 @@
  * ============================================================================= */
 @media (max-width: 640px) {
   .cluv-alert {
-    flex-wrap: wrap;
     position: relative;
+  }
+
+  .cluv-alert:has(.cluv-alert-close) {
+    flex-wrap: wrap;
     padding-right: 44px; /* Reserve space for absolute close button */
+  }
+
+  .cluv-alert.is-neutral,
+  .cluv-alert.is-compact,
+  .cluv-alert.is-sm {
+    flex-wrap: nowrap;
+    padding-right: 14px;
   }
 
   .cluv-alert-close {

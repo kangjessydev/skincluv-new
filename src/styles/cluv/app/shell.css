@@ -195,6 +195,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -588,6 +589,7 @@
   .cluv-shell-main {
     height: 100dvh;
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   /* 1. Desktop sidebar is COMPLETELY hidden on mobile/tablet (No drawer!) */
@@ -626,6 +628,64 @@
   .cluv-topbar-bell-btn {
     width: 36px;
     height: 36px;
+  }
+
+  .cluv-topbar-mobile-subpage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .cluv-topbar-back-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--cluv-neutral-800, #1e293b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+  }
+
+  .cluv-topbar-back-btn:active {
+    background-color: var(--cluv-neutral-100, #f1f5f9);
+  }
+
+  .cluv-topbar-mobile-title {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: var(--cluv-neutral-900, #0f172a);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cluv-topbar-history-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--cluv-border, #e2e8f0);
+    color: var(--cluv-neutral-700, #334155);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+  }
+
+  .cluv-topbar-history-btn:active {
+    background-color: var(--cluv-neutral-100, #f1f5f9);
+    color: var(--cluv-teal, #1f9d97);
   }
 
   .cluv-shell-page-content {

@@ -2,50 +2,26 @@
 // Zero-Emoji, Defensible Copywriting, 100% Pure Cluv Framework Modal
 // Compliance: Invariant 13 (Defensible claims), Invariant 19 (Non-therapeutic claims)
 
-import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import {
-  Calendar,
-  X,
   Sparkles,
   ShieldCheck,
   Layers,
   Target,
   CheckCircle2,
-  MessageSquare,
+  Calendar,
 } from 'lucide-react'
 import type { FaceScan } from '@/types/database'
-import { Badge, Button } from '@/components/ui'
+import { Badge, BottomSheet } from '@/components/ui'
 
 interface FaceScanDetailModalProps {
   scan: FaceScan | null
   onClose: () => void
-  onConsult?: () => void
 }
 
 export default function FaceScanDetailModal({
   scan,
   onClose,
-  onConsult,
 }: FaceScanDetailModalProps) {
-  useEffect(() => {
-    if (!scan) return
-    const originalOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = originalOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [scan, onClose])
-
   if (!scan) return null
 
   let rawResponse: Record<string, any> = {}
@@ -86,51 +62,31 @@ export default function FaceScanDetailModal({
   const strokeDashoffset = circumference - (score / 100) * circumference
 
   const dateObj = new Date(scan.created_at)
-  const formattedDate = dateObj.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-  const formattedTime = dateObj.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const formattedDateTime = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}.${String(dateObj.getMinutes()).padStart(2, '0')}`
 
-  return createPortal(
-    <div
-      className="cluv-modal-overlay"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+  return (
+    <BottomSheet
+      isOpen={Boolean(scan)}
+      onClose={onClose}
+      title={scan.skin_status_title || 'Laporan Analisis Kondisi Kulit'}
     >
-      <div
-        className="cluv-modal-box is-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="cluv-modal-header">
-          <div>
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-caption cluv-text-muted cluv-mb-1">
-              <Calendar size={13} />
-              <span>{formattedDate} • {formattedTime}</span>
-            </div>
-            <h3 className="cluv-modal-title">
-              {scan.skin_status_title || 'Laporan Analisis Kondisi Kulit'}
-            </h3>
-          </div>
-          <button
-            type="button"
-            className="cluv-modal-close"
-            onClick={onClose}
-            aria-label="Tutup Dialog"
-          >
-            <X size={18} />
-          </button>
-        </div>
+      <div className="cluv-flex-col cluv-gap-4">
 
-        {/* Modal Scrollable Body */}
-        <div className="cluv-modal-body cluv-flex-col cluv-gap-4">
+          {/* Metadata Row: tanggal + kondisi + tipe kulit (seragam gaya metadata Gambar 2) */}
+          <div className="cluv-scan-meta-row">
+            <span className="cluv-scan-meta-item">
+              <Calendar size={13} className="cluv-text-muted cluv-flex-shrink-0" />
+              <span>{formattedDateTime}</span>
+            </span>
+            <span className="cluv-scan-meta-item">
+              <ShieldCheck size={13} className="cluv-text-muted cluv-flex-shrink-0" />
+              <span>{isOptimal ? 'Kondisi Optimal' : isGood ? 'Kondisi Baik' : 'Perlu Perhatian'}</span>
+            </span>
+            <span className="cluv-scan-meta-item">
+              <Sparkles size={13} className="cluv-text-muted cluv-flex-shrink-0" />
+              <span>Tipe: {String(scan.skin_type || 'Normal').toUpperCase()}</span>
+            </span>
+          </div>
           {/* Hero Score Card */}
           <div className="cluv-card cluv-p-4 cluv-flex-row cluv-items-center cluv-gap-4 cluv-flex-wrap">
             {/* Circular Gauge */}
@@ -162,23 +118,17 @@ export default function FaceScanDetailModal({
             </div>
 
             {/* Headline Meta */}
-            <div className="cluv-flex-col cluv-gap-2 cluv-flex-1 cluv-min-w-xs">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
-                <Badge variant={isOptimal ? 'teal' : isGood ? 'info' : 'rose'} size="sm">
-                  {isOptimal ? 'Kondisi Optimal' : isGood ? 'Kondisi Baik' : 'Perlu Perhatian'}
-                </Badge>
-                <span className="cluv-chip">
-                  <Sparkles size={12} /> Tipe: {String(scan.skin_type || 'Normal').toUpperCase()}
-                </span>
-              </div>
-              <div className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1">
+            <div className="cluv-flex-col cluv-gap-2.5 cluv-flex-1 cluv-min-w-xs">
+              <div className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-gap-1.5">
                 <ShieldCheck size={14} className="cluv-text-teal" />
-                <span>Observasi Visual Terarsip (Non-Klinis)</span>
+                <span className="cluv-font-medium">Observasi Visual Terarsip (Non-Klinis)</span>
               </div>
               {scan.analysis_notes && (
-                <p className="cluv-body cluv-text-muted cluv-m-0 cluv-mt-1">
-                  {scan.analysis_notes}
-                </p>
+                <div className="cluv-p-3 cluv-bg-surface-soft cluv-rounded-sm cluv-border">
+                  <p className="cluv-caption cluv-text-muted cluv-m-0" style={{ lineHeight: 1.55 }}>
+                    {scan.analysis_notes}
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -191,42 +141,53 @@ export default function FaceScanDetailModal({
                 <span>Evaluasi Kondisi Kulit Per Area ({parsedAreas.length} Area)</span>
               </h4>
 
-              <div className="cluv-flex-col cluv-gap-2">
+              <div className="cluv-flex-col cluv-gap-2.5">
                 {parsedAreas.map((area: any, aIdx: number) => {
                   const areaScore = area.score || 80
                   const isAreaOpt = areaScore >= 80
 
                   return (
-                    <div key={aIdx} className="cluv-p-3 cluv-bg-surface-soft cluv-rounded-sm cluv-border">
-                      <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-2 cluv-mb-1">
+                    <div
+                      key={aIdx}
+                      className={`cluv-card is-area-card ${
+                        isAreaOpt ? 'is-optimal' : 'is-alert'
+                      }`}
+                    >
+                      {/* Sub-header structure: Judul Area (15px Bold) & Badge Terpadu (Option A: Optimal • 85) */}
+                      <div className="cluv-area-card-header">
                         <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                          <Target size={13} className="cluv-text-teal" />
-                          <span className="cluv-caption cluv-font-bold cluv-text-dark">
+                          <Target size={16} className={isAreaOpt ? 'cluv-text-teal' : 'cluv-text-gold'} />
+                          <h5 className="cluv-font-bold cluv-text-dark cluv-m-0" style={{ fontSize: '0.9375rem', lineHeight: 1.3 }}>
                             {area.area_name || area.name || `Area ${aIdx + 1}`}
-                          </span>
+                          </h5>
                         </div>
                         <div className="cluv-flex-row cluv-items-center cluv-gap-2">
                           <Badge variant={isAreaOpt ? 'teal' : 'gold'} size="sm">
-                            {area.status || (isAreaOpt ? 'Optimal' : 'Perlu Perhatian')}
+                            {area.status || (isAreaOpt ? 'Optimal' : 'Perlu Perhatian')} • {areaScore}
                           </Badge>
-                          <span className="cluv-micro cluv-font-bold cluv-text-dark">
-                            {areaScore}/100
-                          </span>
                         </div>
                       </div>
 
+                      {/* Konten Terstruktur: Judul seksi (14px Bold) LEBIH BESAR daripada teks deskripsi (13px Regular) */}
                       {area.finding && (
-                        <p className="cluv-caption cluv-text-muted cluv-m-0">
-                          <span className="cluv-font-bold cluv-text-dark">Hasil Analisis: </span>
-                          {area.finding}
-                        </p>
+                        <div className="cluv-flex-col cluv-gap-1.5">
+                          <span className="cluv-caption cluv-font-bold cluv-text-dark">Hasil Observasi</span>
+                          <p className="cluv-text-muted cluv-m-0" style={{ fontSize: '0.8125rem', lineHeight: 1.6 }}>
+                            {area.finding}
+                          </p>
+                        </div>
                       )}
 
                       {area.action_plan && (
-                        <p className="cluv-micro cluv-text-teal cluv-font-bold cluv-mt-1 cluv-mb-0">
-                          <span className="cluv-text-dark">Rencana: </span>
-                          {area.action_plan}
-                        </p>
+                        <div className="cluv-p-3 cluv-rounded-sm cluv-bg-surface-soft cluv-border cluv-flex-col cluv-gap-1.5 cluv-mt-1">
+                          <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-flex-row cluv-items-center cluv-gap-1.5">
+                            <CheckCircle2 size={14} />
+                            <span>Rencana Perawatan</span>
+                          </span>
+                          <p className="cluv-text-dark cluv-m-0" style={{ fontSize: '0.8125rem', lineHeight: 1.6 }}>
+                            {area.action_plan}
+                          </p>
+                        </div>
                       )}
                     </div>
                   )
@@ -237,20 +198,33 @@ export default function FaceScanDetailModal({
 
           {/* Personalized Tips Section */}
           {(tipsAvoid.length > 0 || tipsReduce.length > 0 || tipsDo.length > 0) && (
-            <div className="cluv-flex-col cluv-gap-2">
-              <h4 className="cluv-title-card is-sm cluv-flex-row cluv-items-center cluv-gap-2 cluv-m-0">
-                <CheckCircle2 size={14} className="cluv-text-gold" />
+            <div className="cluv-flex-col cluv-gap-2.5">
+              <h4 className="cluv-font-bold cluv-text-dark cluv-flex-row cluv-items-center cluv-gap-2 cluv-m-0" style={{ fontSize: '0.9375rem' }}>
+                <CheckCircle2 size={16} className="cluv-text-gold" />
                 <span>Saran Rutinitas &amp; Tips Mandiri</span>
               </h4>
 
-              <div className="cluv-grid cols-1 cluv-gap-2">
+              <div className="cluv-grid cols-1 cluv-gap-2.5">
                 {tipsDo.length > 0 && (
                   <div className="cluv-p-3 cluv-border-teal cluv-rounded-sm cluv-bg-surface-soft">
-                    <span className="cluv-micro cluv-font-bold cluv-text-teal cluv-block cluv-mb-1">
+                    <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-block cluv-mb-1.5">
                       Rekomendasi Rutin:
                     </span>
-                    <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted">
+                    <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-text-muted" style={{ fontSize: '0.8125rem', lineHeight: 1.6 }}>
                       {tipsDo.map((t: string, i: number) => (
+                        <li key={i}>{t}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {tipsReduce.length > 0 && (
+                  <div className="cluv-p-3 cluv-border-gold cluv-rounded-sm cluv-bg-surface-soft">
+                    <span className="cluv-caption cluv-font-bold cluv-text-gold cluv-block cluv-mb-1.5">
+                      Kurangi Frekuensi:
+                    </span>
+                    <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-text-muted" style={{ fontSize: '0.8125rem', lineHeight: 1.6 }}>
+                      {tipsReduce.map((t: string, i: number) => (
                         <li key={i}>{t}</li>
                       ))}
                     </ul>
@@ -259,10 +233,10 @@ export default function FaceScanDetailModal({
 
                 {tipsAvoid.length > 0 && (
                   <div className="cluv-p-3 cluv-border-rose cluv-rounded-sm cluv-bg-surface-soft">
-                    <span className="cluv-micro cluv-font-bold cluv-text-danger cluv-block cluv-mb-1">
+                    <span className="cluv-caption cluv-font-bold cluv-text-danger cluv-block cluv-mb-1.5">
                       Hindari:
                     </span>
-                    <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-caption cluv-text-muted">
+                    <ul className="cluv-m-0 cluv-p-0 cluv-pl-4 cluv-text-muted" style={{ fontSize: '0.8125rem', lineHeight: 1.6 }}>
                       {tipsAvoid.map((t: string, i: number) => (
                         <li key={i}>{t}</li>
                       ))}
@@ -274,36 +248,15 @@ export default function FaceScanDetailModal({
           )}
 
           {/* Legal Defensible Disclaimer */}
-          <div className="cluv-alert is-neutral cluv-mt-1">
-            <ShieldCheck size={16} className="cluv-text-muted cluv-flex-shrink-0" />
-            <p className="cluv-micro cluv-text-muted cluv-m-0">
-              Analisis ini adalah pemetaan observasi visual mandiri berbasis AI dan bukan merupakan diagnosis medis, resep, atau terapi dermatologi pengganti dokter spesialis kulit.
-            </p>
+          <div className="cluv-alert is-neutral is-sm cluv-mt-1">
+            <ShieldCheck size={16} className="cluv-alert-icon cluv-flex-shrink-0" />
+            <div className="cluv-alert-content">
+              <p className="cluv-micro cluv-text-muted cluv-m-0" style={{ lineHeight: 1.45 }}>
+                Analisis ini adalah pemetaan observasi visual mandiri berbasis AI dan bukan merupakan diagnosis medis, resep, atau terapi dermatologi pengganti dokter spesialis kulit.
+              </p>
+            </div>
           </div>
         </div>
-
-        {/* Modal Footer */}
-        <div className="cluv-modal-footer">
-          <Button
-            variant="outline"
-            size="md"
-            onClick={onClose}
-          >
-            Tutup
-          </Button>
-          {onConsult && (
-            <Button
-              variant="primary"
-              size="md"
-              iconLeft={<MessageSquare size={16} />}
-              onClick={onConsult}
-            >
-              Konsultasikan ke Skinsistant
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body
+      </BottomSheet>
   )
 }

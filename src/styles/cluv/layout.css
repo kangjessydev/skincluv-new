@@ -72,7 +72,12 @@
   .cluv-canvas-grid,
   .cluv-canvas-focused,
   .cluv-focused-ledger {
-    padding: 20px 16px 80px;
+    padding: 16px 16px 80px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 }
 
