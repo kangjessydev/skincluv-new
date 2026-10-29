@@ -690,6 +690,62 @@
     color: var(--cluv-teal, #1f9d97);
   }
 
+  .cluv-topbar-action-btn.is-primary {
+    background: var(--cluv-teal, #1f9d97);
+    color: #ffffff;
+    border-color: var(--cluv-teal, #1f9d97);
+    box-shadow: 0 2px 8px rgba(31, 157, 151, 0.28);
+  }
+
+  .cluv-topbar-action-btn.is-primary:active {
+    background: var(--cluv-teal-dark, #127a75);
+    color: #ffffff;
+    transform: scale(0.95);
+  }
+
+  .cluv-topbar-more-wrap {
+    position: relative;
+  }
+
+  .cluv-topbar-more-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 200px;
+    background: var(--cluv-surface, #ffffff);
+    border: 1px solid var(--cluv-border, #e2e8f0);
+    border-radius: var(--cluv-radius-md, 12px);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+    padding: 6px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: cluvDropdownPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cluv-topbar-more-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--cluv-neutral-800, #1e293b);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .cluv-topbar-more-item:active {
+    background: var(--cluv-neutral-100, #f1f5f9);
+    color: var(--cluv-teal, #1f9d97);
+  }
+
   .cluv-shell-page-content {
     padding: 0; /* Padding owned by .cluv-canvas-* */
   }

@@ -1060,4 +1060,7 @@
   .cluv-chat-input-bar {
     padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;
   }
+  .cluv-chat-disclaimer {
+    display: none !important;
+  }
 }

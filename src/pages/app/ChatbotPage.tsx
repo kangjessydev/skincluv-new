@@ -159,6 +159,12 @@ export default function ChatbotPage() {
   }, [inputText])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Pada mobile / layar sentuh, biarkan tombol Enter membuat baris baru (newline)
+    const isMobileViewport = typeof window !== 'undefined' && (window.innerWidth <= 768 || 'ontouchstart' in window)
+    if (isMobileViewport) {
+      return
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (inputText.trim() && !isSending) {
@@ -1256,8 +1262,8 @@ export default function ChatbotPage() {
             rows={1}
             placeholder={
               isFreeTierOutOfCredits
-                ? 'Credits Anda 0. Kerjakan misi atau aktifkan paket akses untuk berkonsultasi...'
-                : 'Tanyakan sesuatu pada Skinsistant AI... (Shift + Enter untuk baris baru)'
+                ? 'Credits Anda 0. Kerjakan misi atau aktifkan paket akses...'
+                : 'Tanyakan seputar kulit Anda...'
             }
             disabled={isSending}
             aria-label="Ketik pesan untuk Skinsistant"

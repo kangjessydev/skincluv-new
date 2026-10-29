@@ -23,6 +23,7 @@ import {
   History,
   Brain,
   Plus,
+  MoreVertical,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -74,6 +75,8 @@ export default function AppLayout() {
   const navigate = useNavigate()
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const userDropdownRef = useRef<HTMLDivElement>(null)
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false)
+  const mobileMoreRef = useRef<HTMLDivElement>(null)
 
   const canAccessAdmin =
     isAdmin ||
@@ -92,11 +95,14 @@ export default function AppLayout() {
         .toUpperCase()
     : 'SC'
 
-  // Close dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setIsUserDropdownOpen(false)
+      }
+      if (mobileMoreRef.current && !mobileMoreRef.current.contains(event.target as Node)) {
+        setIsMobileMoreOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -105,9 +111,10 @@ export default function AppLayout() {
     }
   }, [])
 
-  // Close dropdown on route change
+  // Close dropdowns on route change
   useEffect(() => {
     setIsUserDropdownOpen(false)
+    setIsMobileMoreOpen(false)
   }, [location.pathname])
 
   const handleSignOut = async () => {
@@ -257,34 +264,56 @@ export default function AppLayout() {
                   </button>
                 </>
               ) : location.pathname.startsWith('/chatbot') ? (
-                <div className="cluv-flex-row cluv-items-center cluv-gap-1.5 cluv-hide-desktop">
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent('cluv:chatbot-history'))}
-                    className="cluv-topbar-action-btn"
-                    aria-label="Riwayat Percakapan"
-                    title="Riwayat Percakapan"
-                  >
-                    <History size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent('cluv:chatbot-memory'))}
-                    className="cluv-topbar-action-btn"
-                    aria-label="Memori Percakapan"
-                    title="Memori Percakapan"
-                  >
-                    <Brain size={18} />
-                  </button>
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-hide-desktop">
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new CustomEvent('cluv:chatbot-new'))}
-                    className="cluv-topbar-action-btn"
-                    aria-label="Percakapan Baru"
-                    title="Percakapan Baru"
+                    className="cluv-topbar-action-btn is-primary"
+                    aria-label="Chat Baru"
+                    title="Chat Baru"
                   >
-                    <Plus size={18} />
+                    <Plus size={18} strokeWidth={2.4} />
                   </button>
+
+                  <div className="cluv-topbar-more-wrap" ref={mobileMoreRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileMoreOpen((prev) => !prev)}
+                      className="cluv-topbar-action-btn"
+                      aria-label="Menu Percakapan"
+                      title="Menu Percakapan"
+                      aria-expanded={isMobileMoreOpen}
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    {isMobileMoreOpen && (
+                      <div className="cluv-topbar-more-dropdown" role="menu">
+                        <button
+                          type="button"
+                          className="cluv-topbar-more-item"
+                          onClick={() => {
+                            setIsMobileMoreOpen(false)
+                            window.dispatchEvent(new CustomEvent('cluv:chatbot-history'))
+                          }}
+                        >
+                          <History size={16} className="cluv-text-muted" />
+                          <span>Riwayat Sesi Chat</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="cluv-topbar-more-item"
+                          onClick={() => {
+                            setIsMobileMoreOpen(false)
+                            window.dispatchEvent(new CustomEvent('cluv:chatbot-memory'))
+                          }}
+                        >
+                          <Brain size={16} className="cluv-text-muted" />
+                          <span>Memori Percakapan</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : null}
 
