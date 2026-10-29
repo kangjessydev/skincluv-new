@@ -9,10 +9,12 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
-- **Penyempurnaan Ergonomi Privacy Center: Bottom Sheet Konfirmasi, Floating Toast, & Eliminasi Arrow (`PrivacyCenterPage.tsx`, `alerts.css`)**:
-  - Menggantikan browser `window.confirm()` dan `alert()` dengan **Adaptive Bottom Sheet Panel** (`.cluv-sheet-panel`) yang nyaman dijangkau jempol di mobile saat mengonfirmasi penghapusan riwayat foto wajah.
-  - Memasang **Floating Toast Pill** (`.cluv-toast`) otomatis hilang dalam 3.5 detik untuk feedback sukses pengunduhan JSON dan pemusnahan foto wajah, menggantikan alert box statis yang memakan ruang.
-  - Menyembunyikan ikon panah chevron `›` di sisi kanan seluruh baris menu privasi mobile, menjaga area baris tetap bersih, lega, dan fokus pada ikon representatif di sisi kiri.
+- **Penyempurnaan Ergonomi Privacy Center: Native Bottom Sheet, Hirarki Tipografi Konsisten, & Tombol Destruktif (`PrivacyCenterPage.tsx`, `modals.css`)**:
+  - Mengubah modal dialog konfirmasi menjadi **Pure Bottom Sheet Panel** (`.cluv-sheet-panel`) yang menempel di bagian bawah layar ponsel dengan drag handle bar abu-abu dan breakpoint mobile 880px.
+  - Memperbaiki hirarki tipografi teks konfirmasi: judul 16px tegas, deskripsi ringkas 13.5px (`line-height: 1.5`), dan micro-disclaimer 12px yang terstruktur tanpa teks ganda yang berulang.
+  - Menyelaraskan warna tombol aksi destruktif menjadi **Rose/Merah Bahaya** (`variant="danger"` untuk tombol hapus foto wajah dan hapus akun) serta tombol batalkan berwarna **Netral Outline**, menghilangkan penggunaan warna primary teal yang keliru untuk aksi penghapusan permanen.
+  - Menyembunyikan ikon panah chevron `›` di sisi kanan seluruh baris menu privasi mobile, menjaga area baris tetap bersih dan lapang.
+
 
 
 - **Standarisasi Seluruh Sub-Halaman Mobile: Eliminasi Judul Duplikat & Penyelarasan Kanvas Focused (`ProfileBillingPage.tsx`, `PrivacyCenterPage.tsx`, `TransactionHistoryPage.tsx`, `CoinHistoryPage.tsx`, `CheckoutPage.tsx`)**:

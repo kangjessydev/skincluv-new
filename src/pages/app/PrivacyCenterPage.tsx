@@ -338,10 +338,10 @@ export default function PrivacyCenterPage() {
         </div>
       </div>
 
-      {/* ===================== BOTTOM SHEET / MODAL: HAPUS SCAN WAJAH ===================== */}
+      {/* ===================== BOTTOM SHEET: HAPUS SCAN WAJAH ===================== */}
       {showDeleteScansModal && (
         <div className="cluv-sheet-overlay" onClick={() => !isDeletingScans && setShowDeleteScansModal(false)}>
-          <div className="cluv-sheet-panel cluv-modal-box is-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="cluv-sheet-panel" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="cluv-sheet-handle-btn"
@@ -351,8 +351,8 @@ export default function PrivacyCenterPage() {
               <span className="cluv-sheet-handle" />
             </button>
 
-            <div className="cluv-modal-header">
-              <h2 className="cluv-modal-title cluv-flex-row cluv-items-center cluv-gap-2">
+            <div className="cluv-sheet-header">
+              <h2 className="cluv-sheet-title">
                 <div className="cluv-card-icon-wrap is-sm is-gold">
                   <Trash2 size={16} />
                 </div>
@@ -360,24 +360,25 @@ export default function PrivacyCenterPage() {
               </h2>
               <button
                 type="button"
-                className="cluv-modal-close"
+                className="cluv-sheet-close"
                 onClick={() => setShowDeleteScansModal(false)}
                 disabled={isDeletingScans}
+                aria-label="Tutup"
               >
                 ✕
               </button>
             </div>
 
-            <div className="cluv-modal-body cluv-flex-col cluv-gap-3">
-              <p className="cluv-body cluv-m-0">
-                Apakah Anda yakin ingin memusnahkan seluruh rekam jejak foto dan pemindaian wajah Anda?
+            <div className="cluv-sheet-body cluv-flex-col cluv-gap-2">
+              <p className="cluv-m-0 cluv-font-bold cluv-text-dark" style={{ fontSize: '0.875rem' }}>
+                Yakin ingin memusnahkan seluruh rekam jejak foto dan pemindaian wajah Anda?
               </p>
-              <p className="cluv-caption cluv-text-muted cluv-m-0">
-                Tindakan ini tidak dapat dibatalkan. Foto wajah fisik di cloud storage dan riwayat analitik visual akan dihapus bersih. Akun, kuota langganan, dan saldo AI Credits Anda akan tetap utuh.
+              <p className="cluv-m-0 cluv-text-muted" style={{ fontSize: '0.78125rem', lineHeight: '1.45' }}>
+                Tindakan ini permanen. Seluruh foto wajah di cloud storage dan data analitik visual akan dihapus bersih. Akun, kuota langganan, dan saldo AI Credits Anda tetap aman.
               </p>
             </div>
 
-            <div className="cluv-modal-footer">
+            <div className="cluv-sheet-footer">
               <Button
                 variant="outline"
                 size="sm"
@@ -387,22 +388,22 @@ export default function PrivacyCenterPage() {
                 Batalkan
               </Button>
               <Button
-                variant="primary"
+                variant="danger"
                 size="sm"
                 loading={isDeletingScans}
                 onClick={executeDeleteFaceScans}
               >
-                Ya, Musnahkan Foto Wajah
+                Ya, Hapus Foto
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===================== BOTTOM SHEET / MODAL: HAPUS AKUN PERMANEN ===================== */}
+      {/* ===================== BOTTOM SHEET: HAPUS AKUN PERMANEN ===================== */}
       {showDeleteModal && (
         <div className="cluv-sheet-overlay" onClick={() => !isDeletingAccount && setShowDeleteModal(false)}>
-          <div className="cluv-sheet-panel cluv-modal-box is-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="cluv-sheet-panel" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="cluv-sheet-handle-btn"
@@ -412,37 +413,41 @@ export default function PrivacyCenterPage() {
               <span className="cluv-sheet-handle" />
             </button>
 
-            <div className="cluv-modal-header">
-              <h2 className="cluv-modal-title cluv-flex-row cluv-items-center cluv-gap-2 cluv-text-rose">
-                <AlertTriangle size={18} /> Pemusnahan Akun Permanen
+            <div className="cluv-sheet-header">
+              <h2 className="cluv-sheet-title cluv-text-rose">
+                <div className="cluv-card-icon-wrap is-sm is-rose">
+                  <AlertTriangle size={16} />
+                </div>
+                <span>Pemusnahan Akun Permanen</span>
               </h2>
               <button
                 type="button"
-                className="cluv-modal-close"
+                className="cluv-sheet-close"
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeletingAccount}
+                aria-label="Tutup"
               >
                 ✕
               </button>
             </div>
 
-            <div className="cluv-modal-body cluv-flex-col cluv-gap-4">
-              <p className="cluv-caption cluv-text-muted">
-                Anda hendak menghapus akun <strong>{user?.email}</strong>. Seluruh riwayat foto wajah, hasil pemindaian, percakapan AI, dan kuota langganan yang tersisa akan <strong>dihapus permanen dan tidak dapat dipulihkan kembali</strong>.
+            <div className="cluv-sheet-body cluv-flex-col cluv-gap-3">
+              <p className="cluv-m-0 cluv-text-muted" style={{ fontSize: '0.8125rem', lineHeight: '1.45' }}>
+                Anda hendak menghapus akun <strong>{user?.email}</strong>. Seluruh riwayat foto wajah, hasil pemindaian, percakapan AI, dan kuota langganan yang tersisa akan <strong>dihapus permanen dan tidak dapat dipulihkan</strong>.
               </p>
 
               {deleteError && (
-                <div className="cluv-alert is-danger">
-                  <AlertTriangle size={16} className="cluv-alert-icon" />
+                <div className="cluv-alert is-danger is-sm">
+                  <AlertTriangle size={15} className="cluv-alert-icon" />
                   <div className="cluv-alert-content">
                     <p className="cluv-alert-message">{deleteError}</p>
                   </div>
                 </div>
               )}
 
-              <div className="cluv-field">
-                <label htmlFor="confirm-delete" className="cluv-label">
-                  Ketik <code>DELETE MY ACCOUNT</code> di bawah ini untuk mengonfirmasi:
+              <div className="cluv-field cluv-m-0">
+                <label htmlFor="confirm-delete" className="cluv-label" style={{ fontSize: '0.78125rem' }}>
+                  Ketik <code>DELETE MY ACCOUNT</code> untuk konfirmasi:
                 </label>
                 <input
                   id="confirm-delete"
@@ -453,11 +458,12 @@ export default function PrivacyCenterPage() {
                   onChange={(e) => setConfirmationInput(e.target.value)}
                   autoComplete="off"
                   disabled={isDeletingAccount}
+                  style={{ height: '38px', fontSize: '0.875rem' }}
                 />
               </div>
             </div>
 
-            <div className="cluv-modal-footer">
+            <div className="cluv-sheet-footer">
               <Button
                 variant="outline"
                 size="sm"
