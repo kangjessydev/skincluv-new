@@ -344,7 +344,7 @@ export default function PrivacyCenterPage() {
         onClose={() => !isDeletingScans && setShowDeleteScansModal(false)}
         title={
           <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-            <div className="cluv-card-icon-wrap is-sm is-gold">
+            <div className="cluv-card-icon-wrap is-sm is-rose">
               <Trash2 size={16} />
             </div>
             <span>Hapus Rekam Jejak Wajah?</span>
@@ -359,24 +359,15 @@ export default function PrivacyCenterPage() {
             Tindakan ini tidak dapat dibatalkan. Seluruh berkas foto wajah fisik di penyimpanan aman dan riwayat analitik visual akan dihapus bersih. Akun, kuota langganan, dan saldo AI Credits Anda tetap utuh.
           </p>
 
-          <div className="cluv-flex-row cluv-gap-2.5 cluv-w-full cluv-pt-3 cluv-mt-1 cluv-border-t">
-            <Button
-              variant="secondary"
-              size="md"
-              className="cluv-flex-1"
-              onClick={() => setShowDeleteScansModal(false)}
-              disabled={isDeletingScans}
-            >
-              Batalkan
-            </Button>
+          <div className="cluv-pt-1 cluv-w-full">
             <Button
               variant="danger"
-              size="md"
-              className="cluv-flex-1"
+              size="sm"
+              block
               loading={isDeletingScans}
               onClick={executeDeleteFaceScans}
             >
-              Ya, Hapus Foto
+              Hapus Seluruh Foto Wajah
             </Button>
           </div>
         </div>
@@ -422,29 +413,20 @@ export default function PrivacyCenterPage() {
               onChange={(e) => setConfirmationInput(e.target.value)}
               autoComplete="off"
               disabled={isDeletingAccount}
-              style={{ height: '40px', fontSize: '0.875rem' }}
+              style={{ height: '38px', fontSize: '0.875rem' }}
             />
           </div>
 
-          <div className="cluv-flex-row cluv-gap-2.5 cluv-w-full cluv-pt-3 cluv-mt-1 cluv-border-t">
-            <Button
-              variant="secondary"
-              size="md"
-              className="cluv-flex-1"
-              onClick={() => setShowDeleteModal(false)}
-              disabled={isDeletingAccount}
-            >
-              Batalkan
-            </Button>
+          <div className="cluv-pt-1 cluv-w-full">
             <Button
               variant="danger"
-              size="md"
-              className="cluv-flex-1"
+              size="sm"
+              block
               loading={isDeletingAccount}
               disabled={confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
               onClick={handlePermanentlyDeleteAccount}
             >
-              Konfirmasi Hapus Akun
+              Hapus Akun Permanen
             </Button>
           </div>
         </div>

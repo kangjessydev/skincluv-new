@@ -225,18 +225,26 @@
   color: var(--cluv-teal);
 }
 
-/* Danger */
+/* Danger — Solid Deep Red / Rose */
 .cluv-btn.is-danger,
 .cluv-btn.danger {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fca5a5;
+  background: var(--cluv-rose, #e11d48);
+  color: #ffffff;
+  border-color: var(--cluv-rose, #e11d48);
 }
 
 .cluv-btn.is-danger:hover,
 .cluv-btn.danger:hover {
-  background: #fecaca;
-  color: #991b1b;
+  background: #be123c;
+  border-color: #be123c;
+  color: #ffffff;
+}
+
+.cluv-btn.is-danger:active,
+.cluv-btn.danger:active {
+  background: #9f1239;
+  border-color: #9f1239;
+  color: #ffffff;
 }
 
 /* =============================================================================
