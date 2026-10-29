@@ -104,8 +104,8 @@ export default function PrivacyCenterPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back Link */}
-      <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
+      {/* Back Link (Desktop only; di mobile sudah ada tombol kembali di topbar) */}
+      <Link to="/profile" className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
         <ArrowLeft size={16} /> Kembali ke Profil
       </Link>
 

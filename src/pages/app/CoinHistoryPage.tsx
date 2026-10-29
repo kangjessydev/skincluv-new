@@ -60,10 +60,10 @@ export default function CoinHistoryPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back to Billing Link */}
+      {/* Back to Billing Link (Desktop only; di mobile sudah ada tombol kembali di topbar) */}
       <button
         type="button"
-        className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3"
+        className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3"
         onClick={() => navigate('/profile/billing')}
       >
         <ArrowLeft size={16} /> Kembali ke Billing & Langganan

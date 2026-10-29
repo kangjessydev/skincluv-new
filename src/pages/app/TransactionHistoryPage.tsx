@@ -43,8 +43,8 @@ export default function TransactionHistoryPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back Link to Billing */}
-      <Link to="/profile/billing" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1">
+      {/* Back Link to Billing (Desktop only; di mobile sudah ada tombol kembali di topbar) */}
+      <Link to="/profile/billing" className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1">
         <ArrowLeft size={16} />
         <span>Kembali ke Billing &amp; Langganan</span>
       </Link>
