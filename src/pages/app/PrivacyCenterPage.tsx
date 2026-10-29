@@ -376,8 +376,6 @@ export default function PrivacyCenterPage() {
             fontSize: '0.8125rem',
             lineHeight: 1.6,
             color: 'var(--cluv-neutral-700, #334155)',
-            maxHeight: '68vh',
-            overflowY: 'auto'
           }}
         >
           <div>

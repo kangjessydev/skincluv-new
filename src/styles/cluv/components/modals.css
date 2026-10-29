@@ -132,6 +132,23 @@
   box-sizing: border-box;
   animation: cluvSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   padding-bottom: env(safe-area-inset-bottom, 8px);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, height;
+}
+
+.cluv-sheet-panel.is-dragging {
+  transition: none !important;
+}
+
+.cluv-sheet-panel.is-expanded {
+  height: calc(100dvh - 20px);
+  max-height: calc(100dvh - 20px);
+  border-radius: 20px 20px 0 0;
+}
+
+.cluv-sheet-panel.is-expanded .cluv-sheet-body {
+  flex: 1;
+  max-height: none !important;
 }
 
 @media (min-width: 641px) {
@@ -146,21 +163,32 @@
   width: 100%;
   background: transparent;
   border: none;
-  cursor: pointer;
-  padding: 10px 0 6px;
+  cursor: grab;
+  padding: 10px 0 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   touch-action: none;
+  user-select: none;
+}
+
+.cluv-sheet-handle-btn:active {
+  cursor: grabbing;
 }
 
 .cluv-sheet-handle {
   display: block;
-  width: 36px;
-  height: 4px;
+  width: 38px;
+  height: 4.5px;
   background-color: var(--cluv-neutral-300, #cbd5e1);
   border-radius: 9999px;
+  transition: background-color 0.15s ease;
+}
+
+.cluv-sheet-handle-btn:hover .cluv-sheet-handle,
+.cluv-sheet-handle-btn:active .cluv-sheet-handle {
+  background-color: var(--cluv-neutral-400, #94a3b8);
 }
 
 @media (min-width: 641px) {
