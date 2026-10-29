@@ -257,6 +257,108 @@
   flex-shrink: 0;
 }
 
+/* =============================================================================
+ * Document / Legal Reader Mode (.cluv-reader)
+ * ============================================================================= */
+.cluv-reader {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: inherit;
+  color: var(--cluv-neutral-700, #334155);
+}
+
+.cluv-reader-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--cluv-neutral-100, #f1f5f9);
+}
+
+.cluv-reader-section:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.cluv-reader-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cluv-reader-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background-color: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.cluv-reader-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900, #0f172a);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.cluv-reader-desc {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-600, #475569);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.cluv-reader-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cluv-reader-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--cluv-neutral-600, #475569);
+}
+
+.cluv-reader-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--cluv-teal, #1f9d97);
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+
+.cluv-reader-label {
+  font-weight: 700;
+  color: var(--cluv-neutral-800, #1e293b);
+  margin-right: 4px;
+}
+
+.cluv-reader-box {
+  background-color: var(--cluv-neutral-50, #f8fafc);
+  border: 1px solid var(--cluv-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--cluv-neutral-700, #334155);
+}
+
 @keyframes cluvFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

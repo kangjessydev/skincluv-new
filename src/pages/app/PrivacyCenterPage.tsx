@@ -370,100 +370,228 @@ export default function PrivacyCenterPage() {
         }
         subtitle="Kepatuhan UU Pelindungan Data Pribadi (UU PDP No. 27/2022)"
       >
-        <div
-          className="cluv-flex-col cluv-gap-4 cluv-py-2"
-          style={{
-            fontSize: '0.8125rem',
-            lineHeight: 1.6,
-            color: 'var(--cluv-neutral-700, #334155)',
-          }}
-        >
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              1. Jenis Data Pribadi yang Dikumpulkan
-            </h4>
-            <p className="cluv-m-0 cluv-mb-2 cluv-text-muted">
-              Skincluv mengumpulkan data secara terbatas untuk keperluan operasional dan analitik kosmetik:
+        <div className="cluv-reader cluv-py-1">
+          {/* Section 1 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">01</span>
+              <h4 className="cluv-reader-title">Jenis Data Pribadi yang Dikumpulkan</h4>
+            </div>
+            <p className="cluv-reader-desc">
+              Skincluv mengumpulkan data secara terbatas untuk keperluan operasional dan komputasi kosmetik:
             </p>
-            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
-              <li><strong>Data Pribadi Umum:</strong> Alamat email akun, nama tampilan profil, dan preferensi tipe kulit pengguna.</li>
-              <li><strong>Data Pribadi Spesifik (Biometrik):</strong> Citra foto wajah untuk observasi visual kondisi kulit (Pasal 4 ayat 2 UU PDP No. 27/2022).</li>
-              <li><strong>Data Transaksi:</strong> Nomor referensi transaksi dari Tripay Payment Gateway (kami tidak menyimpan nomor kartu/PIN perbankan).</li>
-              <li><strong>Data Telemetri:</strong> Alamat IP dan jenis peramban demi pencegahan penyalahgunaan API.</li>
+            <ul className="cluv-reader-list">
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Data Pribadi Umum:</strong>
+                  Alamat email akun, nama tampilan profil, dan preferensi tipe kulit pengguna.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Data Pribadi Spesifik (Biometrik):</strong>
+                  Citra foto wajah untuk observasi visual kondisi kulit (Pasal 4 ayat 2 UU PDP No. 27/2022).
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Data Transaksi Finansial:</strong>
+                  Nomor referensi pembayaran Tripay Gateway (kami tidak menyimpan nomor kartu atau PIN bank).
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Data Telemetri:</strong>
+                  Alamat IP dan peramban untuk proteksi keamanan serta pembatasan rate limit API.
+                </div>
+              </li>
             </ul>
           </div>
 
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              2. Dasar Hukum &amp; Tujuan Pemrosesan
-            </h4>
-            <p className="cluv-m-0 cluv-mb-2 cluv-text-muted">
+          {/* Section 2 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">02</span>
+              <h4 className="cluv-reader-title">Dasar Hukum &amp; Tujuan Pemrosesan</h4>
+            </div>
+            <p className="cluv-reader-desc">
               Pemrosesan dilakukan berdasarkan persetujuan eksplisit (<em>explicit consent</em>) untuk:
             </p>
-            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
-              <li>Mengekstraksi indikator visual kulit (kelembaban, kemerahan, sebum, dan pori-pori) melalui visi komputer.</li>
-              <li>Memberikan edukasi komposisi skincare non-terapeutik yang relevan dengan tipe kulit.</li>
-              <li>Mengelola kuota langganan AI dan riwayat grafik tren perkembangan kulit 28 hari.</li>
+            <ul className="cluv-reader-list">
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>Mengekstraksi indikator visual kulit (kelembaban, kemerahan, sebum, dan pori-pori) melalui visi komputer.</div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>Memberikan edukasi komposisi bahan skincare non-terapeutik yang relevan dengan tipe kulit.</div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>Mengelola kuota langganan AI dan menyajikan grafik tren perkembangan kondisi kulit 28 hari.</div>
+              </li>
             </ul>
           </div>
 
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              3. Keamanan, Enkripsi, &amp; Penyimpanan
-            </h4>
-            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
-              <li><strong>Enkripsi:</strong> TLS 1.3 in-transit dan enkripsi AES-256 at-rest.</li>
-              <li><strong>Private Storage:</strong> Foto wajah disimpan di cloud storage tertutup tanpa URL publik permanen, hanya dapat diakses melalui URL bertanda tangan kriptografis berbatas waktu (maksimal 60 menit).</li>
-              <li><strong>Row Level Security (RLS):</strong> Akses data terkunci di level database hanya untuk akun pemiliknya.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              4. Pihak Ketiga &amp; Pemroses AI
-            </h4>
-            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
-              <li><strong>Model AI (Google Cloud Vertex / OpenRouter):</strong> Data diproses seketika untuk inferensi dan tidak digunakan untuk melatih model publik.</li>
-              <li><strong>Gerbang Pembayaran (Tripay):</strong> Untuk verifikasi transaksi perbankan dan QRIS.</li>
-              <li><strong>Pencarian Dermatologi (Tavily):</strong> Kueri bahan disanitasi dari kata ganti orang pertama demi privasi.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              5. Hak-Hak Pemilik Data (UU PDP No. 27/2022)
-            </h4>
-            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
-              <li><strong>Hak Akses &amp; Portabilitas:</strong> Hak mengunduh salinan data pribadi (format JSON).</li>
-              <li><strong>Hak Penarikan Persetujuan:</strong> Mematikan memori AI memicu penghapusan riwayat percakapan.</li>
-              <li><strong>Hak Penghapusan Mandiri:</strong> Hak memusnahkan riwayat scan atau seluruh akun kapan saja.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              6. Siklus Penghapusan &amp; Retensi (Dual-Track)
-            </h4>
-            <ul className="cluv-flex-col cluv-gap-1.5 cluv-m-0" style={{ paddingLeft: '18px' }}>
-              <li><strong>Data Biometrik:</strong> Foto wajah dan data analitik dimusnahkan secara menyeluruh seketika dari sistem aktif.</li>
-              <li><strong>Catatan Transaksi Finansial:</strong> Invoice kas dipertahankan untuk pembukuan pajak dengan melepaskan identitas personal pengguna (diset menjadi <code>NULL</code>).</li>
-              <li><strong>Cadangan Terenkripsi:</strong> Snapshot cadangan otomatis terhapus dalam siklus maksimal 30 hari.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0 cluv-mb-1" style={{ fontSize: '0.875rem' }}>
-              7. Kontak Petugas Pelindungan Data (DPO)
-            </h4>
-            <p className="cluv-m-0 cluv-mb-1 cluv-text-muted">
-              Pertanyaan atau permohonan hak atas data pribadi dapat dialamatkan ke:
+          {/* Section 3 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">03</span>
+              <h4 className="cluv-reader-title">Keamanan, Enkripsi, &amp; Penyimpanan Data</h4>
+            </div>
+            <p className="cluv-reader-desc">
+              Kami menerapkan standar perlindungan keamanan arsitektur Zero-Trust:
             </p>
-            <p className="cluv-m-0">
-              Email: <code>privacy@skincluv.com</code> / <code>support@skincluv.com</code>
+            <ul className="cluv-reader-list">
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Enkripsi Tingkat Tinggi:</strong>
+                  Komunikasi TLS 1.3 in-transit dan enkripsi AES-256 at-rest.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Private Storage Bucket:</strong>
+                  Foto wajah disimpan di storage tertutup tanpa URL publik, hanya bisa dibuka via URL bertanda tangan berwaktu singkat (maksimal 60 menit).
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Row Level Security (RLS):</strong>
+                  Data terkunci di level PostgreSQL sehingga pengguna lain atau CS tidak dapat mengakses foto wajah Anda.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Section 4 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">04</span>
+              <h4 className="cluv-reader-title">Keterlibatan Pihak Ketiga &amp; Pemroses AI</h4>
+            </div>
+            <p className="cluv-reader-desc">
+              Data hanya diproses oleh mitra infrastruktur terpercaya:
             </p>
-            <p className="cluv-m-0 cluv-caption cluv-text-muted">
-              Waktu respons maksimal 3 &times; 24 jam kerja sesuai ketentuan UU PDP.
+            <ul className="cluv-reader-list">
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Model AI (Google Cloud Vertex / OpenRouter):</strong>
+                  Data diproses seketika untuk inferensi dan tidak digunakan untuk melatih model umum publik.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Gerbang Pembayaran (Tripay):</strong>
+                  Memproses transaksi perbankan, QRIS, dan penerbitan Virtual Account resmi.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Pencarian Web (Tavily):</strong>
+                  Hanya menerima kueri bahan skincare yang disanitasi dari kata ganti orang pertama demi privasi.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Section 5 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">05</span>
+              <h4 className="cluv-reader-title">Hak-Hak Pemilik Data (UU PDP No. 27/2022)</h4>
+            </div>
+            <p className="cluv-reader-desc">
+              Anda memegang kendali penuh atas data Anda sesuai ketentuan perundang-undangan:
             </p>
+            <ul className="cluv-reader-list">
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Hak Portabilitas:</strong>
+                  Melihat dan mengunduh salinan seluruh data profil dalam format JSON kapan saja.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Penarikan Persetujuan:</strong>
+                  Mematikan memori asisten AI yang secara otomatis membersihkan riwayat obrolan secara atomik.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Hak Penghapusan Mandiri:</strong>
+                  Menghapus riwayat scan wajah tertentu atau menghapus akun secara permanen.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Section 6 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">06</span>
+              <h4 className="cluv-reader-title">Siklus Penghapusan &amp; Retensi (Dual-Track)</h4>
+            </div>
+            <p className="cluv-reader-desc">
+              Penghapusan data memisahkan aset biometrik dari catatan kepatuhan kas:
+            </p>
+            <ul className="cluv-reader-list">
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Data Biometrik &amp; Visual:</strong>
+                  Seluruh file foto wajah di cloud storage dan data analitik dimusnahkan secara menyeluruh seketika.
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Integritas Keuangan:</strong>
+                  Invoice Tripay tetap tercatat untuk audit perpajakan dengan melepaskan identitas personal akun Anda (diset NULL).
+                </div>
+              </li>
+              <li className="cluv-reader-item">
+                <span className="cluv-reader-dot" />
+                <div>
+                  <strong className="cluv-reader-label">Siklus Cadangan Snapshot:</strong>
+                  Snapshot cadangan terenkripsi terhapus permanen otomatis dalam siklus rotasi 30 hari.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Section 7 */}
+          <div className="cluv-reader-section">
+            <div className="cluv-reader-header">
+              <span className="cluv-reader-num">07</span>
+              <h4 className="cluv-reader-title">Kontak Petugas Pelindungan Data (DPO)</h4>
+            </div>
+            <p className="cluv-reader-desc">
+              Untuk pertanyaan, keluhan, atau permohonan hak atas data pribadi, silakan hubungi tim DPO kami:
+            </p>
+            <div className="cluv-reader-box cluv-flex-col cluv-gap-1.5">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                <strong className="cluv-reader-label">Email:</strong>
+                <span>privacy@skincluv.com / support@skincluv.com</span>
+              </div>
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                <strong className="cluv-reader-label">Waktu Respons:</strong>
+                <span>Maksimal 3 &times; 24 jam kerja sesuai ketentuan UU PDP</span>
+              </div>
+            </div>
           </div>
         </div>
       </BottomSheet>
