@@ -134,53 +134,66 @@ export default function ProfilePage() {
       </div>
 
       <div className="cluv-grid cols-2 cluv-gap-6">
-        {/* ── Left Column: Identity & Balance Summary ── */}
+        {/* ── Left Column: Unified Profile Bento Card ── */}
         <div className="cluv-flex-col cluv-gap-5">
-          {/* User Profile Card */}
-          <div className="cluv-card cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-3">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
-              <div className="cluv-avatar is-lg">
-                {profile?.full_name?.charAt(0).toUpperCase() || 'S'}
+          <div className="cluv-bento-card cluv-flex-col cluv-gap-4">
+            {/* 1. Header: Avatar + Identitas + Badge Tier + Tombol Keluar */}
+            <div className="cluv-flex-between cluv-items-center cluv-gap-3 cluv-pb-3 cluv-border-bottom">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-3 min-w-0">
+                <div className={`cluv-avatar is-lg ${isPro ? 'is-gold' : ''}`}>
+                  {profile?.full_name?.charAt(0).toUpperCase() || 'S'}
+                </div>
+                <div className="cluv-flex-col min-w-0">
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-flex-wrap">
+                    <span className="cluv-body cluv-font-bold cluv-truncate">
+                      {profile?.full_name || 'Pengguna Skincluv'}
+                    </span>
+                    <Badge
+                      variant={isPro ? 'gold' : isGlow ? 'teal' : 'slate'}
+                      size="sm"
+                      icon={isPro ? <Crown size={12} /> : <Zap size={12} />}
+                    >
+                      {tierLabel}
+                    </Badge>
+                  </div>
+                  <span className="cluv-caption cluv-text-muted cluv-truncate">
+                    {profile?.username || 'Pelanggan Skincluv'}
+                  </span>
+                </div>
               </div>
-              <div className="cluv-flex-col">
-                <span className="cluv-body cluv-font-bold">{profile?.full_name || 'Pengguna Skincluv'}</span>
-                <span className="cluv-caption cluv-text-muted">{profile?.username || 'Pelanggan Skincluv'}</span>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              iconLeft={<LogOut size={15} />}
-              onClick={handleSignOut}
-              title="Keluar dari akun"
-              className="cluv-text-rose"
-            >
-              Keluar
-            </Button>
-          </div>
 
-          {/* Membership & Quota Summary */}
-          <div className="cluv-card cluv-flex-col cluv-gap-4">
-            <div className="cluv-flex-between cluv-items-center">
-              <Badge
-                variant={isPro ? 'gold' : isGlow ? 'teal' : 'slate'}
-                icon={isPro ? <Crown size={13} /> : <Zap size={13} />}
+              <Button
+                variant="ghost"
+                size="sm"
+                iconLeft={<LogOut size={15} />}
+                onClick={handleSignOut}
+                title="Keluar dari akun"
+                className="cluv-text-rose"
               >
-                {tierLabel}
-              </Badge>
-              {!isPro && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  iconLeft={<Crown size={13} />}
-                  to="/pricing"
-                >
-                  Upgrade
-                </Button>
-              )}
+                Keluar
+              </Button>
             </div>
 
-            <div className="cluv-flex-col cluv-gap-2">
+            {/* 2. Pocket: Saldo AI Credits & Top-Up */}
+            <div className="cluv-card-strip is-gold">
+              <div className="cluv-card-strip-main">
+                <div className="cluv-card-icon-wrap is-sm is-gold">
+                  <Coins size={18} />
+                </div>
+                <div className="cluv-card-strip-body">
+                  <div className="cluv-caption cluv-text-muted">Saldo AI Credits</div>
+                  <div className="cluv-title-card cluv-font-bold cluv-text-gold">
+                    {coinBalance?.balance ?? 0} Credits
+                  </div>
+                </div>
+              </div>
+              <Button variant="primary" size="sm" to="/pricing">
+                + Beli Credits
+              </Button>
+            </div>
+
+            {/* 3. Membership & Quota Universal AI */}
+            <div className="cluv-flex-col cluv-gap-2.5 cluv-pt-1">
               <div className="cluv-flex-between cluv-items-center">
                 <span className="cluv-caption cluv-font-bold cluv-flex-row cluv-items-center cluv-gap-1.5">
                   <Activity size={14} className="cluv-text-teal" /> Kuota Universal AI Bulan Ini
@@ -201,45 +214,35 @@ export default function ProfilePage() {
                   style={{ width: isFree ? '0%' : `${Math.max(usedPercent, 2)}%` }}
                 />
               </div>
-            </div>
 
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-pt-1">
-              <span className={`cluv-dot is-pulse ${isActivePremium(subscription) ? 'is-teal' : 'is-slate'}`} />
-              <span className="cluv-caption">
-                Status: <strong>{isActivePremium(subscription) ? 'Aktif' : 'Gratis'}</strong>
-                {subscription?.expires_at && (
-                  <> (Perpanjang: {new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })})</>
+              <div className="cluv-flex-between cluv-items-center cluv-pt-1">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                  <span className={`cluv-dot is-pulse ${isActivePremium(subscription) ? 'is-teal' : 'is-slate'}`} />
+                  <span className="cluv-caption">
+                    Status: <strong>{isActivePremium(subscription) ? 'Aktif' : 'Gratis'}</strong>
+                    {subscription?.expires_at && (
+                      <> (Perpanjang: {new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })})</>
+                    )}
+                  </span>
+                </div>
+                {!isPro && (
+                  <Link to="/pricing" className="cluv-link is-teal cluv-caption cluv-font-bold">
+                    Upgrade Pro →
+                  </Link>
                 )}
-              </span>
+              </div>
             </div>
 
+            {/* 4. Action: Kelola Kuota & Tagihan */}
             <Button
               variant="outline"
               size="sm"
               block
               iconRight={<ArrowRight size={15} />}
               to="/profile/billing"
-              className="cluv-mt-1 cluv-justify-between"
+              className="cluv-justify-between cluv-mt-1"
             >
               Kelola Kuota &amp; Tagihan
-            </Button>
-          </div>
-
-          {/* AI Credits Balance Card */}
-          <div className="cluv-card cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-3">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
-              <div className="cluv-card-icon-wrap is-sm is-gold">
-                <Coins size={18} />
-              </div>
-              <div className="cluv-flex-col">
-                <span className="cluv-caption cluv-text-muted">Saldo AI Credits</span>
-                <span className="cluv-title-card cluv-font-bold cluv-text-gold">
-                  {coinBalance?.balance ?? 0} Credits
-                </span>
-              </div>
-            </div>
-            <Button variant="primary" size="sm" to="/pricing">
-              + Beli Credits
             </Button>
           </div>
         </div>

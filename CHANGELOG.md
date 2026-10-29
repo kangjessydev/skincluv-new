@@ -9,6 +9,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Penyatuan Kartu Profil Menjadi Bento Card Terpadu (`ProfilePage.tsx`, `utilities.css`)**:
+  - Menggabungkan 3 kartu terpisah (Kartu Identitas Pengguna, Ringkasan Kuota Langganan, dan Saldo AI Credits) menjadi **Satu Kartu Bento Terpadu** (`.cluv-bento-card`), memangkas tinggi scroll vertikal di layar ponsel.
+  - Header bento memuat avatar pengguna (dengan aksen gold untuk member Pro), nama lengkap, badge keanggotaan (`VIP PRO` / `GLOW` / `FREE`), username, dan tombol Keluar (*Sign Out*) yang rapi di sisi kanan.
+  - Saku Saldo AI Credits berbentuk strip emas (`.cluv-card-strip.is-gold`) yang memadukan icon koin, nilai saldo, dan tombol aksi cepat `+ Beli Credits`.
+  - Bilah kuota Universal AI bulan ini terintegrasi dengan progress bar, status aktif, tanggal perpanjangan, dan tombol aksi `Kelola Kuota & Tagihan`.
 - **Standarisasi Tipografi Header Halaman Profil & Pengaturan (`ProfilePage.tsx`, `typography.css`)**:
   - Penambahan class kanonikal `.cluv-title-page` di `src/styles/cluv/typography.css` (selaras dengan `.cluv-title-section` ukuran `clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem)` dan font-weight 800) untuk mencegah rendering default `<h1>` peramban yang terlalu besar di perangkat mobile.
   - Penyelarasan ritme header `ProfilePage.tsx` menggunakan `.cluv-title-section.cluv-m-0` dan subtitle `.cluv-subtitle.cluv-mt-1.cluv-m-0` dalam wrapper `.cluv-mb-4`, identik dengan gaya header ringkas dan rapi pada *Ingredient Scanner*.

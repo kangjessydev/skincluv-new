@@ -445,11 +445,13 @@
   max-width: 960px !important;
 }
 
-.cluv-border-t {
+.cluv-border-t,
+.cluv-border-top {
   border-top: 1px solid var(--cluv-current-border, var(--cluv-neutral-200)) !important;
 }
 
-.cluv-border-b {
+.cluv-border-b,
+.cluv-border-bottom {
   border-bottom: 1px solid var(--cluv-current-border, var(--cluv-neutral-200)) !important;
 }
 
