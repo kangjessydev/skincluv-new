@@ -9,6 +9,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Standarisasi Seluruh Sub-Halaman Mobile: Eliminasi Judul Duplikat & Penyelarasan Kanvas Focused (`ProfileBillingPage.tsx`, `PrivacyCenterPage.tsx`, `TransactionHistoryPage.tsx`, `CoinHistoryPage.tsx`, `CheckoutPage.tsx`)**:
+  - Menyembunyikan tombol navigasi kembali in-page dan header judul/subtitle in-page pada perangkat mobile (`.cluv-hide-mobile`) di seluruh sub-halaman profil dan transaksi, karena Topbar mobile sudah menyediakan tombol panah kembali dan judul halaman yang presisi.
+  - Menstandarisasi kontainer halaman ke `.cluv-canvas-focused`, menjamin jarak batas bawah layar mobile konsisten tepat **24px** tanpa ruang kosong berlebih.
+  - Tampilan desktop tetap normal 100% dengan link navigasi kembali in-page dan judul halaman lengkap.
+
 - **Penyelarasan Spasi Bawah & Pembersihan Mikro-Teks Mobile (`ProfileSkinPage.tsx`, `layout.css`, `buttons.css`)**:
   - Memangkas ruang kosong bawah pada layar mobile sub-halaman fokus (`.cluv-canvas-focused` dan `.cluv-focused-ledger`) dari 80px menjadi tepat **24px** (`padding: 16px 16px 24px;`), menyisakan ruang ideal 20–30px di bawah tombol aksi sesuai kenyamanan visual ponsel.
   - Menghilangkan `margin-bottom: 32px` pada baris tombol aksi (`.cluv-profile-action-bar` menjadi `margin-bottom: 0`).

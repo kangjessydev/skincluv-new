@@ -92,15 +92,15 @@ export default function ProfileBillingPage() {
   const tierLabel = isPro ? 'VIP PRO MEMBER' : isGlow ? 'GLOW MEMBER' : 'FREE ACCOUNT'
 
   return (
-    <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* Back link navigation */}
-      <Link to="/profile" className="cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
+    <div className="cluv-canvas-focused cluv-animate-fade">
+      {/* Back link navigation (Desktop only; di mobile sudah ada di topbar) */}
+      <Link to="/profile" className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
         <ArrowLeft size={16} />
         <span>Kembali ke Profil & Pengaturan</span>
       </Link>
 
-      {/* Header */}
-      <div className="cluv-mb-6">
+      {/* Header (Desktop only; di mobile judul sudah di topbar) */}
+      <div className="cluv-hide-mobile cluv-mb-6">
         <h1 className="cluv-title-page">Paket Langganan & Kuota AI</h1>
         <p className="cluv-caption cluv-text-muted">Pantau sisa kuota Universal AI bulanan, saldo AI Credits, dan riwayat tagihanmu.</p>
       </div>

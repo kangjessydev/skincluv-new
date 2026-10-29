@@ -69,8 +69,8 @@ export default function CoinHistoryPage() {
         <ArrowLeft size={16} /> Kembali ke Billing & Langganan
       </button>
 
-      {/* Header */}
-      <div className="cluv-mb-6">
+      {/* Header (Desktop only; di mobile judul sudah di topbar) */}
+      <div className="cluv-hide-mobile cluv-mb-6">
         <h1 className="cluv-title-page">Riwayat Mutasi Credits</h1>
         <p className="cluv-caption cluv-text-muted">Rincian perolehan dan penggunaan AI Credits Skincluv kamu.</p>
       </div>

@@ -109,8 +109,8 @@ export default function PrivacyCenterPage() {
         <ArrowLeft size={16} /> Kembali ke Profil
       </Link>
 
-      {/* HEADER */}
-      <div className="cluv-mb-6">
+      {/* HEADER (Desktop only; di mobile judul sudah di topbar) */}
+      <div className="cluv-hide-mobile cluv-mb-6">
         <Badge variant="teal" icon={<ShieldCheck size={14} />} className="cluv-mb-2">
           PUSAT KENDALI PRIVASI (UU PDP NO. 27/2022)
         </Badge>

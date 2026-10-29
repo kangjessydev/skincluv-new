@@ -49,8 +49,8 @@ export default function TransactionHistoryPage() {
         <span>Kembali ke Billing &amp; Langganan</span>
       </Link>
 
-      {/* Page Header */}
-      <div className="cluv-flex-col cluv-gap-1 cluv-mt-3">
+      {/* Page Header (Desktop only; di mobile judul sudah di topbar) */}
+      <div className="cluv-hide-mobile cluv-flex-col cluv-gap-1 cluv-mt-3">
         <h1 className="cluv-title-page">Riwayat Tagihan &amp; Transaksi</h1>
         <p className="cluv-caption cluv-text-muted">
           Daftar tagihan &amp; status pembayaran paket langganan kamu.

@@ -194,19 +194,18 @@ export default function CheckoutPage() {
   // =============================================================
   if (!reference) {
     return (
-      <div className="cluv-page">
-        <div className="cluv-focused-ledger">
-          <div className="cluv-mb-4">
-            <Link to="/pricing" className="cluv-back-link">
-              <ArrowLeft size={16} />
-              <span>Pilihan Paket</span>
-            </Link>
-          </div>
+      <div className="cluv-canvas-focused cluv-animate-fade">
+        <div className="cluv-hide-mobile cluv-mb-4">
+          <Link to="/pricing" className="cluv-back-link">
+            <ArrowLeft size={16} />
+            <span>Pilihan Paket</span>
+          </Link>
+        </div>
 
-          <div className="cluv-mb-6">
-            <h1 className="cluv-title-page">Checkout &amp; Review Pesanan</h1>
-            <p className="cluv-caption cluv-text-muted">Periksa rincian pesanan dan pilih metode pembayaran favoritmu.</p>
-          </div>
+        <div className="cluv-hide-mobile cluv-mb-6">
+          <h1 className="cluv-title-page">Checkout &amp; Review Pesanan</h1>
+          <p className="cluv-caption cluv-text-muted">Periksa rincian pesanan dan pilih metode pembayaran favoritmu.</p>
+        </div>
 
           <div className="cluv-flex-col cluv-gap-4">
             {/* Order Summary Card */}
@@ -358,7 +357,6 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
-      </div>
     )
   }
 
@@ -396,16 +394,16 @@ export default function CheckoutPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      <div className="cluv-mb-4">
-          <Link to="/transactions" className="cluv-back-link">
-            <ArrowLeft size={16} />
-            <span>Riwayat Transaksi</span>
-          </Link>
-        </div>
+      <div className="cluv-hide-mobile cluv-mb-4">
+        <Link to="/transactions" className="cluv-back-link">
+          <ArrowLeft size={16} />
+          <span>Riwayat Transaksi</span>
+        </Link>
+      </div>
 
-        <div className="cluv-mb-6">
-          <h1 className="cluv-title-page">Detail Tagihan Pembayaran</h1>
-        </div>
+      <div className="cluv-hide-mobile cluv-mb-6">
+        <h1 className="cluv-title-page">Detail Tagihan Pembayaran</h1>
+      </div>
 
         <div className="cluv-card">
           {/* Status & Expiry Bar */}
