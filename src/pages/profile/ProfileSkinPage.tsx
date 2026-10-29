@@ -227,105 +227,81 @@ export default function ProfileSkinPage() {
           </div>
         ) : (
           <>
-            {/* Section 1: Tipe Kulit Utama */}
-            <div className="cluv-flex-col cluv-gap-3">
-              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-                  <div className="cluv-card-icon-wrap is-sm is-teal">
-                    <Activity size={16} />
-                  </div>
-                  <div>
-                    <h3 className="cluv-body cluv-font-bold cluv-m-0">Tipe Kulit Utama</h3>
-                    <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-m-0 cluv-mt-0.5">Pilih salah satu kondisi dasar wajah yang paling menggambarkan kulitmu saat ini</p>
-                  </div>
-                </div>
-                <span className="cluv-caption cluv-text-muted cluv-font-semibold">(Pilih 1)</span>
+            {/* Section 1: Tipe Kulit Utama (Single-select Radio Group) */}
+            <div className="cluv-flex-col cluv-gap-2">
+              <div className="cluv-section-mobile-header">
+                <span className="cluv-section-mobile-title">Tipe Kulit Utama</span>
+                <span className="cluv-section-mobile-hint">Pilih 1</span>
               </div>
 
-              <div className="cluv-chip-grid">
+              <div className="cluv-select-group">
                 {SKIN_TYPES.map((t) => {
                   const isActive = skinType === t.id
                   return (
                     <button
                       key={t.id}
                       type="button"
-                      className={`cluv-chip ${isActive ? 'is-active' : ''}`}
+                      className={`cluv-select-row ${isActive ? 'is-active' : ''}`}
                       onClick={() => setSkinType(t.id)}
                     >
-                      {isActive && <Check size={14} className="cluv-text-teal" />}
-                      <span>{t.label}</span>
+                      <span className="cluv-select-row-label">{t.label}</span>
+                      <div className="cluv-radio-indicator">
+                        <div className="cluv-radio-dot" />
+                      </div>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            <hr className="cluv-divider is-dashed is-compact" />
-
-            {/* Section 2: Target Perawatan */}
-            <div className="cluv-flex-col cluv-gap-3">
-              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-                  <div className="cluv-card-icon-wrap is-sm is-rose">
-                    <AlertCircle size={16} />
-                  </div>
-                  <div>
-                    <h3 className="cluv-body cluv-font-bold cluv-m-0">Target Perawatan</h3>
-                    <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-m-0 cluv-mt-0.5">Dapat memilih lebih dari satu target perawatan (multi-select)</p>
-                  </div>
-                </div>
-                <span className="cluv-caption cluv-text-muted cluv-font-semibold">(Bisa pilih &gt; 1)</span>
+            {/* Section 2: Target Perawatan (Multi-select Checkbox Group) */}
+            <div className="cluv-flex-col cluv-gap-2">
+              <div className="cluv-section-mobile-header">
+                <span className="cluv-section-mobile-title">Target Perawatan &amp; Masalah Kulit</span>
+                <span className="cluv-section-mobile-hint">Bisa pilih &gt; 1</span>
               </div>
 
-              <div className="cluv-chip-grid">
+              <div className="cluv-select-group">
                 {CONCERNS_LIST.map((c) => {
                   const isActive = concerns.includes(c)
                   return (
                     <button
                       key={c}
                       type="button"
-                      className={`cluv-chip ${isActive ? 'is-active' : ''}`}
+                      className={`cluv-select-row ${isActive ? 'is-active' : ''}`}
                       onClick={() => handleToggleConcern(c)}
                     >
-                      {isActive && <Check size={14} className="cluv-text-teal" />}
-                      <span>{c}</span>
+                      <span className="cluv-select-row-label">{c}</span>
+                      <div className="cluv-checkbox-indicator">
+                        {isActive && <Check size={13} strokeWidth={3} />}
+                      </div>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            <hr className="cluv-divider is-dashed is-compact" />
-
-            {/* Section 3: Bahan yang Pernah Bikin Kulit Tidak Nyaman */}
-            <div className="cluv-flex-col cluv-gap-3">
-              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
-                  <div className="cluv-card-icon-wrap is-sm is-gold">
-                    <ShieldCheck size={16} />
-                  </div>
-                  <div>
-                    <h3 className="cluv-body cluv-font-bold cluv-m-0">Bahan yang Dihindari</h3>
-                    <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-m-0 cluv-mt-0.5">
-                      Peringatan otomatis jika terdeteksi dalam produk yang Anda pindai
-                    </p>
-                  </div>
-                </div>
-                <span className="cluv-caption cluv-text-muted cluv-font-semibold">(Opsional)</span>
+            {/* Section 3: Bahan yang Pernah Bikin Kulit Tidak Nyaman (Multi-select Checkbox Group) */}
+            <div className="cluv-flex-col cluv-gap-2">
+              <div className="cluv-section-mobile-header">
+                <span className="cluv-section-mobile-title">Bahan yang Dihindari</span>
+                <span className="cluv-section-mobile-hint">Opsional</span>
               </div>
 
-              <div className="cluv-chip-grid">
+              <div className="cluv-select-group">
                 {SENSITIVITIES_LIST.map((item) => {
                   const isActive = sensitivities.includes(item)
                   return (
                     <button
                       key={item}
                       type="button"
-                      className={`cluv-chip ${isActive ? 'is-active' : ''}`}
+                      className={`cluv-select-row ${isActive ? 'is-active' : ''}`}
                       onClick={() => handleToggleSensitivity(item)}
                     >
-                      {isActive && <Check size={14} className="cluv-text-teal" />}
-                      <span>{item}</span>
+                      <span className="cluv-select-row-label">{item}</span>
+                      <div className="cluv-checkbox-indicator">
+                        {isActive && <Check size={13} strokeWidth={3} />}
+                      </div>
                     </button>
                   )
                 })}
@@ -341,11 +317,11 @@ export default function ProfileSkinPage() {
               </div>
             )}
 
-            {/* Sticky Action Bar di Mobile, Normal di Desktop */}
-            <div className="cluv-profile-sticky-action">
+            {/* Action Bar Alami di Paling Bawah (Bukan Melayang, Ukuran Pas 44px) */}
+            <div className="cluv-profile-action-bar">
               <Button
                 variant="primary"
-                size="lg"
+                size="md"
                 block
                 loading={loading}
                 iconLeft={<Save size={16} />}
@@ -353,8 +329,8 @@ export default function ProfileSkinPage() {
               >
                 {loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}
               </Button>
-              <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5 cluv-mt-2 cluv-mb-0 cluv-hide-mobile">
-                <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot Skincluv.
+              <p className="cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5 cluv-mt-2.5 cluv-mb-0 cluv-text-center">
+                <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot.
               </p>
             </div>
           </>

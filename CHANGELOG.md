@@ -9,6 +9,12 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Gaya Desain Native Mobile App: Inset Selection List & Penempatan Tombol Alami (`ProfileSkinPage.tsx`, `forms.css`, `buttons.css`)**:
+  - Mengubah opsi pemilihan menjadi standar aplikasi mobile native (*iOS Settings / Health Inset Grouped List*):
+    - **Single Select (Tipe Kulit Utama)**: Menggunakan baris bergaris halus dengan indikator **Custom Radio Teal** (lingkaran 20px beraksen dot teal).
+    - **Multiple Select (Target Perawatan & Bahan Sensitivitas)**: Menggunakan baris grup dengan indikator **Custom Checkbox Squircle** (kotak membulat 20px berlatar teal dan centang putih).
+  - Menyederhanakan header tiap seksi menjadi format judul ramping (*13px bold*) dengan petunjuk mikro di sisi kanan (`Pilih 1`, `Bisa pilih > 1`, `Opsional`), menghilangkan kotak ikon tebal yang memakan ruang.
+  - Menghilangkan tombol melayang/sticky yang janggal, mengembalikannya ke posisi alami di bagian paling bawah halaman (`.cluv-profile-action-bar`) dengan ukuran standar kompak (44px) yang nyaman dijangkau jempol.
 - **Standar Navigasi Mobile Native: Sembunyikan Bottom Navbar di Sub-Halaman & Grid Form 2 Kolom (`AppLayout.tsx`, `ProfileSkinPage.tsx`, `buttons.css`)**:
   - Menerapkan standar arsitektur navigasi mobile (*hidesBottomBarWhenPushed*): Bottom Navigation Bar otomatis disembunyikan saat pengguna masuk ke sub-halaman formulir/transaksi (`/profile/skin`, `/profile/billing`, `/privacy-center`, `/transactions`, `/coin-history`, `/checkout`), mencegah salah klik menu dan membebaskan 68px ruang vertikal bawah.
   - Memperbarui daftar pilihan opsi formulir (*Tipe Kulit Utama*, *Target Perawatan*, dan *Bahan yang Dihindari*) menjadi **Grid 2 Kolom Rapi** (`.cluv-chip-grid`), memangkas tinggi scroll vertikal hingga lebih dari 50% dan menghilangkan tumpukan chip acak-acakan.
