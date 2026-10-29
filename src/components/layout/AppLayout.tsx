@@ -21,6 +21,8 @@ import {
   User,
   ArrowLeft,
   History,
+  Brain,
+  Plus,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -232,7 +234,7 @@ export default function AppLayout() {
                 <span className="cluv-credits-label">Credits</span>
               </button>
 
-              {/* Mobile: Bell on Dashboard, History icon ONLY on face-scan & ingredient-scan */}
+              {/* Mobile: Bell on Dashboard, History icon on face-scan/ingredient-scan, Chat Actions on /chatbot */}
               {(location.pathname === '/dashboard' || location.pathname === '/') ? (
                 <button type="button" className="cluv-topbar-bell-btn" aria-label="Notifikasi">
                   <Bell size={18} />
@@ -254,6 +256,36 @@ export default function AppLayout() {
                     <span className="cluv-topbar-bell-dot" />
                   </button>
                 </>
+              ) : location.pathname.startsWith('/chatbot') ? (
+                <div className="cluv-flex-row cluv-items-center cluv-gap-1.5 cluv-hide-desktop">
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('cluv:chatbot-history'))}
+                    className="cluv-topbar-action-btn"
+                    aria-label="Riwayat Percakapan"
+                    title="Riwayat Percakapan"
+                  >
+                    <History size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('cluv:chatbot-memory'))}
+                    className="cluv-topbar-action-btn"
+                    aria-label="Memori Percakapan"
+                    title="Memori Percakapan"
+                  >
+                    <Brain size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('cluv:chatbot-new'))}
+                    className="cluv-topbar-action-btn"
+                    aria-label="Percakapan Baru"
+                    title="Percakapan Baru"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
               ) : null}
 
               <div className="cluv-topbar-divider" />
@@ -344,39 +376,41 @@ export default function AppLayout() {
       </div>
 
       {/* ===================== MOBILE BOTTOM NAVIGATION BAR ===================== */}
-      {/* Thumb-friendly ergonomics on phone screens with Center FAB */}
-      <nav className="cluv-mobile-bottom-bar" aria-label="Navigasi Bawah">
-        {mobileBottomNavItems.map(({ to, icon: Icon, label, isCenterFab }) => {
-          const isActive = to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to)
-          
-          if (isCenterFab) {
+      {/* Thumb-friendly ergonomics on phone screens with Center FAB; Hidden on /chatbot for full input experience */}
+      {!location.pathname.startsWith('/chatbot') && (
+        <nav className="cluv-mobile-bottom-bar" aria-label="Navigasi Bawah">
+          {mobileBottomNavItems.map(({ to, icon: Icon, label, isCenterFab }) => {
+            const isActive = to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to)
+            
+            if (isCenterFab) {
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={`cluv-bottom-nav-item is-center-fab ${isActive ? 'is-active' : ''}`}
+                >
+                  <div className="cluv-bottom-nav-fab-icon">
+                    <Icon size={22} strokeWidth={2.4} />
+                  </div>
+                  <span>{label}</span>
+                </NavLink>
+              )
+            }
+
             return (
               <NavLink
                 key={to}
                 to={to}
-                className={`cluv-bottom-nav-item is-center-fab ${isActive ? 'is-active' : ''}`}
+                className={`cluv-bottom-nav-item ${isActive ? 'is-active' : ''}`}
+                end={to === '/dashboard'}
               >
-                <div className="cluv-bottom-nav-fab-icon">
-                  <Icon size={22} strokeWidth={2.4} />
-                </div>
+                <Icon size={20} className="cluv-bottom-nav-icon" strokeWidth={isActive ? 2.5 : 2} />
                 <span>{label}</span>
               </NavLink>
             )
-          }
-
-          return (
-            <NavLink
-              key={to}
-              to={to}
-              className={`cluv-bottom-nav-item ${isActive ? 'is-active' : ''}`}
-              end={to === '/dashboard'}
-            >
-              <Icon size={20} className="cluv-bottom-nav-icon" strokeWidth={isActive ? 2.5 : 2} />
-              <span>{label}</span>
-            </NavLink>
-          )
-        })}
-      </nav>
+          })}
+        </nav>
+      )}
     </div>
   )
 }

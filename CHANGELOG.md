@@ -9,6 +9,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Penataan Topbar & Navigasi Mobile Skinsistant AI (`AppLayout.tsx` & `ChatbotPage.tsx`)**:
+  - Tombol aksi Skinsistant dipindahkan ke cluster kanan general Topbar pada layar mobile: **Riwayat** (`History`), **Memori** (`Brain`), dan **Chat Baru** (`Plus`) dengan gaya tombol circular 36×36px seragam (`.cluv-topbar-action-btn`).
+  - Sub-topbar bawaan chat (`.cluv-chat-util-bar`) disembunyikan khusus di layar mobile, membebaskan ruang vertikal chat.
+  - Bilah navigasi bawah (*Mobile Bottom Nav*) disembunyikan saat berada di rute `/chatbot` agar field input chat menempel langsung di tepi bawah layar perangkat.
 - **Paritas Antarmuka Riwayat Scan Komposisi (`IngredientScanDetailModal.tsx`)**:
   - Mode Kanonikal **Detail** vs **Ringkas** pada *Komposisi Lengkap*: Mode Detail menampilkan fungsi bahan kosmetik, kecocokan tipe kulit (`Cocok untuk:`), panduan interaksi bahan (`Interaksi:`), skor komedogenik/pori, dan regulasi BPOM.
   - Mode Ringkas menyajikan tag cloud chips interaktif dengan titik status warna (`.cluv-dot`).

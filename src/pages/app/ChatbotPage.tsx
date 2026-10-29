@@ -486,6 +486,28 @@ export default function ChatbotPage() {
     }
   }
 
+  // Listen for mobile topbar action events from AppLayout
+  useEffect(() => {
+    const handleHistoryEvent = () => setShowHistoryModal((prev) => !prev)
+    const handleMemoryEvent = () => {
+      fetchClinicalMemories()
+      setShowMemoryModal(true)
+    }
+    const handleNewChatEvent = () => {
+      handleCreateNewChat()
+    }
+
+    window.addEventListener('cluv:chatbot-history', handleHistoryEvent)
+    window.addEventListener('cluv:chatbot-memory', handleMemoryEvent)
+    window.addEventListener('cluv:chatbot-new', handleNewChatEvent)
+
+    return () => {
+      window.removeEventListener('cluv:chatbot-history', handleHistoryEvent)
+      window.removeEventListener('cluv:chatbot-memory', handleMemoryEvent)
+      window.removeEventListener('cluv:chatbot-new', handleNewChatEvent)
+    }
+  }, [fetchClinicalMemories])
+
   const handleDeleteSession = async (sid: string, e: React.MouseEvent) => {
     e.stopPropagation()
     try {

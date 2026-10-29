@@ -667,7 +667,8 @@
     text-overflow: ellipsis;
   }
 
-  .cluv-topbar-history-btn {
+  .cluv-topbar-history-btn,
+  .cluv-topbar-action-btn {
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -683,7 +684,8 @@
     transition: all 0.15s ease;
   }
 
-  .cluv-topbar-history-btn:active {
+  .cluv-topbar-history-btn:active,
+  .cluv-topbar-action-btn:active {
     background-color: var(--cluv-neutral-100, #f1f5f9);
     color: var(--cluv-teal, #1f9d97);
   }
