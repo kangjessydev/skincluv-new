@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-import { Button, Badge } from '@/components/ui'
+import { Button, Badge, BottomSheet } from '@/components/ui'
 
 export default function PrivacyCenterPage() {
   const navigate = useNavigate()
@@ -338,153 +338,117 @@ export default function PrivacyCenterPage() {
         </div>
       </div>
 
-      {/* ===================== BOTTOM SHEET: HAPUS SCAN WAJAH ===================== */}
-      {showDeleteScansModal && (
-        <div className="cluv-sheet-overlay" onClick={() => !isDeletingScans && setShowDeleteScansModal(false)}>
-          <div className="cluv-sheet-panel" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="cluv-sheet-handle-btn"
-              onClick={() => !isDeletingScans && setShowDeleteScansModal(false)}
-              aria-label="Tutup panel"
+      {/* ===================== BOTTOM SHEET RESMI: HAPUS SCAN WAJAH ===================== */}
+      <BottomSheet
+        isOpen={showDeleteScansModal}
+        onClose={() => !isDeletingScans && setShowDeleteScansModal(false)}
+        title={
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
+            <div className="cluv-card-icon-wrap is-sm is-gold">
+              <Trash2 size={16} />
+            </div>
+            <span>Hapus Rekam Jejak Wajah?</span>
+          </div>
+        }
+      >
+        <div className="cluv-flex-col cluv-gap-3 cluv-pt-1">
+          <p className="cluv-m-0 cluv-font-bold cluv-text-dark" style={{ fontSize: '0.875rem' }}>
+            Apakah Anda yakin ingin memusnahkan seluruh rekam jejak foto dan pemindaian wajah Anda?
+          </p>
+          <p className="cluv-m-0 cluv-text-muted" style={{ fontSize: '0.78125rem', lineHeight: '1.45' }}>
+            Tindakan ini tidak dapat dibatalkan. Seluruh berkas foto wajah fisik di penyimpanan aman dan riwayat analitik visual akan dihapus bersih. Akun, kuota langganan, dan saldo AI Credits Anda tetap utuh.
+          </p>
+
+          <div className="cluv-flex-row cluv-gap-2.5 cluv-w-full cluv-pt-3 cluv-mt-1 cluv-border-t">
+            <Button
+              variant="secondary"
+              size="md"
+              className="cluv-flex-1"
+              onClick={() => setShowDeleteScansModal(false)}
+              disabled={isDeletingScans}
             >
-              <span className="cluv-sheet-handle" />
-            </button>
-
-            <div className="cluv-sheet-header">
-              <h2 className="cluv-sheet-title">
-                <div className="cluv-card-icon-wrap is-sm is-gold">
-                  <Trash2 size={16} />
-                </div>
-                <span>Hapus Rekam Jejak Wajah?</span>
-              </h2>
-              <button
-                type="button"
-                className="cluv-sheet-close"
-                onClick={() => setShowDeleteScansModal(false)}
-                disabled={isDeletingScans}
-                aria-label="Tutup"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="cluv-sheet-body cluv-flex-col cluv-gap-2">
-              <p className="cluv-m-0 cluv-font-bold cluv-text-dark" style={{ fontSize: '0.875rem' }}>
-                Yakin ingin memusnahkan seluruh rekam jejak foto dan pemindaian wajah Anda?
-              </p>
-              <p className="cluv-m-0 cluv-text-muted" style={{ fontSize: '0.78125rem', lineHeight: '1.45' }}>
-                Tindakan ini permanen. Seluruh foto wajah di cloud storage dan data analitik visual akan dihapus bersih. Akun, kuota langganan, dan saldo AI Credits Anda tetap aman.
-              </p>
-            </div>
-
-            <div className="cluv-sheet-footer">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteScansModal(false)}
-                disabled={isDeletingScans}
-              >
-                Batalkan
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                loading={isDeletingScans}
-                onClick={executeDeleteFaceScans}
-              >
-                Ya, Hapus Foto
-              </Button>
-            </div>
+              Batalkan
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              className="cluv-flex-1"
+              loading={isDeletingScans}
+              onClick={executeDeleteFaceScans}
+            >
+              Ya, Hapus Foto
+            </Button>
           </div>
         </div>
-      )}
+      </BottomSheet>
 
-      {/* ===================== BOTTOM SHEET: HAPUS AKUN PERMANEN ===================== */}
-      {showDeleteModal && (
-        <div className="cluv-sheet-overlay" onClick={() => !isDeletingAccount && setShowDeleteModal(false)}>
-          <div className="cluv-sheet-panel" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="cluv-sheet-handle-btn"
-              onClick={() => !isDeletingAccount && setShowDeleteModal(false)}
-              aria-label="Tutup panel"
-            >
-              <span className="cluv-sheet-handle" />
-            </button>
-
-            <div className="cluv-sheet-header">
-              <h2 className="cluv-sheet-title cluv-text-rose">
-                <div className="cluv-card-icon-wrap is-sm is-rose">
-                  <AlertTriangle size={16} />
-                </div>
-                <span>Pemusnahan Akun Permanen</span>
-              </h2>
-              <button
-                type="button"
-                className="cluv-sheet-close"
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeletingAccount}
-                aria-label="Tutup"
-              >
-                ✕
-              </button>
+      {/* ===================== BOTTOM SHEET RESMI: HAPUS AKUN PERMANEN ===================== */}
+      <BottomSheet
+        isOpen={showDeleteModal}
+        onClose={() => !isDeletingAccount && setShowDeleteModal(false)}
+        title={
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2.5 cluv-text-rose">
+            <div className="cluv-card-icon-wrap is-sm is-rose">
+              <AlertTriangle size={16} />
             </div>
+            <span>Pemusnahan Akun Permanen</span>
+          </div>
+        }
+      >
+        <div className="cluv-flex-col cluv-gap-3 cluv-pt-1">
+          <p className="cluv-m-0 cluv-text-muted" style={{ fontSize: '0.8125rem', lineHeight: '1.45' }}>
+            Anda hendak menghapus akun <strong>{user?.email}</strong>. Seluruh riwayat foto wajah, hasil pemindaian, percakapan AI, dan kuota langganan yang tersisa akan <strong>dihapus permanen dan tidak dapat dipulihkan</strong>.
+          </p>
 
-            <div className="cluv-sheet-body cluv-flex-col cluv-gap-3">
-              <p className="cluv-m-0 cluv-text-muted" style={{ fontSize: '0.8125rem', lineHeight: '1.45' }}>
-                Anda hendak menghapus akun <strong>{user?.email}</strong>. Seluruh riwayat foto wajah, hasil pemindaian, percakapan AI, dan kuota langganan yang tersisa akan <strong>dihapus permanen dan tidak dapat dipulihkan</strong>.
-              </p>
-
-              {deleteError && (
-                <div className="cluv-alert is-danger is-sm">
-                  <AlertTriangle size={15} className="cluv-alert-icon" />
-                  <div className="cluv-alert-content">
-                    <p className="cluv-alert-message">{deleteError}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="cluv-field cluv-m-0">
-                <label htmlFor="confirm-delete" className="cluv-label" style={{ fontSize: '0.78125rem' }}>
-                  Ketik <code>DELETE MY ACCOUNT</code> untuk konfirmasi:
-                </label>
-                <input
-                  id="confirm-delete"
-                  type="text"
-                  className="cluv-input"
-                  placeholder="DELETE MY ACCOUNT"
-                  value={confirmationInput}
-                  onChange={(e) => setConfirmationInput(e.target.value)}
-                  autoComplete="off"
-                  disabled={isDeletingAccount}
-                  style={{ height: '38px', fontSize: '0.875rem' }}
-                />
+          {deleteError && (
+            <div className="cluv-alert is-danger is-sm">
+              <AlertTriangle size={15} className="cluv-alert-icon" />
+              <div className="cluv-alert-content">
+                <p className="cluv-alert-message">{deleteError}</p>
               </div>
             </div>
+          )}
 
-            <div className="cluv-sheet-footer">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeletingAccount}
-              >
-                Batalkan
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                loading={isDeletingAccount}
-                disabled={confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
-                onClick={handlePermanentlyDeleteAccount}
-              >
-                Konfirmasi Hapus Akun
-              </Button>
-            </div>
+          <div className="cluv-field cluv-m-0">
+            <label htmlFor="confirm-delete" className="cluv-label" style={{ fontSize: '0.78125rem' }}>
+              Ketik <code>DELETE MY ACCOUNT</code> untuk konfirmasi:
+            </label>
+            <input
+              id="confirm-delete"
+              type="text"
+              className="cluv-input"
+              placeholder="DELETE MY ACCOUNT"
+              value={confirmationInput}
+              onChange={(e) => setConfirmationInput(e.target.value)}
+              autoComplete="off"
+              disabled={isDeletingAccount}
+              style={{ height: '40px', fontSize: '0.875rem' }}
+            />
+          </div>
+
+          <div className="cluv-flex-row cluv-gap-2.5 cluv-w-full cluv-pt-3 cluv-mt-1 cluv-border-t">
+            <Button
+              variant="secondary"
+              size="md"
+              className="cluv-flex-1"
+              onClick={() => setShowDeleteModal(false)}
+              disabled={isDeletingAccount}
+            >
+              Batalkan
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              className="cluv-flex-1"
+              loading={isDeletingAccount}
+              disabled={confirmationInput.trim() !== 'DELETE MY ACCOUNT'}
+              onClick={handlePermanentlyDeleteAccount}
+            >
+              Konfirmasi Hapus Akun
+            </Button>
           </div>
         </div>
-      )}
+      </BottomSheet>
 
       {/* ===================== FLOATING TOAST NOTIFICATION ===================== */}
       {toast && (
