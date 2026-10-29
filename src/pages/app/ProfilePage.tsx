@@ -182,15 +182,15 @@ export default function ProfilePage() {
 
             {/* Body: Kuota Bar Garis (Klik untuk ke Kelola Tagihan) + Masa Aktif */}
             <div
-              className="cluv-profile-quota-box cluv-mt-1"
+              className="cluv-profile-quota-box"
               onClick={() => navigate('/profile/billing')}
               role="button"
               tabIndex={0}
               title="Klik untuk kelola kuota & tagihan"
             >
-              <div className="cluv-flex-between cluv-items-center cluv-caption cluv-mb-1.5">
-                <span className="cluv-font-bold cluv-text-muted">Kuota Universal AI</span>
-                <span className="cluv-font-bold cluv-text-teal">
+              <div className="cluv-profile-quota-header">
+                <span className="cluv-profile-quota-title">Kuota Universal AI</span>
+                <span className="cluv-profile-quota-val">
                   {isFree ? 'Gratis' : `${remainingPercent}% Tersisa`}
                 </span>
               </div>
@@ -202,8 +202,8 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <div className="cluv-mt-1.5 cluv-caption cluv-text-muted">
-                Masa aktif: <strong className="cluv-text-dark">{expiryDateStr}</strong>
+              <div className="cluv-profile-quota-meta">
+                Masa aktif: <strong>{expiryDateStr}</strong>
               </div>
             </div>
           </div>

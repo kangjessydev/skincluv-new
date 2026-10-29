@@ -10,10 +10,12 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 
 ### Ditambahkan
 - **Penyempurnaan Ergonomis Kartu Profil Terpadu Mobile (`ProfilePage.tsx`, `cards.css`)**:
-  - Badge keanggotaan kini melayang di bagian tengah bawah avatar foto profil (`.cluv-avatar-badge-icon`) dalam wujud ikon minimalis tanpa teks (`👑` untuk VIP Pro, `⚡` untuk Glow Club).
+  - Penyesuaian ukuran avatar ring menjadi 38px (inner initial 13px) sehingga inisial nama lega dan tidak tercekik oleh badge mahkota mengambang.
+  - Penegasan hirarki tipografi: judul `Halo, Jessy` berukuran 15px (800 bold), label `Kuota Universal AI` dan `100% Tersisa` berukuran 12px (600 semi-bold), dan `Masa aktif` berukuran 11px subtle.
+  - Perataan ritme spasi vertikal kartu (`padding: 15px 16px 14px`, margin-bottom header 12px, margin vertikal bilah bar 8px) menghilangkan ruang kosong berlebih di bagian bawah kartu.
+  - Badge keanggotaan melayang di bagian tengah bawah avatar foto profil (`.cluv-avatar-badge-icon`) dalam wujud ikon minimalis tanpa teks (`👑` untuk VIP Pro, `⚡` untuk Glow Club).
   - Penghapusan badge jenis kulit (`Combination`) yang redundan dari kartu profil.
-  - Kuota Universal AI disajikan dalam bentuk bilah garis (*progress bar*) horizontal bersih di bawah garis pembatas dengan keterangan status `"Masa aktif: [tanggal]"`.
-  - Bilah kuota bersifat interaktif (*clickable*) yang langsung mengarahkan pengguna ke halaman `/profile/billing` saat diklik (menghilangkan tombol "Kelola Tagihan" terpisah).
+  - Kuota Universal AI disajikan dalam bentuk bilah garis (*progress bar*) horizontal bersih di bawah garis pembatas yang interaktif (*clickable*) menuju `/profile/billing`.
   - Penghapusan tombol "Keluar" dari kartu profil untuk diposisikan pada area navigasi khusus selanjutnya.
 - **Standarisasi Tipografi Header Halaman Profil & Pengaturan (`ProfilePage.tsx`, `typography.css`)**:
   - Penambahan class kanonikal `.cluv-title-page` di `src/styles/cluv/typography.css` (selaras dengan `.cluv-title-section` ukuran `clamp(1.5rem, 2.8vw + 0.5rem, 2.25rem)` dan font-weight 800) untuk mencegah rendering default `<h1>` peramban yang terlalu besar di perangkat mobile.
