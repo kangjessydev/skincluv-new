@@ -622,6 +622,71 @@
   font-weight: 700;
 }
 
+.cluv-filter-dropdown-item.is-active .cluv-tab-badge {
+  background: var(--cluv-teal-line, #bceae7);
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 800;
+}
+
+/* Feed Search Bar & Filter Header */
+.cluv-feed-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.cluv-feed-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-feed-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 30px 0 34px;
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  border-radius: var(--cluv-radius-pill, 9999px);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--cluv-current-text, #1a2d42);
+  box-shadow: var(--cluv-shadow-sm);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cluv-feed-search-input:focus {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
+}
+
+.cluv-feed-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cluv-neutral-400, #94a3b8);
+  pointer-events: none;
+}
+
+.cluv-feed-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 2px;
+  color: var(--cluv-neutral-400, #94a3b8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .cluv-dot-indicator {
   width: 6px;
   height: 6px;
@@ -808,9 +873,23 @@
 }
 
 .cluv-receipt-val {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--cluv-current-text, var(--cluv-neutral-900));
+  text-align: right;
+}
+
+.cluv-receipt-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--cluv-current-border, var(--cluv-border, #dce8f3));
+}
+
+.cluv-receipt-stacked:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 /* =============================================================================

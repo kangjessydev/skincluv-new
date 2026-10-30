@@ -5,16 +5,16 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  CreditCard,
   Crown,
   ExternalLink,
   ShoppingBag,
-  ChevronRight,
   Copy,
   Receipt,
   Filter,
   ChevronDown,
   Check,
+  Search,
+  X,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -44,6 +44,7 @@ export default function TransactionHistoryPage() {
   const [loading, setLoading] = useState(true)
   const [invoices, setInvoices] = useState<InvoiceItem[]>([])
   const [filter, setFilter] = useState<InvoiceFilter>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceItem | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
@@ -90,12 +91,23 @@ export default function TransactionHistoryPage() {
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
-      if (filter === 'unpaid') return inv.status === 'UNPAID'
-      if (filter === 'paid') return inv.status === 'PAID'
-      if (filter === 'expired') return inv.status === 'EXPIRED' || inv.status === 'FAILED'
+      // 1. Status Filter
+      if (filter === 'unpaid' && inv.status !== 'UNPAID') return false
+      if (filter === 'paid' && inv.status !== 'PAID') return false
+      if (filter === 'expired' && (inv.status !== 'EXPIRED' && inv.status !== 'FAILED')) return false
+
+      // 2. Search Query Filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const matchRef = inv.merchant_ref.toLowerCase().includes(q)
+        const matchPlan = (inv.plan || '').toLowerCase().includes(q) || 'skincluv pro'.includes(q)
+        const matchStatus = inv.status.toLowerCase().includes(q)
+        if (!matchRef && !matchPlan && !matchStatus) return false
+      }
+
       return true
     })
-  }, [invoices, filter])
+  }, [invoices, filter, searchQuery])
 
   // Pengelompokan transaksi otomatis berdasarkan Bulan & Tahun
   const groupedInvoices = useMemo(() => {
@@ -136,16 +148,16 @@ export default function TransactionHistoryPage() {
     })
   }
 
-  const formatFullDate = (dateStr: string | null | undefined) => {
+  const formatBriefDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
     return date.toLocaleDateString('id-ID', {
       day: 'numeric',
-      month: 'long',
+      month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }) + ' WIB'
+    })
   }
 
   const getPlanTitle = (plan?: string | null) => {
@@ -189,72 +201,124 @@ export default function TransactionHistoryPage() {
         </p>
       </div>
 
-      {/* ===================== DESKTOP ONLY: Filter Chips Horizontal ===================== */}
-      <div className="cluv-hide-mobile cluv-filter-scroll cluv-mt-4 cluv-mb-4">
-        {filterOptions.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            className={`cluv-chip is-pill ${filter === opt.key ? 'is-active' : ''}`}
-            onClick={() => setFilter(opt.key)}
-          >
-            <span>{opt.label}</span>
-            <span className="cluv-tab-badge">{opt.count}</span>
-          </button>
-        ))}
+      {/* ===================== DESKTOP ONLY: Search & Filter Chips ===================== */}
+      <div className="cluv-hide-mobile cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-3 cluv-mt-4 cluv-mb-4">
+        <div className="cluv-feed-search-wrap" style={{ maxWidth: '280px' }}>
+          <Search size={14} className="cluv-feed-search-icon" />
+          <input
+            type="text"
+            className="cluv-feed-search-input"
+            placeholder="Cari paket atau ref..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="cluv-feed-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Bersihkan pencarian"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        <div className="cluv-filter-scroll">
+          {filterOptions.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              className={`cluv-chip is-pill ${filter === opt.key ? 'is-active' : ''}`}
+              onClick={() => setFilter(opt.key)}
+            >
+              <span>{opt.label}</span>
+              <span className="cluv-tab-badge">{opt.count}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* ===================== MOBILE ONLY: Custom Cluv Dropdown Filter ===================== */}
-      <div className="cluv-hide-desktop cluv-mb-3 cluv-mt-1" ref={dropdownRef}>
-        <div className="cluv-filter-dropdown-wrap">
-          <button
-            type="button"
-            className="cluv-filter-trigger-btn"
-            onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
-            aria-expanded={isFilterDropdownOpen}
-            aria-haspopup="listbox"
-          >
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-              <Filter size={13} className="cluv-text-teal" />
-              <span>{activeFilterOption.label}</span>
-              <span className="cluv-tab-badge">{activeFilterOption.count}</span>
-            </div>
-            <ChevronDown
-              size={14}
-              className="cluv-text-muted"
-              style={{
-                transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.15s ease',
-              }}
+      {/* ===================== MOBILE ONLY: Search Bar (Left) + Dropdown Filter (Right) ===================== */}
+      <div className="cluv-hide-desktop cluv-mb-3 cluv-mt-1">
+        <div className="cluv-feed-filter-bar">
+          {/* Search Bar di Kiri */}
+          <div className="cluv-feed-search-wrap">
+            <Search size={14} className="cluv-feed-search-icon" />
+            <input
+              type="text"
+              className="cluv-feed-search-input"
+              placeholder="Cari transaksi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </button>
+            {searchQuery && (
+              <button
+                type="button"
+                className="cluv-feed-search-clear"
+                onClick={() => setSearchQuery('')}
+                aria-label="Bersihkan pencarian"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
 
-          {isFilterDropdownOpen && (
-            <div className="cluv-filter-dropdown-menu" role="listbox">
-              {filterOptions.map((opt) => (
-                <button
-                  key={opt.key}
-                  type="button"
-                  className={`cluv-filter-dropdown-item ${filter === opt.key ? 'is-active' : ''}`}
-                  onClick={() => {
-                    setFilter(opt.key)
-                    setIsFilterDropdownOpen(false)
-                  }}
-                  role="option"
-                  aria-selected={filter === opt.key}
-                >
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                    <span className={`cluv-dot-indicator ${opt.dotClass}`} />
-                    <span>{opt.label}</span>
-                  </div>
-                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                    <span className="cluv-tab-badge">{opt.count}</span>
-                    {filter === opt.key && <Check size={14} className="cluv-text-teal" />}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Filter Dropdown di Kanan */}
+          <div className="cluv-filter-dropdown-wrap" style={{ width: 'auto' }} ref={dropdownRef}>
+            <button
+              type="button"
+              className="cluv-filter-trigger-btn"
+              onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
+              aria-expanded={isFilterDropdownOpen}
+              aria-haspopup="listbox"
+            >
+              <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
+                <Filter size={13} className="cluv-text-teal" />
+                <span>{activeFilterOption.label}</span>
+                <span className="cluv-tab-badge">{activeFilterOption.count}</span>
+              </div>
+              <ChevronDown
+                size={13}
+                className="cluv-text-muted"
+                style={{
+                  transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s ease',
+                }}
+              />
+            </button>
+
+            {isFilterDropdownOpen && (
+              <div
+                className="cluv-filter-dropdown-menu"
+                style={{ right: 0, left: 'auto' }}
+                role="listbox"
+              >
+                {filterOptions.map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${filter === opt.key ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setFilter(opt.key)
+                      setIsFilterDropdownOpen(false)
+                    }}
+                    role="option"
+                    aria-selected={filter === opt.key}
+                  >
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                      <span className={`cluv-dot-indicator ${opt.dotClass}`} />
+                      <span>{opt.label}</span>
+                    </div>
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                      <span className="cluv-tab-badge">{opt.count}</span>
+                      {filter === opt.key && <Check size={14} className="cluv-text-teal" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -272,11 +336,25 @@ export default function TransactionHistoryPage() {
             </div>
             <h3 className="cluv-title-card">Belum Ada Transaksi</h3>
             <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md">
-              {filter === 'all'
+              {searchQuery
+                ? `Tidak ditemukan transaksi dengan kata kunci "${searchQuery}".`
+                : filter === 'all'
                 ? 'Kamu belum memiliki riwayat transaksi di Skincluv.'
-                : 'Tidak ada transaksi untuk filter yang dipilih.'}
+                : 'Tidak ada transaksi untuk status yang dipilih.'}
             </p>
-            {filter === 'all' ? (
+            {searchQuery ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('')
+                  setFilter('all')
+                }}
+                className="cluv-mt-4"
+              >
+                Reset Pencarian
+              </Button>
+            ) : filter === 'all' ? (
               <Button variant="primary" size="sm" to="/pricing" className="cluv-mt-4">
                 Upgrade ke PRO
               </Button>
@@ -320,6 +398,7 @@ export default function TransactionHistoryPage() {
                         </div>
                       </div>
 
+                      {/* Kolom Kanan Lega (Arrow ditiadakan agar status dan harga tidak berdesakan) */}
                       <div className="cluv-feed-right">
                         <div className="cluv-feed-price-wrap">
                           <span className="cluv-feed-amount">
@@ -339,7 +418,6 @@ export default function TransactionHistoryPage() {
                             </Badge>
                           )}
                         </div>
-                        <ChevronRight size={16} className="cluv-feed-arrow" />
                       </div>
                     </button>
                   )
@@ -355,11 +433,13 @@ export default function TransactionHistoryPage() {
         isOpen={!!selectedInvoice}
         onClose={() => setSelectedInvoice(null)}
         title={
-          <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2.5">
             <div className="cluv-card-icon-wrap is-sm is-teal">
-              <Receipt size={16} />
+              <Receipt size={18} />
             </div>
-            <span>Rincian Tagihan</span>
+            <span className="cluv-font-bold cluv-text-dark" style={{ fontSize: '1rem' }}>
+              Rincian Tagihan
+            </span>
           </div>
         }
       >
@@ -391,44 +471,52 @@ export default function TransactionHistoryPage() {
               </div>
             </div>
 
-            {/* Receipt Box Breakdown */}
+            {/* Receipt Box Breakdown (Balanced & Mobile-Optimized) */}
             <div className="cluv-receipt-box">
               <div className="cluv-receipt-row">
                 <span className="cluv-receipt-label">Paket Layanan</span>
                 <span className="cluv-receipt-val">{getPlanTitle(selectedInvoice.plan)}</span>
               </div>
 
-              <div className="cluv-receipt-row">
-                <span className="cluv-receipt-label">Nomor Referensi</span>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
-                  <span
-                    className="cluv-receipt-val"
-                    style={{ fontFamily: 'var(--cluv-font-mono, monospace)', fontSize: '0.8125rem' }}
-                  >
-                    {selectedInvoice.merchant_ref}
-                  </span>
+              {/* Stacked Row: Nomor Referensi agar tidak mendesak label */}
+              <div className="cluv-receipt-stacked">
+                <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                  <span className="cluv-receipt-label">Nomor Referensi</span>
                   <button
                     type="button"
                     onClick={() => handleCopyRef(selectedInvoice.merchant_ref)}
-                    className="cluv-btn is-outline is-sm"
-                    style={{ padding: '3px 7px', minHeight: 'unset', height: '24px' }}
+                    className="cluv-btn is-outline is-sm cluv-flex-row cluv-items-center"
+                    style={{ padding: '2px 8px', minHeight: 'unset', height: '22px', fontSize: '0.75rem' }}
                     title="Salin Nomor Referensi"
                     aria-label="Salin Nomor Referensi"
                   >
-                    <Copy size={12} />
+                    <Copy size={11} className="cluv-mr-1" />
+                    <span>Salin</span>
                   </button>
                 </div>
+                <span
+                  className="cluv-receipt-val"
+                  style={{
+                    fontFamily: 'var(--cluv-font-mono, monospace)',
+                    fontSize: '0.8125rem',
+                    textAlign: 'left',
+                    wordBreak: 'break-all',
+                    color: 'var(--cluv-teal-dark, #127a75)',
+                  }}
+                >
+                  {selectedInvoice.merchant_ref}
+                </span>
               </div>
 
               <div className="cluv-receipt-row">
                 <span className="cluv-receipt-label">Waktu Transaksi</span>
-                <span className="cluv-receipt-val">{formatFullDate(selectedInvoice.created_at)}</span>
+                <span className="cluv-receipt-val">{formatBriefDate(selectedInvoice.created_at)}</span>
               </div>
 
               {selectedInvoice.paid_at && (
                 <div className="cluv-receipt-row">
                   <span className="cluv-receipt-label">Waktu Pembayaran</span>
-                  <span className="cluv-receipt-val">{formatFullDate(selectedInvoice.paid_at)}</span>
+                  <span className="cluv-receipt-val">{formatBriefDate(selectedInvoice.paid_at)}</span>
                 </div>
               )}
 
@@ -436,7 +524,7 @@ export default function TransactionHistoryPage() {
                 <div className="cluv-receipt-row">
                   <span className="cluv-receipt-label">Batas Pembayaran</span>
                   <span className="cluv-receipt-val cluv-text-gold">
-                    {formatFullDate(selectedInvoice.expired_at)}
+                    {formatBriefDate(selectedInvoice.expired_at)}
                   </span>
                 </div>
               )}
