@@ -9,6 +9,14 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Desain Mobile-First Gamification Feed pada Halaman Misi (`MissionsPage.tsx`, `cards.css`)**:
+  - Mengeliminasi *double card nesting* di mobile: menghapus kartu putih raksasa yang membungkus seluruh daftar misi di layar kecil sehingga menghilangkan *horizontal clipping/overflow*.
+  - Mengimplementasikan **Bento Gamification Hero Mobile** (`.cluv-mobile-mission-hero`): menampilkan saldo AI Credits, badge status klaim/reset, dan mini progress bar rutinitas harian yang ringkas dan padat.
+  - Filter kategori horizontal melayang (`.cluv-filter-scroll` dengan `.cluv-chip.is-pill`) langsung di atas feed tanpa pembungkus kartu kaku.
+  - Kartu misi mobile mandiri (`.cluv-mobile-mission-card`) berlebar 100% layar dengan ikon squircle bertema sesuai aksi (`ScanFace` teal, `FlaskConical` biru, `MessageSquare` ungu, `Trophy` gold).
+  - Menggantikan notifikasi inline statis dengan **Floating Toast Notification** (`<Toast>`) saat klaim hadiah selesai untuk menjamin *Zero Cumulative Layout Shift (CLS)*.
+  - Penyelarasan angka dan counter menggunakan format `cluv-tabular-nums` untuk mencegah pergeseran angka saat progress bertambah.
+
 - **Penyempurnaan Ergonomi Privacy Center: Native Bottom Sheet, Hirarki Tipografi Konsisten, & Tombol Destruktif (`PrivacyCenterPage.tsx`, `modals.css`)**:
   - Mengubah modal dialog konfirmasi menjadi **Pure Bottom Sheet Panel** (`.cluv-sheet-panel`) yang menempel di bagian bawah layar ponsel dengan drag handle bar abu-abu dan breakpoint mobile 880px.
   - Memperbaiki hirarki tipografi teks konfirmasi: judul 16px tegas, deskripsi ringkas 13.5px (`line-height: 1.5`), dan micro-disclaimer 12px yang terstruktur tanpa teks ganda yang berulang.

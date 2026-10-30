@@ -111,6 +111,13 @@ const DEFAULT_MISSIONS: MissionView[] = [
   },
 ]
 
+function getMissionVisual(action?: string) {
+  if (action === 'face_scan') return { icon: ScanFace, color: 'is-teal' }
+  if (action === 'ingredient_scan') return { icon: FlaskConical, color: 'is-blue' }
+  if (action === 'chatbot') return { icon: MessageSquare, color: 'is-purple' }
+  return { icon: Trophy, color: 'is-gold' }
+}
+
 export default function MissionsPage() {
   const { user, coinBalance, setCoinBalance } = useAuthStore()
   const [missions, setMissions] = useState<MissionView[]>(DEFAULT_MISSIONS)
@@ -299,245 +306,416 @@ export default function MissionsPage() {
 
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* Page Header (Desktop only; on mobile title is shown in Topbar) */}
-      <div className="cluv-mb-6 cluv-hide-mobile">
-        <h1 className="cluv-title-page">Misi &amp; Hadiah Credits</h1>
-        <p className="cluv-caption cluv-text-muted">
-          Selesaikan aktivitas harian dan tantangan mingguan untuk mengumpulkan AI Credits gratis di Skincluv!
-        </p>
-      </div>
+      {/* =====================================================================
+          1. DESKTOP VIEW (> 879px): Standard 2-Column Missions Layout
+          ===================================================================== */}
+      <div className="cluv-desktop-missions">
+        <div className="cluv-mb-6">
+          <h1 className="cluv-title-page">Misi &amp; Hadiah Credits</h1>
+          <p className="cluv-caption cluv-text-muted">
+            Selesaikan aktivitas harian dan tantangan mingguan untuk mengumpulkan AI Credits gratis di Skincluv!
+          </p>
+        </div>
 
-      {/* Full-Width 2-Column Grid Layout */}
-      <div className="cluv-missions-layout">
-        {/* Left Column: Credit Summary & Info Card */}
-        <div className="cluv-flex-col cluv-gap-4">
-          {/* Credit Balance & Gamification Hero Bento Card */}
-          <div className="cluv-card is-highlight">
-            <div className="cluv-flex-between cluv-items-center cluv-gap-3 cluv-flex-wrap">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-3">
-                <div className="cluv-card-icon-wrap is-md is-gold cluv-flex-shrink-0">
-                  <Coins size={24} />
+        <div className="cluv-missions-layout">
+          {/* Left Column: Credit Summary & Info Card */}
+          <div className="cluv-flex-col cluv-gap-4">
+            <div className="cluv-card is-highlight">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-4">
+                <div className="cluv-card-icon-wrap is-lg is-gold">
+                  <Coins size={30} />
                 </div>
                 <div>
-                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">
-                    Saldo AI Credits
-                  </span>
+                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Saldo Credits Saat Ini</span>
                   <div className="cluv-title-hero cluv-text-dark cluv-m-0 cluv-tabular-nums">
                     {currentBalanceDisplay.toLocaleString('id-ID')} <span className="cluv-body cluv-font-bold cluv-text-muted">Credits</span>
                   </div>
                 </div>
               </div>
 
-              {readyCount > 0 ? (
-                <Badge variant="teal" pulse icon={<Zap size={13} />}>
-                  {readyCount} Misi Siap Diklaim!
-                </Badge>
-              ) : (
+              <div className="cluv-mt-4">
+                {readyCount > 0 ? (
+                  <Badge variant="teal" pulse icon={<Zap size={13} />}>
+                    Ada {readyCount} Misi Siap Diklaim!
+                  </Badge>
+                ) : (
+                  <Badge variant="gold" icon={<Sparkles size={13} />}>
+                    Akses Gratis ke Fitur AI
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="cluv-card">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-2">
+                <Gift size={18} className="cluv-text-gold" />
+                <h3 className="cluv-title-card cluv-m-0">Manfaat AI Credits</h3>
+              </div>
+              <p className="cluv-caption cluv-text-muted cluv-mb-4">
+                Credits yang kamu kumpulkan dapat digunakan langsung untuk seluruh fitur cerdas:
+              </p>
+              <ul className="cluv-flex-col cluv-gap-3 cluv-p-0 cluv-m-0 cluv-list-none">
+                <li className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-caption cluv-text-dark">
+                  <div className="cluv-card-icon-wrap is-sm is-teal">
+                    <ScanFace size={15} />
+                  </div>
+                  <span><strong>Observasi Visual Wajah</strong> (5 Credits / scan)</span>
+                </li>
+                <li className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-caption cluv-text-dark">
+                  <div className="cluv-card-icon-wrap is-sm is-teal">
+                    <FlaskConical size={15} />
+                  </div>
+                  <span><strong>Analisis Komposisi Skincare</strong> (3 Credits / scan)</span>
+                </li>
+                <li className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-caption cluv-text-dark">
+                  <div className="cluv-card-icon-wrap is-sm is-teal">
+                    <MessageSquare size={15} />
+                  </div>
+                  <span><strong>Konsultasi Skinsistant AI</strong> (1 Credit / pesan)</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Right Column: Mission Tasks List */}
+          <div className="cluv-flex-col">
+            <div className="cluv-card">
+              <div className="cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-2 cluv-mb-4">
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                  <Trophy size={18} className="cluv-text-gold" />
+                  <h3 className="cluv-title-card cluv-m-0">Daftar Misi &amp; Tantangan</h3>
+                </div>
                 <Badge variant="slate" size="sm" icon={<Calendar size={13} />}>
                   Reset 00:00 WIB
                 </Badge>
-              )}
-            </div>
-
-            {/* Daily Routine Mini Progress Bar */}
-            <div className="cluv-mt-4 cluv-pt-3 cluv-border-t">
-              <div className="cluv-flex-between cluv-items-center cluv-mb-1.5">
-                <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-uppercase">
-                  Progres Rutinitas Harian
-                </span>
-                <span className="cluv-micro cluv-font-bold cluv-text-dark cluv-tabular-nums">
-                  {completedDailyCount} dari {totalDailyCount} Selesai ({dailyPercent}%)
-                </span>
               </div>
-              <div className="cluv-progress-track">
-                <div
-                  className={`cluv-progress-bar ${dailyPercent === 100 ? 'is-optimal' : ''}`}
-                  style={{ width: `${dailyPercent}%` }}
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Manfaat AI Credits (Desktop only to prevent clutter on mobile) */}
-          <div className="cluv-card cluv-hide-mobile">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-2">
-              <Gift size={18} className="cluv-text-gold" />
-              <h3 className="cluv-title-card cluv-m-0">Manfaat AI Credits</h3>
-            </div>
-            <p className="cluv-caption cluv-text-muted cluv-mb-4">
-              Credits yang kamu kumpulkan dapat digunakan langsung untuk seluruh fitur cerdas:
-            </p>
-            <ul className="cluv-flex-col cluv-gap-3 cluv-p-0 cluv-m-0 cluv-list-none">
-              <li className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-caption cluv-text-dark">
-                <div className="cluv-card-icon-wrap is-sm is-teal">
-                  <ScanFace size={15} />
-                </div>
-                <span><strong>Observasi Visual Wajah</strong> (5 Credits / scan)</span>
-              </li>
-              <li className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-caption cluv-text-dark">
-                <div className="cluv-card-icon-wrap is-sm is-teal">
-                  <FlaskConical size={15} />
-                </div>
-                <span><strong>Analisis Komposisi Skincare</strong> (3 Credits / scan)</span>
-              </li>
-              <li className="cluv-flex-row cluv-items-center cluv-gap-3 cluv-caption cluv-text-dark">
-                <div className="cluv-card-icon-wrap is-sm is-teal">
-                  <MessageSquare size={15} />
-                </div>
-                <span><strong>Konsultasi Skinsistant AI</strong> (1 Credit / pesan)</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Right Column: Mission Tasks List */}
-        <div className="cluv-flex-col">
-          <div className="cluv-card">
-            <div className="cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-2 cluv-mb-4">
-              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                <Trophy size={18} className="cluv-text-gold" />
-                <h3 className="cluv-title-card cluv-m-0">Daftar Misi &amp; Tantangan</h3>
-              </div>
-              <Badge variant="slate" size="sm" icon={<Calendar size={13} />} className="cluv-hide-mobile">
-                Reset 00:00 WIB
-              </Badge>
-            </div>
-
-            {/* Mission Category Chips Bar (Scrollable on Mobile) */}
-            <div className="cluv-filter-scroll cluv-mb-4" role="tablist" aria-label="Kategori Misi">
-              {filterTabs.map((tab) => {
-                const isActive = activeTab === tab.key
-                return (
+              {/* Mission Category Tabs */}
+              <div className="cluv-tabs cluv-mb-5">
+                {filterTabs.map((tab) => (
                   <button
                     key={tab.key}
                     type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
+                    className={`cluv-tab-btn ${activeTab === tab.key ? 'active' : ''}`}
                     onClick={() => setActiveTab(tab.key)}
                   >
-                    <span>{tab.label}</span>
-                    <span className="cluv-tab-badge cluv-tabular-nums">{tab.count}</span>
+                    {tab.label} ({tab.count})
                   </button>
-                )
-              })}
-            </div>
-
-
-
-            {loading ? (
-              <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
-                <Loader2 size={24} className="animate-spin cluv-text-teal cluv-mx-auto cluv-mb-2" />
-                <span className="cluv-caption cluv-text-muted">Memuat data progres misi...</span>
+                ))}
               </div>
-            ) : filteredMissions.length === 0 ? (
-              <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
-                <Trophy size={36} className="cluv-text-muted cluv-mx-auto cluv-mb-2" />
-                <p className="cluv-body cluv-text-muted cluv-m-0">Tidak ada misi dalam kategori ini.</p>
-              </div>
-            ) : (
-              <div className="cluv-flex-col cluv-gap-3">
-                {filteredMissions.map((m) => {
-                  const isCompleted = m.progress >= m.target
-                  const percent = Math.min((m.progress / m.target) * 100, 100)
-                  const isDaily = m.type === 'daily'
-                  const isWeekly = m.type === 'weekly'
 
-                  return (
-                    <div
-                      key={m.id}
-                      className={`cluv-mission-item ${
-                        m.is_claimed ? 'is-claimed' : isCompleted ? 'is-ready' : ''
-                      }`}
-                    >
-                      <div className="cluv-mission-item-main">
-                        <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-1 cluv-flex-wrap">
-                          <span className={`cluv-badge is-sm ${isDaily ? 'is-teal' : isWeekly ? 'is-gold' : 'is-slate'}`}>
-                            {isDaily ? 'Harian' : isWeekly ? 'Mingguan' : 'Milestone'}
-                          </span>
-                          <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{m.title}</h4>
-                        </div>
-                        {m.description && <p className="cluv-micro cluv-text-muted cluv-mb-2 cluv-mt-1">{m.description}</p>}
+              {loading ? (
+                <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+                  <Loader2 size={24} className="animate-spin cluv-text-teal cluv-mx-auto cluv-mb-2" />
+                  <span className="cluv-caption cluv-text-muted">Memuat data progres misi...</span>
+                </div>
+              ) : filteredMissions.length === 0 ? (
+                <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+                  <Trophy size={36} className="cluv-text-muted cluv-mx-auto cluv-mb-2" />
+                  <p className="cluv-body cluv-text-muted cluv-m-0">Tidak ada misi dalam kategori ini.</p>
+                </div>
+              ) : (
+                <div className="cluv-flex-col cluv-gap-3">
+                  {filteredMissions.map((m) => {
+                    const isCompleted = m.progress >= m.target
+                    const percent = Math.min((m.progress / m.target) * 100, 100)
+                    const isDaily = m.type === 'daily'
+                    const isWeekly = m.type === 'weekly'
 
-                        <div className="cluv-max-w-xs">
-                          <div className="cluv-progress-track">
-                            <div
-                              className={`cluv-progress-bar ${isCompleted ? 'is-optimal' : ''}`}
-                              style={{ width: `${percent}%` }}
-                            />
+                    return (
+                      <div
+                        key={m.id}
+                        className={`cluv-mission-item ${
+                          m.is_claimed ? 'is-claimed' : isCompleted ? 'is-ready' : ''
+                        }`}
+                      >
+                        <div className="cluv-mission-item-main">
+                          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-1 cluv-flex-wrap">
+                            <span className={`cluv-badge is-sm ${isDaily ? 'is-teal' : isWeekly ? 'is-gold' : 'is-slate'}`}>
+                              {isDaily ? 'Harian' : isWeekly ? 'Mingguan' : 'Milestone'}
+                            </span>
+                            <h4 className="cluv-font-bold cluv-text-dark cluv-m-0">{m.title}</h4>
                           </div>
-                          <span className="cluv-micro cluv-text-muted cluv-mt-1 cluv-block cluv-tabular-nums">
-                            {m.progress} / {m.target} Selesai ({Math.round(percent)}%)
-                          </span>
-                        </div>
-                      </div>
+                          {m.description && <p className="cluv-micro cluv-text-muted cluv-mb-2 cluv-mt-1">{m.description}</p>}
 
-                      <div className="cluv-mission-item-action">
-                        <span className="cluv-font-bold cluv-text-gold cluv-tabular-nums">+{m.reward_coins} Credits</span>
-                        {m.is_claimed ? (
-                          <Badge variant="teal" size="sm" icon={<CheckCircle2 size={13} />}>
-                            Diklaim
-                          </Badge>
-                        ) : isCompleted ? (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            loading={claimingSlug === m.slug}
-                            onClick={() => handleClaim(m)}
-                          >
-                            Klaim Hadiah
-                          </Button>
-                        ) : (
-                          m.action === 'face_scan' ? (
+                          <div className="cluv-max-w-xs">
+                            <div className="cluv-progress-track">
+                              <div
+                                className={`cluv-progress-bar ${isCompleted ? 'is-optimal' : ''}`}
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                            <span className="cluv-micro cluv-text-muted cluv-mt-1 cluv-block cluv-tabular-nums">
+                              {m.progress} / {m.target} Selesai ({Math.round(percent)}%)
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="cluv-mission-item-action">
+                          <span className="cluv-font-bold cluv-text-gold cluv-tabular-nums">+{m.reward_coins} Credits</span>
+                          {m.is_claimed ? (
+                            <Badge variant="teal" size="sm" icon={<CheckCircle2 size={13} />}>
+                              Diklaim
+                            </Badge>
+                          ) : isCompleted ? (
                             <Button
-                              variant="outline"
+                              variant="primary"
                               size="sm"
-                              iconRight={<ArrowRight size={12} />}
-                              to="/face-scan"
+                              loading={claimingSlug === m.slug}
+                              onClick={() => handleClaim(m)}
                             >
-                              Mulai Scan
-                            </Button>
-                          ) : m.action === 'ingredient_scan' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              iconRight={<ArrowRight size={12} />}
-                              to="/ingredient-scan"
-                            >
-                              Pindai Produk
-                            </Button>
-                          ) : m.action === 'chatbot' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              iconRight={<ArrowRight size={12} />}
-                              to="/chatbot"
-                            >
-                              Tanya AI
-                            </Button>
-                          ) : m.action === 'complete_profile' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              iconRight={<ArrowRight size={12} />}
-                              to="/profile"
-                            >
-                              Isi Profil
+                              Klaim Hadiah
                             </Button>
                           ) : (
-                            <Badge variant="slate" size="sm">
-                              Belum Selesai
-                            </Badge>
-                          )
-                        )}
+                            m.action === 'face_scan' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                iconRight={<ArrowRight size={12} />}
+                                to="/face-scan"
+                              >
+                                Mulai Scan
+                              </Button>
+                            ) : m.action === 'ingredient_scan' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                iconRight={<ArrowRight size={12} />}
+                                to="/ingredient-scan"
+                              >
+                                Pindai Produk
+                              </Button>
+                            ) : m.action === 'chatbot' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                iconRight={<ArrowRight size={12} />}
+                                to="/chatbot"
+                              >
+                                Tanya AI
+                              </Button>
+                            ) : m.action === 'complete_profile' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                iconRight={<ArrowRight size={12} />}
+                                to="/profile"
+                              >
+                                Isi Profil
+                              </Button>
+                            ) : (
+                              <Badge variant="slate" size="sm">
+                                Belum Selesai
+                              </Badge>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* =====================================================================
+          2. MOBILE-FIRST VIEW (<= 879px): Pure Feed & Standalone Mission Cards
+          ===================================================================== */}
+      <div className="cluv-mobile-missions">
+        {/* Bento Gamification Hero Card */}
+        <div className="cluv-mobile-mission-hero">
+          <div className="cluv-mobile-mission-hero-top">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+              <div className="cluv-card-icon-wrap is-md is-gold cluv-flex-shrink-0">
+                <Coins size={22} />
+              </div>
+              <div>
+                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">
+                  Saldo AI Credits
+                </span>
+                <div className="cluv-title-card cluv-text-dark cluv-m-0 cluv-tabular-nums">
+                  {currentBalanceDisplay.toLocaleString('id-ID')} <span className="cluv-caption cluv-font-bold cluv-text-muted">Credits</span>
+                </div>
+              </div>
+            </div>
+
+            {readyCount > 0 ? (
+              <Badge variant="teal" pulse icon={<Zap size={12} />}>
+                {readyCount} Siap Klaim
+              </Badge>
+            ) : (
+              <Badge variant="slate" size="sm" icon={<Calendar size={12} />}>
+                Reset 00:00
+              </Badge>
+            )}
+          </div>
+
+          {/* Daily Routine Mini Progress Bar */}
+          <div className="cluv-border-t cluv-pt-2.5 cluv-mt-1">
+            <div className="cluv-flex-between cluv-items-center cluv-mb-1.5">
+              <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-uppercase">
+                Progres Misi Hari Ini
+              </span>
+              <span className="cluv-micro cluv-font-bold cluv-text-dark cluv-tabular-nums">
+                {completedDailyCount} dari {totalDailyCount} Selesai ({dailyPercent}%)
+              </span>
+            </div>
+            <div className="cluv-progress-track">
+              <div
+                className={`cluv-progress-bar ${dailyPercent === 100 ? 'is-optimal' : ''}`}
+                style={{ width: `${dailyPercent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Scrollable Category Filter Chips (Directly on feed, NO card box!) */}
+        <div className="cluv-filter-scroll" role="tablist" aria-label="Kategori Misi">
+          {filterTabs.map((tab) => {
+            const isActive = activeTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                <span>{tab.label}</span>
+                <span className="cluv-tab-badge cluv-tabular-nums">{tab.count}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Mobile Mission Feed Items */}
+        {loading ? (
+          <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+            <Loader2 size={24} className="animate-spin cluv-text-teal cluv-mx-auto cluv-mb-2" />
+            <span className="cluv-caption cluv-text-muted">Memuat data misi...</span>
+          </div>
+        ) : filteredMissions.length === 0 ? (
+          <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
+            <Trophy size={36} className="cluv-text-muted cluv-mx-auto cluv-mb-2" />
+            <p className="cluv-body cluv-text-muted cluv-m-0">Tidak ada misi dalam kategori ini.</p>
+          </div>
+        ) : (
+          <div className="cluv-flex-col cluv-gap-3">
+            {filteredMissions.map((m) => {
+              const isCompleted = m.progress >= m.target
+              const percent = Math.min((m.progress / m.target) * 100, 100)
+              const isDaily = m.type === 'daily'
+              const isWeekly = m.type === 'weekly'
+              const visual = getMissionVisual(m.action)
+              const VisualIcon = visual.icon
+
+              return (
+                <div
+                  key={m.id}
+                  className={`cluv-mobile-mission-card ${
+                    m.is_claimed ? 'is-claimed' : isCompleted ? 'is-ready' : ''
+                  }`}
+                >
+                  <div className="cluv-mobile-mission-card-header">
+                    <div className={`cluv-mobile-mission-icon-wrap ${visual.color}`}>
+                      <VisualIcon size={18} strokeWidth={2.2} />
+                    </div>
+                    <div className="cluv-mobile-mission-card-content">
+                      <div className="cluv-mobile-mission-title-row">
+                        <span className={`cluv-badge is-sm ${isDaily ? 'is-teal' : isWeekly ? 'is-gold' : 'is-slate'}`}>
+                          {isDaily ? 'Harian' : isWeekly ? 'Mingguan' : 'Milestone'}
+                        </span>
+                        <h4 className="cluv-mobile-mission-title">{m.title}</h4>
+                      </div>
+                      {m.description && (
+                        <p className="cluv-mobile-mission-desc">{m.description}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="cluv-mobile-mission-progress">
+                    <div className="cluv-progress-track">
+                      <div
+                        className={`cluv-progress-bar ${isCompleted ? 'is-optimal' : ''}`}
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <span className="cluv-micro cluv-text-muted cluv-tabular-nums">
+                      {m.progress} / {m.target} Selesai ({Math.round(percent)}%)
+                    </span>
+                  </div>
+
+                  <div className="cluv-mobile-mission-action-row">
+                    <span className="cluv-mobile-mission-reward cluv-tabular-nums">
+                      <Sparkles size={14} />
+                      <span>+{m.reward_coins} Credits</span>
+                    </span>
+
+                    {m.is_claimed ? (
+                      <Badge variant="teal" size="sm" icon={<CheckCircle2 size={13} />}>
+                        Diklaim
+                      </Badge>
+                    ) : isCompleted ? (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        loading={claimingSlug === m.slug}
+                        onClick={() => handleClaim(m)}
+                      >
+                        Klaim Hadiah ⚡
+                      </Button>
+                    ) : (
+                      m.action === 'face_scan' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconRight={<ArrowRight size={12} />}
+                          to="/face-scan"
+                        >
+                          Mulai Scan
+                        </Button>
+                      ) : m.action === 'ingredient_scan' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconRight={<ArrowRight size={12} />}
+                          to="/ingredient-scan"
+                        >
+                          Pindai Produk
+                        </Button>
+                      ) : m.action === 'chatbot' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconRight={<ArrowRight size={12} />}
+                          to="/chatbot"
+                        >
+                          Tanya AI
+                        </Button>
+                      ) : m.action === 'complete_profile' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconRight={<ArrowRight size={12} />}
+                          to="/profile"
+                        >
+                          Isi Profil
+                        </Button>
+                      ) : (
+                        <Badge variant="slate" size="sm">
+                          Belum Selesai
+                        </Badge>
+                      )
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Toast Feedback Klaim Misi (Zero Layout Shift) */}

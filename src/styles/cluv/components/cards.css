@@ -1337,6 +1337,178 @@
 }
 
 /* =============================================================================
+ * 8.1 MOBILE-FIRST GAMIFICATION FEED (.cluv-mobile-missions)
+ * ============================================================================= */
+.cluv-mobile-missions {
+  display: none;
+}
+
+@media (max-width: 879px) {
+  .cluv-desktop-missions {
+    display: none !important;
+  }
+
+  .cluv-mobile-missions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  /* Mobile Bento Gamification Hero */
+  .cluv-mobile-mission-hero {
+    background: var(--cluv-surface, #ffffff);
+    border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+    border-radius: var(--cluv-radius-lg, 16px);
+    padding: 16px;
+    box-shadow: var(--cluv-shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .cluv-mobile-mission-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* Mobile Standalone Mission Card (No Nested Cards!) */
+  .cluv-mobile-mission-card {
+    background: var(--cluv-surface, #ffffff);
+    border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+    border-radius: var(--cluv-radius-lg, 16px);
+    padding: 14px;
+    box-shadow: var(--cluv-shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .cluv-mobile-mission-card.is-ready {
+    border-color: var(--cluv-teal, #1f9d97);
+    background: var(--cluv-teal-soft, #f0fdfc);
+    box-shadow: 0 4px 14px rgba(31, 157, 151, 0.1);
+  }
+
+  .cluv-mobile-mission-card.is-claimed {
+    opacity: 0.65;
+    background: var(--cluv-surface-muted, #f8fafc);
+  }
+
+  .cluv-mobile-mission-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .cluv-mobile-mission-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cluv-mobile-mission-icon-wrap.is-teal {
+    background: var(--cluv-teal-soft, #e6f6f5);
+    color: var(--cluv-teal-dark, #127a75);
+    border: 1px solid var(--cluv-teal-line, #bceae7);
+  }
+
+  .cluv-mobile-mission-icon-wrap.is-blue {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #dbeafe;
+  }
+
+  .cluv-mobile-mission-icon-wrap.is-purple {
+    background: var(--cluv-purple-soft, #faf5ff);
+    color: var(--cluv-purple, #8b5cf6);
+    border: 1px solid var(--cluv-purple-line, #e9d5ff);
+  }
+
+  .cluv-mobile-mission-icon-wrap.is-gold {
+    background: #fef8ee;
+    color: var(--cluv-gold, #d97706);
+    border: 1px solid #fae0b8;
+  }
+
+  .cluv-mobile-mission-card-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .cluv-mobile-mission-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .cluv-mobile-mission-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--cluv-neutral-900, #0f172a);
+    margin: 0;
+  }
+
+  .cluv-mobile-mission-desc {
+    font-size: 0.75rem;
+    color: var(--cluv-neutral-500, #64748b);
+    line-height: 1.35;
+    margin: 0;
+  }
+
+  .cluv-mobile-mission-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 48px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .cluv-mobile-mission-action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px dashed var(--cluv-current-border, var(--cluv-neutral-200));
+    margin-top: 2px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .cluv-mobile-mission-reward {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: var(--cluv-gold, #d97706);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+/* =============================================================================
  * Universal Scanner & Analysis Layout (.cluv-scan-layout)
  * ============================================================================= */
 .cluv-scan-layout {
