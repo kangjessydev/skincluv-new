@@ -26,10 +26,15 @@ import {
   TrendingDown,
   Minus,
   Smartphone,
+  LayoutGrid,
+  Receipt,
+  UserCheck,
+  Shield,
+  CircleHelp,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useDashboardData, type DashboardMissionItem } from '@/hooks/useDashboardData'
-import { Alert, Badge, Button, Skeleton, SkeletonText, EmptyFaceScan } from '@/components/ui'
+import { Alert, Badge, Button, Skeleton, SkeletonText, EmptyFaceScan, BottomSheet } from '@/components/ui'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
 import '@/styles/cluv/app/dashboard.css'
 
@@ -85,6 +90,7 @@ export default function DashboardPage() {
 
   const [showExpiryBanner, setShowExpiryBanner] = useState(true)
   const [showAppBanner, setShowAppBanner] = useState(() => !localStorage.getItem('skincluv_dismiss_app_banner'))
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false)
 
   const weather = getEnvironmentalWeather()
 
@@ -234,9 +240,9 @@ export default function DashboardPage() {
       )}
 
       {/* =====================================================================
-          1. DESKTOP VIEW (> 640px): Greeting Header + Ambient Strip + Split-Hero Bento
+          1. DESKTOP VIEW (> 879px): Greeting Header + Ambient Strip + Split-Hero Bento
           ===================================================================== */}
-      <header className="cluv-dashboard-header">
+      <header className="cluv-dashboard-header cluv-hide-mobile">
         <div className="cluv-header-top-row">
           <div>
             <h1 className="cluv-title-section">Selamat {timeOfDay}, {firstName} ✨</h1>
@@ -256,7 +262,7 @@ export default function DashboardPage() {
       </header>
 
       {/* 2. DESKTOP HERO GRID: Observasi Visual Kulit (1.55fr) + Keamanan Komposisi Lab (1fr) */}
-      <div className="cluv-bento-grid is-hero cluv-desktop-hero-section">
+      <div className="cluv-bento-grid is-hero cluv-desktop-hero-section cluv-hide-mobile">
         {/* Observasi Visual Kulit */}
         <section className="cluv-bento-card">
           <div className="cluv-bento-header">
@@ -417,9 +423,9 @@ export default function DashboardPage() {
 
 
       {/* =====================================================================
-          2. MOBILE VIEW (<= 640px): AI Weather Companion + Unified Skin Bento
+          2. MOBILE VIEW (<= 879px): AI Weather Companion + Unified Skin Bento
           ===================================================================== */}
-      <div className="cluv-mobile-dashboard">
+      <div className="cluv-mobile-dashboard cluv-hide-desktop">
         {/* UNIFIED BENTO SKIN CARD (Posisi Teratas di Mobile: Sapaan + Dompet + Observasi Kulit) */}
         <div className="cluv-mobile-unified-card">
           {/* Header Menyatu: Avatar Ring + Sapaan Bersih + Kapsul Kredit */}
@@ -546,34 +552,65 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 4-Item Squircle Shortcuts (Posisi DI BAWAH Bento Skin) */}
+        {/* 8-Item Squircle Shortcuts (Gojek-Style 2x4: 7 Layanan Utama + 1 Lainnya) */}
         <div className="cluv-mobile-shortcuts" aria-label="Akses Cepat Mobile">
-          <button onClick={() => navigate('/face-scan')} className="cluv-mobile-shortcut-btn">
+          <button onClick={() => navigate('/face-scan')} className="cluv-mobile-shortcut-btn" type="button">
             <div className="cluv-mobile-shortcut-icon is-teal">
               <ScanFace size={22} strokeWidth={2.2} />
             </div>
             <span className="cluv-mobile-shortcut-label">Scan Wajah</span>
           </button>
 
-          <button onClick={() => navigate('/ingredient-scan')} className="cluv-mobile-shortcut-btn">
+          <button onClick={() => navigate('/ingredient-scan')} className="cluv-mobile-shortcut-btn" type="button">
             <div className="cluv-mobile-shortcut-icon is-blue">
               <FlaskConical size={22} strokeWidth={2.2} />
             </div>
             <span className="cluv-mobile-shortcut-label">Scan Bahan</span>
           </button>
 
-          <button onClick={() => navigate('/missions')} className="cluv-mobile-shortcut-btn">
+          <button onClick={() => navigate('/missions')} className="cluv-mobile-shortcut-btn" type="button">
             <div className="cluv-mobile-shortcut-icon is-amber">
               <Sparkles size={22} strokeWidth={2.2} />
+              {dailyMissions.some((m) => !m.is_completed) && (
+                <span className="cluv-mobile-shortcut-badge" />
+              )}
             </div>
             <span className="cluv-mobile-shortcut-label">Misi Glow</span>
           </button>
 
-          <button onClick={() => navigate('/chatbot')} className="cluv-mobile-shortcut-btn">
+          <button onClick={() => navigate('/chatbot')} className="cluv-mobile-shortcut-btn" type="button">
             <div className="cluv-mobile-shortcut-icon is-purple">
               <Bot size={22} strokeWidth={2.2} />
             </div>
             <span className="cluv-mobile-shortcut-label">Tanya AI</span>
+          </button>
+
+          <button onClick={() => navigate('/scan-history')} className="cluv-mobile-shortcut-btn" type="button">
+            <div className="cluv-mobile-shortcut-icon is-rose">
+              <CalendarDays size={22} strokeWidth={2.2} />
+            </div>
+            <span className="cluv-mobile-shortcut-label">Riwayat Scan</span>
+          </button>
+
+          <button onClick={() => navigate('/coin-history')} className="cluv-mobile-shortcut-btn" type="button">
+            <div className="cluv-mobile-shortcut-icon is-indigo">
+              <Zap size={22} strokeWidth={2.2} />
+            </div>
+            <span className="cluv-mobile-shortcut-label">AI Credits</span>
+          </button>
+
+          <button onClick={() => navigate('/pricing')} className="cluv-mobile-shortcut-btn" type="button">
+            <div className="cluv-mobile-shortcut-icon is-emerald">
+              <ShieldCheck size={22} strokeWidth={2.2} />
+            </div>
+            <span className="cluv-mobile-shortcut-label">Paket Akses</span>
+          </button>
+
+          <button onClick={() => setIsMoreSheetOpen(true)} className="cluv-mobile-shortcut-btn" type="button">
+            <div className="cluv-mobile-shortcut-icon is-slate">
+              <LayoutGrid size={22} strokeWidth={2.2} />
+            </div>
+            <span className="cluv-mobile-shortcut-label">Lainnya</span>
           </button>
         </div>
       </div>
@@ -975,6 +1012,259 @@ export default function DashboardPage() {
         </section>
       </div>
 
+      {/* =====================================================================
+          BOTTOM SHEET: SEMUA LAYANAN (Gojek-Style Service Drawer)
+          ===================================================================== */}
+      <BottomSheet
+        isOpen={isMoreSheetOpen}
+        onClose={() => setIsMoreSheetOpen(false)}
+        title="Semua Layanan"
+        subtitle="Akses cepat seluruh fitur & pengaturan Skincluv"
+      >
+        <div className="cluv-sheet-menu-container">
+          {/* Grup 1: Pemindaian & Analisis AI */}
+          <div className="cluv-sheet-menu-group">
+            <h4 className="cluv-sheet-group-title">Pemindaian & Analisis AI</h4>
+            <div className="cluv-sheet-menu-list">
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/face-scan')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-teal">
+                  <ScanFace size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Scan Wajah AI</span>
+                  <span className="cluv-sheet-menu-desc">Analisis kondisi skin barrier & skor kulit</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/ingredient-scan')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-blue">
+                  <FlaskConical size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Scan Komposisi Lab</span>
+                  <span className="cluv-sheet-menu-desc">Cek kecocokan bahan & komedogenik</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/missions')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-amber">
+                  <Sparkles size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <span className="cluv-sheet-menu-name">Misi Glow Harian</span>
+                    {dailyMissions.some((m) => !m.is_completed) && (
+                      <span className="cluv-badge is-teal is-sm">
+                        {dailyMissions.filter((m) => !m.is_completed).length} aktif
+                      </span>
+                    )}
+                  </div>
+                  <span className="cluv-sheet-menu-desc">Selesaikan rutinitas & raih AI Credits</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/chatbot')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-purple">
+                  <Bot size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Skinsistant AI</span>
+                  <span className="cluv-sheet-menu-desc">Konsultasi interaktif & panduan skincare</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/scan-history')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-rose">
+                  <CalendarDays size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Riwayat Scan</span>
+                  <span className="cluv-sheet-menu-desc">Grafik perkembangan & log pemindaian</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+            </div>
+          </div>
+
+          {/* Grup 2: Paket, Tagihan & Saldo */}
+          <div className="cluv-sheet-menu-group">
+            <h4 className="cluv-sheet-group-title">Paket, Tagihan & Saldo</h4>
+            <div className="cluv-sheet-menu-list">
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/pricing')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-emerald">
+                  <ShieldCheck size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Paket Akses & Kuota</span>
+                  <span className="cluv-sheet-menu-desc">Kelola paket Pro Club & tambah kuota AI</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/coin-history')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-indigo">
+                  <Zap size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Riwayat AI Credits</span>
+                  <span className="cluv-sheet-menu-desc">Mutasi saldo koin masuk & terpakai</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/transactions')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-slate">
+                  <Receipt size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Riwayat Tagihan</span>
+                  <span className="cluv-sheet-menu-desc">Daftar transaksi pembayaran & invoice Tripay</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+            </div>
+          </div>
+
+          {/* Grup 3: Profil & Dukungan */}
+          <div className="cluv-sheet-menu-group">
+            <h4 className="cluv-sheet-group-title">Profil & Dukungan</h4>
+            <div className="cluv-sheet-menu-list">
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/profile/skin')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-teal">
+                  <UserCheck size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Profil Kondisi Kulit</span>
+                  <span className="cluv-sheet-menu-desc">Kuesioner jenis kulit & preferensi analisis</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/privacy-center')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-blue">
+                  <Shield size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Pusat Privasi & Data</span>
+                  <span className="cluv-sheet-menu-desc">Kendali consent biometrik & UU PDP</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/faq')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-amber">
+                  <CircleHelp size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Pusat Bantuan & FAQ</span>
+                  <span className="cluv-sheet-menu-desc">Pertanyaan umum seputar fitur & akun</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+
+              <button
+                type="button"
+                className="cluv-sheet-menu-item"
+                onClick={() => {
+                  setIsMoreSheetOpen(false)
+                  navigate('/download')
+                }}
+              >
+                <div className="cluv-sheet-menu-icon is-purple">
+                  <Smartphone size={20} />
+                </div>
+                <div className="cluv-sheet-menu-text">
+                  <span className="cluv-sheet-menu-name">Unduh Aplikasi Android</span>
+                  <span className="cluv-sheet-menu-desc">Akses kamera native & instal file APK</span>
+                </div>
+                <ChevronRight size={16} className="cluv-sheet-menu-chevron" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   )
 }
+
