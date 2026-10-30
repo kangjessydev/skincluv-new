@@ -12,6 +12,9 @@ import {
   MessageSquare,
   Calendar,
   ShieldCheck,
+  FlaskConical,
+  HeartPulse,
+  Award,
 } from 'lucide-react'
 
 export interface NotificationItem {
@@ -251,9 +254,99 @@ export function useNotifications() {
         badgeVariant: 'slate',
       })
 
-      // Sort notifications by timestamp descending
+      // Sample activity notifications to ensure total 10 messages for testing scroll behavior
+      const sampleFeedList: NotificationItem[] = [
+        {
+          id: 'notif_sample_mission_explorer',
+          title: 'Pencapaian: Skincare Explorer!',
+          body: 'Selamat! Kamu telah memindai 3 formulasi produk skincare. Ambil bonus pencapaian +10 Credits.',
+          category: 'mission',
+          timeAgo: '2 hari lalu',
+          timestamp: now - 1000 * 60 * 60 * 48,
+          actionUrl: '/missions',
+          icon: Award,
+          color: 'is-gold',
+          badgeText: 'Prestasi',
+          badgeVariant: 'gold',
+        },
+        {
+          id: 'notif_sample_ingredient_scan',
+          title: 'Analisis Komposisi Tersimpan',
+          body: 'Tabir Surya SPF 50 berhasil dipetakan: 0 bahan komedogenik terdeteksi dan aman untuk kulit sensitif.',
+          category: 'activity',
+          timeAgo: '3 hari lalu',
+          timestamp: now - 1000 * 60 * 60 * 72,
+          actionUrl: '/scan-history',
+          icon: FlaskConical,
+          color: 'is-teal',
+          badgeText: 'Komposisi',
+          badgeVariant: 'teal',
+        },
+        {
+          id: 'notif_sample_knowledge_update',
+          title: 'Update Literatur Dermatologi',
+          body: 'Basis pengetahuan klinis diperbarui: 12 studi interaksi Niacinamide & Retinol siap dijelaskan Skinsistant AI.',
+          category: 'activity',
+          timeAgo: '4 hari lalu',
+          timestamp: now - 1000 * 60 * 60 * 96,
+          actionUrl: '/chatbot',
+          icon: ShieldCheck,
+          color: 'is-purple',
+          badgeText: 'Riset AI',
+          badgeVariant: 'slate',
+        },
+        {
+          id: 'notif_sample_skin_barrier_trend',
+          title: 'Tren Kesehatan Skin Barrier',
+          body: 'Indeks kelembapan kulit meningkat +5 poin dalam 2 minggu terakhir. Terus pertahankan hidrasi harian!',
+          category: 'activity',
+          timeAgo: '5 hari lalu',
+          timestamp: now - 1000 * 60 * 60 * 120,
+          actionUrl: '/scan-history',
+          icon: HeartPulse,
+          color: 'is-teal',
+          badgeText: 'Progres',
+          badgeVariant: 'teal',
+        },
+        {
+          id: 'notif_sample_promo_renewal',
+          title: 'Katalog Paket Akses Tersedia',
+          body: 'Lihat pilihan paket langganan Glow Club atau Pro Club untuk kuota scan tak terbatas dan model analisis klinis.',
+          category: 'transaction',
+          timeAgo: '6 hari lalu',
+          timestamp: now - 1000 * 60 * 60 * 144,
+          actionUrl: '/paket',
+          icon: CreditCard,
+          color: 'is-rose',
+          badgeText: 'Info Paket',
+          badgeVariant: 'rose',
+        },
+        {
+          id: 'notif_sample_weekly_recap',
+          title: 'Ringkasan Rutinitas Mingguan',
+          body: 'Kamu telah menyelesaikan 5 dari 7 target check-in minggu ini. Konsistensi merawat kulit membuahkan hasil nyata.',
+          category: 'mission',
+          timeAgo: '1 minggu lalu',
+          timestamp: now - 1000 * 60 * 60 * 168,
+          actionUrl: '/missions',
+          icon: Sparkles,
+          color: 'is-gold',
+          badgeText: 'Mingguan',
+          badgeVariant: 'gold',
+        },
+      ]
+
+      for (const sample of sampleFeedList) {
+        if (notifs.length >= 10) break
+        if (!notifs.some((n) => n.id === sample.id)) {
+          notifs.push(sample)
+        }
+      }
+
+      // Sort notifications by timestamp descending and take top 10
       notifs.sort((a, b) => b.timestamp - a.timestamp)
-      setNotifications(notifs)
+      const top10Notifs = notifs.slice(0, 10)
+      setNotifications(top10Notifs)
       setReadIds(loadReadIds())
     } catch (err) {
       console.error('[useNotifications] Error:', err)
