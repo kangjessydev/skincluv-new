@@ -363,6 +363,29 @@
   border: 1.5px solid var(--cluv-surface, #ffffff);
 }
 
+.cluv-topbar-bell-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--cluv-rose, #f43f5e);
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid var(--cluv-surface, #ffffff);
+  box-shadow: 0 2px 5px rgba(244, 63, 94, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Hairline Divider */
 .cluv-topbar-divider {
   width: 1px;

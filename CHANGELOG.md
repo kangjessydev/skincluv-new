@@ -20,6 +20,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - Integrasi ikon lonceng (`Bell`) di Topbar desktop dan mobile dengan navigasi instan ke `/notifications` dan titik merah/teal penanda unread.
 
 ### Diubah
+- **Badge Notifikasi Topbar Dinamis & Hook Terpusat (`AppLayout.tsx`, `useNotifications.ts`, `shell.css`)**:
+  - Mengekstrak logika fetch dan perhitungan status baca notifikasi ke dalam custom hook terpusat `useNotifications`.
+  - Mengganti dot merah statis di ikon lonceng (*Bell*) Topbar mobile dan desktop menjadi badge angka unread dinamis (`.cluv-topbar-bell-badge`).
+  - Menampilkan angka pesan yang belum dibaca (`unreadCount`), dan **menyembunyikan angka/badge secara otomatis (*hidden*)** saat semua notifikasi sudah dibaca (`unreadCount === 0`).
 - **Refactoring Layout Kartu Notifikasi (`cards.css`, `NotificationsPage.tsx`)**:
   - Menyusun baris header terstruktur (`.cluv-notif-header-row`): Judul + badge status di kiri, waktu relatif + dot teal unread di pojok kanan atas.
   - Paragraf deskripsi (`.cluv-notif-body`) kini membentang penuh 100% tanpa terhimpit oleh elemen chevron atau bulatan yang melayang di tengah.

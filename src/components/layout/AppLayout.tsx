@@ -28,6 +28,7 @@ import {
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { isActivePremium } from '@/utils/subscriptionHelpers'
+import { useNotifications } from '@/hooks/useNotifications'
 
 const navMainItems = [
   { to: '/dashboard', icon: Home, label: 'Beranda' },
@@ -72,6 +73,7 @@ function getPageContextTitle(pathname: string): string {
 
 export default function AppLayout() {
   const { coinBalance, profile, subscription, isAdmin, userRoles, reset } = useAuthStore()
+  const { unreadCount } = useNotifications()
   const location = useLocation()
   const navigate = useNavigate()
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
@@ -262,7 +264,11 @@ export default function AppLayout() {
                   title="Pusat Notifikasi"
                 >
                   <Bell size={18} />
-                  <span className="cluv-topbar-bell-dot" />
+                  {unreadCount > 0 && (
+                    <span className="cluv-topbar-bell-badge cluv-tabular-nums">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </button>
               ) : (location.pathname.startsWith('/face-scan') || location.pathname.startsWith('/ingredient-scan')) ? (
                 <button
@@ -352,7 +358,11 @@ export default function AppLayout() {
                 title="Pusat Notifikasi"
               >
                 <Bell size={18} />
-                <span className="cluv-topbar-bell-dot" />
+                {unreadCount > 0 && (
+                  <span className="cluv-topbar-bell-badge cluv-tabular-nums">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
 
               <div className="cluv-topbar-divider" />
