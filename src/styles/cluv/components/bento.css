@@ -47,17 +47,22 @@
 
 /* Responsive Breakpoints */
 @media (max-width: 900px) {
-  .cluv-bento-grid,
-  .cluv-bento-grid.is-hero,
-  .cluv-bento-grid.is-equal,
-  .cluv-bento-grid.is-trio,
-  .cluv-bento-grid.is-quad {
+  .cluv-bento-grid:not(.cluv-hide-mobile),
+  .cluv-bento-grid.is-hero:not(.cluv-hide-mobile),
+  .cluv-bento-grid.is-equal:not(.cluv-hide-mobile),
+  .cluv-bento-grid.is-trio:not(.cluv-hide-mobile),
+  .cluv-bento-grid.is-quad:not(.cluv-hide-mobile) {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+  }
+
+  .cluv-bento-grid.cluv-hide-mobile,
+  .cluv-bento-grid.is-hero.cluv-hide-mobile {
+    display: none !important;
   }
 }
 

@@ -431,7 +431,9 @@
 
 @media (max-width: 879px) {
   .cluv-dashboard-header,
-  .cluv-desktop-hero-section {
+  .cluv-desktop-hero-section,
+  .cluv-bento-grid.cluv-desktop-hero-section,
+  .cluv-bento-grid.is-hero.cluv-desktop-hero-section {
     display: none !important;
   }
 

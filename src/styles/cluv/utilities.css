@@ -357,7 +357,9 @@
 }
 
 @media (max-width: 879px) {
-  .cluv-hide-mobile {
+  .cluv-hide-mobile,
+  .cluv-bento-grid.cluv-hide-mobile,
+  .cluv-bento-grid.is-hero.cluv-hide-mobile {
     display: none !important;
   }
 }
