@@ -1095,6 +1095,11 @@
   margin: 0;
   width: 100%;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cluv-notif-action-hint {

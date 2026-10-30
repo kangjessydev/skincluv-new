@@ -80,7 +80,7 @@
 
   .cluv-canvas-focused,
   .cluv-focused-ledger {
-    padding: 16px 16px 24px;
+    padding: 16px 16px 40px;
     width: 100%;
     max-width: 100%;
     min-width: 0;

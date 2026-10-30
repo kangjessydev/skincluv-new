@@ -20,6 +20,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - Integrasi ikon lonceng (`Bell`) di Topbar desktop dan mobile dengan navigasi instan ke `/notifications` dan titik merah/teal penanda unread.
 
 ### Diubah
+- **Perbaikan Mobile Touch Scroll Shell & Line Clamping (`shell.css`, `cards.css`, `layout.css`)**:
+  - Mengatasi konflik *nested scrolling* di mobile: Menghilangkan `overflow-y: auto` pada parent `.cluv-shell-main` dan menetapkan `.cluv-shell-page-content` sebagai kontainer scroll utama tunggal dengan `-webkit-overflow-scrolling: touch` dan `overscroll-behavior-y: contain`.
+  - Menerapkan pembatasan teks deskripsi notifikasi (`.cluv-notif-body`) menjadi maksimal 2 baris dengan pemotongan elipsis otomatis (`-webkit-line-clamp: 2; text-overflow: ellipsis`) agar tinggi setiap kartu notifikasi seragam.
+  - Menyesuaikan padding bawah `.cluv-canvas-focused` di mobile menjadi 40px agar kartu terakhir memiliki ruang batas yang nyaman dan tidak mepet.
 - **Badge Notifikasi Topbar Dinamis & Hook Terpusat (`AppLayout.tsx`, `useNotifications.ts`, `shell.css`)**:
   - Mengekstrak logika fetch dan perhitungan status baca notifikasi ke dalam custom hook terpusat `useNotifications`.
   - Mengganti dot merah statis di ikon lonceng (*Bell*) Topbar mobile dan desktop menjadi badge angka unread dinamis (`.cluv-topbar-bell-badge`).
