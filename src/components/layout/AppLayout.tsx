@@ -65,6 +65,7 @@ function getPageContextTitle(pathname: string): string {
   if (pathname.startsWith('/profile/billing')) return 'Paket & Langganan'
   if (pathname.startsWith('/profile')) return 'Profil Saya'
   if (pathname.startsWith('/privacy-center')) return 'Pusat Privasi & Data'
+  if (pathname.startsWith('/notifications')) return 'Notifikasi'
   if (pathname.startsWith('/faq')) return 'Pusat Bantuan'
   return 'Beranda'
 }
@@ -100,6 +101,7 @@ export default function AppLayout() {
     location.pathname.startsWith('/profile/skin') ||
     location.pathname.startsWith('/profile/billing') ||
     location.pathname.startsWith('/privacy-center') ||
+    location.pathname.startsWith('/notifications') ||
     location.pathname.startsWith('/transactions') ||
     location.pathname.startsWith('/coin-history') ||
     location.pathname.startsWith('/checkout')
@@ -250,28 +252,28 @@ export default function AppLayout() {
                 <span className="cluv-credits-label">Credits</span>
               </button>
 
-              {/* Mobile: Bell on Dashboard, History icon on face-scan/ingredient-scan, Chat Actions on /chatbot */}
+              {/* Mobile Contextual Actions */}
               {(location.pathname === '/dashboard' || location.pathname === '/') ? (
-                <button type="button" className="cluv-topbar-bell-btn" aria-label="Notifikasi">
+                <button
+                  type="button"
+                  onClick={() => navigate('/notifications')}
+                  className="cluv-topbar-bell-btn cluv-hide-desktop"
+                  aria-label="Notifikasi"
+                  title="Pusat Notifikasi"
+                >
                   <Bell size={18} />
                   <span className="cluv-topbar-bell-dot" />
                 </button>
               ) : (location.pathname.startsWith('/face-scan') || location.pathname.startsWith('/ingredient-scan')) ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/scan-history')}
-                    className="cluv-topbar-history-btn cluv-hide-desktop"
-                    aria-label="Riwayat Scan"
-                    title="Riwayat Scan"
-                  >
-                    <History size={18} />
-                  </button>
-                  <button type="button" className="cluv-topbar-bell-btn cluv-hide-mobile" aria-label="Notifikasi">
-                    <Bell size={18} />
-                    <span className="cluv-topbar-bell-dot" />
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={() => navigate('/scan-history')}
+                  className="cluv-topbar-history-btn cluv-hide-desktop"
+                  aria-label="Riwayat Scan"
+                  title="Riwayat Scan"
+                >
+                  <History size={18} />
+                </button>
               ) : (location.pathname.startsWith('/coin-history') || location.pathname.startsWith('/missions')) ? (
                 <div
                   className="cluv-credit-capsule cluv-hide-desktop"
@@ -340,6 +342,18 @@ export default function AppLayout() {
                   </div>
                 </div>
               ) : null}
+
+              {/* Universal Desktop Notifications Bell */}
+              <button
+                type="button"
+                onClick={() => navigate('/notifications')}
+                className={`cluv-topbar-bell-btn cluv-hide-mobile ${location.pathname === '/notifications' ? 'is-active' : ''}`}
+                aria-label="Pusat Notifikasi"
+                title="Pusat Notifikasi"
+              >
+                <Bell size={18} />
+                <span className="cluv-topbar-bell-dot" />
+              </button>
 
               <div className="cluv-topbar-divider" />
 

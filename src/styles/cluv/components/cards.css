@@ -955,6 +955,143 @@
 }
 
 /* =============================================================================
+ * Notification Feed Items (.cluv-notif-item)
+ * ============================================================================= */
+.cluv-notif-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  user-select: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  position: relative;
+}
+
+.cluv-notif-item:last-child {
+  border-bottom: none;
+}
+
+.cluv-notif-item:hover,
+.cluv-notif-item:active {
+  background-color: var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc));
+}
+
+.cluv-notif-item:focus-visible {
+  outline: 2px solid var(--cluv-teal);
+  outline-offset: -2px;
+}
+
+.cluv-notif-item.is-unread {
+  background-color: var(--cluv-teal-soft, #f0fdfc);
+}
+
+.cluv-notif-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cluv-notif-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.cluv-notif-icon-wrap.is-teal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-notif-icon-wrap.is-gold {
+  background: #fef8ee;
+  color: var(--cluv-gold, #d97706);
+  border: 1px solid #fae0b8;
+}
+
+.cluv-notif-icon-wrap.is-purple {
+  background: var(--cluv-purple-soft, #faf5ff);
+  color: var(--cluv-purple, #8b5cf6);
+  border: 1px solid var(--cluv-purple-line, #e9d5ff);
+}
+
+.cluv-notif-icon-wrap.is-rose {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+
+.cluv-notif-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cluv-notif-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cluv-notif-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900, #0f172a);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.cluv-notif-body {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-600, #475569);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.cluv-notif-time {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-400, #94a3b8);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.cluv-notif-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.cluv-notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cluv-teal, #1f9d97);
+  box-shadow: 0 0 0 2px rgba(31, 157, 151, 0.2);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
  * Receipt & Invoice Detail Box (.cluv-receipt-box)
  * ============================================================================= */
 .cluv-receipt-box {

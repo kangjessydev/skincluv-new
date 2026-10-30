@@ -9,6 +9,16 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
+- **Pusat Notifikasi Mobile & Desktop (`/notifications`, `NotificationsPage.tsx`, `AppLayout.tsx`, `cards.css`)**:
+  - Membangun halaman mandiri **Pusat Notifikasi** (`/notifications`) dengan kanvas focused yang responsif dan standar mobile-first (mirip Gojek / Tokopedia).
+  - Feed notifikasi kontekstual yang otomatis memetakan status akun pengguna:
+    - **Transaksi & Tagihan**: Notifikasi invoice `UNPAID` (dengan direct link bayar) dan bukti pembayaran `PAID` (langganan aktif).
+    - **Misi & Credits**: Notifikasi hadiah misi siap klaim (`+X Credits`) dan pengingat streak check-in harian yang belum diambil.
+    - **Skin Journey**: Pengingat observasi foto wajah mingguan (siklus 7 hari) dan pembaruan hasil skor kulit terkini.
+    - **Wawasan AI**: Tips cerdas personal dari Skinsistant AI berdasarkan tipe kulit (`skin_type`) dan target perawatan (`skin_concerns`).
+  - Fitur interaktif: filter tab (*Semua, Transaksi, Misi & Credits, Aktivitas & AI*), status *unread* dengan dot teal lembut, aksi cepat *"Tandai Semua Dibaca"*, dan deep navigation saat baris notifikasi di-tap.
+  - Integrasi ikon lonceng (`Bell`) di Topbar desktop dan mobile dengan navigasi instan ke `/notifications` dan titik merah/teal penanda unread.
+
 - **Redesign Mobile Gamifikasi Misi Glow V2: Bento Wallet Kanonikal, Gamified 7-Day Check-in Streak, Dropdown Filter, & Simple Task Cards (`MissionsPage.tsx`, `cards.css`, `AppLayout.tsx`)**:
   - **Bento Wallet Card Kanonikal (`.cluv-bento-wallet`)**: Mengadopsi format kartu saldo dari Riwayat Koin (Gambar 1), menampilkan total saldo AI Credits di atas serta 2 kolom metrik di bawah: *Total Diperoleh* di kiri (`+X Credits` teal) dan *Progres Misi Hari Ini* di kanan (`X/Y Selesai (Z%)`).
   - **Kapsul Kredit Topbar Mobile (Gambar 3)**: Mengaktifkan kapsul interaktif `⚡ 1.387 | +` di Topbar kanan pada rute `/missions`, dengan aksi tap `+` langsung mengarah ke `/pricing` (Beli AI Credits).

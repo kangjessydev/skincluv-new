@@ -34,6 +34,7 @@ const ProfilePage = lazy(() => import('@/pages/app/ProfilePage'))
 const ProfileSkinPage = lazy(() => import('@/pages/profile/ProfileSkinPage'))
 const ProfileBillingPage = lazy(() => import('@/pages/profile/ProfileBillingPage'))
 const PrivacyCenterPage = lazy(() => import('@/pages/app/PrivacyCenterPage'))
+const NotificationsPage = lazy(() => import('@/pages/app/NotificationsPage'))
 
 // Lazy load admin portal & routes
 const AdminRoute = lazy(() => import('@/components/admin/AdminRoute'))
@@ -137,6 +138,7 @@ export default function App() {
           <Route path="/profile/skin" element={<ProfileSkinPage />} />
           <Route path="/profile/billing" element={<ProfileBillingPage />} />
           <Route path="/privacy-center" element={<PrivacyCenterPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/wallet" element={<Navigate to="/paket" replace />} />
         </Route>
 
