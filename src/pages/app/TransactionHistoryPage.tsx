@@ -264,28 +264,23 @@ export default function TransactionHistoryPage() {
             )}
           </div>
 
-          {/* Filter Dropdown di Kanan */}
+          {/* Filter Dropdown di Kanan: Icon Only (+ Badge Count jika bukan 'all') */}
           <div className="cluv-filter-dropdown-wrap" style={{ width: 'auto' }} ref={dropdownRef}>
             <button
               type="button"
-              className="cluv-filter-trigger-btn"
+              className={`cluv-filter-trigger-btn ${filter !== 'all' ? 'is-active' : ''}`}
               onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
               aria-expanded={isFilterDropdownOpen}
               aria-haspopup="listbox"
+              aria-label={`Filter transaksi: ${activeFilterOption.label}`}
+              title={`Filter: ${activeFilterOption.label}`}
             >
-              <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
-                <Filter size={13} className="cluv-text-teal" />
-                <span>{activeFilterOption.label}</span>
-                <span className="cluv-tab-badge">{activeFilterOption.count}</span>
-              </div>
-              <ChevronDown
-                size={13}
-                className="cluv-text-muted"
-                style={{
-                  transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 0.15s ease',
-                }}
-              />
+              <Filter size={15} className={filter !== 'all' ? 'cluv-text-teal' : ''} />
+              {filter !== 'all' && (
+                <span className="cluv-filter-badge-count">
+                  {activeFilterOption.count}
+                </span>
+              )}
             </button>
 
             {isFilterDropdownOpen && (

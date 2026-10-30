@@ -552,13 +552,14 @@
 .cluv-filter-trigger-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 14px;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px;
   border: 1.5px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
   border-radius: var(--cluv-radius-pill, 9999px);
   background: var(--cluv-surface, #ffffff);
-  color: var(--cluv-current-text, #1a2d42);
+  color: var(--cluv-neutral-600, #475569);
   font-family: inherit;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -566,11 +567,35 @@
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: var(--cluv-shadow-sm);
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .cluv-filter-trigger-btn:hover {
   border-color: var(--cluv-teal-line, #bceae7);
   background: var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc));
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-filter-trigger-btn.is-active {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal, #1f9d97);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-filter-badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--cluv-teal, #1f9d97);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
 }
 
 .cluv-filter-dropdown-menu {
