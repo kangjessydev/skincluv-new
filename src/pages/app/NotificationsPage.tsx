@@ -11,7 +11,6 @@ import {
   ScanFace,
   MessageSquare,
   CheckCheck,
-  ChevronRight,
   Loader2,
   Calendar,
   ShieldCheck,
@@ -19,8 +18,6 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Badge, Button } from '@/components/ui'
-
-type NotifCategory = 'all' | 'transaction' | 'mission' | 'activity'
 
 interface NotificationItem {
   id: string
@@ -41,7 +38,6 @@ export default function NotificationsPage() {
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<NotifCategory>('all')
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [readIds, setReadIds] = useState<string[]>([])
 
@@ -299,23 +295,10 @@ export default function NotificationsPage() {
     fetchNotifications()
   }, [user?.id, activeSkinProfile?.skin_type, activeSkinProfile?.skin_concerns])
 
-  // Filtered Notifications
-  const filteredNotifs = useMemo(() => {
-    if (activeTab === 'all') return notifications
-    return notifications.filter((n) => n.category === activeTab)
-  }, [notifications, activeTab])
-
   // Unread Count
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !readIds.includes(n.id)).length
   }, [notifications, readIds])
-
-  const filterTabs = [
-    { key: 'all' as NotifCategory, label: 'Semua', count: notifications.length },
-    { key: 'transaction' as NotifCategory, label: 'Transaksi', count: notifications.filter((n) => n.category === 'transaction').length },
-    { key: 'mission' as NotifCategory, label: 'Misi & Credits', count: notifications.filter((n) => n.category === 'mission').length },
-    { key: 'activity' as NotifCategory, label: 'Aktivitas & AI', count: notifications.filter((n) => n.category === 'activity').length },
-  ]
 
   const handleItemClick = (item: NotificationItem) => {
     markAsRead(item.id)
@@ -359,7 +342,7 @@ export default function NotificationsPage() {
         {unreadCount > 0 && (
           <button
             type="button"
-            className="cluv-btn-text cluv-text-teal cluv-micro cluv-font-bold cluv-flex-row cluv-items-center cluv-gap-1"
+            className="cluv-notif-mark-btn"
             onClick={markAllAsRead}
           >
             <CheckCheck size={13} />
@@ -368,33 +351,13 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      {/* Filter Tabs Scrollable */}
-      <div className="cluv-filter-scroll cluv-mb-3" role="tablist" aria-label="Filter Notifikasi">
-        {filterTabs.map((tab) => {
-          const isActive = activeTab === tab.key
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              <span>{tab.label}</span>
-              <span className="cluv-tab-badge cluv-tabular-nums">{tab.count}</span>
-            </button>
-          )
-        })}
-      </div>
-
       {/* Notification Feed List Container */}
       {loading ? (
         <div className="cluv-card cluv-empty cluv-text-center cluv-py-12">
           <Loader2 size={24} className="animate-spin cluv-text-teal cluv-mx-auto cluv-mb-2" />
           <span className="cluv-caption cluv-text-muted">Memuat notifikasi terbaru...</span>
         </div>
-      ) : filteredNotifs.length === 0 ? (
+      ) : notifications.length === 0 ? (
         <div className="cluv-card cluv-empty cluv-text-center cluv-py-12">
           <Bell size={36} className="cluv-text-muted cluv-mx-auto cluv-mb-2" />
           <h4 className="cluv-title-card cluv-text-dark cluv-mb-1">Belum Ada Notifikasi</h4>
@@ -404,7 +367,7 @@ export default function NotificationsPage() {
         </div>
       ) : (
         <div className="cluv-feed-card">
-          {filteredNotifs.map((item) => {
+          {notifications.map((item) => {
             const isUnread = !readIds.includes(item.id)
             const IconComponent = item.icon
 
@@ -415,12 +378,13 @@ export default function NotificationsPage() {
                 className={`cluv-notif-item ${isUnread ? 'is-unread' : ''}`}
                 onClick={() => handleItemClick(item)}
               >
-                <div className="cluv-notif-left">
-                  <div className={`cluv-notif-icon-wrap ${item.color}`}>
-                    <IconComponent size={18} strokeWidth={2.2} />
-                  </div>
-                  <div className="cluv-notif-content">
-                    <div className="cluv-notif-title-row">
+                <div className={`cluv-notif-icon-wrap ${item.color}`}>
+                  <IconComponent size={18} strokeWidth={2.2} />
+                </div>
+
+                <div className="cluv-notif-content">
+                  <div className="cluv-notif-header-row">
+                    <div className="cluv-notif-title-wrap">
                       {item.badgeText && (
                         <Badge variant={item.badgeVariant || 'slate'} size="sm">
                           {item.badgeText}
@@ -428,14 +392,14 @@ export default function NotificationsPage() {
                       )}
                       <h4 className="cluv-notif-title">{item.title}</h4>
                     </div>
-                    <p className="cluv-notif-body">{item.body}</p>
-                    <span className="cluv-notif-time">{item.timeAgo}</span>
-                  </div>
-                </div>
 
-                <div className="cluv-notif-right">
-                  {isUnread && <span className="cluv-notif-dot" title="Belum dibaca" />}
-                  <ChevronRight size={16} className="cluv-feed-arrow" />
+                    <div className="cluv-notif-meta-wrap">
+                      <span className="cluv-notif-time">{item.timeAgo}</span>
+                      {isUnread && <span className="cluv-notif-dot" title="Belum dibaca" />}
+                    </div>
+                  </div>
+
+                  <p className="cluv-notif-body">{item.body}</p>
                 </div>
               </button>
             )

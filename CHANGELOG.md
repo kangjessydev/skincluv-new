@@ -16,8 +16,19 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
     - **Misi & Credits**: Notifikasi hadiah misi siap klaim (`+X Credits`) dan pengingat streak check-in harian yang belum diambil.
     - **Skin Journey**: Pengingat observasi foto wajah mingguan (siklus 7 hari) dan pembaruan hasil skor kulit terkini.
     - **Wawasan AI**: Tips cerdas personal dari Skinsistant AI berdasarkan tipe kulit (`skin_type`) dan target perawatan (`skin_concerns`).
-  - Fitur interaktif: filter tab (*Semua, Transaksi, Misi & Credits, Aktivitas & AI*), status *unread* dengan dot teal lembut, aksi cepat *"Tandai Semua Dibaca"*, dan deep navigation saat baris notifikasi di-tap.
+  - Fitur interaktif: status *unread* dengan dot teal lembut & border aksen kiri, aksi cepat *"Tandai Semua Dibaca"*, dan deep navigation saat baris notifikasi di-tap.
   - Integrasi ikon lonceng (`Bell`) di Topbar desktop dan mobile dengan navigasi instan ke `/notifications` dan titik merah/teal penanda unread.
+
+### Diubah
+- **Refactoring Layout Kartu Notifikasi (`cards.css`, `NotificationsPage.tsx`)**:
+  - Menyusun baris header terstruktur (`.cluv-notif-header-row`): Judul + badge status di kiri, waktu relatif + dot teal unread di pojok kanan atas.
+  - Paragraf deskripsi (`.cluv-notif-body`) kini membentang penuh 100% tanpa terhimpit oleh elemen chevron atau bulatan yang melayang di tengah.
+  - Tombol *"Tandai Dibaca"* di mobile menggunakan styling tombol `.cluv-notif-mark-btn` dengan border lembut tanpa outline ganda.
+
+### Dihapus & Alasan
+- **Tab Kategori Notifikasi (`NotificationsPage.tsx`)**:
+  - **Dihapus**: Filter tab horizontal (*Semua, Transaksi, Misi & Credits, Aktivitas & AI*).
+  - **Alasan**: Tab horizontal terpotong di layar mobile, memakan ruang vertikal secara sia-sia, dan pembagian kategori diputuskan tidak diperlukan oleh pengguna karena notifikasi lebih nyaman dibaca dalam satu alur terpadu (*single stream*) yang mengalir secara kronologis.
 
 - **Redesign Mobile Gamifikasi Misi Glow V2: Bento Wallet Kanonikal, Gamified 7-Day Check-in Streak, Dropdown Filter, & Simple Task Cards (`MissionsPage.tsx`, `cards.css`, `AppLayout.tsx`)**:
   - **Bento Wallet Card Kanonikal (`.cluv-bento-wallet`)**: Mengadopsi format kartu saldo dari Riwayat Koin (Gambar 1), menampilkan total saldo AI Credits di atas serta 2 kolom metrik di bawah: *Total Diperoleh* di kiri (`+X Credits` teal) dan *Progres Misi Hari Ini* di kanan (`X/Y Selesai (Z%)`).

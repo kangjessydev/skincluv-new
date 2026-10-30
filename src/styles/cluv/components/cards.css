@@ -960,16 +960,16 @@
 .cluv-notif-item {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  border-left: 3px solid transparent;
   width: 100%;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
   user-select: none;
   box-sizing: border-box;
   font-family: inherit;
@@ -992,14 +992,7 @@
 
 .cluv-notif-item.is-unread {
   background-color: var(--cluv-teal-soft, #f0fdfc);
-}
-
-.cluv-notif-left {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
+  border-left-color: var(--cluv-teal, #1f9d97);
 }
 
 .cluv-notif-icon-wrap {
@@ -1011,6 +1004,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  margin-top: 2px;
 }
 
 .cluv-notif-icon-wrap.is-teal {
@@ -1040,16 +1034,26 @@
 .cluv-notif-content {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
   flex: 1;
 }
 
-.cluv-notif-title-row {
+.cluv-notif-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.cluv-notif-title-wrap {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .cluv-notif-title {
@@ -1057,38 +1061,71 @@
   font-weight: 700;
   color: var(--cluv-neutral-900, #0f172a);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
-.cluv-notif-body {
-  font-size: 0.8125rem;
-  color: var(--cluv-neutral-600, #475569);
-  line-height: 1.4;
-  margin: 0;
+.cluv-notif-meta-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-top: 1px;
 }
 
 .cluv-notif-time {
   font-size: 0.6875rem;
   color: var(--cluv-neutral-400, #94a3b8);
   font-weight: 500;
-  margin-top: 2px;
-}
-
-.cluv-notif-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  align-self: center;
+  white-space: nowrap;
 }
 
 .cluv-notif-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--cluv-teal, #1f9d97);
-  box-shadow: 0 0 0 2px rgba(31, 157, 151, 0.2);
+  box-shadow: 0 0 0 2px rgba(31, 157, 151, 0.25);
   flex-shrink: 0;
+}
+
+.cluv-notif-body {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-600, #475569);
+  line-height: 1.45;
+  margin: 0;
+  width: 100%;
+  word-break: break-word;
+}
+
+.cluv-notif-action-hint {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark, #127a75);
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.cluv-notif-mark-btn {
+  background: transparent;
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+  border-radius: var(--cluv-radius-sm, 8px);
+  color: var(--cluv-teal-dark, #127a75);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.cluv-notif-mark-btn:hover {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal, #1f9d97);
 }
 
 /* =============================================================================
