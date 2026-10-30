@@ -1320,7 +1320,7 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 879px) {
   .cluv-mission-item {
     flex-direction: column;
     align-items: flex-start;
@@ -1331,7 +1331,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-top: 8px;
+    padding-top: 10px;
     border-top: 1px dashed var(--cluv-current-border, var(--cluv-neutral-200));
   }
 }

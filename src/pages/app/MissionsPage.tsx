@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-import { Button, Badge } from '@/components/ui'
+import { Button, Badge, Toast } from '@/components/ui'
 
 type MissionCategory = 'all' | 'daily' | 'weekly' | 'one_time'
 
@@ -281,11 +281,26 @@ export default function MissionsPage() {
     return missions.filter((m) => !m.is_claimed && m.progress >= m.target).length
   }, [missions])
 
+  // Daily Routine Gamification stats
+  const dailyMissions = useMemo(() => missions.filter((m) => m.type === 'daily'), [missions])
+  const completedDailyCount = useMemo(() => dailyMissions.filter((m) => m.progress >= m.target).length, [dailyMissions])
+  const totalDailyCount = dailyMissions.length || 3
+  const dailyPercent = Math.round((completedDailyCount / Math.max(totalDailyCount, 1)) * 100)
+
+  // Filter Categories for Scrollable Chips
+  const filterTabs = useMemo(() => [
+    { key: 'all' as MissionCategory, label: 'Semua', count: missions.length },
+    { key: 'daily' as MissionCategory, label: 'Harian', count: dailyMissions.length },
+    { key: 'weekly' as MissionCategory, label: 'Mingguan', count: missions.filter((m) => m.type === 'weekly').length },
+    { key: 'one_time' as MissionCategory, label: 'Prestasi', count: missions.filter((m) => m.type === 'one_time' || m.type === 'streak' || m.type === 'social').length },
+  ], [missions, dailyMissions])
+
   const currentBalanceDisplay = coinBalance?.balance ?? 0
 
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      <div className="cluv-mb-6">
+      {/* Page Header (Desktop only; on mobile title is shown in Topbar) */}
+      <div className="cluv-mb-6 cluv-hide-mobile">
         <h1 className="cluv-title-page">Misi &amp; Hadiah Credits</h1>
         <p className="cluv-caption cluv-text-muted">
           Selesaikan aktivitas harian dan tantangan mingguan untuk mengumpulkan AI Credits gratis di Skincluv!
@@ -296,34 +311,55 @@ export default function MissionsPage() {
       <div className="cluv-missions-layout">
         {/* Left Column: Credit Summary & Info Card */}
         <div className="cluv-flex-col cluv-gap-4">
-          {/* Credit Balance Banner Card */}
+          {/* Credit Balance & Gamification Hero Bento Card */}
           <div className="cluv-card is-highlight">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-4">
-              <div className="cluv-card-icon-wrap is-lg is-gold">
-                <Coins size={30} />
-              </div>
-              <div>
-                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">Saldo Credits Saat Ini</span>
-                <div className="cluv-title-hero cluv-text-dark cluv-m-0">
-                  {currentBalanceDisplay} <span className="cluv-body cluv-font-bold cluv-text-muted">Credits</span>
+            <div className="cluv-flex-between cluv-items-center cluv-gap-3 cluv-flex-wrap">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+                <div className="cluv-card-icon-wrap is-md is-gold cluv-flex-shrink-0">
+                  <Coins size={24} />
+                </div>
+                <div>
+                  <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">
+                    Saldo AI Credits
+                  </span>
+                  <div className="cluv-title-hero cluv-text-dark cluv-m-0 cluv-tabular-nums">
+                    {currentBalanceDisplay.toLocaleString('id-ID')} <span className="cluv-body cluv-font-bold cluv-text-muted">Credits</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="cluv-mt-4">
               {readyCount > 0 ? (
                 <Badge variant="teal" pulse icon={<Zap size={13} />}>
-                  Ada {readyCount} Misi Siap Diklaim!
+                  {readyCount} Misi Siap Diklaim!
                 </Badge>
               ) : (
-                <Badge variant="gold" icon={<Sparkles size={13} />}>
-                  Akses Gratis ke Fitur AI
+                <Badge variant="slate" size="sm" icon={<Calendar size={13} />}>
+                  Reset 00:00 WIB
                 </Badge>
               )}
             </div>
+
+            {/* Daily Routine Mini Progress Bar */}
+            <div className="cluv-mt-4 cluv-pt-3 cluv-border-t">
+              <div className="cluv-flex-between cluv-items-center cluv-mb-1.5">
+                <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-uppercase">
+                  Progres Rutinitas Harian
+                </span>
+                <span className="cluv-micro cluv-font-bold cluv-text-dark cluv-tabular-nums">
+                  {completedDailyCount} dari {totalDailyCount} Selesai ({dailyPercent}%)
+                </span>
+              </div>
+              <div className="cluv-progress-track">
+                <div
+                  className={`cluv-progress-bar ${dailyPercent === 100 ? 'is-optimal' : ''}`}
+                  style={{ width: `${dailyPercent}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="cluv-card">
+          {/* Manfaat AI Credits (Desktop only to prevent clutter on mobile) */}
+          <div className="cluv-card cluv-hide-mobile">
             <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-2">
               <Gift size={18} className="cluv-text-gold" />
               <h3 className="cluv-title-card cluv-m-0">Manfaat AI Credits</h3>
@@ -362,51 +398,32 @@ export default function MissionsPage() {
                 <Trophy size={18} className="cluv-text-gold" />
                 <h3 className="cluv-title-card cluv-m-0">Daftar Misi &amp; Tantangan</h3>
               </div>
-              <Badge variant="slate" size="sm" icon={<Calendar size={13} />}>
+              <Badge variant="slate" size="sm" icon={<Calendar size={13} />} className="cluv-hide-mobile">
                 Reset 00:00 WIB
               </Badge>
             </div>
 
-            {/* Mission Category Tabs */}
-            <div className="cluv-tabs cluv-mb-5">
-              <button
-                type="button"
-                className={`cluv-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-                onClick={() => setActiveTab('all')}
-              >
-                Semua ({missions.length})
-              </button>
-              <button
-                type="button"
-                className={`cluv-tab-btn ${activeTab === 'daily' ? 'active' : ''}`}
-                onClick={() => setActiveTab('daily')}
-              >
-                Harian ({missions.filter((m) => m.type === 'daily').length})
-              </button>
-              <button
-                type="button"
-                className={`cluv-tab-btn ${activeTab === 'weekly' ? 'active' : ''}`}
-                onClick={() => setActiveTab('weekly')}
-              >
-                Mingguan ({missions.filter((m) => m.type === 'weekly').length})
-              </button>
-              <button
-                type="button"
-                className={`cluv-tab-btn ${activeTab === 'one_time' ? 'active' : ''}`}
-                onClick={() => setActiveTab('one_time')}
-              >
-                Prestasi ({missions.filter((m) => m.type === 'one_time' || m.type === 'streak' || m.type === 'social').length})
-              </button>
+            {/* Mission Category Chips Bar (Scrollable on Mobile) */}
+            <div className="cluv-filter-scroll cluv-mb-4" role="tablist" aria-label="Kategori Misi">
+              {filterTabs.map((tab) => {
+                const isActive = activeTab === tab.key
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
+                    onClick={() => setActiveTab(tab.key)}
+                  >
+                    <span>{tab.label}</span>
+                    <span className="cluv-tab-badge cluv-tabular-nums">{tab.count}</span>
+                  </button>
+                )
+              })}
             </div>
 
-            {claimFeedback && (
-              <div className={`cluv-card cluv-mb-4 ${claimFeedback.type === 'success' ? 'is-highlight' : 'is-danger'}`}>
-                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                  {claimFeedback.type === 'success' ? <CheckCircle2 size={16} className="cluv-text-teal" /> : <Sparkles size={16} className="cluv-text-rose" />}
-                  <span className="cluv-caption cluv-font-bold">{claimFeedback.message}</span>
-                </div>
-              </div>
-            )}
+
 
             {loading ? (
               <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
@@ -449,14 +466,14 @@ export default function MissionsPage() {
                               style={{ width: `${percent}%` }}
                             />
                           </div>
-                          <span className="cluv-micro cluv-text-muted cluv-mt-1 cluv-block">
+                          <span className="cluv-micro cluv-text-muted cluv-mt-1 cluv-block cluv-tabular-nums">
                             {m.progress} / {m.target} Selesai ({Math.round(percent)}%)
                           </span>
                         </div>
                       </div>
 
                       <div className="cluv-mission-item-action">
-                        <span className="cluv-font-bold cluv-text-gold">+{m.reward_coins} Credits</span>
+                        <span className="cluv-font-bold cluv-text-gold cluv-tabular-nums">+{m.reward_coins} Credits</span>
                         {m.is_claimed ? (
                           <Badge variant="teal" size="sm" icon={<CheckCircle2 size={13} />}>
                             Diklaim
@@ -522,6 +539,14 @@ export default function MissionsPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast Feedback Klaim Misi (Zero Layout Shift) */}
+      <Toast
+        isOpen={!!claimFeedback}
+        onClose={() => setClaimFeedback(null)}
+        variant={claimFeedback?.type === 'success' ? 'success' : 'error'}
+        message={claimFeedback?.message || ''}
+      />
     </div>
   )
 }
