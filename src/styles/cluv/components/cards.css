@@ -524,6 +524,99 @@
 }
 
 /* =============================================================================
+ * Bento Wallet & Credits Card (.cluv-bento-wallet)
+ * ============================================================================= */
+.cluv-bento-wallet {
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-gold-line, #fae0b8);
+  border-radius: var(--cluv-radius-xl, 20px);
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px -4px rgba(217, 119, 6, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  background-image: radial-gradient(circle at top right, var(--cluv-gold-soft, #fef8ee) 0%, transparent 65%);
+}
+
+.cluv-bento-wallet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cluv-bento-wallet-balance-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cluv-bento-wallet-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cluv-gold-dark, #b45309);
+}
+
+.cluv-bento-wallet-val {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--cluv-current-text, #1a2d42);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.cluv-bento-wallet-unit {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-bento-wallet-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--cluv-gold-line, #fae0b8);
+}
+
+.cluv-bento-wallet-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cluv-bento-wallet-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--cluv-current-text-muted, #556980);
+}
+
+.cluv-bento-wallet-stat-val {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.cluv-bento-wallet-stat-val.is-income {
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-bento-wallet-stat-val.is-expense {
+  color: var(--cluv-rose, #e11d48);
+}
+
+/* =============================================================================
  * Mobile-First Transaction Feed List (.cluv-feed-group, .cluv-feed-card, .cluv-feed-item)
  * ============================================================================= */
 .cluv-filter-scroll {
