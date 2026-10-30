@@ -94,11 +94,18 @@ export default function NotificationsPage() {
             const IconComponent = item.icon
 
             return (
-              <button
+              <div
                 key={item.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 className={`cluv-notif-item ${isUnread ? 'is-unread' : ''}`}
                 onClick={() => handleItemClick(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleItemClick(item)
+                  }
+                }}
               >
                 <div className={`cluv-notif-icon-wrap ${item.color}`}>
                   <IconComponent size={18} strokeWidth={2.2} />
@@ -123,7 +130,7 @@ export default function NotificationsPage() {
 
                   <p className="cluv-notif-body">{item.body}</p>
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>
