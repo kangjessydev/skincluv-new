@@ -272,11 +272,11 @@ export default function AppLayout() {
                     <span className="cluv-topbar-bell-dot" />
                   </button>
                 </>
-              ) : location.pathname.startsWith('/coin-history') ? (
+              ) : (location.pathname.startsWith('/coin-history') || location.pathname.startsWith('/missions')) ? (
                 <div
                   className="cluv-credit-capsule cluv-hide-desktop"
-                  onClick={() => navigate('/missions')}
-                  title="Dapatkan Credits"
+                  onClick={() => navigate(location.pathname.startsWith('/missions') ? '/pricing' : '/missions')}
+                  title={location.pathname.startsWith('/missions') ? 'Beli AI Credits' : 'Dapatkan Credits'}
                   role="button"
                   tabIndex={0}
                 >

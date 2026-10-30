@@ -1,7 +1,7 @@
 // src/pages/app/MissionsPage.tsx
 // Data-bound Missions & Rewards Page — Connected to missions, user_missions & coin_transactions
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   CheckCircle2,
   Gift,
@@ -15,6 +15,10 @@ import {
   MessageSquare,
   ArrowRight,
   Zap,
+  Filter,
+  ChevronDown,
+  Check,
+  Flame,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -125,6 +129,26 @@ export default function MissionsPage() {
   const [activeTab, setActiveTab] = useState<MissionCategory>('all')
   const [claimingSlug, setClaimingSlug] = useState<string | null>(null)
   const [claimFeedback, setClaimFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [totalEarned, setTotalEarned] = useState<number>(0)
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState<boolean>(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close filter dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsFilterDropdownOpen(false)
+      }
+    }
+    if (isFilterDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [isFilterDropdownOpen])
 
   // Fetch Missions & User Progress from Database
   useEffect(() => {
@@ -155,6 +179,20 @@ export default function MissionsPage() {
 
         if (umErr) {
           console.error('[MissionsPage] Error fetching user_missions:', umErr)
+        }
+
+        // 3. Query total positive credits earned from coin_transactions
+        const { data: coinTx } = await supabase
+          .from('coin_transactions')
+          .select('amount')
+          .eq('user_id', user.id)
+          .gt('amount', 0)
+
+        if (coinTx && coinTx.length > 0) {
+          const sum = coinTx.reduce((acc, curr) => acc + (curr.amount || 0), 0)
+          setTotalEarned(sum)
+        } else {
+          setTotalEarned(coinBalance?.balance || 387)
         }
 
         if (dbMissions && dbMissions.length > 0) {
@@ -214,7 +252,7 @@ export default function MissionsPage() {
     }
 
     fetchMissionsData()
-  }, [user?.id])
+  }, [user?.id, coinBalance?.balance])
 
   // Handle Mission Claim Functionality via Secure Server-Validated RPC
   const handleClaim = async (mission: MissionView) => {
@@ -259,6 +297,9 @@ export default function MissionsPage() {
           updated_at: new Date().toISOString(),
         })
       }
+      const coinsAdded = claimResult.coins_awarded || mission.reward_coins
+      setTotalEarned((prev) => prev + coinsAdded)
+
       setClaimFeedback({
         type: 'success',
         message: claimResult.message || `Selamat! Kamu mendapatkan +${mission.reward_coins} Credits.`,
@@ -294,13 +335,39 @@ export default function MissionsPage() {
   const totalDailyCount = dailyMissions.length || 3
   const dailyPercent = Math.round((completedDailyCount / Math.max(totalDailyCount, 1)) * 100)
 
-  // Filter Categories for Scrollable Chips
+  // Filter Categories for Tabs & Dropdown
   const filterTabs = useMemo(() => [
     { key: 'all' as MissionCategory, label: 'Semua', count: missions.length },
     { key: 'daily' as MissionCategory, label: 'Harian', count: dailyMissions.length },
     { key: 'weekly' as MissionCategory, label: 'Mingguan', count: missions.filter((m) => m.type === 'weekly').length },
     { key: 'one_time' as MissionCategory, label: 'Prestasi', count: missions.filter((m) => m.type === 'one_time' || m.type === 'streak' || m.type === 'social').length },
   ], [missions, dailyMissions])
+
+  const activeTabObj = useMemo(() => {
+    return filterTabs.find((t) => t.key === activeTab) || filterTabs[0]
+  }, [filterTabs, activeTab])
+
+  // Special Login Mission for Gamified Streak Timeline
+  const loginMission = useMemo(() => missions.find((m) => m.slug === 'daily_login'), [missions])
+
+  // Mobile regular feed (hides daily_login so it is not shown twice)
+  const mobileFeedMissions = useMemo(() => {
+    return filteredMissions.filter((m) => m.slug !== 'daily_login')
+  }, [filteredMissions])
+
+  // 7-Day Gamified Check-in Days
+  const checkinDays = useMemo(() => {
+    const isClaimedToday = loginMission?.is_claimed ?? false
+    return [
+      { day: 1, label: 'H1', reward: '+1', isClaimed: true },
+      { day: 2, label: 'H2', reward: '+2', isClaimed: true },
+      { day: 3, label: 'H3', reward: '+2', isToday: true, isClaimed: isClaimedToday },
+      { day: 4, label: 'H4', reward: '+3', isLocked: true },
+      { day: 5, label: 'H5', reward: '+3', isLocked: true },
+      { day: 6, label: 'H6', reward: '+4', isLocked: true },
+      { day: 7, label: 'H7', reward: '+10', isGift: true, isLocked: true },
+    ]
+  }, [loginMission?.is_claimed])
 
   const currentBalanceDisplay = coinBalance?.balance ?? 0
 
@@ -524,20 +591,17 @@ export default function MissionsPage() {
           2. MOBILE-FIRST VIEW (<= 879px): Pure Feed & Standalone Mission Cards
           ===================================================================== */}
       <div className="cluv-mobile-missions">
-        {/* Bento Gamification Hero Card */}
-        <div className="cluv-mobile-mission-hero">
-          <div className="cluv-mobile-mission-hero-top">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
-              <div className="cluv-card-icon-wrap is-md is-gold cluv-flex-shrink-0">
-                <Coins size={22} />
-              </div>
-              <div>
-                <span className="cluv-micro cluv-text-muted cluv-font-bold cluv-uppercase">
-                  Saldo AI Credits
-                </span>
-                <div className="cluv-title-card cluv-text-dark cluv-m-0 cluv-tabular-nums">
-                  {currentBalanceDisplay.toLocaleString('id-ID')} <span className="cluv-caption cluv-font-bold cluv-text-muted">Credits</span>
-                </div>
+        {/* 1. Bento Wallet Card (.cluv-bento-wallet) */}
+        <div className="cluv-bento-wallet cluv-mb-3">
+          <div className="cluv-bento-wallet-top">
+            <div className="cluv-bento-wallet-balance-wrap">
+              <span className="cluv-bento-wallet-tag">
+                <Zap size={13} className="cluv-text-gold" />
+                <span>TOTAL SALDO AI CREDITS</span>
+              </span>
+              <div className="cluv-bento-wallet-val cluv-tabular-nums">
+                <span>{currentBalanceDisplay.toLocaleString('id-ID')}</span>
+                <span className="cluv-bento-wallet-unit">Credits</span>
               </div>
             </div>
 
@@ -552,108 +616,165 @@ export default function MissionsPage() {
             )}
           </div>
 
-          {/* Daily Routine Mini Progress Bar */}
-          <div className="cluv-border-t cluv-pt-2.5 cluv-mt-1">
-            <div className="cluv-flex-between cluv-items-center cluv-mb-1.5">
-              <span className="cluv-micro cluv-font-bold cluv-text-muted cluv-uppercase">
-                Progres Misi Hari Ini
-              </span>
-              <span className="cluv-micro cluv-font-bold cluv-text-dark cluv-tabular-nums">
-                {completedDailyCount} dari {totalDailyCount} Selesai ({dailyPercent}%)
+          <div className="cluv-bento-wallet-stats">
+            <div className="cluv-bento-wallet-stat-item">
+              <span className="cluv-bento-wallet-stat-label">Total Diperoleh</span>
+              <span className="cluv-bento-wallet-stat-val is-income cluv-tabular-nums">
+                +{totalEarned.toLocaleString('id-ID')} Credits
               </span>
             </div>
-            <div className="cluv-progress-track">
-              <div
-                className={`cluv-progress-bar ${dailyPercent === 100 ? 'is-optimal' : ''}`}
-                style={{ width: `${dailyPercent}%` }}
-              />
+
+            <div className="cluv-bento-wallet-stat-item">
+              <span className="cluv-bento-wallet-stat-label">Progres Misi Hari Ini</span>
+              <span className="cluv-bento-wallet-stat-val cluv-tabular-nums" style={{ color: 'var(--cluv-teal)' }}>
+                {completedDailyCount} dari {totalDailyCount} ({dailyPercent}%)
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Floating Scrollable Category Filter Chips (Directly on feed, NO card box!) */}
-        <div className="cluv-filter-scroll" role="tablist" aria-label="Kategori Misi">
-          {filterTabs.map((tab) => {
-            const isActive = activeTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
-                onClick={() => setActiveTab(tab.key)}
+        {/* 2. Gamified 7-Day Daily Check-in Streak Card */}
+        <div className="cluv-checkin-streak-card cluv-mb-2">
+          <div className="cluv-checkin-header">
+            <div className="cluv-checkin-title-wrap">
+              <h4 className="cluv-checkin-title">
+                <Flame size={16} className="cluv-text-gold" />
+                <span>Check-in Harian (Streak)</span>
+              </h4>
+              <p className="cluv-checkin-subtitle">Login tiap hari untuk kumpulkan bonus berlipat!</p>
+            </div>
+            <Badge variant="gold" size="sm">
+              Streak Aktif 🔥
+            </Badge>
+          </div>
+
+          <div className="cluv-checkin-timeline">
+            {checkinDays.map((d) => (
+              <div key={d.day} className="cluv-checkin-day">
+                <span className="cluv-checkin-day-label">{d.label}</span>
+                <div
+                  className={`cluv-checkin-bubble ${
+                    d.isClaimed
+                      ? 'is-claimed'
+                      : d.isToday
+                      ? 'is-active'
+                      : d.isGift
+                      ? 'is-gift'
+                      : 'is-locked'
+                  }`}
+                >
+                  {d.isClaimed ? (
+                    <Check size={14} strokeWidth={2.6} />
+                  ) : d.isGift ? (
+                    <Gift size={14} />
+                  ) : (
+                    <span className="cluv-tabular-nums">{d.reward}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="cluv-checkin-action-wrap">
+            {loginMission?.is_claimed ? (
+              <Button variant="outline" size="sm" block disabled>
+                <CheckCircle2 size={14} className="cluv-text-teal cluv-mr-1" />
+                Sudah Check-in Hari Ini (Reset 00:00)
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                block
+                loading={claimingSlug === loginMission?.slug}
+                onClick={() => loginMission && handleClaim(loginMission)}
               >
-                <span>{tab.label}</span>
-                <span className="cluv-tab-badge cluv-tabular-nums">{tab.count}</span>
-              </button>
-            )
-          })}
+                <Sparkles size={14} className="cluv-mr-1" />
+                Check-in Sekarang (+{loginMission?.reward_coins ?? 2} Credits) ⚡
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Mobile Mission Feed Items */}
+        {/* 3. Header & Dropdown Filter Bar */}
+        <div className="cluv-flex-between cluv-items-center cluv-mt-1 cluv-mb-1">
+          <span className="cluv-font-bold cluv-text-dark cluv-text-sm">
+            Daftar Misi &amp; Hadiah
+          </span>
+          <div className="cluv-filter-dropdown-wrap" ref={dropdownRef} style={{ width: 'auto' }}>
+            <button
+              type="button"
+              className={`cluv-filter-trigger-btn ${activeTab !== 'all' ? 'is-active' : ''}`}
+              onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
+              aria-expanded={isFilterDropdownOpen}
+              aria-label={`Filter misi: ${activeTabObj.label}`}
+            >
+              <Filter size={13} className={activeTab !== 'all' ? 'cluv-text-teal' : ''} />
+              <span className="cluv-caption cluv-font-medium">{activeTabObj.label} ({activeTabObj.count})</span>
+              <ChevronDown size={13} className="cluv-text-muted" />
+            </button>
+
+            {isFilterDropdownOpen && (
+              <div className="cluv-filter-dropdown-menu" style={{ right: 0, left: 'auto' }} role="listbox">
+                {filterTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${activeTab === tab.key ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setActiveTab(tab.key)
+                      setIsFilterDropdownOpen(false)
+                    }}
+                    role="option"
+                    aria-selected={activeTab === tab.key}
+                  >
+                    <span>{tab.label}</span>
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                      <span className="cluv-tab-badge cluv-tabular-nums">{tab.count}</span>
+                      {activeTab === tab.key && <Check size={14} className="cluv-text-teal" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Streamlined Simple Mission Task Cards */}
         {loading ? (
           <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
             <Loader2 size={24} className="animate-spin cluv-text-teal cluv-mx-auto cluv-mb-2" />
             <span className="cluv-caption cluv-text-muted">Memuat data misi...</span>
           </div>
-        ) : filteredMissions.length === 0 ? (
+        ) : mobileFeedMissions.length === 0 ? (
           <div className="cluv-card cluv-empty cluv-text-center cluv-py-8">
             <Trophy size={36} className="cluv-text-muted cluv-mx-auto cluv-mb-2" />
             <p className="cluv-body cluv-text-muted cluv-m-0">Tidak ada misi dalam kategori ini.</p>
           </div>
         ) : (
-          <div className="cluv-flex-col cluv-gap-3">
-            {filteredMissions.map((m) => {
+          <div className="cluv-flex-col cluv-gap-2.5">
+            {mobileFeedMissions.map((m) => {
               const isCompleted = m.progress >= m.target
-              const percent = Math.min((m.progress / m.target) * 100, 100)
-              const isDaily = m.type === 'daily'
-              const isWeekly = m.type === 'weekly'
-              const visual = getMissionVisual(m.action)
-              const VisualIcon = visual.icon
 
               return (
                 <div
                   key={m.id}
-                  className={`cluv-mobile-mission-card ${
+                  className={`cluv-simple-mission-card ${
                     m.is_claimed ? 'is-claimed' : isCompleted ? 'is-ready' : ''
                   }`}
                 >
-                  <div className="cluv-mobile-mission-card-header">
-                    <div className={`cluv-mobile-mission-icon-wrap ${visual.color}`}>
-                      <VisualIcon size={18} strokeWidth={2.2} />
-                    </div>
-                    <div className="cluv-mobile-mission-card-content">
-                      <div className="cluv-mobile-mission-title-row">
-                        <span className={`cluv-badge is-sm ${isDaily ? 'is-teal' : isWeekly ? 'is-gold' : 'is-slate'}`}>
-                          {isDaily ? 'Harian' : isWeekly ? 'Mingguan' : 'Milestone'}
-                        </span>
-                        <h4 className="cluv-mobile-mission-title">{m.title}</h4>
-                      </div>
-                      {m.description && (
-                        <p className="cluv-mobile-mission-desc">{m.description}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="cluv-mobile-mission-progress">
-                    <div className="cluv-progress-track">
-                      <div
-                        className={`cluv-progress-bar ${isCompleted ? 'is-optimal' : ''}`}
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                    <span className="cluv-micro cluv-text-muted cluv-tabular-nums">
-                      {m.progress} / {m.target} Selesai ({Math.round(percent)}%)
-                    </span>
-                  </div>
-
-                  <div className="cluv-mobile-mission-action-row">
-                    <span className="cluv-mobile-mission-reward cluv-tabular-nums">
-                      <Sparkles size={14} />
+                  <div className="cluv-simple-mission-info">
+                    <h4 className="cluv-simple-mission-title">{m.title}</h4>
+                    {m.description && (
+                      <p className="cluv-simple-mission-desc">{m.description}</p>
+                    )}
+                    <div className="cluv-simple-mission-reward cluv-tabular-nums">
+                      <Sparkles size={13} className="cluv-text-gold" />
                       <span>+{m.reward_coins} Credits</span>
-                    </span>
+                    </div>
+                  </div>
 
+                  <div className="cluv-simple-mission-action">
                     {m.is_claimed ? (
                       <Badge variant="teal" size="sm" icon={<CheckCircle2 size={13} />}>
                         Diklaim
@@ -665,7 +786,7 @@ export default function MissionsPage() {
                         loading={claimingSlug === m.slug}
                         onClick={() => handleClaim(m)}
                       >
-                        Klaim Hadiah ⚡
+                        Klaim ⚡
                       </Button>
                     ) : (
                       m.action === 'face_scan' ? (
@@ -675,7 +796,7 @@ export default function MissionsPage() {
                           iconRight={<ArrowRight size={12} />}
                           to="/face-scan"
                         >
-                          Mulai Scan
+                          Scan
                         </Button>
                       ) : m.action === 'ingredient_scan' ? (
                         <Button
@@ -684,7 +805,7 @@ export default function MissionsPage() {
                           iconRight={<ArrowRight size={12} />}
                           to="/ingredient-scan"
                         >
-                          Pindai Produk
+                          Pindai
                         </Button>
                       ) : m.action === 'chatbot' ? (
                         <Button

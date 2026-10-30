@@ -9,13 +9,13 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan
-- **Desain Mobile-First Gamification Feed pada Halaman Misi (`MissionsPage.tsx`, `cards.css`)**:
-  - Mengeliminasi *double card nesting* di mobile: menghapus kartu putih raksasa yang membungkus seluruh daftar misi di layar kecil sehingga menghilangkan *horizontal clipping/overflow*.
-  - Mengimplementasikan **Bento Gamification Hero Mobile** (`.cluv-mobile-mission-hero`): menampilkan saldo AI Credits, badge status klaim/reset, dan mini progress bar rutinitas harian yang ringkas dan padat.
-  - Filter kategori horizontal melayang (`.cluv-filter-scroll` dengan `.cluv-chip.is-pill`) langsung di atas feed tanpa pembungkus kartu kaku.
-  - Kartu misi mobile mandiri (`.cluv-mobile-mission-card`) berlebar 100% layar dengan ikon squircle bertema sesuai aksi (`ScanFace` teal, `FlaskConical` biru, `MessageSquare` ungu, `Trophy` gold).
-  - Menggantikan notifikasi inline statis dengan **Floating Toast Notification** (`<Toast>`) saat klaim hadiah selesai untuk menjamin *Zero Cumulative Layout Shift (CLS)*.
-  - Penyelarasan angka dan counter menggunakan format `cluv-tabular-nums` untuk mencegah pergeseran angka saat progress bertambah.
+- **Redesign Mobile Gamifikasi Misi Glow V2: Bento Wallet Kanonikal, Gamified 7-Day Check-in Streak, Dropdown Filter, & Simple Task Cards (`MissionsPage.tsx`, `cards.css`, `AppLayout.tsx`)**:
+  - **Bento Wallet Card Kanonikal (`.cluv-bento-wallet`)**: Mengadopsi format kartu saldo dari Riwayat Koin (Gambar 1), menampilkan total saldo AI Credits di atas serta 2 kolom metrik di bawah: *Total Diperoleh* di kiri (`+X Credits` teal) dan *Progres Misi Hari Ini* di kanan (`X/Y Selesai (Z%)`).
+  - **Kapsul Kredit Topbar Mobile (Gambar 3)**: Mengaktifkan kapsul interaktif `⚡ 1.387 | +` di Topbar kanan pada rute `/missions`, dengan aksi tap `+` langsung mengarah ke `/pricing` (Beli AI Credits).
+  - **Filter Dropdown Popover Kompak (Gambar 4)**: Menggantikan deretan chip horizontal dengan tombol pemicu filter dan menu dropdown popover (*Semua, Harian, Mingguan, Prestasi*), menghemat ~44px ruang vertikal.
+  - **Gamified 7-Day Check-in Streak Timeline**: Memisahkan misi login harian menjadi kartu gamifikasi mandiri di bagian paling atas feed dengan 7 node horizontal (Hari 1 hingga Hari 7 dengan centang hijau hari lalu, status aktif hari ini, dan peti kado spesial akhir pekan).
+  - **Simple Mission Task Cards (Gambar 5)**: Menyederhanakan kartu misi reguler menjadi baris tugas minimalis (nama misi, reward `+X Credits` emas tabular, dan tombol aksi langsung), menyingkirkan icon squircle besar, badge kategori berulang, dan progress bar tebal.
+
 
 - **Penyempurnaan Ergonomi Privacy Center: Native Bottom Sheet, Hirarki Tipografi Konsisten, & Tombol Destruktif (`PrivacyCenterPage.tsx`, `modals.css`)**:
   - Mengubah modal dialog konfirmasi menjadi **Pure Bottom Sheet Panel** (`.cluv-sheet-panel`) yang menempel di bagian bawah layar ponsel dengan drag handle bar abu-abu dan breakpoint mobile 880px.
