@@ -272,6 +272,21 @@ export default function AppLayout() {
                     <span className="cluv-topbar-bell-dot" />
                   </button>
                 </>
+              ) : location.pathname.startsWith('/coin-history') ? (
+                <div
+                  className="cluv-credit-capsule cluv-hide-desktop"
+                  onClick={() => navigate('/missions')}
+                  title="Dapatkan Credits"
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="cluv-credit-capsule-val">
+                    <Zap size={12} />
+                    <span>{(coinBalance?.balance ?? 0).toLocaleString('id-ID')}</span>
+                  </span>
+                  <span className="cluv-credit-capsule-divider" />
+                  <span className="cluv-credit-capsule-add">+</span>
+                </div>
               ) : location.pathname.startsWith('/chatbot') ? (
                 <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-hide-desktop">
                   <button

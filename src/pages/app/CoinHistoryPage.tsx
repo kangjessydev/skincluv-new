@@ -234,7 +234,8 @@ export default function CoinHistoryPage() {
             </div>
           </div>
 
-          <Button variant="primary" size="sm" to="/missions" radius="pill">
+          {/* Desktop Only: Tombol outline halus di pojok kartu (di mobile sudah ada kapsul interaktif di Topbar kanan) */}
+          <Button variant="outline" size="sm" to="/missions" radius="pill" className="cluv-hide-mobile">
             <Sparkles size={14} className="cluv-mr-1" />
             + Dapatkan Credits
           </Button>
