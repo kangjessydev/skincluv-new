@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -12,6 +12,9 @@ import {
   ChevronRight,
   Copy,
   Receipt,
+  Filter,
+  ChevronDown,
+  Check,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -43,6 +46,24 @@ export default function TransactionHistoryPage() {
   const [filter, setFilter] = useState<InvoiceFilter>('all')
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceItem | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsFilterDropdownOpen(false)
+      }
+    }
+    if (isFilterDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [isFilterDropdownOpen])
 
   useEffect(() => {
     if (!session?.user) return
@@ -138,6 +159,17 @@ export default function TransactionHistoryPage() {
   const paidCount = invoices.filter((i) => i.status === 'PAID').length
   const expiredCount = invoices.filter((i) => i.status === 'EXPIRED' || i.status === 'FAILED').length
 
+  const filterOptions: { key: InvoiceFilter; label: string; count: number; dotClass: string }[] = useMemo(() => [
+    { key: 'all', label: 'Semua', count: invoices.length, dotClass: 'is-all' },
+    { key: 'unpaid', label: 'Belum Dibayar', count: unpaidCount, dotClass: 'is-unpaid' },
+    { key: 'paid', label: 'Lunas', count: paidCount, dotClass: 'is-paid' },
+    ...(expiredCount > 0
+      ? [{ key: 'expired' as const, label: 'Kadaluarsa', count: expiredCount, dotClass: 'is-expired' }]
+      : []),
+  ], [invoices.length, unpaidCount, paidCount, expiredCount])
+
+  const activeFilterOption = filterOptions.find((o) => o.key === filter) || filterOptions[0]
+
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
       {/* Back Link to Billing (Desktop only) */}
@@ -157,42 +189,73 @@ export default function TransactionHistoryPage() {
         </p>
       </div>
 
-      {/* Filter Chips Horizontal Scrollable (Mobile-First Thumb-Friendly) */}
-      <div className="cluv-filter-scroll cluv-mt-4 cluv-mb-4">
-        <button
-          type="button"
-          className={`cluv-chip is-pill ${filter === 'all' ? 'is-active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          <span>Semua</span>
-          <span className="cluv-tab-badge">{invoices.length}</span>
-        </button>
-        <button
-          type="button"
-          className={`cluv-chip is-pill ${filter === 'unpaid' ? 'is-active' : ''}`}
-          onClick={() => setFilter('unpaid')}
-        >
-          <span>Belum Dibayar</span>
-          <span className="cluv-tab-badge">{unpaidCount}</span>
-        </button>
-        <button
-          type="button"
-          className={`cluv-chip is-pill ${filter === 'paid' ? 'is-active' : ''}`}
-          onClick={() => setFilter('paid')}
-        >
-          <span>Lunas</span>
-          <span className="cluv-tab-badge">{paidCount}</span>
-        </button>
-        {expiredCount > 0 && (
+      {/* ===================== DESKTOP ONLY: Filter Chips Horizontal ===================== */}
+      <div className="cluv-hide-mobile cluv-filter-scroll cluv-mt-4 cluv-mb-4">
+        {filterOptions.map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            className={`cluv-chip is-pill ${filter === opt.key ? 'is-active' : ''}`}
+            onClick={() => setFilter(opt.key)}
+          >
+            <span>{opt.label}</span>
+            <span className="cluv-tab-badge">{opt.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ===================== MOBILE ONLY: Custom Cluv Dropdown Filter ===================== */}
+      <div className="cluv-hide-desktop cluv-mb-3 cluv-mt-1" ref={dropdownRef}>
+        <div className="cluv-filter-dropdown-wrap">
           <button
             type="button"
-            className={`cluv-chip is-pill ${filter === 'expired' ? 'is-active' : ''}`}
-            onClick={() => setFilter('expired')}
+            className="cluv-filter-trigger-btn"
+            onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
+            aria-expanded={isFilterDropdownOpen}
+            aria-haspopup="listbox"
           >
-            <span>Kadaluarsa</span>
-            <span className="cluv-tab-badge">{expiredCount}</span>
+            <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+              <Filter size={13} className="cluv-text-teal" />
+              <span>{activeFilterOption.label}</span>
+              <span className="cluv-tab-badge">{activeFilterOption.count}</span>
+            </div>
+            <ChevronDown
+              size={14}
+              className="cluv-text-muted"
+              style={{
+                transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.15s ease',
+              }}
+            />
           </button>
-        )}
+
+          {isFilterDropdownOpen && (
+            <div className="cluv-filter-dropdown-menu" role="listbox">
+              {filterOptions.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={`cluv-filter-dropdown-item ${filter === opt.key ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setFilter(opt.key)
+                    setIsFilterDropdownOpen(false)
+                  }}
+                  role="option"
+                  aria-selected={filter === opt.key}
+                >
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <span className={`cluv-dot-indicator ${opt.dotClass}`} />
+                    <span>{opt.label}</span>
+                  </div>
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <span className="cluv-tab-badge">{opt.count}</span>
+                    {filter === opt.key && <Check size={14} className="cluv-text-teal" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Transaction Feed List */}
