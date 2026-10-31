@@ -26,6 +26,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
     - **Tanpa Huruf Kapital Semua**: Label menggunakan Title Case normal (*Tipe Kulit, Pantangan, Target*).
     - **Jarak Seragam & Rapi**: Sisi kiri (judul) dan sisi kanan (isi) sejajar vertikal lurus (*column-aligned*) tanpa jarak titik dua yang mengambang atau berbeda-beda.
   - **Penyelarasan Hirarki Fokus Perhatian**: Mengganti label kapital `FOKUS PERHATIAN` menjadi Title Case normal `Fokus Perhatian` (`font-size: 0.8125rem`, font-weight: 500) dan teks isi keluhan menjadi `0.8125rem` (font-weight: 600, warna teal lembut) agar ukuran font harmonis dan seimbang dengan metadata di atasnya.
+- **Redesign Bottom Sheet Panduan Kualitas Foto & Profil Kulit Scan Wajah (`FaceScanPage.tsx`)**:
+  - Mengadopsi 100% sistem visual kanonikal dari Scan Komposisi:
+    - **Kartu Profil Kulit Bento Paspor**: Menggantikan alert highlight kaku dengan kartu Bento bernuansa kertas emas (`.cluv-bento-wallet`), memuat tabel metadata 2 kolom presisi (*Tipe Kulit, Pantangan, Target*) tanpa icon dan Title Case normal, serta blok Fokus Perhatian membentang penuh 100%.
+    - **3 Panduan Kualitas Foto Terpadu**: Menggantikan 3 baris checklist terpisah dengan **1 Kartu Panduan Berpenomoran (Numbered Guide)** dengan badge nomor lingkaran (1: Cahaya Alami, 2: Wajah Bersih, 3: Jarak Tegak Lurus), judul tegas 14.5px, dan deskripsi proporsional 12.5px.
 
 ## [Unreleased] - 2026-10-29
 
