@@ -1312,23 +1312,16 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 <span>Profil Kulit Terdaftar</span>
               </div>
             </div>
-            {/* 3 Item Meta Data Seragam Khas Blok Profil */}
-            <div className="cluv-passport-meta-row">
-              <div className="cluv-passport-meta-item">
-                <Activity size={13} className="cluv-text-teal" />
-                <span className="cluv-passport-meta-label">Tipe Kulit:</span>
-                <span className="cluv-passport-meta-val">{userSkinTypeLabel}</span>
-              </div>
-              <div className="cluv-passport-meta-item">
-                <ShieldCheck size={13} className="cluv-text-teal" />
-                <span className="cluv-passport-meta-label">Pantangan:</span>
-                <span className="cluv-passport-meta-val">{userSensitivities}</span>
-              </div>
-              <div className="cluv-passport-meta-item">
-                <Sparkles size={13} className="cluv-text-gold" />
-                <span className="cluv-passport-meta-label">Target:</span>
-                <span className="cluv-passport-meta-val">{userTargetFormula}</span>
-              </div>
+            {/* 3 Item Meta Data Seragam Khas Tabel Blok Profil */}
+            <div className="cluv-passport-meta-grid">
+              <span className="cluv-passport-meta-label">Tipe Kulit</span>
+              <span className="cluv-passport-meta-val">{userSkinTypeLabel}</span>
+
+              <span className="cluv-passport-meta-label">Pantangan</span>
+              <span className="cluv-passport-meta-val">{userSensitivities}</span>
+
+              <span className="cluv-passport-meta-label">Target</span>
+              <span className="cluv-passport-meta-val">{userTargetFormula}</span>
             </div>
 
             {/* Fokus Perhatian Membentang Penuh (Pencocokan AI Dihapus) */}

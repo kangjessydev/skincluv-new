@@ -21,8 +21,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - **Hirarki Judul vs Deskripsi**: Mempertegas ukuran judul poin (`.cluv-guide-title` 0.90625rem / 14.5px, font-weight 700) dan mengecilkan deskripsi (`.cluv-guide-desc` 0.78125rem / 12.5px, regular muted) agar perbedaan hirarki jelas dan tidak terbalik.
   - **Konsistensi Spacing**: Menyelaraskan padding header kartu dan item list menjadi konsisten 16px kiri-kanan serta gap 12px ke nomor lingkaran.
 - **Redesign Bottom Sheet Profil Kulit Paspor (`IngredientScanPage.tsx`, `cards.css`)**:
-  - **Penghapusan Badge Tersinkronisasi & Pencocokan AI**: Menghapus badge statis dan kolom pencocokan AI yang mempersempit ruang.
-  - **Penyeragaman Tipe Kulit (Combination) ke Metadata Blok**: Mengubah headline besar tipe kulit menjadi item metadata yang seragam dengan Pantangan dan Target (`Tipe Kulit:`, `Pantangan:`, `Target:`) dengan font-size 0.8125rem, label uppercase 0.6875rem (min-width: 72px untuk perataan kolom rapi), dan ikon klinis masing-masing (`Activity`, `ShieldCheck`, `Sparkles`).
+  - **Penghapusan Badge Tersinkronisasi, Pencocokan AI, & Ikon**: Menghapus badge statis, kolom pencocokan AI, serta ikon-ikon kecil pada baris metadata untuk tampilan minimalis yang bersih.
+  - **Tabel Metadata 2 Kolom Presisi (`.cluv-passport-meta-grid`)**: Menyusun metadata profil kulit (*Tipe Kulit, Pantangan, Target*) dalam format grid 2 kolom (`80px 1fr`, gap 14px) mirip tabel spesifikasi produk:
+    - **Tanpa Huruf Kapital Semua**: Label menggunakan Title Case normal (*Tipe Kulit, Pantangan, Target*).
+    - **Jarak Seragam & Rapi**: Sisi kiri (judul) dan sisi kanan (isi) sejajar vertikal lurus (*column-aligned*) tanpa jarak titik dua yang mengambang atau berbeda-beda.
   - **Fokus Perhatian Menonjol**: Bagian Fokus Perhatian membentang 100% penuh di atas garis putus-putus (*dashed line*), memudahkan membaca keluhan kulit tanpa terpotong sempit.
 
 ## [Unreleased] - 2026-10-29
