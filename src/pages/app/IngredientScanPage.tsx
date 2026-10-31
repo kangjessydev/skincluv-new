@@ -1272,38 +1272,66 @@ PETUNJUK OCR & ANALISIS WAJIB:
         subtitle="Cara membaca komposisi kosmetik secara mandiri"
       >
         <div className="cluv-flex-col cluv-gap-4">
-          <div className="cluv-card is-highlight cluv-p-3">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-1">
-              <User size={16} className="cluv-text-teal" />
-              <span className="cluv-caption cluv-font-bold cluv-text-teal">Profil Kulit Terdaftar:</span>
+          {/* Passport Skin Profile Card (Bento Wallet Warm Paper Style) */}
+          <div className="cluv-bento-wallet">
+            <div className="cluv-bento-wallet-top">
+              <div className="cluv-bento-wallet-tag">
+                <User size={12} strokeWidth={2.4} />
+                <span>Profil Kulit Terdaftar</span>
+              </div>
+              <Badge variant="teal" size="sm">Tersinkronisasi ✓</Badge>
             </div>
-            <p className="cluv-caption cluv-text-muted cluv-m-0">
-              Tipe <strong>{userSkinType}</strong> dengan keluhan {userConcerns.toLowerCase()}. Deteksi interaksi bahan aktif otomatis dicocokkan ke kondisi ini.
-            </p>
+            <div className="cluv-bento-wallet-balance-wrap">
+              <div className="cluv-bento-wallet-val" style={{ fontSize: '1.25rem', textTransform: 'capitalize' }}>
+                {activeSkinProfile?.skin_type || 'Kombinasi'}
+                <span className="cluv-bento-wallet-unit" style={{ fontSize: '0.8125rem', color: 'var(--cluv-neutral-500)', fontWeight: 600 }}>
+                  Skin Profile
+                </span>
+              </div>
+            </div>
+            <div className="cluv-bento-wallet-stats">
+              <div className="cluv-bento-wallet-stat-item">
+                <span className="cluv-bento-wallet-stat-label">FOKUS PERHATIAN</span>
+                <span className="cluv-bento-wallet-stat-val cluv-text-teal" style={{ fontSize: '0.8125rem', fontWeight: 700, lineHeight: 1.3 }}>
+                  {userConcerns}
+                </span>
+              </div>
+              <div className="cluv-bento-wallet-stat-item">
+                <span className="cluv-bento-wallet-stat-label">PENCOCOKAN AI</span>
+                <span className="cluv-bento-wallet-stat-val" style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-teal-dark, #127a75)' }}>
+                  Aktif Otomatis ⚡
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="cluv-flex-col cluv-gap-3">
-            <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '1rem' }}>3 Prinsip Membaca Label</h4>
-            <div className="cluv-flex-col cluv-gap-2">
-              <div className="cluv-card is-compact">
-                <strong className="cluv-body cluv-text-dark">Aturan 5 Bahan Teratas</strong>
-                <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                  Lima bahan pertama pada label kemasan umumnya menyusun 70%–80% dari keseluruhan formula skincare.
-                </p>
+          {/* 3 Principles Unified Numbered Guide Card */}
+          <div className="cluv-card cluv-p-0 cluv-overflow-hidden">
+            <div className="cluv-p-3" style={{ borderBottom: '1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3))', background: 'var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc))' }}>
+              <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '0.875rem' }}>3 Prinsip Membaca Label</h4>
+              <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1" style={{ fontSize: '0.75rem' }}>
+                Pedoman dermatologi praktis saat memeriksa komposisi skincare
+              </p>
+            </div>
+            <div className="cluv-guide-item">
+              <span className="cluv-guide-num is-teal">1</span>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Aturan 5 Bahan Teratas</strong>
+                <p className="cluv-guide-desc">Menyusun 70%–80% dari keseluruhan formula produk skincare.</p>
               </div>
-
-              <div className="cluv-card is-compact">
-                <strong className="cluv-body cluv-text-dark">Batas 1% Konsentrasi</strong>
-                <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                  Bahan dengan konsentrasi di bawah 1% (pewarna, pengawet, fragrance) boleh ditulis dalam urutan acak oleh pabrikan.
-                </p>
+            </div>
+            <div className="cluv-guide-item">
+              <span className="cluv-guide-num is-gold">2</span>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Batas 1% Konsentrasi</strong>
+                <p className="cluv-guide-desc">Di bawah 1% (pewarna, pengawet, parfum) urutan penulisan boleh acak.</p>
               </div>
-
-              <div className="cluv-card is-compact">
-                <strong className="cluv-body cluv-text-dark">Indeks Komedogenik (0–5)</strong>
-                <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                  Skor 0–1 aman untuk kulit berjerawat, sedangkan skor 4–5 memiliki potensi tinggi menyumbat pori-pori wajah.
-                </p>
+            </div>
+            <div className="cluv-guide-item">
+              <span className="cluv-guide-num is-rose">3</span>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Indeks Komedogenik (0–5)</strong>
+                <p className="cluv-guide-desc">Skor 0–1 aman pori, sedangkan skor 4–5 rawan memicu komedo &amp; jerawat.</p>
               </div>
             </div>
           </div>

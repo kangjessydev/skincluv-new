@@ -6,6 +6,18 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 
 ---
 
+## [Unreleased] - 2026-10-31
+
+### Ditambahkan
+- **Numbered Guide List Kanonikal (`cards.css`, `.cluv-guide-item`, `.cluv-guide-num`)**:
+  - Menambahkan styling kanonikal untuk panduan bernomor di dalam kartu terpadu (`.cluv-guide-item`, `.cluv-guide-num` dengan varian warna `.is-teal`, `.is-gold`, `.is-rose`).
+  - Menghemat 40% ruang vertikal pada bottom sheet mobile dibandingkan penggunaan kartu bertumpuk terpisah.
+
+### Diubah
+- **Redesign Bottom Sheet Panduan Membaca Label & Profil Kulit Mobile (`IngredientScanPage.tsx`, `cards.css`)**:
+  - **Kartu Profil Kulit Bento Paspor**: Mengganti kotak alert teal kaku dan paragraf panjang dengan kartu bergaya **Bento Wallet bernuansa kertas** (`.cluv-bento-wallet`). Menampilkan tipe kulit sebagai nilai utama yang bersih, tag uppercase emas, status sinkronisasi, serta pembatas putus-putus (*dashed line*) dengan 2 metrik ringkas: *Fokus Perhatian* dan *Pencocokan AI Aktif*.
+  - **3 Prinsip Membaca Label Terpadu**: Mengganti 3 kartu kotak bertumpuk ala desktop diperkecil menjadi **1 Kartu Panduan Berpenomoran (Numbered Guide List)** dengan nomor badge lingkaran, judul tegas, dan penjelasan to-the-point yang nyaman dibaca di layar smartphone.
+
 ## [Unreleased] - 2026-10-29
 
 ### Ditambahkan

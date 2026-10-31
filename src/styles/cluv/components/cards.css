@@ -3021,6 +3021,71 @@
   }
 }
 
+/* =============================================================================
+ * Numbered Guide Card List (.cluv-guide-item, .cluv-guide-num)
+ * ============================================================================= */
+.cluv-guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  box-sizing: border-box;
+}
 
+.cluv-guide-item:last-child {
+  border-bottom: none;
+}
 
+.cluv-guide-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 
+.cluv-guide-num.is-teal {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  color: var(--cluv-teal-dark, #127a75);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-guide-num.is-gold {
+  background: var(--cluv-gold-soft, #fef8ee);
+  color: var(--cluv-gold-dark, #b45309);
+  border: 1px solid var(--cluv-gold-line, #fae0b8);
+}
+
+.cluv-guide-num.is-rose {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+
+.cluv-guide-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cluv-guide-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-current-text, #1a2d42);
+  line-height: 1.35;
+}
+
+.cluv-guide-desc {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-600, #475569);
+  line-height: 1.4;
+  margin: 0;
+}
