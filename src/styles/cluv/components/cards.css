@@ -3098,30 +3098,33 @@
 .cluv-passport-meta-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 7px;
+  margin-top: 2px;
 }
 
 .cluv-passport-meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.8125rem;
   color: var(--cluv-current-text-muted, #556980);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .cluv-passport-meta-label {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--cluv-neutral-500, #64748b);
   font-size: 0.6875rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  min-width: 72px;
 }
 
 .cluv-passport-meta-val {
   font-weight: 700;
   color: var(--cluv-current-text, #1a2d42);
+  word-break: break-word;
 }
 
 .cluv-bento-wallet-focus-block {

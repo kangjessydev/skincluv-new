@@ -7,6 +7,7 @@ import {
   Info,
   FileText,
   User,
+  Activity,
   Sparkles,
   BookOpen,
   Filter,
@@ -106,6 +107,17 @@ export default function IngredientScanPage() {
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < ingredientCost
 
   const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'BERMINYAK (OILY)'
+  const userSkinTypeLabel = useMemo(() => {
+    const raw = (activeSkinProfile?.skin_type || 'combination').toLowerCase()
+    const map: Record<string, string> = {
+      normal: 'Normal',
+      dry: 'Kering (Dry)',
+      oily: 'Berminyak (Oily)',
+      combination: 'Kombinasi (Combination)',
+      sensitive: 'Sensitif (Sensitive)',
+    }
+    return map[raw] || 'Kombinasi'
+  }, [activeSkinProfile?.skin_type])
   const rawConcerns = useMemo(() => activeSkinProfile?.skin_concerns || [], [activeSkinProfile?.skin_concerns])
 
   const userSensitivities = useMemo(() => {
@@ -1300,26 +1312,22 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 <span>Profil Kulit Terdaftar</span>
               </div>
             </div>
-            <div className="cluv-bento-wallet-balance-wrap">
-              <div className="cluv-bento-wallet-val" style={{ fontSize: '1.25rem', textTransform: 'capitalize' }}>
-                {activeSkinProfile?.skin_type || 'Kombinasi'}
-                <span className="cluv-bento-wallet-unit" style={{ fontSize: '0.8125rem', color: 'var(--cluv-neutral-500)', fontWeight: 600 }}>
-                  Skin Profile
-                </span>
+            {/* 3 Item Meta Data Seragam Khas Blok Profil */}
+            <div className="cluv-passport-meta-row">
+              <div className="cluv-passport-meta-item">
+                <Activity size={13} className="cluv-text-teal" />
+                <span className="cluv-passport-meta-label">Tipe Kulit:</span>
+                <span className="cluv-passport-meta-val">{userSkinTypeLabel}</span>
               </div>
-
-              {/* 2 Preferensi Kulit Sebagai Meta Data Proporsional */}
-              <div className="cluv-passport-meta-row">
-                <div className="cluv-passport-meta-item">
-                  <ShieldCheck size={13} className="cluv-text-teal" />
-                  <span className="cluv-passport-meta-label">Pantangan:</span>
-                  <span className="cluv-passport-meta-val">{userSensitivities}</span>
-                </div>
-                <div className="cluv-passport-meta-item">
-                  <Sparkles size={13} className="cluv-text-gold" />
-                  <span className="cluv-passport-meta-label">Target:</span>
-                  <span className="cluv-passport-meta-val">{userTargetFormula}</span>
-                </div>
+              <div className="cluv-passport-meta-item">
+                <ShieldCheck size={13} className="cluv-text-teal" />
+                <span className="cluv-passport-meta-label">Pantangan:</span>
+                <span className="cluv-passport-meta-val">{userSensitivities}</span>
+              </div>
+              <div className="cluv-passport-meta-item">
+                <Sparkles size={13} className="cluv-text-gold" />
+                <span className="cluv-passport-meta-label">Target:</span>
+                <span className="cluv-passport-meta-val">{userTargetFormula}</span>
               </div>
             </div>
 

@@ -22,8 +22,8 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - **Konsistensi Spacing**: Menyelaraskan padding header kartu dan item list menjadi konsisten 16px kiri-kanan serta gap 12px ke nomor lingkaran.
 - **Redesign Bottom Sheet Profil Kulit Paspor (`IngredientScanPage.tsx`, `cards.css`)**:
   - **Penghapusan Badge Tersinkronisasi & Pencocokan AI**: Menghapus badge statis dan kolom pencocokan AI yang mempersempit ruang.
-  - **Metadata Preferensi Tambahan**: Menampilkan 2 preferensi kulit tersimpan (Pantangan Bahan & Target Formula) secara proporsional di bawah headline tipe kulit.
-  - **Fokus Perhatian Menonjol**: Bagian Fokus Perhatian kini membentang 100% penuh tanpa terhimpit kolom sebelah kanan, memudahkan membaca keluhan kulit.
+  - **Penyeragaman Tipe Kulit (Combination) ke Metadata Blok**: Mengubah headline besar tipe kulit menjadi item metadata yang seragam dengan Pantangan dan Target (`Tipe Kulit:`, `Pantangan:`, `Target:`) dengan font-size 0.8125rem, label uppercase 0.6875rem (min-width: 72px untuk perataan kolom rapi), dan ikon klinis masing-masing (`Activity`, `ShieldCheck`, `Sparkles`).
+  - **Fokus Perhatian Menonjol**: Bagian Fokus Perhatian membentang 100% penuh di atas garis putus-putus (*dashed line*), memudahkan membaca keluhan kulit tanpa terpotong sempit.
 
 ## [Unreleased] - 2026-10-29
 
