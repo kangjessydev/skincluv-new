@@ -15,8 +15,16 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 - **Passport Metadata Row & Full-Width Focus Block (`cards.css`, `.cluv-passport-meta-row`, `.cluv-bento-wallet-focus-block`)**:
   - Menambahkan baris metadata preferensi proporsional (`.cluv-passport-meta-row`, `.cluv-passport-meta-item`) dengan ikon dan label halus.
   - Menambahkan blok fokus perhatian membentang penuh (`.cluv-bento-wallet-focus-block`) di atas garis putus-putus (*dashed line*).
+- **Kartu Bento "Cara Kerja Analisis AI" / "Cara Kerja Analisis Formula" (`FaceScanPage.tsx`, `IngredientScanPage.tsx`)**:
+  - Menambahkan kartu Bento edukatif 3-langkah bernomor (`.cluv-guide-item`) tepat di bawah kartu upload utama untuk mengisi kekosongan layar mobile dan membangun ekspektasi pengguna secara transparan:
+    - **Scan Wajah**: 1) Unggah Foto Selfie, 2) Observasi 6 Zona Wajah (privat tanpa biometrik), 3) Skor & Rencana Rutinitas.
+    - **Scan Komposisi**: 1) Foto Label Komposisi, 2) Pencocokan Profil Kulit, 3) Status Kompatibilitas Produk.
+- **Komponen Scan Trust Strip Kanonikal (`cards.css`, `.cluv-scan-trust-strip`, `.cluv-scan-trust-badge`, `.cluv-scan-trust-text`)**:
+  - Menggantikan `.cluv-alert.is-info` yang kaku dan terkesan seperti peringatan sistem dengan strip penenang berdesain trust badge yang elegan (badge pill kredit AI + teks edukasi mandiri & privasi).
 
 ### Diubah
+- **Penyempurnaan Hirarki Teks Dropzone & Trust Notice (`cards.css`, `FaceScanPage.tsx`, `IngredientScanPage.tsx`)**:
+  - Mengganti teks reguler `.cluv-body` di dalam dropzone dengan class kanonikal `.cluv-dropzone-title` (1.0625rem / 17px, font-weight 700, letter-spacing -0.01em) dan `.cluv-dropzone-subtitle` (0.8125rem) sehingga judul upload terlihat lebih berwibawa, tegas, dan tidak tenggelam di layar smartphone.
 - **Penyempurnaan Hirarki Teks & Padding Panduan Label (`cards.css`, `IngredientScanPage.tsx`)**:
   - **Hirarki Judul vs Deskripsi**: Mempertegas ukuran judul poin (`.cluv-guide-title` 0.90625rem / 14.5px, font-weight 700) dan mengecilkan deskripsi (`.cluv-guide-desc` 0.78125rem / 12.5px, regular muted) agar perbedaan hirarki jelas dan tidak terbalik.
   - **Konsistensi Spacing**: Menyelaraskan padding header kartu dan item list menjadi konsisten 16px kiri-kanan serta gap 12px ke nomor lingkaran.
@@ -26,6 +34,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
     - **Tanpa Huruf Kapital Semua**: Label menggunakan Title Case normal (*Tipe Kulit, Pantangan, Target*).
     - **Jarak Seragam & Rapi**: Sisi kiri (judul) dan sisi kanan (isi) sejajar vertikal lurus (*column-aligned*) tanpa jarak titik dua yang mengambang atau berbeda-beda.
   - **Penyelarasan Hirarki Fokus Perhatian**: Mengganti label kapital `FOKUS PERHATIAN` menjadi Title Case normal `Fokus Perhatian` (`font-size: 0.8125rem`, font-weight: 500) dan teks isi keluhan menjadi `0.8125rem` (font-weight: 600, warna teal lembut) agar ukuran font harmonis dan seimbang dengan metadata di atasnya.
+- **Penyembunyian Header Halaman di Mobile (`FaceScanPage.tsx`, `IngredientScanPage.tsx`)**:
+  - Menggunakan class kanonikal `.cluv-hide-mobile` pada blok judul dan deskripsi (*Face Scanner* & *Ingredient Scanner*) agar disembunyikan di layar smartphone.
+  - Memaksimalkan area pandang (*vertical viewport*) perangkat mobile sebesar ~80px sehingga ruang kamera / dropzone upload foto langsung muncul di atas layar tanpa terdorong ke bawah.
+  - Tampilan desktop tetap mempertahankan judul, deskripsi lengkap, dan tombol *Riwayat Scan* secara utuh.
 - **Redesign Bottom Sheet Panduan Kualitas Foto & Profil Kulit Scan Wajah (`FaceScanPage.tsx`)**:
   - Mengadopsi 100% sistem visual kanonikal dari Scan Komposisi:
     - **Kartu Profil Kulit Bento Paspor**: Menggantikan alert highlight kaku dengan kartu Bento bernuansa kertas emas (`.cluv-bento-wallet`), memuat tabel metadata 2 kolom presisi (*Tipe Kulit, Pantangan, Target*) tanpa icon dan Title Case normal, serta blok Fokus Perhatian membentang penuh 100%.

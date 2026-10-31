@@ -1862,16 +1862,18 @@
 }
 
 .cluv-dropzone-title {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--cluv-current-text, var(--cluv-neutral-900));
+  color: var(--cluv-current-text, #1a2d42);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .cluv-dropzone-subtitle {
   font-size: 0.8125rem;
-  color: var(--cluv-current-text-muted, var(--cluv-neutral-500));
+  color: var(--cluv-current-text-muted, #556980);
   margin: 0;
+  line-height: 1.4;
 }
 
 .cluv-dropzone-btn-fake {
@@ -1903,6 +1905,43 @@
   border-radius: var(--cluv-radius-md, 12px);
   object-fit: contain;
   box-shadow: var(--cluv-shadow-md);
+}
+
+/* =============================================================================
+ * Scan Trust Strip & Notice (.cluv-scan-trust-strip)
+ * ============================================================================= */
+.cluv-scan-trust-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--cluv-surface-muted, #f8fafc);
+  border: 1px solid var(--cluv-border, #e2e8f0);
+  border-radius: var(--cluv-radius-md, 12px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cluv-scan-trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark, #127a75);
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border: 1px solid var(--cluv-teal-line, #bceae7);
+  padding: 3px 10px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+}
+
+.cluv-scan-trust-text {
+  font-size: 0.75rem;
+  color: var(--cluv-current-text-muted, #556980);
+  line-height: 1.45;
+  margin: 0;
 }
 
 /* =============================================================================

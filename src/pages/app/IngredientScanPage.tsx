@@ -548,17 +548,17 @@ PETUNJUK OCR & ANALISIS WAJIB:
       <div className="cluv-scan-layout">
         {/* LEFT COLUMN: Main Feature Workspace */}
         <div className="cluv-scan-main">
-          {/* Page Header (Extracted outside bento, visible across all viewports) */}
-          <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-4">
+          {/* Page Header (Desktop Only; on mobile hidden to maximize viewport) */}
+          <div className="cluv-hide-mobile cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-4">
             <div>
               <h1 className="cluv-title-section cluv-m-0 cluv-flex-row cluv-items-center cluv-gap-2">
                 Ingredient Scanner
               </h1>
               <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
-                Ketahui keamanan komposisi & cari kecocokan bahan untuk kulitmu
+                Ketahui keamanan komposisi &amp; cari kecocokan bahan untuk kulitmu
               </p>
             </div>
-            <div className="cluv-hide-mobile">
+            <div>
               <Button variant="outline" size="sm" iconLeft={<History size={15} />} to="/scan-history">
                 Riwayat Scan
               </Button>
@@ -633,12 +633,12 @@ PETUNJUK OCR & ANALISIS WAJIB:
                     <div className="cluv-dropzone-icon">
                       <FlaskConical size={26} />
                     </div>
-                    <span className="cluv-body cluv-font-bold cluv-text-dark">
+                    <h3 className="cluv-dropzone-title">
                       Pilih Foto Label Komposisi
-                    </span>
-                    <span className="cluv-caption cluv-text-muted">
+                    </h3>
+                    <p className="cluv-dropzone-subtitle">
                       Format JPG, PNG, atau WEBP maks 5MB
-                    </span>
+                    </p>
                   </div>
                 )}
 
@@ -710,11 +710,62 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   Analisa Sekarang
                 </Button>
 
-                {/* Invariant 19 Non-Therapeutic Privacy & Credit Notice (Compact Notice Box) */}
-                <div className="cluv-alert is-info is-compact cluv-gap-2">
-                  <Info size={16} className="cluv-alert-icon shrink-0" />
-                  <div className="cluv-micro">
-                    Biaya <strong>{ingredientCost} Credits AI</strong> per analisis. Foto dianalisis secara privat & hasil observasi bersifat panduan edukasi mandiri 🔒
+                {/* Invariant 19 Non-Therapeutic Privacy & Credit Notice (Refined Trust Strip) */}
+                <div className="cluv-scan-trust-strip">
+                  <div className="cluv-scan-trust-badge">
+                    <Sparkles size={12} />
+                    <span>Biaya {ingredientCost} Credits AI</span>
+                  </div>
+                  <p className="cluv-scan-trust-text">
+                    Foto dianalisis secara privat &amp; hasil observasi bersifat panduan edukasi mandiri 🔒
+                  </p>
+                </div>
+              </div>
+
+              {/* Bento Card: Cara Kerja Analisis Formula */}
+              <div className="cluv-card cluv-gap-4">
+                <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <div className="cluv-card-icon-wrap is-teal is-sm">
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <h3 className="cluv-title-card cluv-m-0">Cara Kerja Analisis Formula</h3>
+                      <p className="cluv-caption cluv-text-muted cluv-m-0">3 langkah praktis membaca keamanan komposisi</p>
+                    </div>
+                  </div>
+                  <span className="cluv-badge is-teal is-sm cluv-hide-mobile">Pencocokan Cerdas</span>
+                </div>
+
+                <div className="cluv-flex-col cluv-gap-3 cluv-mt-1">
+                  <div className="cluv-guide-item">
+                    <div className="cluv-guide-num">1</div>
+                    <div className="cluv-guide-content">
+                      <strong className="cluv-guide-title">Foto Label Komposisi</strong>
+                      <p className="cluv-guide-desc">
+                        Fokuskan kamera langsung ke teks daftar 'Ingredients' atau 'Komposisi' pada kemasan skincare.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="cluv-guide-item">
+                    <div className="cluv-guide-num">2</div>
+                    <div className="cluv-guide-content">
+                      <strong className="cluv-guide-title">Pencocokan Profil Kulit</strong>
+                      <p className="cluv-guide-desc">
+                        AI memilah bahan aktif, indeks komedogenik, dan potensi iritan terhadap tipe kulit terdaftarmu.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="cluv-guide-item">
+                    <div className="cluv-guide-num">3</div>
+                    <div className="cluv-guide-content">
+                      <strong className="cluv-guide-title">Status Kompatibilitas Produk</strong>
+                      <p className="cluv-guide-desc">
+                        Ketahui seketika apakah produk ini aman, butuh perhatian khusus, atau sebaiknya dihindari.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
