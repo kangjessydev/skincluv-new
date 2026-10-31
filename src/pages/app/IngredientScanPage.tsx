@@ -106,9 +106,29 @@ export default function IngredientScanPage() {
   const isFreeTierOutOfCredits = !hasPaidAiQuota(subscription) && currentCoins < ingredientCost
 
   const userSkinType = activeSkinProfile?.skin_type ? activeSkinProfile.skin_type.toUpperCase() : 'BERMINYAK (OILY)'
-  const userConcerns = activeSkinProfile?.skin_concerns?.length
-    ? activeSkinProfile.skin_concerns.join(', ')
-    : 'Pori-pori besar, Rawan Jerawat, Kemerahan'
+  const rawConcerns = useMemo(() => activeSkinProfile?.skin_concerns || [], [activeSkinProfile?.skin_concerns])
+
+  const userSensitivities = useMemo(() => {
+    const matched = rawConcerns.filter((c: string) =>
+      /fragrance|parfum|alcohol|alkohol|essential|sulfat|sls|paraben/i.test(c)
+    )
+    return matched.length ? matched.join(', ') : 'Bebas Alkohol & Parfum'
+  }, [rawConcerns])
+
+  const userConcerns = useMemo(() => {
+    const regular = rawConcerns.filter((c: string) =>
+      !/fragrance|parfum|alcohol|alkohol|essential|sulfat|sls|paraben/i.test(c)
+    )
+    return regular.length ? regular.join(', ') : 'Sebum berlebih di T-zone, Potensi pori-pori tersumbat di area hidung'
+  }, [rawConcerns])
+
+  const userTargetFormula = useMemo(() => {
+    const st = (activeSkinProfile?.skin_type || '').toLowerCase()
+    if (st.includes('oily') || st.includes('berminyak')) return 'Non-Komedogenik & Sebum Control'
+    if (st.includes('dry') || st.includes('kering')) return 'Deep Hydration & Barrier Support'
+    if (st.includes('sensitive') || st.includes('sensitif')) return 'Hypoallergenic & Soothing'
+    return 'Non-Komedogenik & Barrier Balance'
+  }, [activeSkinProfile?.skin_type])
 
   // Stage & Filter States (Photo-First Scan Experience)
   const [stage, setStage] = useState<ScanStage>('upload')
@@ -1279,7 +1299,6 @@ PETUNJUK OCR & ANALISIS WAJIB:
                 <User size={12} strokeWidth={2.4} />
                 <span>Profil Kulit Terdaftar</span>
               </div>
-              <Badge variant="teal" size="sm">Tersinkronisasi ✓</Badge>
             </div>
             <div className="cluv-bento-wallet-balance-wrap">
               <div className="cluv-bento-wallet-val" style={{ fontSize: '1.25rem', textTransform: 'capitalize' }}>
@@ -1288,28 +1307,36 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   Skin Profile
                 </span>
               </div>
+
+              {/* 2 Preferensi Kulit Sebagai Meta Data Proporsional */}
+              <div className="cluv-passport-meta-row">
+                <div className="cluv-passport-meta-item">
+                  <ShieldCheck size={13} className="cluv-text-teal" />
+                  <span className="cluv-passport-meta-label">Pantangan:</span>
+                  <span className="cluv-passport-meta-val">{userSensitivities}</span>
+                </div>
+                <div className="cluv-passport-meta-item">
+                  <Sparkles size={13} className="cluv-text-gold" />
+                  <span className="cluv-passport-meta-label">Target:</span>
+                  <span className="cluv-passport-meta-val">{userTargetFormula}</span>
+                </div>
+              </div>
             </div>
-            <div className="cluv-bento-wallet-stats">
-              <div className="cluv-bento-wallet-stat-item">
-                <span className="cluv-bento-wallet-stat-label">FOKUS PERHATIAN</span>
-                <span className="cluv-bento-wallet-stat-val cluv-text-teal" style={{ fontSize: '0.8125rem', fontWeight: 700, lineHeight: 1.3 }}>
-                  {userConcerns}
-                </span>
-              </div>
-              <div className="cluv-bento-wallet-stat-item">
-                <span className="cluv-bento-wallet-stat-label">PENCOCOKAN AI</span>
-                <span className="cluv-bento-wallet-stat-val" style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-teal-dark, #127a75)' }}>
-                  Aktif Otomatis ⚡
-                </span>
-              </div>
+
+            {/* Fokus Perhatian Membentang Penuh (Pencocokan AI Dihapus) */}
+            <div className="cluv-bento-wallet-focus-block">
+              <span className="cluv-bento-wallet-stat-label">FOKUS PERHATIAN</span>
+              <p className="cluv-bento-wallet-focus-val">
+                {userConcerns}
+              </p>
             </div>
           </div>
 
           {/* 3 Principles Unified Numbered Guide Card */}
           <div className="cluv-card cluv-p-0 cluv-overflow-hidden">
-            <div className="cluv-p-3" style={{ borderBottom: '1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3))', background: 'var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc))' }}>
-              <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '0.875rem' }}>3 Prinsip Membaca Label</h4>
-              <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1" style={{ fontSize: '0.75rem' }}>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3))', background: 'var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc))' }}>
+              <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '0.9375rem', fontWeight: 800 }}>3 Prinsip Membaca Label</h4>
+              <p className="cluv-caption cluv-text-muted cluv-m-0" style={{ fontSize: '0.78125rem', marginTop: '3px', lineHeight: 1.4 }}>
                 Pedoman dermatologi praktis saat memeriksa komposisi skincare
               </p>
             </div>

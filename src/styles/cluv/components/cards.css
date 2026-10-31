@@ -3028,7 +3028,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 13px 16px;
   border-bottom: 1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
   box-sizing: border-box;
 }
@@ -3071,21 +3071,72 @@
 .cluv-guide-content {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
   flex: 1;
 }
 
 .cluv-guide-title {
-  font-size: 0.8125rem;
+  font-size: 0.90625rem;
   font-weight: 700;
   color: var(--cluv-current-text, #1a2d42);
   line-height: 1.35;
+  display: block;
 }
 
 .cluv-guide-desc {
+  font-size: 0.78125rem !important;
+  color: var(--cluv-current-text-muted, #556980) !important;
+  line-height: 1.45 !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+
+/* =============================================================================
+ * Skin Passport Metadata & Focused Block (.cluv-passport-meta, .cluv-bento-wallet-focus-block)
+ * ============================================================================= */
+.cluv-passport-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.cluv-passport-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.75rem;
-  color: var(--cluv-neutral-600, #475569);
-  line-height: 1.4;
+  color: var(--cluv-current-text-muted, #556980);
+  line-height: 1.35;
+}
+
+.cluv-passport-meta-label {
+  font-weight: 600;
+  color: var(--cluv-neutral-500, #64748b);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cluv-passport-meta-val {
+  font-weight: 700;
+  color: var(--cluv-current-text, #1a2d42);
+}
+
+.cluv-bento-wallet-focus-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--cluv-gold-line, #fae0b8);
+  width: 100%;
+}
+
+.cluv-bento-wallet-focus-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-teal-dark, #127a75);
+  line-height: 1.45;
   margin: 0;
 }

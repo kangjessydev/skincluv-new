@@ -12,11 +12,18 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 - **Numbered Guide List Kanonikal (`cards.css`, `.cluv-guide-item`, `.cluv-guide-num`)**:
   - Menambahkan styling kanonikal untuk panduan bernomor di dalam kartu terpadu (`.cluv-guide-item`, `.cluv-guide-num` dengan varian warna `.is-teal`, `.is-gold`, `.is-rose`).
   - Menghemat 40% ruang vertikal pada bottom sheet mobile dibandingkan penggunaan kartu bertumpuk terpisah.
+- **Passport Metadata Row & Full-Width Focus Block (`cards.css`, `.cluv-passport-meta-row`, `.cluv-bento-wallet-focus-block`)**:
+  - Menambahkan baris metadata preferensi proporsional (`.cluv-passport-meta-row`, `.cluv-passport-meta-item`) dengan ikon dan label halus.
+  - Menambahkan blok fokus perhatian membentang penuh (`.cluv-bento-wallet-focus-block`) di atas garis putus-putus (*dashed line*).
 
 ### Diubah
-- **Redesign Bottom Sheet Panduan Membaca Label & Profil Kulit Mobile (`IngredientScanPage.tsx`, `cards.css`)**:
-  - **Kartu Profil Kulit Bento Paspor**: Mengganti kotak alert teal kaku dan paragraf panjang dengan kartu bergaya **Bento Wallet bernuansa kertas** (`.cluv-bento-wallet`). Menampilkan tipe kulit sebagai nilai utama yang bersih, tag uppercase emas, status sinkronisasi, serta pembatas putus-putus (*dashed line*) dengan 2 metrik ringkas: *Fokus Perhatian* dan *Pencocokan AI Aktif*.
-  - **3 Prinsip Membaca Label Terpadu**: Mengganti 3 kartu kotak bertumpuk ala desktop diperkecil menjadi **1 Kartu Panduan Berpenomoran (Numbered Guide List)** dengan nomor badge lingkaran, judul tegas, dan penjelasan to-the-point yang nyaman dibaca di layar smartphone.
+- **Penyempurnaan Hirarki Teks & Padding Panduan Label (`cards.css`, `IngredientScanPage.tsx`)**:
+  - **Hirarki Judul vs Deskripsi**: Mempertegas ukuran judul poin (`.cluv-guide-title` 0.90625rem / 14.5px, font-weight 700) dan mengecilkan deskripsi (`.cluv-guide-desc` 0.78125rem / 12.5px, regular muted) agar perbedaan hirarki jelas dan tidak terbalik.
+  - **Konsistensi Spacing**: Menyelaraskan padding header kartu dan item list menjadi konsisten 16px kiri-kanan serta gap 12px ke nomor lingkaran.
+- **Redesign Bottom Sheet Profil Kulit Paspor (`IngredientScanPage.tsx`, `cards.css`)**:
+  - **Penghapusan Badge Tersinkronisasi & Pencocokan AI**: Menghapus badge statis dan kolom pencocokan AI yang mempersempit ruang.
+  - **Metadata Preferensi Tambahan**: Menampilkan 2 preferensi kulit tersimpan (Pantangan Bahan & Target Formula) secara proporsional di bawah headline tipe kulit.
+  - **Fokus Perhatian Menonjol**: Bagian Fokus Perhatian kini membentang 100% penuh tanpa terhimpit kolom sebelah kanan, memudahkan membaca keluhan kulit.
 
 ## [Unreleased] - 2026-10-29
 
