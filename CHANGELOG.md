@@ -25,7 +25,7 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - **Tabel Metadata 2 Kolom Presisi (`.cluv-passport-meta-grid`)**: Menyusun metadata profil kulit (*Tipe Kulit, Pantangan, Target*) dalam format grid 2 kolom (`80px 1fr`, gap 14px) mirip tabel spesifikasi produk:
     - **Tanpa Huruf Kapital Semua**: Label menggunakan Title Case normal (*Tipe Kulit, Pantangan, Target*).
     - **Jarak Seragam & Rapi**: Sisi kiri (judul) dan sisi kanan (isi) sejajar vertikal lurus (*column-aligned*) tanpa jarak titik dua yang mengambang atau berbeda-beda.
-  - **Fokus Perhatian Menonjol**: Bagian Fokus Perhatian membentang 100% penuh di atas garis putus-putus (*dashed line*), memudahkan membaca keluhan kulit tanpa terpotong sempit.
+  - **Penyelarasan Hirarki Fokus Perhatian**: Mengganti label kapital `FOKUS PERHATIAN` menjadi Title Case normal `Fokus Perhatian` (`font-size: 0.8125rem`, font-weight: 500) dan teks isi keluhan menjadi `0.8125rem` (font-weight: 600, warna teal lembut) agar ukuran font harmonis dan seimbang dengan metadata di atasnya.
 
 ## [Unreleased] - 2026-10-29
 

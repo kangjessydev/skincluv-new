@@ -1324,9 +1324,9 @@ PETUNJUK OCR & ANALISIS WAJIB:
               <span className="cluv-passport-meta-val">{userTargetFormula}</span>
             </div>
 
-            {/* Fokus Perhatian Membentang Penuh (Pencocokan AI Dihapus) */}
+            {/* Fokus Perhatian Membentang Penuh (Hirarki Selaras Tanpa Huruf Kapital Semua) */}
             <div className="cluv-bento-wallet-focus-block">
-              <span className="cluv-bento-wallet-stat-label">FOKUS PERHATIAN</span>
+              <span className="cluv-bento-wallet-focus-label">Fokus Perhatian</span>
               <p className="cluv-bento-wallet-focus-val">
                 {userConcerns}
               </p>

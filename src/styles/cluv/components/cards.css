@@ -3123,15 +3123,22 @@
 .cluv-bento-wallet-focus-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 14px;
+  gap: 5px;
+  padding-top: 12px;
   border-top: 1px dashed var(--cluv-gold-line, #fae0b8);
   width: 100%;
 }
 
+.cluv-bento-wallet-focus-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cluv-current-text-muted, #556980);
+  line-height: 1.4;
+}
+
 .cluv-bento-wallet-focus-val {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--cluv-teal-dark, #127a75);
   line-height: 1.45;
   margin: 0;

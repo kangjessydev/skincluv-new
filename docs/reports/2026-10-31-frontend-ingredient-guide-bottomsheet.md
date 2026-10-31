@@ -15,8 +15,9 @@
    - Menggunakan CSS Grid 2 kolom (`grid-template-columns: 80px 1fr`, `column-gap: 14px`, `row-gap: 6px`).
    - Sisi kiri (judul/label) memiliki lebar tetap 80px, dan sisi kanan (isi/nilai) mulai persis di garis vertikal yang sama (offset 94px).
    - Menghilangkan titik dua yang mengambang dan membuat jarak antara kiri dan kanan 100% konsisten di semua baris.
-4. **Fokus Perhatian di Bawah Garis Putus-Putus**:
-   - Tetap membentang 100% penuh di bagian bawah garis putus-putus (*dashed line*).
+4. **Penyelarasan Hirarki Fokus Perhatian**:
+   - Menghapus huruf kapital semua `FOKUS PERHATIAN` menjadi Title Case normal `Fokus Perhatian`.
+   - Menyelaraskan ukuran font label (`0.8125rem`, font-weight: 500) dan teks isinya (`0.8125rem`, font-weight: 600, warna teal lembut) agar tidak jomplang dan konsisten dengan metadata di atasnya.
 
 ---
 
