@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ShieldCheck, Download, Trash2, AlertTriangle, ArrowLeft, CheckCircle2, Lock, Eye } from 'lucide-react'
+import { ShieldCheck, Download, Trash2, AlertTriangle, CheckCircle2, Lock, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Button, Badge, BottomSheet, Toast } from '@/components/ui'
@@ -127,11 +127,6 @@ export default function PrivacyCenterPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back Link (Desktop only; di mobile sudah ada tombol kembali di topbar) */}
-      <Link to="/profile" className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
-        <ArrowLeft size={16} /> Kembali ke Profil
-      </Link>
-
       {/* HEADER (Desktop only; di mobile judul sudah di topbar) */}
       <div className="cluv-hide-mobile cluv-mb-6">
         <Badge variant="teal" icon={<ShieldCheck size={14} />} className="cluv-mb-2">

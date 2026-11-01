@@ -247,6 +247,28 @@
   color: #ffffff;
 }
 
+/* Danger Outline — Subtle Rose Border & Text */
+.cluv-btn.is-danger-outline,
+.cluv-btn-danger-outline {
+  background: transparent;
+  border-color: rgba(225, 29, 72, 0.28);
+  color: var(--cluv-rose, #e11d48);
+}
+
+.cluv-btn.is-danger-outline:hover,
+.cluv-btn-danger-outline:hover {
+  background: rgba(225, 29, 72, 0.06);
+  border-color: var(--cluv-rose, #e11d48);
+  color: #be123c;
+}
+
+.cluv-btn.is-danger-outline:active,
+.cluv-btn-danger-outline:active {
+  background: rgba(225, 29, 72, 0.12);
+  border-color: #be123c;
+  color: #9f1239;
+}
+
 /* =============================================================================
  * 4. CONTEXTUAL SURFACE CASCADE & OVERRIDES
  * ============================================================================= */
@@ -379,6 +401,12 @@
   box-shadow: 0 0 0 1px var(--cluv-teal);
 }
 
+.cluv-chip.is-active .cluv-tab-badge,
+.cluv-chip.active .cluv-tab-badge {
+  background: var(--cluv-teal-line, #bceae7);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
 .cluv-chip.is-pill {
   border-radius: var(--cluv-radius-pill, 9999px);
 }
@@ -446,8 +474,12 @@
  * ============================================================================= */
 .cluv-profile-action-bar {
   width: 100%;
-  margin-top: 16px;
-  margin-bottom: 0;
+  margin-top: 32px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 

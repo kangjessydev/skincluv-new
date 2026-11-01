@@ -390,6 +390,18 @@
   margin: 2px 0 0 0;
 }
 
+.cluv-card-strip.is-interactive {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cluv-card-strip.is-interactive:hover {
+  transform: translateY(-1px);
+  border-color: var(--cluv-teal, #1f9d97);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
 /* =============================================================================
  * Pricing & Feature List Primitives (.cluv-feature-list, .cluv-price-val)
  * ============================================================================= */
@@ -616,6 +628,42 @@
   color: var(--cluv-rose, #e11d48);
 }
 
+.cluv-bento-wallet.is-teal {
+  border-color: var(--cluv-teal-line, #bceae7);
+  box-shadow: 0 4px 16px -4px rgba(31, 157, 151, 0.08);
+  background-image: radial-gradient(circle at top right, var(--cluv-teal-soft, #e6f6f5) 0%, transparent 65%);
+}
+
+.cluv-bento-wallet.is-teal .cluv-bento-wallet-tag {
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-bento-wallet.is-teal .cluv-bento-wallet-unit {
+  color: var(--cluv-teal, #1f9d97);
+}
+
+.cluv-bento-wallet.is-teal .cluv-bento-wallet-stats {
+  border-top-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-bento-wallet.is-neutral {
+  border-color: var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  box-shadow: var(--cluv-shadow-sm);
+  background-image: radial-gradient(circle at top right, var(--cluv-neutral-50, #f8fafc) 0%, transparent 65%);
+}
+
+.cluv-bento-wallet.is-neutral .cluv-bento-wallet-tag {
+  color: var(--cluv-neutral-500, #64748b);
+}
+
+.cluv-bento-wallet.is-neutral .cluv-bento-wallet-unit {
+  color: var(--cluv-neutral-700, #334155);
+}
+
+.cluv-bento-wallet.is-neutral .cluv-bento-wallet-stats {
+  border-top-color: var(--cluv-current-border, var(--cluv-border, #dce8f3));
+}
+
 /* =============================================================================
  * Mobile-First Transaction Feed List (.cluv-feed-group, .cluv-feed-card, .cluv-feed-item)
  * ============================================================================= */
@@ -752,6 +800,36 @@
   align-items: center;
   gap: 8px;
   width: 100%;
+}
+
+.cluv-tx-desktop-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.cluv-tx-search-box {
+  position: relative;
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.cluv-tx-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cluv-desktop-filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  overflow: visible;
 }
 
 .cluv-feed-search-wrap {
@@ -2917,6 +2995,23 @@
   color: var(--cluv-neutral-700);
 }
 
+/* Large Desktop Avatar Ring & Badge Modifiers */
+.cluv-avatar-ring.is-lg {
+  width: 52px;
+  height: 52px;
+}
+
+.cluv-avatar-ring.is-lg .cluv-avatar-ring-inner {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.cluv-avatar-badge-icon.is-lg {
+  width: 19px;
+  height: 19px;
+  bottom: -4px;
+}
+
 /* Clickable Profile Quota Box */
 .cluv-profile-quota-box {
   cursor: pointer;
@@ -3262,6 +3357,166 @@
 }
 
 /* =============================================================================
+ * Profile Hub Asymmetric Layout (.cluv-profile-layout)
+ * ============================================================================= */
+.cluv-profile-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 880px) {
+  .cluv-profile-layout {
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .cluv-profile-desktop-card {
+    padding: 24px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .cluv-profile-desktop-credit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--cluv-neutral-50, #f8fafc);
+    border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+    border-radius: var(--cluv-radius-md, 12px);
+  }
+}
+
+/* =============================================================================
+ * Skin Profile Configurator Layout (.cluv-skin-config-layout)
+ * ============================================================================= */
+.cluv-skin-config-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 880px) {
+  .cluv-skin-config-layout {
+    grid-template-columns: 320px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .cluv-skin-passport-card {
+    padding: 22px;
+    position: sticky;
+    top: 24px;
+    background: var(--cluv-surface, #ffffff);
+    border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+    border-radius: var(--cluv-radius-xl, 20px);
+    box-shadow: var(--cluv-shadow-sm);
+  }
+
+  .cluv-skin-passport-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--cluv-neutral-200, #e2e8f0);
+    margin-bottom: 14px;
+  }
+
+  .cluv-skin-passport-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .cluv-skin-passport-chip {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+  }
+
+  .cluv-skin-passport-chip.is-teal {
+    background: var(--cluv-teal-soft, #e6f6f5);
+    color: var(--cluv-teal-dark, #127a75);
+    border: 1px solid rgba(31, 157, 151, 0.2);
+  }
+
+  .cluv-skin-passport-chip.is-rose {
+    background: var(--cluv-rose-soft, #fdf2f4);
+    color: var(--cluv-rose-dark, #be123c);
+    border: 1px solid rgba(225, 29, 72, 0.2);
+  }
+
+  .cluv-skin-passport-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cluv-skin-passport-section-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cluv-neutral-500, #64748b);
+    margin: 0;
+  }
+
+  .cluv-skin-passport-active-box {
+    padding: 12px 14px;
+    background: var(--cluv-teal-soft, #f0fdfc);
+    border: 1px solid rgba(31, 157, 151, 0.25);
+    border-radius: var(--cluv-radius-md, 12px);
+    box-sizing: border-box;
+  }
+
+  .cluv-skin-passport-divider {
+    height: 1px;
+    background: var(--cluv-neutral-200, #e2e8f0);
+    width: 100%;
+    margin: 2px 0;
+  }
+
+  .cluv-skin-passport-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--cluv-neutral-50, #f8fafc);
+    border: 1px solid var(--cluv-neutral-200, #e2e8f0);
+    border-radius: var(--cluv-radius-md, 12px);
+    box-sizing: border-box;
+  }
+
+  .cluv-skin-passport-note-text {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--cluv-neutral-600, #475569);
+    margin: 0;
+  }
+}
+
+.cluv-profile-action-hint {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--cluv-neutral-500, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  margin: 0;
+  padding: 0 8px;
+}
+
+/* =============================================================================
  * Mobile Flat Card Modifier (.cluv-card.is-mobile-flat)
  * Unboxes outer cards on mobile to avoid cramped double-nested borders
  * ============================================================================= */
@@ -3509,4 +3764,64 @@
   color: var(--cluv-teal-dark, #127a75);
   font-weight: 700;
 }
+
+/* FAQ Answer Typography Hierarchy */
+.cluv-faq-answer {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--cluv-neutral-600, #475569);
+}
+
+.cluv-faq-answer strong {
+  color: var(--cluv-current-text, #1a2d42);
+  font-weight: 700;
+}
+
+.cluv-faq-answer p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--cluv-neutral-600, #475569);
+  margin: 0;
+}
+
+.cluv-faq-answer code {
+  background: var(--cluv-neutral-100, #f1f5f9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+/* Bottom Sheet Category Item */
+.cluv-filter-sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--cluv-radius-md, 12px);
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  background: var(--cluv-surface, #ffffff);
+  color: var(--cluv-current-text, #1e293b);
+  font-size: 0.90625rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.cluv-filter-sheet-item:hover,
+.cluv-filter-sheet-item:active {
+  background: var(--cluv-neutral-50, #f8fafc);
+  border-color: var(--cluv-teal-line, #bceae7);
+}
+
+.cluv-filter-sheet-item.is-active {
+  background: var(--cluv-teal-soft, #e6f7f6);
+  border-color: var(--cluv-teal, #1f9d97);
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 700;
+}
+
 

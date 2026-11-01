@@ -9,6 +9,24 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-31
 
 ### Ditambahkan
+- **Modernisasi Halaman Paket Langganan & Kuota AI (`ProfileBillingPage.tsx`)**:
+  - **Kotak Status Paket Aktif & Kredit Bulan Ini**: Merampingkan tampilan kartu atas dengan menghapus elemen profil redundan, tombol perpanjang, divider, subteks panjang, jadwal reset, dan rasio angka (2/100). Mengganti judul menjadi *"Kredit Bulan Ini"*, memposisikan badge status `Aktif` (`.cluv-badge.is-sm.is-teal`) tepat di bawah judul paket (`tierLabel`) dengan warna tema primer Cluv, serta memposisikan indikator persentase tersisa secara proporsional dan ringkas di bawah progress bar sejajar dengan masa aktif paket ([`.cluv-card`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L10-L25)).
+  - **Menu Grup Finansial Inset (Adopsi Menu Profil)**: Mengubah tautan riwayat transaksi menjadi menu inset iOS/Linear terpadu ([`.cluv-menu-group`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L3228-L3236), [`.cluv-menu-row`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L3238-L3253)) untuk *Faktur & Tagihan Tripay* (`/transactions`) dan *Riwayat Mutasi AI Credits* (`/coin-history`).
+  - **Keuntungan Akses Akun Bernomor (Adopsi Panduan Scan Wajah)**: Menampilkan 3 pilar keuntungan paket menggunakan komponen panduan bernomor ([`.cluv-guide-item`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L2903-L2915), `.cluv-guide-num`) yang elegan dan mudah dipindai mata pengguna.
+  - **Pertanyaan Umum (FAQ) Langganan & Transaksi**: Menambahkan seksi kartu FAQ bernomor (`.cluv-card.cluv-guide-card`) di bagian bawah halaman yang memuat jawaban jelas mengenai: 1) Kebijakan non-refundable digital service, 2) Kepastian transaksi non auto-debit (manual checkout Tripay tanpa tagihan berulang terselubung), dan 3) Kelanjutan akses via AI Credits gratis harian Misi Glow saat kuota bulanan habis.
+- **Harmonisasi & Modernisasi Mobile FAQ Dashboard (`AppFaqPage.tsx`, `utilities.css`, `cards.css`)**:
+  - **Header Responsif Mobile (`.cluv-hide-mobile`)**: Menyembunyikan header desktop besar di mobile agar layar HP langsung menyajikan input pencarian dan filter tanpa scrolling kosong.
+  - **Filter BottomSheet Mobile (`<BottomSheet>`)**: Menggantikan popover dropdown desktop dengan BottomSheet kanonikal Skincluv yang ramah jempol untuk memilih kategori bantuan lengkap dengan ikon, label, badge kuantitas, dan centang aktif.
+  - **Penyelarasan Spacing Search Bar & Quick Chips (`.cluv-mt-3`, `.cluv-gap-1.5`)**: Mendaftarkan `.cluv-mt-2.5` dan `.cluv-gap-1.5` ke `utilities.css` sehingga chip topik hangat tidak lagi menempel rapat di bawah input pencarian dan ikon-teks chip memiliki jarak terukur 6px.
+  - **Separasi Badge Topik Populer & Kategori (`.cluv-gap-2`)**: Memperbaiki jarak antar-badge di header kartu FAQ sehingga `[Topik Populer]` dan `[Paket & Tagihan]` tidak lagi berhimpitan tanpa celah.
+  - **Hirarki Tipografi Jawaban FAQ (`.cluv-faq-answer`)**: Menstandarkan teks jawaban dengan kontras tinggi untuk punchline (`strong` teks deep ink `#1a2d42`, font-weight 700), paragraf pendukung bernapas (`#475569`, font-size 0.875rem, line-height 1.6), dan jarak antar-paragraf lega 12px.
+  - **Pencegahan Tombol Meluber di Kartu Bantuan Mobile (`.cluv-flex-col-mobile`, `.cluv-w-full-mobile`)**: Menumpuk tombol aksi (*Tanya Skinsistant AI* & *Email Support*) secara vertikal 100% lebar kartu pada layar ponsel (&le;768px), membasmi bug tombol kanan yang terpotong/meluber keluar bingkai kartu.
+- **Harmonisasi Tab Chips Desktop & Restorasi Dropdown Mobile (`CoinHistoryPage.tsx`, `cards.css`, `buttons.css`)**:
+  - **Pencegahan Border Tab Terpotong di Desktop (`.cluv-desktop-filter-chips`)**: Memperbaiki masalah pemotongan border/ring pada tab chip aktif (`box-shadow: 0 0 0 1px var(--cluv-teal)`) yang sebelumnya terpotong oleh kontainer pembungkus `overflow-x: auto` tanpa padding atas/samping. Menggunakan kontainer desktop `overflow: visible; padding: 4px 2px;`.
+  - **Restorasi Dropdown Filter Mobile Tanpa Search Bar**: Mengembalikan antarmuka dropdown filter popover (`.cluv-filter-dropdown-wrap`, `.cluv-filter-trigger-btn`, `.cluv-filter-dropdown-menu`) pada mobile tepat di sisi kanan dengan indikator badge aktif, dan menghapus input pencarian sesuai permintaan.
+  - **Subheader "Riwayat Kredit" di Mobile**: Menambahkan judul seksi `"Riwayat Kredit"` di sisi kiri sejajar dengan tombol filter dropdown di sisi kanan (`.cluv-flex-between .cluv-items-center`) agar area atas feed mutasi di mobile seimbang dan tidak kosong.
+  - **Pagination Mutasi Feed ("Muat Lebih Banyak")**: Menerapkan batas tampilan awal 15 transaksi dengan tombol *"Muat Lebih Banyak"* dinamis agar halaman tetap ringan saat riwayat mutasi pengguna bertambah hingga ratusan atau ribuan baris.
+  - **Peningkatan Kontras Badge Tab Aktif (`.cluv-chip.is-active .cluv-tab-badge`)**: Menambahkan styling latar teal halus (`#bceae7`) dan teks teal gelap (`#127a75`) pada badge jumlah di dalam chip aktif.
 - **Numbered Guide List Kanonikal (`cards.css`, `.cluv-guide-item`, `.cluv-guide-num`)**:
   - Menambahkan styling kanonikal untuk panduan bernomor di dalam kartu terpadu (`.cluv-guide-item`, `.cluv-guide-num` dengan varian warna `.is-teal`, `.is-gold`, `.is-rose`).
   - Menghemat 40% ruang vertikal pada bottom sheet mobile dibandingkan penggunaan kartu bertumpuk terpisah.
@@ -26,6 +44,38 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
   - Menampilkan ringkasan maksimal 4 notifikasi terbaru dengan kategori, waktu, cuplikan isi, dan status unread (dot teal).
   - Aksi cepat *"Tandai Dibaca"* dan tautan footer *"Lihat Semua Notifikasi"* menuju halaman penuh `/notifications`.
   - Otomatis tertutup saat klik di luar popover (*outside click*) atau saat navigasi halaman.
+
+- **2-Kolom Split Configurator Profil Kulit Desktop (`ProfileSkinPage.tsx`, `cards.css`)**:
+  - **2-Column Split Configurator (`.cluv-skin-config-layout`, `320px 1fr`)**: Mengubah halaman konfigurasi profil kulit di desktop dari satu form panjang membentang menjadi layout split interaktif 2-kolom (gaya Apple / Linear Settings).
+  - **Live Skin Passport Sticky Card (`.cluv-skin-passport-card`)**: Kartu paspor di kolom kiri desktop yang bersifat *sticky* (`top: 24px`) dan bereaksi *real-time* menampilkan tipe kulit aktif beserta ringkasan klinisnya (`SKIN_TYPE_DESCRIPTIONS`), chip dinamis target perawatan yang dicentang, dan chip pantangan bahan berbahaya.
+  - **Harmonisasi Radius & Spacing Paspor Kulit (`.cluv-skin-passport-active-box`, `.cluv-skin-passport-section`, `.cluv-skin-passport-divider`)**:
+    - Memperbaiki kotak tipe kulit aktif yang sebelumnya tajam/kotak karena class Tailwind `cluv-rounded-lg` tidak terdefinisi di Cluv Framework. Kini menggunakan class kanonikal `.cluv-skin-passport-active-box` dengan `border-radius: var(--cluv-radius-md, 12px)` seragam dan `padding: 12px 14px`.
+    - Menyeragamkan margin dan padding antar-seksi paspor dengan wrapper `.cluv-skin-passport-section` (gap 8px terukur) dan pemisah halus `.cluv-skin-passport-divider`.
+  - **Card Wrapper Edukasi Klinis Ramah & Elegan (`.cluv-skin-passport-note`, `.cluv-skin-passport-note-text`)**:
+    - Membungkus catatan edukasi filter bahan berbahaya ke dalam kontainer berbingkai lembut (`background: #f8fafc`, `border-radius: 12px`, padding 12px 14px).
+    - Menghilangkan tag `<strong>` tebal agresif dan menggantinya dengan typography berbobot normal/medium (`font-weight: 500`, `line-height: 1.45`) agar terkesan sebagai catatan edukasi yang bersahabat, bukan peringatan bahaya yang menakut-nakuti pengguna.
+  - **Pemberian Ruang Nafas Tombol Simpan Profil (`.cluv-profile-action-hint`)**:
+    - Memberikan margin-top 18px (`.cluv-profile-action-hint`) di bawah tombol *"Simpan Profil Kulit"*, menyelesaikan masalah teks helper yang sebelumnya terlalu mepet dan bertabrakan dengan bayangan tombol (`cluv-mt-2.5` / 10px).
+  - **Penghapusan Navigasi Kembali Teks di Desktop (Desktop Back-Link Prohibition)**:
+    - Menghapus tautan teks kembali (`← Kembali ke Profil & Pengaturan`, `← Kembali ke ...`) di seluruh subpage desktop (`/profile/skin`, `/profile/billing`, `/privacy-center`, `/coins/history`, `/billing/transactions`).
+    - Menjaga kebersihan kanvas desktop di mana navigasi utama telah tersentralisasi penuh pada Sidebar Kiri dan Topbar. Tombol kembali kini secara eksklusif hanya muncul di antarmuka mobile via Topbar.
+  - **Perbaikan Glitch Layout Filter & Pencarian Transaksi Desktop (`TransactionHistoryPage.tsx`, `cards.css`)**:
+    - Memperbaiki tabrakan layout antara kotak pencarian dan chip filter pada desktop (`.cluv-tx-desktop-filter-bar`, `.cluv-tx-search-box`, `.cluv-tx-chips-row`).
+    - Sebelumnya, container chip filter membawa `width: 100%` sehingga dalam flex row menekan kotak input pencarian hingga menciut menjadi bulatan 38px dan menimpa chip "Semua".
+    - Kini kotak pencarian terkunci pada `width: 250px; flex-shrink: 0;` dan barisan filter rapi berada di sisi kanan tanpa ada tumpang tindih.
+  - **Penyelarasan Kartu Saldo, Penghapusan Search, & Pagination Load More (`CoinHistoryPage.tsx`)**:
+    - Menyesuaikan ukuran kartu saldo Bento Wallet di desktop menjadi `max-width: 480px; width: 100%;`, identik dan proporsional persis seperti pada halaman Misi Glow (`MissionsPage.tsx`), menghilangkan kesan melar kosong 760px.
+    - **Penghapusan Total Input Pencarian**: Menghapus fitur pencarian teks yang tidak esensial baik di desktop maupun mobile, menghemat ~2.6 kB ukuran bundle JavaScript dan menghilangkan visual clutter.
+    - **Filter Chip Universal**: Chip filter (*Semua*, *Pemasukan (+)*, *Pengeluaran (-)*) kini tampil langsung tanpa dropdown, dapat diakses dengan 1-tap di mobile dan berjejer rapi di desktop.
+    - **Pagination Load More**: Membatasi tampilan transaksi awal maksimal 15 item untuk mencegah DOM lag ketika riwayat pengguna mencapai ratusan/ribuan transaksi, dilengkapi tombol *"Muat Lebih Banyak"* yang mulus.
+  - **Zero Mobile Regression**: Di mobile (`<= 879px`), kolom paspor kiri otomatis disembunyikan (`.cluv-hide-mobile`) dan formulir inset grouped row tetap tampil utuh 100% tanpa perubahan struktur.
+
+- **Asymmetric Split Hub Halaman Profil Desktop (`ProfilePage.tsx`, `cards.css`, `buttons.css`)**:
+  - **Asymmetric 2-Column Split Grid (`.cluv-profile-layout`, `340px 1fr`)**: Menggantikan layout 2-kolom lama yang timpang dengan tata letak asimetris profesional (gaya Supabase / Raycast / Stripe).
+  - **Header Halaman Hanya Desktop (`.cluv-hide-mobile`)**: Header teks "Profil & Pengaturan" disembunyikan di mobile agar menghemat ruang vertikal layar ponsel dan langsung menampilkan kartu profil utama.
+  - **Kartu Identitas Desktop Minimalis & Non-Redundan (`.cluv-profile-desktop-card`, sticky)**: Menampilkan nama lengkap dan email akun secara bersih tanpa foto avatar/badge VIP yang redundan dengan Topbar. Tombol keluar akun desktop dihapus karena fungsi logout sudah tersentralisasi di avatar menu Topbar. Mempertahankan row saldo AI Credits dengan tombol Top Up serta bar kuota Universal AI & masa aktif.
+  - **Bento Hub Pengaturan Kanan**: Menampilkan 3 kartu pengaturan yang lega dan kaya informasi (*Profil & Preferensi Kulit* dengan preview tipe kulit dan target, *Pusat Privasi & Perlindungan Data* dengan badge UU PDP, dan *Riwayat Aktivitas & Tagihan* dengan interactive card strips).
+  - **Zero Mobile Regression**: Di mobile (`<= 879px`), kartu mobile ringkas beserta menu rows iOS-style tetap dipertahankan 100% utuh tanpa perubahan struktur.
 
 - **Gamifikasi Desktop Kelas Enterprise & Ergonomi Tombol Misi (`MissionsPage.tsx`, `cards.css`)**:
   - **7 Day Quest Tiles Desktop (`.cluv-quest-tiles-grid`, `.cluv-quest-tile`)**: Mengadaptasi pola gamifikasi web desktop terbukti (seperti HoYoLAB Web Check-In & Duolingo Web). Menggantikan bulatan kecil mengambang di desktop dengan 7 kartu reward kotak mandiri yang kokoh: memuat label hari, ikon koin/kado timbul, dan badge status interaktif (*Klaim ✓*, *Hari Ini ⚡*, atau *Bonus H-7 🎁*).

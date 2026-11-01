@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowLeft,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -184,17 +183,8 @@ export default function TransactionHistoryPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back Link to Billing (Desktop only) */}
-      <Link
-        to="/profile/billing"
-        className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1"
-      >
-        <ArrowLeft size={16} />
-        <span>Kembali ke Billing &amp; Langganan</span>
-      </Link>
-
       {/* Page Header (Desktop only) */}
-      <div className="cluv-hide-mobile cluv-flex-col cluv-gap-1 cluv-mt-3">
+      <div className="cluv-hide-mobile cluv-flex-col cluv-gap-1 cluv-mb-4">
         <h1 className="cluv-title-page">Riwayat Tagihan &amp; Transaksi</h1>
         <p className="cluv-caption cluv-text-muted">
           Daftar tagihan &amp; status pembayaran paket langganan kamu.
@@ -202,8 +192,8 @@ export default function TransactionHistoryPage() {
       </div>
 
       {/* ===================== DESKTOP ONLY: Search & Filter Chips ===================== */}
-      <div className="cluv-hide-mobile cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-3 cluv-mt-4 cluv-mb-4">
-        <div className="cluv-feed-search-wrap" style={{ maxWidth: '280px' }}>
+      <div className="cluv-hide-mobile cluv-tx-desktop-filter-bar cluv-mt-4 cluv-mb-4">
+        <div className="cluv-tx-search-box">
           <Search size={14} className="cluv-feed-search-icon" />
           <input
             type="text"
@@ -224,7 +214,7 @@ export default function TransactionHistoryPage() {
           )}
         </div>
 
-        <div className="cluv-filter-scroll">
+        <div className="cluv-tx-chips-row">
           {filterOptions.map((opt) => (
             <button
               key={opt.key}

@@ -1,17 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft,
   Coins,
   ArrowDownLeft,
   ArrowUpRight,
   Zap,
-  Search,
-  X,
-  Filter,
   Check,
   Copy,
   Sparkles,
+  Filter,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
@@ -38,31 +35,32 @@ const isCredit = (type: string) => type === 'mission_reward' || type === 'admin_
 
 type FilterType = 'ALL' | 'CREDIT' | 'DEBIT'
 
+const PAGE_SIZE = 15
+
 export default function CoinHistoryPage() {
   const navigate = useNavigate()
   const { user, coinBalance } = useAuthStore()
   const [transactions, setTransactions] = useState<CoinTransaction[]>([])
   const [filter, setFilter] = useState<FilterType>('ALL')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE)
   const [loading, setLoading] = useState(true)
   const [selectedTransaction, setSelectedTransaction] = useState<CoinTransaction | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Tutup dropdown filter saat klik di luar
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsFilterDropdownOpen(false)
       }
     }
     if (isFilterDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('touchstart', handleClickOutside)
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('touchstart', handleClickOutside)
     }
   }, [isFilterDropdownOpen])
 
@@ -117,33 +115,25 @@ export default function CoinHistoryPage() {
     return 'Mutasi AI Credits'
   }
 
-  // Filter gabungan (Status + Search Query)
+  // Filter mutasi berdasarkan tipe
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
-      // 1. Filter Tipe Mutasi
       if (filter === 'CREDIT' && !isCredit(t.type)) return false
       if (filter === 'DEBIT' && isCredit(t.type)) return false
-
-      // 2. Search Query Filter
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim()
-        const title = getActionTitle(t).toLowerCase()
-        const notes = (t.notes || '').toLowerCase()
-        const matchType = (TYPE_LABEL[t.type] || '').toLowerCase()
-        if (!title.includes(q) && !notes.includes(q) && !matchType.includes(q)) {
-          return false
-        }
-      }
-
       return true
     })
-  }, [transactions, filter, searchQuery])
+  }, [transactions, filter])
 
-  // Pengelompokan mutasi otomatis per Bulan & Tahun
+  // Pagination: potong item sesuai batas tampil (default 15)
+  const visibleTransactions = useMemo(() => {
+    return filtered.slice(0, visibleLimit)
+  }, [filtered, visibleLimit])
+
+  // Pengelompokan mutasi otomatis per Bulan & Tahun dari item yang tampil
   const groupedTransactions = useMemo(() => {
     const groups: { [key: string]: { label: string; items: CoinTransaction[] } } = {}
 
-    filtered.forEach((t) => {
+    visibleTransactions.forEach((t) => {
       const date = new Date(t.created_at)
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       const label = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
@@ -157,7 +147,7 @@ export default function CoinHistoryPage() {
     return Object.keys(groups)
       .sort((a, b) => b.localeCompare(a))
       .map((key) => groups[key])
-  }, [filtered])
+  }, [visibleTransactions])
 
   const handleCopyRef = async (refText: string) => {
     try {
@@ -203,15 +193,6 @@ export default function CoinHistoryPage() {
 
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back to Billing Link (Desktop only) */}
-      <button
-        type="button"
-        className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3"
-        onClick={() => navigate('/profile/billing')}
-      >
-        <ArrowLeft size={16} /> Kembali ke Billing &amp; Langganan
-      </button>
-
       {/* Header (Desktop only) */}
       <div className="cluv-hide-mobile cluv-mb-5">
         <h1 className="cluv-title-page">Riwayat Mutasi Credits</h1>
@@ -221,7 +202,7 @@ export default function CoinHistoryPage() {
       </div>
 
       {/* ===================== BENTO WALLET CARD: TOTAL SALDO & CASHFLOW INSIGHTS ===================== */}
-      <div className="cluv-bento-wallet cluv-mb-5">
+      <div className="cluv-bento-wallet cluv-mb-5" style={{ maxWidth: '480px', width: '100%' }}>
         <div className="cluv-bento-wallet-top">
           <div className="cluv-bento-wallet-balance-wrap">
             <span className="cluv-bento-wallet-tag">
@@ -259,119 +240,79 @@ export default function CoinHistoryPage() {
         </div>
       </div>
 
-      {/* ===================== DESKTOP ONLY: Search & Filter Chips ===================== */}
-      <div className="cluv-hide-mobile cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-3 cluv-mt-4 cluv-mb-4">
-        <div className="cluv-feed-search-wrap" style={{ maxWidth: '280px' }}>
-          <Search size={14} className="cluv-feed-search-icon" />
-          <input
-            type="text"
-            className="cluv-feed-search-input"
-            placeholder="Cari mutasi..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className="cluv-feed-search-clear"
-              onClick={() => setSearchQuery('')}
-              aria-label="Bersihkan pencarian"
-            >
-              <X size={13} />
-            </button>
-          )}
-        </div>
-
-        <div className="cluv-filter-scroll">
-          {filterOptions.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              className={`cluv-chip is-pill ${filter === opt.key ? 'is-active' : ''}`}
-              onClick={() => setFilter(opt.key)}
-            >
-              <span>{opt.label}</span>
-              <span className="cluv-tab-badge">{opt.count}</span>
-            </button>
-          ))}
-        </div>
+      {/* ===================== DESKTOP ONLY: Filter Chips (Unclipped) ===================== */}
+      <div className="cluv-hide-mobile cluv-desktop-filter-chips cluv-mb-4 cluv-mt-2">
+        {filterOptions.map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            className={`cluv-chip is-pill ${filter === opt.key ? 'is-active' : ''}`}
+            onClick={() => {
+              setFilter(opt.key)
+              setVisibleLimit(PAGE_SIZE)
+            }}
+          >
+            <span>{opt.label}</span>
+            <span className="cluv-tab-badge">{opt.count}</span>
+          </button>
+        ))}
       </div>
 
-      {/* ===================== MOBILE ONLY: Search Bar (Left) + Dropdown Filter (Right) ===================== */}
-      <div className="cluv-hide-desktop cluv-mb-3 cluv-mt-1">
-        <div className="cluv-feed-filter-bar">
-          {/* Search Bar di Kiri */}
-          <div className="cluv-feed-search-wrap">
-            <Search size={14} className="cluv-feed-search-icon" />
-            <input
-              type="text"
-              className="cluv-feed-search-input"
-              placeholder="Cari mutasi credits..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="cluv-feed-search-clear"
-                onClick={() => setSearchQuery('')}
-                aria-label="Bersihkan pencarian"
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
+      {/* ===================== MOBILE ONLY: Subheader (Riwayat Kredit) + Filter Dropdown ===================== */}
+      <div className="cluv-hide-desktop cluv-mb-3 cluv-mt-1 cluv-flex-between cluv-items-center">
+        <h2 className="cluv-title-card" style={{ fontSize: '1.0625rem', fontWeight: 800 }}>
+          Riwayat Kredit
+        </h2>
 
-          {/* Filter Dropdown di Kanan (Icon Only + Kondisional Badge) */}
-          <div className="cluv-filter-dropdown-wrap" style={{ width: 'auto' }} ref={dropdownRef}>
-            <button
-              type="button"
-              className={`cluv-filter-trigger-btn ${filter !== 'ALL' ? 'is-active' : ''}`}
-              onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
-              aria-expanded={isFilterDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label={`Filter mutasi: ${activeFilterOption.label}`}
-              title={`Filter: ${activeFilterOption.label}`}
+        <div className="cluv-filter-dropdown-wrap" style={{ width: 'auto' }} ref={dropdownRef}>
+          <button
+            type="button"
+            className={`cluv-filter-trigger-btn ${filter !== 'ALL' ? 'is-active' : ''}`}
+            onClick={() => setIsFilterDropdownOpen((prev) => !prev)}
+            aria-expanded={isFilterDropdownOpen}
+            aria-haspopup="listbox"
+            aria-label={`Filter mutasi: ${activeFilterOption.label}`}
+            title={`Filter: ${activeFilterOption.label}`}
+          >
+            <Filter size={15} className={filter !== 'ALL' ? 'cluv-text-teal' : ''} />
+            {filter !== 'ALL' && (
+              <span className="cluv-filter-badge-count">
+                {activeFilterOption.count}
+              </span>
+            )}
+          </button>
+
+          {isFilterDropdownOpen && (
+            <div
+              className="cluv-filter-dropdown-menu"
+              style={{ right: 0, left: 'auto' }}
+              role="listbox"
             >
-              <Filter size={15} className={filter !== 'ALL' ? 'cluv-text-teal' : ''} />
-              {filter !== 'ALL' && (
-                <span className="cluv-filter-badge-count">
-                  {activeFilterOption.count}
-                </span>
-              )}
-            </button>
-
-            {isFilterDropdownOpen && (
-              <div
-                className="cluv-filter-dropdown-menu"
-                style={{ right: 0, left: 'auto' }}
-                role="listbox"
-              >
-                {filterOptions.map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    className={`cluv-filter-dropdown-item ${filter === opt.key ? 'is-active' : ''}`}
-                    onClick={() => {
-                      setFilter(opt.key)
-                      setIsFilterDropdownOpen(false)
-                    }}
-                    role="option"
-                    aria-selected={filter === opt.key}
-                  >
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                      <span className={`cluv-dot-indicator ${opt.dotClass}`} />
-                      <span>{opt.label}</span>
-                    </div>
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
-                      <span className="cluv-tab-badge">{opt.count}</span>
-                      {filter === opt.key && <Check size={14} className="cluv-text-teal" />}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              {filterOptions.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={`cluv-filter-dropdown-item ${filter === opt.key ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setFilter(opt.key)
+                    setVisibleLimit(PAGE_SIZE)
+                    setIsFilterDropdownOpen(false)
+                  }}
+                  role="option"
+                  aria-selected={filter === opt.key}
+                >
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <span className={`cluv-dot-indicator ${opt.dotClass}`} />
+                    <span>{opt.label}</span>
+                  </div>
+                  <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                    <span className="cluv-tab-badge">{opt.count}</span>
+                    {filter === opt.key && <Check size={14} className="cluv-text-teal" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -389,27 +330,25 @@ export default function CoinHistoryPage() {
             </div>
             <h3 className="cluv-title-card">Belum Ada Mutasi Credits</h3>
             <p className="cluv-caption cluv-text-muted cluv-mt-1 cluv-max-w-md">
-              {searchQuery
-                ? `Tidak ditemukan mutasi dengan kata kunci "${searchQuery}".`
-                : filter === 'ALL'
+              {filter === 'ALL'
                 ? 'Riwayat perolehan atau penggunaan credits kamu akan tampil di sini.'
                 : 'Tidak ada mutasi untuk jenis yang dipilih.'}
             </p>
-            {searchQuery ? (
+            {filter === 'ALL' ? (
+              <Button variant="primary" size="sm" to="/missions" className="cluv-mt-4">
+                Selesaikan Misi
+              </Button>
+            ) : (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setSearchQuery('')
                   setFilter('ALL')
+                  setVisibleLimit(PAGE_SIZE)
                 }}
                 className="cluv-mt-4"
               >
-                Reset Pencarian
-              </Button>
-            ) : (
-              <Button variant="primary" size="sm" to="/missions" className="cluv-mt-4">
-                Selesaikan Misi
+                Lihat Semua Mutasi
               </Button>
             )}
           </div>
@@ -470,6 +409,20 @@ export default function CoinHistoryPage() {
           ))
         )}
       </div>
+
+      {/* Load More Button */}
+      {visibleLimit < filtered.length && (
+        <div className="cluv-flex cluv-justify-center cluv-mt-5 cluv-mb-3">
+          <Button
+            variant="outline"
+            size="md"
+            radius="pill"
+            onClick={() => setVisibleLimit((prev) => prev + PAGE_SIZE)}
+          >
+            Muat Lebih Banyak ({filtered.length - visibleLimit} tersisa)
+          </Button>
+        </div>
+      )}
 
       {/* ===================== BOTTOM SHEET RESMI: DETAIL MUTASI CREDITS ===================== */}
       <BottomSheet

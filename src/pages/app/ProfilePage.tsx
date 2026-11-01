@@ -17,6 +17,7 @@ import { Button, Badge } from '@/components/ui'
 export default function ProfilePage() {
   const navigate = useNavigate()
   const {
+    user,
     profile,
     activeSkinProfile,
     subscription,
@@ -137,18 +138,19 @@ export default function ProfilePage() {
 
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* Header */}
-      <div className="cluv-mb-4">
+      {/* Header (Hanya tampil di Desktop) */}
+      <div className="cluv-mb-4 cluv-hide-mobile">
         <h1 className="cluv-title-section cluv-m-0">Profil & Pengaturan</h1>
         <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
           Pusat kendali akun, keanggotaan, preferensi kulit, dan privasi datamu.
         </p>
       </div>
 
-      <div className="cluv-grid cols-2 cluv-gap-6">
-        {/* ── Left Column: Unified Profile Card (Mirip Beranda Dashboard) ── */}
-        <div className="cluv-flex-col cluv-gap-5">
-          <div className="cluv-mobile-unified-card">
+      <div className="cluv-profile-layout">
+        {/* ── Left Column: Identity & Membership Anchor ── */}
+        <div className="cluv-flex-col cluv-gap-4">
+          {/* Mobile Identity Card (Hanya Tampil di Mobile) */}
+          <div className="cluv-mobile-unified-card cluv-hide-desktop">
             {/* Header: Avatar Ring dengan Badge Melayang di Bawah + Sapaan + Kapsul Kredit */}
             <div className="cluv-mobile-unified-header">
               <div className="cluv-flex-row cluv-gap-2.5 cluv-items-center">
@@ -181,6 +183,67 @@ export default function ProfilePage() {
             </div>
 
             {/* Body: Kuota Bar Garis (Klik untuk ke Kelola Tagihan) + Masa Aktif */}
+            <div
+              className="cluv-profile-quota-box"
+              onClick={() => navigate('/profile/billing')}
+              role="button"
+              tabIndex={0}
+              title="Klik untuk kelola kuota & tagihan"
+            >
+              <div className="cluv-profile-quota-header">
+                <span className="cluv-profile-quota-title">Kuota Universal AI</span>
+                <span className="cluv-profile-quota-val">
+                  {isFree ? 'Gratis' : `${remainingPercent}% Tersisa`}
+                </span>
+              </div>
+
+              <div className="cluv-progress-track">
+                <div
+                  className={`cluv-progress-bar ${usedPercent >= 90 ? 'is-rose' : usedPercent >= 75 ? 'is-amber' : ''}`}
+                  style={{ width: isFree ? '0%' : `${Math.max(usedPercent, 2)}%` }}
+                />
+              </div>
+
+              <div className="cluv-profile-quota-meta">
+                Masa aktif: <strong>{expiryDateStr}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Identity Card (Hanya Tampil di Desktop — Nama, Email, Saldo & Kuota) */}
+          <div className="cluv-card cluv-profile-desktop-card cluv-hide-mobile cluv-flex-col cluv-gap-4">
+            {/* Header: Nama dan Email (Tanpa Foto & Tanpa Badge VIP) */}
+            <div className="cluv-flex-col cluv-gap-1">
+              <h3 className="cluv-title-card cluv-m-0 cluv-truncate">
+                {profile?.full_name || 'Pengguna Skincluv'}
+              </h3>
+              <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-truncate">
+                {user?.email || 'Akun Pengguna'}
+              </p>
+            </div>
+
+            <div className="cluv-divider cluv-my-0" />
+
+            {/* Saldo Credits Row */}
+            <div className="cluv-profile-desktop-credit-row">
+              <div className="cluv-flex-col cluv-gap-0.5">
+                <span className="cluv-micro cluv-text-muted cluv-font-bold uppercase">Saldo AI Credits</span>
+                <span className="cluv-title-card cluv-text-gold cluv-tabular-nums cluv-flex-row cluv-items-center cluv-gap-1.5">
+                  <Zap size={16} />
+                  {(coinBalance?.balance ?? 0).toLocaleString('id-ID')}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                to="/pricing"
+                className="cluv-btn-sm-compact"
+              >
+                Top Up
+              </Button>
+            </div>
+
+            {/* Kuota Universal AI Box */}
             <div
               className="cluv-profile-quota-box"
               onClick={() => navigate('/profile/billing')}

@@ -2,21 +2,25 @@
 // Sub-page Paket Langganan, Kuota AI, & Saldo Credits (RFC 020)
 // Conforming to Invariant 1 (universal_ai quota) and Invariant 17 (Dual-Track Accounting)
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { isActivePremium, isActiveGlow } from '@/utils/subscriptionHelpers'
 import {
-  ArrowLeft, Crown, Zap, Activity, Coins,
-  Receipt, History, ArrowRight,
+  Crown,
+  Zap,
+  Activity,
+  Receipt,
+  History,
+  ChevronRight,
+  Sparkles,
+  HelpCircle,
 } from 'lucide-react'
-import { Button, Badge } from '@/components/ui'
 
 export default function ProfileBillingPage() {
   const profile = useAuthStore((s) => s.profile)
   const subscription = useAuthStore((s) => s.subscription)
-  const coinBalance = useAuthStore((s) => s.coinBalance)
   const [usageInfo, setUsageInfo] = useState<{ used: number; limit: number; name: string } | null>(null)
 
   const isPro = isActivePremium(subscription)
@@ -91,142 +95,205 @@ export default function ProfileBillingPage() {
 
   const tierLabel = isPro ? 'VIP PRO MEMBER' : isGlow ? 'GLOW MEMBER' : 'FREE ACCOUNT'
 
+  const expiryDateStr = useMemo(() => {
+    if (!subscription?.expires_at) return isFree ? 'Permanen (Gratis)' : 'Aktif'
+    const date = new Date(subscription.expires_at)
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }, [subscription?.expires_at, isFree])
+
   return (
     <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back link navigation (Desktop only; di mobile sudah ada di topbar) */}
-      <Link to="/profile" className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
-        <ArrowLeft size={16} />
-        <span>Kembali ke Profil & Pengaturan</span>
-      </Link>
-
       {/* Header (Desktop only; di mobile judul sudah di topbar) */}
       <div className="cluv-hide-mobile cluv-mb-6">
         <h1 className="cluv-title-page">Paket Langganan & Kuota AI</h1>
-        <p className="cluv-caption cluv-text-muted">Pantau sisa kuota Universal AI bulanan, saldo AI Credits, dan riwayat tagihanmu.</p>
+        <p className="cluv-caption cluv-text-muted">
+          Pantau status paket, kuota Universal AI bulanan, dan riwayat tagihan akunmu.
+        </p>
       </div>
 
-      <div className="cluv-grid cols-2 cluv-gap-6">
-        {/* Left Column: Membership & Quota */}
-        <div className="cluv-flex-col cluv-gap-5">
-          <div className="cluv-card cluv-flex-col cluv-gap-4">
-            <div className="cluv-flex-between cluv-items-center">
-              <Badge
-                variant={isPro ? 'gold' : isGlow ? 'teal' : 'slate'}
-                icon={isPro ? <Crown size={13} /> : <Zap size={13} />}
-              >
-                {tierLabel}
-              </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                iconLeft={<Crown size={13} />}
-                to="/pricing"
-              >
-                {isPro ? 'Perpanjang' : 'Upgrade Paket'}
-              </Button>
-            </div>
-
-            <div className="cluv-flex-col cluv-gap-2">
-              <div className="cluv-flex-between cluv-items-center">
-                <span className="cluv-caption cluv-font-bold cluv-flex-row cluv-items-center cluv-gap-1.5">
-                  <Activity size={14} className="cluv-text-teal" /> Kuota Universal AI Bulan Ini
+      <div className="cluv-flex-col cluv-gap-4">
+        {/* ===================== KOTAK STATUS PAKET AKTIF & KREDIT BULAN INI ===================== */}
+        <div className="cluv-card cluv-flex-col cluv-gap-4">
+          {/* Header: Info Paket yang Aktif */}
+          <div className="cluv-flex-between cluv-items-center">
+            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+              <div className={`cluv-card-icon-wrap is-sm ${isPro ? 'is-gold' : isGlow ? 'is-teal' : ''}`}>
+                {isPro ? <Crown size={16} /> : <Zap size={16} />}
+              </div>
+              <div className="cluv-flex-col cluv-gap-1">
+                <span className="cluv-font-bold cluv-text-dark" style={{ fontSize: '0.9375rem', lineHeight: 1.2 }}>
+                  {tierLabel}
                 </span>
-                {isFree ? (
-                  <span className="cluv-caption cluv-text-muted">Gunakan Credits Misi</span>
-                ) : (
-                  <span className="cluv-caption">
-                    <strong className="cluv-text-teal">{remainingPercent}% Tersisa</strong>{' '}
-                    <span className="cluv-text-muted">({usedPercent}% terpakai)</span>
-                  </span>
-                )}
+                <span className="cluv-badge is-sm is-teal" style={{ alignSelf: 'flex-start' }}>
+                  {isPro || isGlow ? 'Aktif' : 'Standar'}
+                </span>
               </div>
+            </div>
+          </div>
 
-              <div className="cluv-progress-track">
-                <div
-                  className={`cluv-progress-bar ${usedPercent >= 90 ? 'is-rose' : usedPercent >= 75 ? 'is-amber' : ''}`}
-                  style={{ width: isFree ? '0%' : `${Math.max(usedPercent, 2)}%` }}
+          {/* Body: Kredit Bulan Ini + Meter */}
+          <div className="cluv-flex-col cluv-gap-2 cluv-pt-1">
+            <div className="cluv-flex-between cluv-items-center">
+              <span className="cluv-caption cluv-font-bold cluv-flex-row cluv-items-center cluv-gap-1.5">
+                <Activity
+                  size={14}
+                  className={isPro ? 'cluv-text-gold' : isGlow ? 'cluv-text-teal' : 'cluv-text-muted'}
                 />
-              </div>
-            </div>
-
-            <div className="cluv-card-note">
-              {isPro ? (
-                <p className="cluv-caption">
-                  <strong>VIP PRO</strong>: Termasuk Chatbot Dermatologist Expert, Web Search Klinis & Scan Wajah. Kuota 500x terasa unlimited.
-                </p>
-              ) : isGlow ? (
-                <p className="cluv-caption">
-                  <strong>Satu Kuota Bersama</strong>: Bebas dipakai untuk Chatbot, Scan Wajah, & Scan Komposisi.
-                </p>
-              ) : (
-                <p className="cluv-caption">
-                  <strong>Akun Gratis</strong>: Akses scan dan chat menggunakan saldo AI Credits dari misi harian.
-                </p>
-              )}
-            </div>
-
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-pt-2">
-              <span className={`cluv-dot is-pulse ${isActivePremium(subscription) ? 'is-teal' : 'is-slate'}`} />
-              <span className="cluv-caption">
-                Status: <strong>{isActivePremium(subscription) ? 'Aktif' : 'Gratis'}</strong>
-                {subscription?.expires_at && (
-                  <> (Perpanjang: {new Date(subscription.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })})</>
-                )}
+                <span>Kredit Bulan Ini</span>
               </span>
+            </div>
+
+            <div className="cluv-progress-track">
+              <div
+                className={`cluv-progress-bar ${
+                  usedPercent >= 90
+                    ? 'is-rose'
+                    : usedPercent >= 75
+                    ? 'is-amber'
+                    : isPro
+                    ? 'is-gold'
+                    : ''
+                }`}
+                style={{ width: isFree ? '0%' : `${Math.max(usedPercent, 3)}%` }}
+              />
+            </div>
+
+            <div className="cluv-flex-between cluv-items-center cluv-mt-1">
+              <span className="cluv-micro cluv-text-muted">
+                Masa aktif paket: <strong>{expiryDateStr}</strong>
+              </span>
+
+              {isFree ? (
+                <span className="cluv-micro cluv-text-muted">Gratis via Credits Misi</span>
+              ) : (
+                <span
+                  className="cluv-micro cluv-font-bold cluv-tabular-nums"
+                  style={{ color: isPro ? 'var(--cluv-gold)' : 'var(--cluv-teal)' }}
+                >
+                  {remainingPercent}% Tersisa
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Right Column: AI Credits & Transactions */}
-        <div className="cluv-flex-col cluv-gap-5">
-          {/* AI Credits Balance Card */}
-          <div className="cluv-card cluv-flex-between cluv-items-center cluv-flex-wrap cluv-gap-3">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-3">
-              <div className="cluv-card-icon-wrap is-sm is-gold">
-                <Coins size={18} />
+        {/* ===================== FINANCIAL & BILLING HISTORY INSET MENU ===================== */}
+        <div className="cluv-menu-group">
+          <Link to="/transactions" className="cluv-menu-row">
+            <div className="cluv-menu-row-main">
+              <div className="cluv-menu-row-icon is-blue">
+                <Receipt size={18} />
               </div>
-              <div className="cluv-flex-col">
-                <span className="cluv-caption cluv-text-muted">Saldo AI Credits</span>
-                <span className="cluv-title-card cluv-font-bold cluv-text-gold">
-                  {coinBalance?.balance ?? 0} Credits
-                </span>
+              <div className="cluv-flex-col cluv-gap-0.5">
+                <span className="cluv-menu-row-title">Faktur &amp; Tagihan Tripay</span>
+                <span className="cluv-micro cluv-text-muted">Invoice paket langganan &amp; status bayar</span>
               </div>
             </div>
-            <Button variant="primary" size="sm" to="/pricing">
-              + Beli Credits
-            </Button>
+            <div className="cluv-menu-row-trailing">
+              <ChevronRight size={18} className="cluv-menu-row-chevron" />
+            </div>
+          </Link>
+
+          <Link to="/coin-history" className="cluv-menu-row">
+            <div className="cluv-menu-row-main">
+              <div className="cluv-menu-row-icon is-amber">
+                <History size={18} />
+              </div>
+              <div className="cluv-flex-col cluv-gap-0.5">
+                <span className="cluv-menu-row-title">Riwayat Mutasi AI Credits</span>
+                <span className="cluv-micro cluv-text-muted">Perolehan bonus misi &amp; penggunaan AI</span>
+              </div>
+            </div>
+            <div className="cluv-menu-row-trailing">
+              <ChevronRight size={18} className="cluv-menu-row-chevron" />
+            </div>
+          </Link>
+        </div>
+
+        {/* ===================== KEUNTUNGAN PAKET (GAYA CARA KERJA ANALISIS AI) ===================== */}
+        <div className="cluv-card cluv-guide-card">
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-3">
+            <Sparkles size={16} className="cluv-text-teal" />
+            <h3 className="cluv-title-card is-sm cluv-m-0">Keuntungan Akses Akun Kamu</h3>
           </div>
 
-          {/* Quick links to History */}
-          <div className="cluv-card">
-            <h3 className="cluv-caption cluv-font-bold cluv-text-muted cluv-mb-3">
-              RIWAYAT FINANSIAL & TAGIHAN
-            </h3>
-            <div className="cluv-flex-col cluv-gap-2.5">
-              <Link to="/transactions" className="cluv-card-strip is-neutral is-interactive">
-                <div className="cluv-card-strip-main">
-                  <div className="cluv-card-icon-wrap is-sm">
-                    <Receipt size={16} />
-                  </div>
-                  <div className="cluv-card-strip-body">
-                    <h4 className="cluv-card-strip-title">Riwayat Tagihan & Pembayaran</h4>
-                    <p className="cluv-caption cluv-text-muted">Invoice paket dan status gateway Tripay</p>
-                  </div>
-                </div>
-                <ArrowRight size={16} className="cluv-text-muted" />
-              </Link>
-              <Link to="/coin-history" className="cluv-card-strip is-neutral is-interactive">
-                <div className="cluv-card-strip-main">
-                  <div className="cluv-card-icon-wrap is-sm is-gold">
-                    <History size={16} />
-                  </div>
-                  <div className="cluv-card-strip-body">
-                    <h4 className="cluv-card-strip-title">Riwayat Mutasi Credits</h4>
-                    <p className="cluv-caption cluv-text-muted">Perolehan misi dan penggunaan AI credits</p>
-                  </div>
-                </div>
-                <ArrowRight size={16} className="cluv-text-muted" />
-              </Link>
+          <div className="cluv-flex-col cluv-gap-3 cluv-mt-1">
+            <div className="cluv-guide-item">
+              <div className="cluv-guide-num">1</div>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Konsultasi Skinsistant AI 24/7</strong>
+                <p className="cluv-guide-desc">
+                  Tanya jawab perawatan kulit berbasis literatur klinis dengan konteks profil pribadi.
+                </p>
+              </div>
+            </div>
+
+            <div className="cluv-guide-item">
+              <div className="cluv-guide-num">2</div>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Observasi 6-Zona Wajah &amp; Komposisi</strong>
+                <p className="cluv-guide-desc">
+                  Pemetaan visual skin barrier dan peringatan bahan berbahaya secara privat tanpa biometrik.
+                </p>
+              </div>
+            </div>
+
+            <div className="cluv-guide-item">
+              <div className="cluv-guide-num">3</div>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">
+                  {isPro ? 'Prioritas Komputasi & Web Search' : 'Dukungan Fleksibel AI Credits'}
+                </strong>
+                <p className="cluv-guide-desc">
+                  {isPro
+                    ? 'Mesin penalaran AI tercepat serta pencarian referensi dermatologi terpercaya real-time.'
+                    : 'Klaim bonus credits gratis setiap hari dari Misi Glow untuk pemakaian berkelanjutan.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ===================== FAQ INFORMASI LANGGANAN & TRANSAKSI ===================== */}
+        <div className="cluv-card cluv-guide-card">
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-3">
+            <HelpCircle size={16} className="cluv-text-teal" />
+            <h3 className="cluv-title-card is-sm cluv-m-0">Pertanyaan Umum (FAQ)</h3>
+          </div>
+
+          <div className="cluv-flex-col cluv-gap-3 cluv-mt-1">
+            <div className="cluv-guide-item">
+              <div className="cluv-guide-num">1</div>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Apakah paket langganan bisa di-refund?</strong>
+                <p className="cluv-guide-desc">
+                  Pembelian paket akses dan AI Credits bersifat final serta tidak dapat dibatalkan atau di-refund, kecuali jika terjadi kendala teknis kegagalan sistem pada transaksi payment gateway.
+                </p>
+              </div>
+            </div>
+
+            <div className="cluv-guide-item">
+              <div className="cluv-guide-num">2</div>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Apakah saldo atau kartu otomatis terpotong (auto-debit)?</strong>
+                <p className="cluv-guide-desc">
+                  Tidak. Skincluv tidak menerapkan sistem penagihan berulang (auto-renewal). Anda memegang kendali penuh dan transaksi hanya diproses saat melakukan checkout mandiri via Tripay.
+                </p>
+              </div>
+            </div>
+
+            <div className="cluv-guide-item">
+              <div className="cluv-guide-num">3</div>
+              <div className="cluv-guide-content">
+                <strong className="cluv-guide-title">Apa yang terjadi jika kuota kredit bulanan habis?</strong>
+                <p className="cluv-guide-desc">
+                  Anda tetap dapat melakukan pemindaian kulit dan berkonsultasi dengan Skinsistant AI menggunakan saldo AI Credits yang diperoleh gratis dari Misi Glow harian atau melakukan isi ulang kapan saja.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -234,3 +301,4 @@ export default function ProfileBillingPage() {
     </div>
   )
 }
+

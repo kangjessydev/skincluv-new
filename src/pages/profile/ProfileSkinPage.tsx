@@ -4,15 +4,14 @@
 // and 100% styled with the Fresh Clinical Tech v0-profile-* design system.
 
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import {
-  ArrowLeft, Activity, AlertCircle, ShieldCheck,
+  Activity, AlertCircle, ShieldCheck,
   Check, Save, Sparkles, X,
 } from 'lucide-react'
 import type { SkinProfile, SkinType } from '@/types/database'
-import { Button } from '@/components/ui'
+import { Button, Badge } from '@/components/ui'
 
 const SKIN_TYPES: { id: SkinType; label: string }[] = [
   { id: 'normal', label: 'Normal' },
@@ -21,6 +20,14 @@ const SKIN_TYPES: { id: SkinType; label: string }[] = [
   { id: 'combination', label: 'Kombinasi' },
   { id: 'sensitive', label: 'Sensitif' },
 ]
+
+const SKIN_TYPE_DESCRIPTIONS: Record<SkinType, string> = {
+  normal: 'Keseimbangan kelembapan alami, pori-pori halus, minim masalah.',
+  dry: 'Cenderung kaku atau bersisik, membutuhkan hidrasi & lipid pelindung.',
+  oily: 'Produksi sebum berlebih terutama di T-zone, rentan kilap & komedo.',
+  combination: 'Berminyak di area T (dahi, hidung, dagu) dan normal/kering di pipi.',
+  sensitive: 'Reaktif terhadap faktor lingkungan atau bahan keras, rentan kemerahan.',
+}
 
 const CONCERNS_LIST = [
   'Jerawat & Beruntusan',
@@ -183,21 +190,115 @@ export default function ProfileSkinPage() {
   }
 
   return (
-    <div className="cluv-canvas-focused cluv-animate-fade">
-      {/* Back link navigation (Desktop only; di mobile sudah ada tombol kembali di topbar) */}
-      <Link to="/profile" className="cluv-hide-mobile cluv-link is-muted cluv-flex-row cluv-items-center cluv-gap-1 cluv-mb-3">
-        <ArrowLeft size={16} />
-        <span>Kembali ke Profil &amp; Pengaturan</span>
-      </Link>
+    <div className="cluv-canvas-grid cluv-animate-fade">
 
       {/* Header (Desktop only; di mobile sudah terpampang di topbar) */}
       <div className="cluv-hide-mobile cluv-mb-6">
-        <h1 className="cluv-title-page">Profil &amp; Preferensi Kulit</h1>
-        <p className="cluv-caption cluv-text-muted">Konfigurasikan tipe kulit dan bahan yang ingin kamu hindari untuk mempersonalisasi rekomendasi Skinsistant AI.</p>
+        <h1 className="cluv-title-section cluv-m-0">Profil &amp; Preferensi Kulit</h1>
+        <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
+          Konfigurasikan tipe kulit dan bahan yang ingin kamu hindari untuk mempersonalisasi rekomendasi Skinsistant AI.
+        </p>
       </div>
 
-      {/* Main card (Di mobile dibuat flat/unboxed agar tidak ada double border yang sempit) */}
-      <div className="cluv-card is-mobile-flat cluv-flex-col cluv-gap-6">
+      <div className="cluv-skin-config-layout">
+        {/* ── Left Column: Live Skin Passport Preview (Desktop Sticky) ── */}
+        <div className="cluv-hide-mobile">
+          <div className="cluv-skin-passport-card cluv-flex-col cluv-gap-4">
+            <div className="cluv-skin-passport-header">
+              <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                <div className="cluv-card-icon-wrap is-sm is-gold">
+                  <Sparkles size={16} />
+                </div>
+                <div>
+                  <h3 className="cluv-title-card cluv-m-0" style={{ fontSize: '0.875rem' }}>
+                    Live Paspor Kulit
+                  </h3>
+                  <span className="cluv-micro cluv-text-muted">Preview Real-time</span>
+                </div>
+              </div>
+              <Badge variant="teal" size="sm">
+                Sinkron AI
+              </Badge>
+            </div>
+
+            {/* 1. Tipe Kulit Aktif */}
+            <div className="cluv-skin-passport-section">
+              <span className="cluv-skin-passport-section-label">Tipe Kulit Utama</span>
+              <div className="cluv-skin-passport-active-box">
+                <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                  <span className="cluv-body cluv-font-bold cluv-text-teal">
+                    {SKIN_TYPES.find((t) => t.id === skinType)?.label || skinType}
+                  </span>
+                  <span className="cluv-micro cluv-text-teal cluv-font-bold">Aktif</span>
+                </div>
+                <p className="cluv-micro cluv-text-muted cluv-mt-1 cluv-m-0" style={{ lineHeight: '1.4' }}>
+                  {SKIN_TYPE_DESCRIPTIONS[skinType] || 'Kondisi kulit utama.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="cluv-skin-passport-divider" />
+
+            {/* 2. Target Perawatan */}
+            <div className="cluv-skin-passport-section">
+              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                <span className="cluv-skin-passport-section-label">Target Perawatan</span>
+                <span className="cluv-micro cluv-text-muted cluv-tabular-nums">{concerns.length} dipilih</span>
+              </div>
+              {concerns.length > 0 ? (
+                <div className="cluv-skin-passport-tag-list">
+                  {concerns.map((c) => (
+                    <span key={c} className="cluv-skin-passport-chip is-teal">
+                      <Check size={11} strokeWidth={3} />
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-italic">
+                  Pilih target di formulir samping untuk memandu fokus perawatan.
+                </p>
+              )}
+            </div>
+
+            <div className="cluv-skin-passport-divider" />
+
+            {/* 3. Bahan Dihindari */}
+            <div className="cluv-skin-passport-section">
+              <div className="cluv-flex-row cluv-items-center cluv-justify-between">
+                <span className="cluv-skin-passport-section-label">Bahan Dihindari</span>
+                <span className="cluv-micro cluv-text-muted cluv-tabular-nums">{sensitivities.length} dipilih</span>
+              </div>
+              {sensitivities.length > 0 ? (
+                <div className="cluv-skin-passport-tag-list">
+                  {sensitivities.map((s) => (
+                    <span key={s} className="cluv-skin-passport-chip is-rose">
+                      <X size={11} strokeWidth={3} />
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="cluv-micro cluv-text-muted cluv-m-0 cluv-italic">
+                  Tidak ada bahan sensitif yang dihindari.
+                </p>
+              )}
+            </div>
+
+            <div className="cluv-skin-passport-divider" />
+
+            {/* Edukasi Klinis (Gambar 2: Dibungkus rapi, teks tidak overbold) */}
+            <div className="cluv-skin-passport-note">
+              <ShieldCheck size={16} className="cluv-text-teal cluv-flex-shrink-0 cluv-mt-0.5" />
+              <p className="cluv-skin-passport-note-text">
+                Data preferensi ini digunakan oleh mesin Skinsistant AI dan Formula Scan untuk memfilter bahan berbahaya bagi profil kulit Anda.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Right Column: Formulir Utama (100% Mobile Parity) ── */}
+        <div className="cluv-card is-mobile-flat cluv-flex-col cluv-gap-6">
         {/* Regulatory & Privacy Notice (Invarian 19 & UU PDP No. 27/2022) - Bisa ditutup */}
         {!isNoticeDismissed && (
           <div className="cluv-card-note is-dismissible">
@@ -329,12 +430,13 @@ export default function ProfileSkinPage() {
               >
                 {loading ? 'Menyimpan preferensi...' : 'Simpan Profil Kulit'}
               </Button>
-              <p className="cluv-hide-mobile cluv-caption cluv-text-muted cluv-flex-row cluv-items-center cluv-justify-center cluv-gap-1.5 cluv-mt-2.5 cluv-mb-0 cluv-text-center">
-                <Sparkles size={14} className="cluv-text-gold" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot.
+              <p className="cluv-hide-mobile cluv-profile-action-hint">
+                <Sparkles size={15} className="cluv-text-gold cluv-flex-shrink-0" /> Preferensi tersimpan otomatis tersinkronisasi ke seluruh fitur scan dan chatbot.
               </p>
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   )

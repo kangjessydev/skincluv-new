@@ -3,7 +3,7 @@
 // 100% Pure Cluv Micro-Framework, Zero Inline Styles, Zero Raw Emojis, No Accordion Duplication
 // Kepatuhan: Invarian 13 (Defensible claims), Invarian 18 (Prepaid pricing), Invarian 19 (Non-therapeutic)
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CircleHelp,
@@ -20,8 +20,10 @@ import {
   Crown,
   X,
   SlidersHorizontal,
+  Filter,
+  Check,
 } from 'lucide-react'
-import { Button, Badge } from '@/components/ui'
+import { Button, Badge, BottomSheet } from '@/components/ui'
 
 export interface FaqItem {
   id: string
@@ -326,6 +328,11 @@ export default function AppFaqPage() {
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [openIds, setOpenIds] = useState<string[]>(['pay-1'])
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
+
+  const activeCategoryOption = useMemo(() => {
+    return CATEGORY_TABS.find((t) => t.key === activeCategory) || CATEGORY_TABS[0]
+  }, [activeCategory])
 
   // Filter FAQ berdasarkan kategori & live search query
   const filteredFaqs = useMemo(() => {
@@ -372,8 +379,8 @@ export default function AppFaqPage() {
 
   return (
     <div className="cluv-canvas-grid cluv-animate-fade">
-      {/* ── 1. HEADER HALAMAN FOKUS ── */}
-      <header className="cluv-mb-6">
+      {/* ── 1. HEADER HALAMAN FOKUS (Desktop Only) ── */}
+      <header className="cluv-hide-mobile cluv-mb-6">
         <div className="cluv-badge is-teal is-sm cluv-mb-2">
           <CircleHelp size={13} />
           <span>PUSAT BANTUAN SAHABAT</span>
@@ -384,8 +391,8 @@ export default function AppFaqPage() {
         </p>
       </header>
 
-      {/* ── 2. SEARCH BAR & QUICK TOPIC CHIPS ── */}
-      <div className="cluv-card cluv-mb-6">
+      {/* ── 2. DESKTOP ONLY: SEARCH BAR & QUICK TOPIC CHIPS ── */}
+      <div className="cluv-hide-mobile cluv-card cluv-mb-5">
         {/* Search Input dengan class resmi Cluv FW (has-leading-icon & is-leading) */}
         <div className="cluv-field cluv-mb-3">
           <div className="cluv-input-wrap has-leading-icon has-trailing-icon">
@@ -447,8 +454,8 @@ export default function AppFaqPage() {
         </div>
       </div>
 
-      {/* ── 3. FILTER TAB KATEGORI TEMATIK ── */}
-      <div className="cluv-tabs cluv-mb-5 cluv-w-full">
+      {/* ── 3. DESKTOP ONLY: FILTER TAB KATEGORI TEMATIK ── */}
+      <div className="cluv-hide-mobile cluv-tabs cluv-mb-5 cluv-w-full">
         {CATEGORY_TABS.map((tab) => {
           const isActive = activeCategory === tab.key
           const count = tab.key === 'all'
@@ -475,6 +482,100 @@ export default function AppFaqPage() {
         })}
       </div>
 
+      {/* ── 2 & 3. MOBILE ONLY: SEARCH BAR (LEFT) + DROPDOWN FILTER (RIGHT) + QUICK CHIPS ── */}
+      <div className="cluv-hide-desktop cluv-mb-4">
+        <div className="cluv-feed-filter-bar">
+          {/* Search Input di Kiri */}
+          <div className="cluv-feed-search-wrap">
+            <Search size={14} className="cluv-feed-search-icon" />
+            <input
+              type="text"
+              className="cluv-feed-search-input"
+              placeholder="Cari pertanyaan FAQ..."
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value
+                setSearchQuery(val)
+                if (val.trim().length > 1) {
+                  const match = FAQ_LIST.find((f) =>
+                    f.question.toLowerCase().includes(val.toLowerCase()) ||
+                    f.tags.some((t) => t.includes(val.toLowerCase()))
+                  )
+                  if (match && !openIds.includes(match.id)) {
+                    setOpenIds((prev) => [...prev, match.id])
+                  }
+                }
+              }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="cluv-feed-search-clear"
+                onClick={() => setSearchQuery('')}
+                aria-label="Bersihkan pencarian"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Trigger Button di Kanan (Membuka BottomSheet) */}
+          <div className="cluv-filter-dropdown-wrap" style={{ width: 'auto' }}>
+            <button
+              type="button"
+              className={`cluv-filter-trigger-btn ${activeCategory !== 'all' ? 'is-active' : ''}`}
+              onClick={() => setIsFilterSheetOpen(true)}
+              aria-label={`Filter topik FAQ: ${activeCategoryOption.label}`}
+              title={`Filter: ${activeCategoryOption.label}`}
+            >
+              <Filter size={15} className={activeCategory !== 'all' ? 'cluv-text-teal' : ''} />
+              {activeCategory !== 'all' && (
+                <span className="cluv-filter-badge-count">
+                  {FAQ_LIST.filter((f) => f.category === activeCategory).length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Quick Chips: Topik Hangat Scrollable dengan Spacing Terukur */}
+        <div
+          className="cluv-mt-3"
+          style={{
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+            display: 'flex',
+            gap: '8px',
+            paddingBottom: '2px',
+          }}
+        >
+          {QUICK_SEARCH_CHIPS.map((chip) => {
+            const isActive = searchQuery.toLowerCase() === chip.query.toLowerCase()
+            return (
+              <button
+                key={chip.label}
+                type="button"
+                className={`cluv-chip is-pill ${isActive ? 'is-active' : ''}`}
+                onClick={() => handleSelectQuickChip(chip.query)}
+                style={{
+                  fontSize: '0.78125rem',
+                  padding: '6px 12px',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span className="cluv-flex-center cluv-flex-shrink-0">{chip.icon}</span>
+                <span>{chip.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* ── 4. UNIFIED BENTO CARDS GRID (ZERO ACCORDION DUMP) ── */}
       {filteredFaqs.length > 0 ? (
         <div className="cluv-grid cols-2 cluv-gap-4 cluv-mb-6">
@@ -496,7 +597,7 @@ export default function AppFaqPage() {
                       {faq.icon}
                     </div>
 
-                    <div className="cluv-flex-row cluv-items-center cluv-gap-1.5">
+                    <div className="cluv-flex-row cluv-items-center cluv-gap-2">
                       {faq.isPopular && (
                         <Badge variant="gold" size="sm">
                           Topik Populer
@@ -513,26 +614,26 @@ export default function AppFaqPage() {
                     {faq.question}
                   </h3>
 
-                  {/* Jawaban yang Mengembang Langsung di Tempat (In-Place) */}
-                  {isOpen ? (
-                    <div className="cluv-pt-3 cluv-mt-3 cluv-border-t cluv-animate-fade">
+                  {/* Jawaban yang Mengembang Langsung di Tempat (In-Place) dengan Hirarki Teks Jelas */}
+                  {isOpen && (
+                    <div className="cluv-faq-answer cluv-pt-3 cluv-mt-3 cluv-border-t cluv-animate-fade">
                       {faq.answer}
                     </div>
-                  ) : (
-                    <p className="cluv-caption cluv-text-muted cluv-m-0">
-                      Klik untuk membaca penjelasan lengkap...
-                    </p>
                   )}
                 </div>
 
                 {/* Footer Kartu: Toggle Status */}
                 <div className="cluv-pt-3 cluv-mt-3 cluv-border-t cluv-flex-between cluv-items-center">
                   <span className={`cluv-micro cluv-font-bold ${isOpen ? 'cluv-text-muted' : 'cluv-text-teal'}`}>
-                    {isOpen ? 'Tutup Penjelasan ↑' : 'Buka Penjelasan Lengkap ↓'}
+                    {isOpen ? 'Tutup Penjelasan' : 'Baca Penjelasan Lengkap'}
                   </span>
                   <ChevronDown
                     size={16}
-                    className={`cluv-text-teal ${isOpen ? 'rotate' : ''}`}
+                    className="cluv-text-teal"
+                    style={{
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
                   />
                 </div>
               </div>
@@ -573,11 +674,11 @@ export default function AppFaqPage() {
       {/* ── 5. JEMBATAN KE SKINSISTANT AI & CUSTOMER SUPPORT ── */}
       <div className="cluv-card is-highlight cluv-mb-6">
         <div className="cluv-flex-responsive cluv-gap-4">
-          <div className="cluv-flex-row cluv-items-center cluv-gap-4">
-            <div className="cluv-card-icon-wrap is-lg is-teal">
-              <MessageCircle size={24} />
+          <div className="cluv-flex-row cluv-items-start cluv-gap-3">
+            <div className="cluv-card-icon-wrap is-md is-teal cluv-flex-shrink-0" style={{ marginTop: '2px' }}>
+              <MessageCircle size={20} />
             </div>
-            <div className="cluv-flex-col cluv-gap-0.5">
+            <div className="cluv-flex-col cluv-gap-1">
               <h3 className="cluv-title-card cluv-m-0">Masih punya pertanyaan yang belum terjawab?</h3>
               <p className="cluv-caption cluv-text-muted cluv-m-0">
                 Skinsistant AI siap berdiskusi edukatif 24/7, atau hubungi tim bantuan kami untuk kendala verifikasi transaksi.
@@ -585,13 +686,13 @@ export default function AppFaqPage() {
             </div>
           </div>
 
-          <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-w-full-mobile">
+          <div className="cluv-flex-row cluv-items-center cluv-gap-2.5 cluv-flex-col-mobile cluv-w-full-mobile">
             <Button
               variant="primary"
               size="sm"
               iconLeft={<Sparkles size={14} />}
               to="/chatbot"
-              className="cluv-flex-1-mobile"
+              className="cluv-w-full-mobile"
             >
               Tanya Skinsistant AI
             </Button>
@@ -600,13 +701,58 @@ export default function AppFaqPage() {
               size="sm"
               iconLeft={<Mail size={14} />}
               href="mailto:support@skincluv.com?subject=Bantuan%20Aplikasi%20Skincluv"
-              className="cluv-flex-1-mobile"
+              className="cluv-w-full-mobile"
             >
               Email Support
             </Button>
           </div>
         </div>
       </div>
+
+      {/* ===================== MOBILE FILTER BOTTOMSHEET ===================== */}
+      <BottomSheet
+        isOpen={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        title="Pilih Kategori Bantuan"
+        subtitle="Pilih kategori pertanyaan yang ingin kamu telusuri"
+      >
+        <div className="cluv-flex-col cluv-gap-2.5 cluv-py-2">
+          {CATEGORY_TABS.map((tab) => {
+            const isSelected = activeCategory === tab.key
+            const count =
+              tab.key === 'all'
+                ? FAQ_LIST.length
+                : FAQ_LIST.filter((f) => f.category === tab.key).length
+
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className={`cluv-filter-sheet-item ${isSelected ? 'is-active' : ''}`}
+                onClick={() => {
+                  setActiveCategory(tab.key)
+                  setSearchQuery('')
+                  setIsFilterSheetOpen(false)
+                }}
+              >
+                <div className="cluv-flex-row cluv-items-center cluv-gap-3">
+                  <div className={`cluv-card-icon-wrap is-sm ${isSelected ? 'is-teal' : ''}`}>
+                    {tab.icon}
+                  </div>
+                  <span className="cluv-font-bold">{tab.label}</span>
+                </div>
+
+                <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                  <span className={`cluv-badge is-sm ${isSelected ? 'is-teal' : 'is-slate'}`}>
+                    {count}
+                  </span>
+                  {isSelected && <Check size={16} className="cluv-text-teal" />}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </BottomSheet>
     </div>
   )
 }
