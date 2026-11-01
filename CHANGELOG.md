@@ -9,6 +9,16 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-31
 
 ### Ditambahkan
+- **Redesain Loading Skeleton Bersih (Tanpa Logo & Spinner) (`LoadingScreen.tsx`, `PageLoader.tsx`, `ui-components.css`)**:
+  - **Zero-Logo Refresh Placeholder**: Menghilangkan logo mengambang (`✦`), teks branding, dan spinner berputar saat refresh / inisialisasi aplikasi. Menggantikannya dengan layout wireframe skeleton lengkap (`.app-skeleton-shell`, `.app-skeleton-topbar`, `.app-skeleton-body`, `.app-skeleton-grid`) dengan efek shimmer lembut (`.skincluv-skeleton`) yang mencerminkan struktur nyata aplikasi, mencegah layout shift dan kesan lambat.
+  - **Suspense Route Skeleton**: Menggantikan spinner berputar pada `PageLoader` dengan konten skeleton bertingkat (`.page-skeleton-shell`) untuk transisi antar halaman yang mulus dan bebas kedip (*flicker-free*).
+- **Stabilisasi Build Vercel & Netlify (`package.json`, `netlify.toml`, `vercel.json`)**:
+  - Menetapkan `"engines": { "node": ">=22.0.0" }` di `package.json` dan `[build.environment] NODE_VERSION = "22"` di `netlify.toml` untuk menjamin kompatibilitas runtime Vite 8.
+  - Memperbarui Content Security Policy (CSP) di `vercel.json` dengan izin `'unsafe-inline'`, `'wasm-unsafe-eval'`, dan CDN sumber daya wasm pihak ketiga guna mencegah runtime block saat aplikasi dimuat di cloud.
+- **Perintah Manajemen Database Supabase Dev vs Prod (`package.json`)**:
+  - Menambahkan script khusus `npm run db:link:dev` (target dev `gapctakvmorjafqxaqjk`), `npm run db:link:prod` (target prod `vxyyediuoyxbozbizswi`), dan `npm run db:push` untuk memisahkan siklus pengujian migrasi secara aman tanpa risiko merusak database produksi.
+- **Aset Logo & Splash Screen Eksklusif APK Android**:
+  - Menghasilkan aset visual splash screen portrait mewah berbasis lambang kristal radiance teal Skincluv dengan latar bersih (`skincluv_splash_screen`) untuk persiapan rilis Capacitor Android.
 - **Modernisasi Halaman Paket Langganan & Kuota AI (`ProfileBillingPage.tsx`)**:
   - **Kotak Status Paket Aktif & Kredit Bulan Ini**: Merampingkan tampilan kartu atas dengan menghapus elemen profil redundan, tombol perpanjang, divider, subteks panjang, jadwal reset, dan rasio angka (2/100). Mengganti judul menjadi *"Kredit Bulan Ini"*, memposisikan badge status `Aktif` (`.cluv-badge.is-sm.is-teal`) tepat di bawah judul paket (`tierLabel`) dengan warna tema primer Cluv, serta memposisikan indikator persentase tersisa secara proporsional dan ringkas di bawah progress bar sejajar dengan masa aktif paket ([`.cluv-card`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L10-L25)).
   - **Menu Grup Finansial Inset (Adopsi Menu Profil)**: Mengubah tautan riwayat transaksi menjadi menu inset iOS/Linear terpadu ([`.cluv-menu-group`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L3228-L3236), [`.cluv-menu-row`](file:///home/kangjessy/Documents/projects/skinscan/skincluv/src/styles/cluv/components/cards.css#L3238-L3253)) untuk *Faktur & Tagihan Tripay* (`/transactions`) dan *Riwayat Mutasi AI Credits* (`/coin-history`).

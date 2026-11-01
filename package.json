@@ -3,12 +3,18 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "cap:sync": "npm run build && npx cap sync"
+    "cap:sync": "npm run build && npx cap sync",
+    "db:link:dev": "supabase link --project-ref gapctakvmorjafqxaqjk",
+    "db:link:prod": "supabase link --project-ref vxyyediuoyxbozbizswi",
+    "db:push": "supabase db push"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
