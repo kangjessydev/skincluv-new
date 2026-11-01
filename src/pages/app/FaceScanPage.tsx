@@ -797,10 +797,10 @@ export default function FaceScanPage() {
                     if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
                   }}
                 >
-                  {/* Panduan Foto Guide Button (Top-Right inside box) */}
+                  {/* Panduan Foto Guide Button (Mobile only, top-right inside box) */}
                   <button
                     type="button"
-                    className="cluv-dropzone-guide-btn"
+                    className="cluv-dropzone-guide-btn cluv-hide-desktop"
                     onClick={(e) => {
                       e.stopPropagation()
                       setShowGuidelineSheet(true)
@@ -935,61 +935,67 @@ export default function FaceScanPage() {
 
             {/* Right Column: Context Information (Desktop Only; on mobile accessed via BottomSheet) */}
             <div className="cluv-flex-col cluv-gap-4 cluv-hide-mobile">
-              {/* Active Skin Profile */}
-              <div className="cluv-card is-highlight cluv-gap-2">
-                <span className="cluv-caption cluv-font-bold cluv-text-teal cluv-uppercase">Profil Kulit Aktif</span>
-                <div className="cluv-flex-row cluv-justify-between cluv-items-center cluv-mt-1">
-                  <span className="cluv-body cluv-text-muted">Tipe Kulit:</span>
-                  <span className="cluv-body cluv-font-bold cluv-text-dark">{userSkinType}</span>
-                </div>
-                <div className="cluv-flex-col cluv-gap-1 cluv-mt-2">
-                  <span className="cluv-caption cluv-text-muted">Fokus Perhatian:</span>
-                  <div className="cluv-flex-row cluv-flex-wrap cluv-gap-1 cluv-mt-1">
-                    {userConcerns.map((concern: string, idx: number) => (
-                      <Badge key={idx} variant="slate" size="sm">
-                        {concern}
-                      </Badge>
-                    ))}
+              {/* Passport Skin Profile Card (Bento Wallet Warm Paper Style) */}
+              <div className="cluv-bento-wallet">
+                <div className="cluv-bento-wallet-top">
+                  <div className="cluv-bento-wallet-tag">
+                    <User size={12} strokeWidth={2.4} />
+                    <span>Profil Kulit Terdaftar</span>
                   </div>
+                </div>
+
+                {/* 3 Item Meta Data Seragam Khas Tabel Blok Profil */}
+                <div className="cluv-passport-meta-grid">
+                  <span className="cluv-passport-meta-label">Tipe Kulit</span>
+                  <span className="cluv-passport-meta-val">{userSkinTypeLabel}</span>
+
+                  <span className="cluv-passport-meta-label">Pantangan</span>
+                  <span className="cluv-passport-meta-val">{userSensitivities}</span>
+
+                  <span className="cluv-passport-meta-label">Target</span>
+                  <span className="cluv-passport-meta-val">{userTargetFormula}</span>
+                </div>
+
+                {/* Fokus Perhatian Membentang Penuh (Hirarki Selaras Tanpa Huruf Kapital Semua) */}
+                <div className="cluv-bento-wallet-focus-block">
+                  <span className="cluv-bento-wallet-focus-label">Fokus Perhatian</span>
+                  <p className="cluv-bento-wallet-focus-val">
+                    {userConcernsText}
+                  </p>
                 </div>
               </div>
 
-              {/* Pre-photo Checklist */}
-              <div className="cluv-card cluv-gap-3">
-                <h3 className="cluv-title-card cluv-m-0">Panduan Foto Optimal</h3>
-                <div className="cluv-flex-col cluv-gap-3 cluv-mt-2">
-                  <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
-                    <Sun size={18} className="text-amber-500 shrink-0 cluv-mt-1" />
-                    <div>
-                      <strong className="cluv-body cluv-text-dark">Cahaya alami merata</strong>
-                      <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                        Pencahayaan terang dari depan membantu AI membaca tekstur pori secara akurat.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
-                    <Sparkles size={18} className="text-teal-600 shrink-0 cluv-mt-1" />
-                    <div>
-                      <strong className="cluv-body cluv-text-dark">Wajah bersih tanpa makeup</strong>
-                      <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                        Ambil foto setelah membersihkan wajah agar kondisi sebum alami terlihat jelas.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="cluv-flex-row cluv-gap-3 cluv-items-start">
-                    <Scan size={18} className="text-slate-600 shrink-0 cluv-mt-1" />
-                    <div>
-                      <strong className="cluv-body cluv-text-dark">Jarak wajah sekitar 30 cm</strong>
-                      <p className="cluv-caption cluv-text-muted cluv-m-0 cluv-mt-1">
-                        Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam bingkai foto.
-                      </p>
-                    </div>
+              {/* 3 Guidelines Unified Numbered Card */}
+              <div className="cluv-card cluv-p-0 cluv-overflow-hidden">
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3))', background: 'var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc))' }}>
+                  <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '0.9375rem', fontWeight: 800 }}>3 Panduan Kualitas Foto</h4>
+                  <p className="cluv-caption cluv-text-muted cluv-m-0" style={{ fontSize: '0.78125rem', marginTop: '3px', lineHeight: 1.4 }}>
+                    Pedoman praktis untuk hasil observasi AI yang akurat tanpa filter
+                  </p>
+                </div>
+                <div className="cluv-guide-item">
+                  <span className="cluv-guide-num is-teal">1</span>
+                  <div className="cluv-guide-content">
+                    <strong className="cluv-guide-title">Cahaya Alami Merata</strong>
+                    <p className="cluv-guide-desc">Pencahayaan terang dari depan membantu AI membaca tekstur pori secara akurat. Hindari backlight.</p>
                   </div>
                 </div>
+                <div className="cluv-guide-item">
+                  <span className="cluv-guide-num is-gold">2</span>
+                  <div className="cluv-guide-content">
+                    <strong className="cluv-guide-title">Wajah Bersih Tanpa Riasan</strong>
+                    <p className="cluv-guide-desc">Ambil foto setelah mencuci muka agar kondisi skin barrier dan sebum alami terbaca objektif.</p>
+                  </div>
+                </div>
+                <div className="cluv-guide-item">
+                  <span className="cluv-guide-num is-rose">3</span>
+                  <div className="cluv-guide-content">
+                    <strong className="cluv-guide-title">Jarak Tegak Lurus ~30 cm</strong>
+                    <p className="cluv-guide-desc">Pastikan dahi, kedua pipi, hidung, dan dagu berada tepat di dalam lingkaran tanpa terhalang rambut.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
         </div>
       )}
 

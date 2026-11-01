@@ -1519,209 +1519,468 @@
 }
 
 /* =============================================================================
- * 8.1 MOBILE-FIRST GAMIFICATION FEED (.cluv-mobile-missions)
+ * 8.1 GAMIFICATION FEED & MISSIONS (.cluv-missions-hero-grid, .cluv-missions-grid)
  * ============================================================================= */
-.cluv-mobile-missions {
-  display: none;
+.cluv-missions-hero-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+@media (min-width: 880px) {
+  .cluv-missions-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 20px;
+    align-items: stretch;
+  }
+}
+
+.cluv-missions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 880px) {
+  .cluv-missions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+/* =========================================================================
+ * 8.1.1 Daily Check-in Streak Gamification Card
+ * ========================================================================= */
+.cluv-checkin-streak-card {
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 16px;
+  box-shadow: var(--cluv-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+}
+
+.cluv-checkin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.cluv-checkin-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cluv-checkin-title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--cluv-neutral-900, #0f172a);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cluv-checkin-subtitle {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500, #64748b);
+  margin: 0;
+}
+
+.cluv-checkin-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 680px;
+  margin: 6px auto;
+  padding: 6px 0;
+  box-sizing: border-box;
+}
+
+.cluv-checkin-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cluv-checkin-day-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-400, #94a3b8);
+  text-transform: uppercase;
+}
+
+.cluv-checkin-bubble {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  background: var(--cluv-surface-muted, #f8fafc);
+  color: var(--cluv-neutral-500, #64748b);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cluv-checkin-bubble.is-claimed {
+  background: var(--cluv-teal-soft, #e6f6f5);
+  border-color: var(--cluv-teal, #1f9d97);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-checkin-bubble.is-active {
+  background: var(--cluv-gold-soft, #fef8ee);
+  border-color: var(--cluv-gold, #d97706);
+  color: var(--cluv-gold, #d97706);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+  transform: scale(1.06);
+}
+
+.cluv-checkin-bubble.is-gift {
+  border-color: var(--cluv-gold, #d97706);
+  background: linear-gradient(135deg, #fef8ee 0%, #fff 100%);
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-checkin-action-wrap {
+  width: 100%;
+  max-width: 440px;
+  margin: 6px auto 0;
+}
+
+@media (min-width: 880px) {
+  .cluv-checkin-header {
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--cluv-current-border, var(--cluv-neutral-200));
+  }
+}
+
+/* =========================================================================
+ * 8.1.1.B Desktop Day Quest Tiles (HoYoLAB / Duolingo Web Grade)
+ * ========================================================================= */
+.cluv-quest-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 14px;
+}
+
+.cluv-quest-tile {
+  background: var(--cluv-surface-muted, #f8fafc);
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  border-radius: var(--cluv-radius-lg, 14px);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: center;
+  min-height: 116px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.cluv-quest-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--cluv-neutral-300, #cbd5e1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.cluv-quest-tile-day {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cluv-neutral-400, #94a3b8);
+}
+
+.cluv-quest-tile-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  background: var(--cluv-surface, #ffffff);
+  border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
+  color: var(--cluv-neutral-700, #334155);
+  box-shadow: var(--cluv-shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.05));
+  transition: all 0.15s ease;
+}
+
+.cluv-quest-tile-status {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  color: var(--cluv-neutral-400, #94a3b8);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* State: Claimed */
+.cluv-quest-tile.is-claimed {
+  background: var(--cluv-teal-soft, #f0fdfc);
+  border-color: rgba(31, 157, 151, 0.3);
+}
+
+.cluv-quest-tile.is-claimed .cluv-quest-tile-day {
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-quest-tile.is-claimed .cluv-quest-tile-icon-wrap {
+  background: var(--cluv-teal, #1f9d97);
+  border-color: var(--cluv-teal, #1f9d97);
+  color: #ffffff;
+}
+
+.cluv-quest-tile.is-claimed .cluv-quest-tile-status {
+  color: var(--cluv-teal-dark, #127a75);
+  background: rgba(31, 157, 151, 0.12);
+}
+
+/* State: Active / Today (Ready to check-in) */
+.cluv-quest-tile.is-today {
+  background: var(--cluv-gold-soft, #fef8ee);
+  border-color: var(--cluv-gold, #d97706);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+  transform: translateY(-2px);
+}
+
+.cluv-quest-tile.is-today .cluv-quest-tile-day {
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-quest-tile.is-today .cluv-quest-tile-icon-wrap {
+  background: #ffffff;
+  border-color: var(--cluv-gold, #d97706);
+  color: var(--cluv-gold, #d97706);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
+.cluv-quest-tile.is-today .cluv-quest-tile-status {
+  color: var(--cluv-gold, #d97706);
+  background: rgba(217, 119, 6, 0.12);
+}
+
+/* State: Gift Day 7 Special Milestone */
+.cluv-quest-tile.is-special {
+  background: linear-gradient(145deg, #fef8ee 0%, #ffffff 100%);
+  border-color: var(--cluv-gold, #d97706);
+  border-width: 2px;
+}
+
+.cluv-quest-tile.is-special .cluv-quest-tile-day {
+  color: var(--cluv-gold-dark, #b45309);
+  font-weight: 800;
+}
+
+.cluv-quest-tile.is-special .cluv-quest-tile-icon-wrap {
+  border-color: var(--cluv-gold, #d97706);
+  background: var(--cluv-gold-soft, #fef8ee);
+  color: var(--cluv-gold, #d97706);
+}
+
+.cluv-quest-tile.is-special .cluv-quest-tile-status {
+  color: var(--cluv-gold-dark, #b45309);
+  background: rgba(217, 119, 6, 0.15);
+}
+
+/* State: Locked */
+.cluv-quest-tile.is-locked {
+  opacity: 0.65;
+}
+
+/* =========================================================================
+ * 8.1.2 Streamlined Simple Mission Task Card
+ * ========================================================================= */
+.cluv-simple-mission-card {
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
+  border-radius: var(--cluv-radius-lg, 16px);
+  padding: 14px 16px;
+  box-shadow: var(--cluv-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cluv-simple-mission-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.cluv-simple-mission-card.is-ready {
+  border-color: var(--cluv-teal, #1f9d97);
+  background: var(--cluv-teal-soft, #f0fdfc);
+  box-shadow: 0 4px 14px rgba(31, 157, 151, 0.1);
+}
+
+.cluv-simple-mission-card.is-claimed {
+  opacity: 0.65;
+  background: var(--cluv-surface-muted, #f8fafc);
+}
+
+.cluv-simple-mission-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cluv-simple-mission-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900, #0f172a);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.cluv-simple-mission-desc {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500, #64748b);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.cluv-simple-mission-reward {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--cluv-gold, #d97706);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.cluv-simple-mission-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+  width: 100%;
+  max-width: 240px;
+}
+
+.cluv-simple-mission-progress-track {
+  flex: 1;
+  height: 5px;
+  background: var(--cluv-neutral-200, #e2e8f0);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cluv-simple-mission-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cluv-teal, #1f9d97) 0%, #2dd4bf 100%);
+  border-radius: 9999px;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cluv-simple-mission-progress-text {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-500, #64748b);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.cluv-simple-mission-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 879px) {
-  .cluv-desktop-missions {
-    display: none !important;
-  }
-
-  .cluv-mobile-missions {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
-  /* =========================================================================
-   * 8.1.1 Daily Check-in Streak Gamification Card
-   * ========================================================================= */
-  .cluv-checkin-streak-card {
-    background: var(--cluv-surface, #ffffff);
-    border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
-    border-radius: var(--cluv-radius-lg, 16px);
-    padding: 14px;
-    box-shadow: var(--cluv-shadow-sm);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  .cluv-checkin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .cluv-checkin-title-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .cluv-checkin-title {
-    font-size: 0.875rem;
-    font-weight: 800;
-    color: var(--cluv-neutral-900, #0f172a);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .cluv-checkin-subtitle {
-    font-size: 0.75rem;
-    color: var(--cluv-neutral-500, #64748b);
-    margin: 0;
-  }
-
-  .cluv-checkin-timeline {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
-    padding: 4px 0;
-    box-sizing: border-box;
-  }
-
-  .cluv-checkin-day {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .cluv-checkin-day-label {
-    font-size: 0.625rem;
-    font-weight: 700;
-    color: var(--cluv-neutral-400, #94a3b8);
-    text-transform: uppercase;
-  }
-
-  .cluv-checkin-bubble {
-    width: 34px;
-    height: 34px;
+  .cluv-simple-mission-action .cluv-simple-mission-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0;
     border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6875rem;
-    font-weight: 800;
-    border: 1.5px solid var(--cluv-neutral-200, #e2e8f0);
-    background: var(--cluv-surface-muted, #f8fafc);
-    color: var(--cluv-neutral-500, #64748b);
-    transition: transform 0.15s ease, border-color 0.15s ease;
-    box-sizing: border-box;
-  }
-
-  .cluv-checkin-bubble.is-claimed {
-    background: var(--cluv-teal-soft, #e6f6f5);
-    border-color: var(--cluv-teal, #1f9d97);
-    color: var(--cluv-teal-dark, #127a75);
-  }
-
-  .cluv-checkin-bubble.is-active {
-    background: var(--cluv-gold-soft, #fef8ee);
-    border-color: var(--cluv-gold, #d97706);
-    color: var(--cluv-gold, #d97706);
-    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
-    transform: scale(1.06);
-  }
-
-  .cluv-checkin-bubble.is-gift {
-    border-color: var(--cluv-gold, #d97706);
-    background: linear-gradient(135deg, #fef8ee 0%, #fff 100%);
-    color: var(--cluv-gold, #d97706);
-  }
-
-  .cluv-checkin-action-wrap {
-    width: 100%;
-    margin-top: 2px;
-  }
-
-  /* =========================================================================
-   * 8.1.2 Streamlined Simple Mission Task Card
-   * ========================================================================= */
-  .cluv-simple-mission-card {
-    background: var(--cluv-surface, #ffffff);
-    border: 1px solid var(--cluv-current-border, var(--cluv-neutral-200));
-    border-radius: var(--cluv-radius-lg, 16px);
-    padding: 13px 14px;
-    box-shadow: var(--cluv-shadow-sm);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-  }
-
-  .cluv-simple-mission-card.is-ready {
-    border-color: var(--cluv-teal, #1f9d97);
-    background: var(--cluv-teal-soft, #f0fdfc);
-    box-shadow: 0 4px 14px rgba(31, 157, 151, 0.1);
-  }
-
-  .cluv-simple-mission-card.is-claimed {
-    opacity: 0.65;
-    background: var(--cluv-surface-muted, #f8fafc);
-  }
-
-  .cluv-simple-mission-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .cluv-simple-mission-title {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--cluv-neutral-900, #0f172a);
-    margin: 0;
-    line-height: 1.3;
-  }
-
-  .cluv-simple-mission-desc {
-    font-size: 0.75rem;
-    color: var(--cluv-neutral-500, #64748b);
-    line-height: 1.35;
-    margin: 0;
-  }
-
-  .cluv-simple-mission-reward {
-    font-size: 0.8125rem;
-    font-weight: 800;
-    color: var(--cluv-gold, #d97706);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    margin-top: 2px;
+    justify-content: center;
+    background: var(--cluv-surface, #ffffff);
+    border-color: var(--cluv-neutral-200, #e2e8f0);
+    color: var(--cluv-neutral-600, #475569);
+    box-shadow: var(--cluv-shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.05));
+    transition: all 0.15s ease;
   }
 
-  .cluv-simple-mission-action {
-    flex-shrink: 0;
-    display: flex;
+  .cluv-simple-mission-action .cluv-simple-mission-btn:hover,
+  .cluv-simple-mission-action .cluv-simple-mission-btn:active {
+    border-color: var(--cluv-teal, #1f9d97);
+    color: var(--cluv-teal, #1f9d97);
+    background: var(--cluv-teal-soft, #f0fdfc);
+  }
+
+  .cluv-simple-mission-action .cluv-simple-mission-btn .cluv-btn-text {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    margin: 0;
   }
 }
+
+@media (min-width: 880px) {
+  .cluv-simple-mission-card {
+    padding: 16px 20px;
+  }
+  .cluv-simple-mission-title {
+    font-size: 0.9375rem;
+  }
+  .cluv-simple-mission-desc {
+    font-size: 0.8125rem;
+  }
+  .cluv-simple-mission-action .cluv-btn {
+    height: 38px;
+    padding: 8px 18px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    border-radius: var(--cluv-radius-md, 10px);
+  }
+}
+
 
 /* =============================================================================
  * Universal Scanner & Analysis Layout (.cluv-scan-layout)
@@ -1847,6 +2106,12 @@
 
 .cluv-dropzone-guide-btn:active {
   transform: scale(0.92);
+}
+
+@media (min-width: 880px) {
+  .cluv-dropzone-guide-btn {
+    display: none !important;
+  }
 }
 
 .cluv-dropzone-icon {
@@ -3182,3 +3447,66 @@
   line-height: 1.45;
   margin: 0;
 }
+
+/* =============================================================================
+ * Floating Filter Popover Dropdown (.cluv-filter-dropdown) - Desktop Floating Menu
+ * ============================================================================= */
+.cluv-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--cluv-surface, #ffffff);
+  border: 1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3));
+  border-radius: var(--cluv-radius-lg, 16px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.05);
+  z-index: 50;
+  box-sizing: border-box;
+  animation: cluvDropdownPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 3px;
+}
+
+.cluv-filter-dropdown-header {
+  padding: 8px 10px 6px;
+  font-size: 0.71875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cluv-neutral-500, #64748b);
+  border-bottom: 1px solid var(--cluv-neutral-100, #f1f5f9);
+  margin-bottom: 4px;
+}
+
+.cluv-filter-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--cluv-current-text, #1e293b);
+  font-size: 0.84375rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cluv-filter-dropdown-item:hover {
+  background: var(--cluv-neutral-100, #f1f5f9);
+  color: var(--cluv-teal-dark, #127a75);
+}
+
+.cluv-filter-dropdown-item.is-active {
+  background: var(--cluv-teal-soft, #e6f7f6);
+  color: var(--cluv-teal-dark, #127a75);
+  font-weight: 700;
+}
+

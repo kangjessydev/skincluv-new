@@ -69,6 +69,7 @@ export default function FaceScanDetailModal({
       isOpen={Boolean(scan)}
       onClose={onClose}
       title={scan.skin_status_title || 'Laporan Analisis Kondisi Kulit'}
+      className="is-report-modal"
     >
       <div className="cluv-flex-col cluv-gap-4">
 

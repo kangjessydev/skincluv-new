@@ -28,7 +28,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="cluv-canvas-focused cluv-animate-fade">
+    <div className="cluv-canvas-grid cluv-animate-fade">
       {/* Desktop Header */}
       <div className="cluv-hide-mobile cluv-mb-5">
         <div className="cluv-flex-between cluv-items-center">

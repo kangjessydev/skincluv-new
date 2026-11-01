@@ -24,6 +24,7 @@ import {
   Brain,
   Plus,
   MoreVertical,
+  CheckCheck,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
@@ -73,11 +74,13 @@ function getPageContextTitle(pathname: string): string {
 
 export default function AppLayout() {
   const { coinBalance, profile, subscription, isAdmin, userRoles, reset } = useAuthStore()
-  const { unreadCount } = useNotifications()
+  const { notifications, readIds, unreadCount, markAsRead, markAllAsRead } = useNotifications()
   const location = useLocation()
   const navigate = useNavigate()
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const userDropdownRef = useRef<HTMLDivElement>(null)
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false)
+  const notifDropdownRef = useRef<HTMLDivElement>(null)
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false)
   const mobileMoreRef = useRef<HTMLDivElement>(null)
 
@@ -114,6 +117,9 @@ export default function AppLayout() {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setIsUserDropdownOpen(false)
       }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target as Node)) {
+        setIsNotifDropdownOpen(false)
+      }
       if (mobileMoreRef.current && !mobileMoreRef.current.contains(event.target as Node)) {
         setIsMobileMoreOpen(false)
       }
@@ -127,6 +133,7 @@ export default function AppLayout() {
   // Close dropdowns on route change
   useEffect(() => {
     setIsUserDropdownOpen(false)
+    setIsNotifDropdownOpen(false)
     setIsMobileMoreOpen(false)
   }, [location.pathname])
 
@@ -349,21 +356,110 @@ export default function AppLayout() {
                 </div>
               ) : null}
 
-              {/* Universal Desktop Notifications Bell */}
-              <button
-                type="button"
-                onClick={() => navigate('/notifications')}
-                className={`cluv-topbar-bell-btn cluv-hide-mobile ${location.pathname === '/notifications' ? 'is-active' : ''}`}
-                aria-label="Pusat Notifikasi"
-                title="Pusat Notifikasi"
-              >
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="cluv-topbar-bell-badge cluv-tabular-nums">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+              {/* Universal Desktop Notifications Bell with Dropdown Popover */}
+              <div className="cluv-topbar-notif-wrap cluv-hide-mobile" ref={notifDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNotifDropdownOpen(!isNotifDropdownOpen)
+                    setIsUserDropdownOpen(false)
+                  }}
+                  className={`cluv-topbar-bell-btn ${isNotifDropdownOpen ? 'is-active' : ''}`}
+                  aria-expanded={isNotifDropdownOpen}
+                  aria-haspopup="true"
+                  aria-label="Pusat Notifikasi"
+                  title="Pusat Notifikasi"
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="cluv-topbar-bell-badge cluv-tabular-nums">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Popover Dropdown for Notifications */}
+                {isNotifDropdownOpen && (
+                  <div className="cluv-topbar-notif-dropdown" role="region" aria-label="Notifikasi Terbaru">
+                    <div className="cluv-notif-dropdown-header">
+                      <div className="cluv-flex-row cluv-items-center cluv-gap-2">
+                        <span className="cluv-notif-dropdown-title">Notifikasi</span>
+                        {unreadCount > 0 && (
+                          <span className="cluv-badge is-teal is-sm cluv-tabular-nums">
+                            {unreadCount} Baru
+                          </span>
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          className="cluv-notif-mark-read-btn"
+                          onClick={() => markAllAsRead()}
+                          title="Tandai semua sudah dibaca"
+                        >
+                          <CheckCheck size={13} />
+                          <span>Tandai Dibaca</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="cluv-notif-dropdown-list">
+                      {notifications.length === 0 ? (
+                        <div className="cluv-notif-dropdown-empty">
+                          <Bell size={24} className="cluv-text-muted cluv-mb-1" />
+                          <span>Belum ada notifikasi baru</span>
+                        </div>
+                      ) : (
+                        notifications.slice(0, 4).map((item) => {
+                          const isUnread = !readIds.includes(item.id)
+                          const IconComp = item.icon
+                          return (
+                            <div
+                              key={item.id}
+                              className={`cluv-notif-dropdown-item ${isUnread ? 'is-unread' : ''}`}
+                              onClick={() => {
+                                markAsRead(item.id)
+                                setIsNotifDropdownOpen(false)
+                                navigate(item.actionUrl)
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              <div className={`cluv-card-icon-wrap ${item.color} is-sm shrink-0`}>
+                                <IconComp size={15} />
+                              </div>
+                              <div className="cluv-notif-dropdown-item-body">
+                                <div className="cluv-flex-row cluv-items-center cluv-justify-between cluv-gap-1">
+                                  <span className="cluv-notif-dropdown-item-title">
+                                    {item.title}
+                                  </span>
+                                  <span className="cluv-notif-dropdown-item-time cluv-tabular-nums">
+                                    {item.timeAgo}
+                                  </span>
+                                </div>
+                                <p className="cluv-notif-dropdown-item-desc">
+                                  {item.body}
+                                </p>
+                              </div>
+                              {isUnread && <span className="cluv-notif-dropdown-item-dot" />}
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+
+                    <div className="cluv-notif-dropdown-footer">
+                      <Link
+                        to="/notifications"
+                        className="cluv-notif-dropdown-all-link"
+                        onClick={() => setIsNotifDropdownOpen(false)}
+                      >
+                        Lihat Semua Notifikasi ({notifications.length})
+                      </Link>
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
 
               <div className="cluv-topbar-divider" />
 

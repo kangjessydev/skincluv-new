@@ -39,6 +39,9 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  min-height: min-content;
+  touch-action: pan-y;
 }
 
 /* Tipe B: Focused Ledger & Forms (Tagihan, Form Profil, Mutasi, Checkout) */
@@ -73,12 +76,15 @@
 
 @media (max-width: 879px) {
   .cluv-canvas-grid {
-    padding: 16px 16px 80px;
+    padding: 16px 16px 96px;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    flex-shrink: 0;
+    min-height: min-content;
     box-sizing: border-box;
     overflow-x: hidden;
+    touch-action: pan-y;
   }
 
   .cluv-canvas-focused,

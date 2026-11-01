@@ -9,7 +9,6 @@ import {
   User,
   Activity,
   Sparkles,
-  BookOpen,
   Filter,
   ShieldCheck,
   ShieldAlert,
@@ -544,39 +543,39 @@ PETUNJUK OCR & ANALISIS WAJIB:
       {/* Anchor for Auto-Scroll on Results */}
       <div ref={topResultRef} />
 
-      {/* Main 2-Column Responsive Grid */}
-      <div className="cluv-scan-layout">
-        {/* LEFT COLUMN: Main Feature Workspace */}
-        <div className="cluv-scan-main">
-          {/* Page Header (Desktop Only; on mobile hidden to maximize viewport) */}
-          <div className="cluv-hide-mobile cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-4">
-            <div>
-              <h1 className="cluv-title-section cluv-m-0 cluv-flex-row cluv-items-center cluv-gap-2">
-                Ingredient Scanner
-              </h1>
-              <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
-                Ketahui keamanan komposisi &amp; cari kecocokan bahan untuk kulitmu
-              </p>
-            </div>
-            <div>
-              <Button variant="outline" size="sm" iconLeft={<History size={15} />} to="/scan-history">
-                Riwayat Scan
-              </Button>
-            </div>
-          </div>
+      {/* Page Header (Desktop Only; on mobile hidden to maximize viewport) */}
+      <div className="cluv-hide-mobile cluv-flex-row cluv-justify-between cluv-items-center cluv-flex-wrap cluv-gap-3 cluv-mb-4">
+        <div>
+          <h1 className="cluv-title-section cluv-m-0 cluv-flex-row cluv-items-center cluv-gap-2">
+            Ingredient Scanner
+          </h1>
+          <p className="cluv-subtitle cluv-mt-1 cluv-m-0">
+            Ketahui keamanan komposisi &amp; cari kecocokan bahan untuk kulitmu
+          </p>
+        </div>
+        <div>
+          <Button variant="outline" size="sm" iconLeft={<History size={15} />} to="/scan-history">
+            Riwayat Scan
+          </Button>
+        </div>
+      </div>
 
-          {/* Alert Error Box */}
-          {errorMsg && (
-            <div className="cluv-alert is-danger">
-              <AlertCircle size={18} className="shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
+      {/* Alert Error Box */}
+      {errorMsg && (
+        <div className="cluv-alert is-danger cluv-mb-4">
+          <AlertCircle size={18} className="shrink-0" />
+          <span className="cluv-body">{errorMsg}</span>
+        </div>
+      )}
 
-          {/* STAGE 1: PHOTO-FIRST UPLOAD (Adaptive Mobile-First) */}
-          {stage === 'upload' && (
-            <>
-              <div className="cluv-card cluv-gap-4">
+      {/* =========================================================================
+       * STAGE 1: PHOTO-FIRST UPLOAD (Adaptive Mobile-First Bento Hero Grid)
+       * ========================================================================= */}
+      {stage === 'upload' && (
+        <div className="cluv-bento-grid is-hero">
+          {/* Main Shutter Column */}
+          <div className="cluv-flex-col cluv-gap-4">
+            <div className="cluv-card cluv-gap-4">
                 {previewUrl ? (
                   <div className="cluv-flex-col cluv-items-center cluv-gap-3 cluv-w-full cluv-py-2">
                     <div className="cluv-dropzone-preview" style={{ maxWidth: '320px', width: '100%' }}>
@@ -616,10 +615,10 @@ PETUNJUK OCR & ANALISIS WAJIB:
                       if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
                     }}
                   >
-                    {/* Panduan Label Guide Button (Top-Right inside box) */}
+                    {/* Panduan Label Guide Button (Mobile only, top-right inside box) */}
                     <button
                       type="button"
-                      className="cluv-dropzone-guide-btn"
+                      className="cluv-dropzone-guide-btn cluv-hide-desktop"
                       onClick={(e) => {
                         e.stopPropagation()
                         setShowGuideSheet(true)
@@ -658,24 +657,6 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
-
-                {/* Photography Tips Card (Desktop only; in mobile accessible via BottomSheet) */}
-                <div className="cluv-card is-highlight cluv-p-4 cluv-hide-mobile">
-                  <h4 className="cluv-font-bold cluv-text-gold cluv-flex-row cluv-items-center cluv-gap-1 cluv-m-0 cluv-text-sm">
-                    <Sparkles size={14} className="shrink-0" /> Tips Foto Kemasan Supaya 100% Akurat:
-                  </h4>
-                  <ul className="cluv-list-disc cluv-pl-4 cluv-mt-2 cluv-micro cluv-text-muted cluv-space-y-1 cluv-m-0">
-                    <li>
-                      <strong>Dekatkan Kamera:</strong> Fokuskan lensa langsung ke bagian teks <em>"Ingredients / Komposisi"</em> (tidak perlu seluruh botol).
-                    </li>
-                    <li>
-                      <strong>Hindari Silau Lampu:</strong> Miringkan botol sedikit agar pantulan cahaya lampu tidak menutupi tulisan.
-                    </li>
-                    <li>
-                      <strong>Pencahayaan Terang:</strong> Pastikan tulisan tidak gelap atau buram/goyang.
-                    </li>
-                  </ul>
-                </div>
 
                 {/* Credit Notice if out of credits on Free tier */}
                 {isFreeTierOutOfCredits && (
@@ -769,8 +750,73 @@ PETUNJUK OCR & ANALISIS WAJIB:
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            </div>
+
+            {/* Right Column: Context Information (Desktop Only; on mobile accessed via BottomSheet) */}
+            <div className="cluv-flex-col cluv-gap-4 cluv-hide-mobile">
+              {/* Passport Skin Profile Card (Bento Wallet Warm Paper Style) */}
+              <div className="cluv-bento-wallet">
+                <div className="cluv-bento-wallet-top">
+                  <div className="cluv-bento-wallet-tag">
+                    <User size={12} strokeWidth={2.4} />
+                    <span>Profil Kulit Terdaftar</span>
+                  </div>
+                </div>
+
+                {/* 3 Item Meta Data Seragam Khas Tabel Blok Profil */}
+                <div className="cluv-passport-meta-grid">
+                  <span className="cluv-passport-meta-label">Tipe Kulit</span>
+                  <span className="cluv-passport-meta-val">{userSkinTypeLabel}</span>
+
+                  <span className="cluv-passport-meta-label">Pantangan</span>
+                  <span className="cluv-passport-meta-val">{userSensitivities}</span>
+
+                  <span className="cluv-passport-meta-label">Target</span>
+                  <span className="cluv-passport-meta-val">{userTargetFormula}</span>
+                </div>
+
+                {/* Fokus Perhatian Membentang Penuh (Hirarki Selaras Tanpa Huruf Kapital Semua) */}
+                <div className="cluv-bento-wallet-focus-block">
+                  <span className="cluv-bento-wallet-focus-label">Fokus Perhatian</span>
+                  <p className="cluv-bento-wallet-focus-val">
+                    {userConcerns}
+                  </p>
+                </div>
+              </div>
+
+              {/* 3 Principles Unified Numbered Guide Card */}
+              <div className="cluv-card cluv-p-0 cluv-overflow-hidden">
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--cluv-current-border, var(--cluv-border, #dce8f3))', background: 'var(--cluv-current-card-bg-subtle, var(--cluv-neutral-50, #f8fafc))' }}>
+                  <h4 className="cluv-title-card cluv-m-0" style={{ fontSize: '0.9375rem', fontWeight: 800 }}>3 Prinsip Membaca Label</h4>
+                  <p className="cluv-caption cluv-text-muted cluv-m-0" style={{ fontSize: '0.78125rem', marginTop: '3px', lineHeight: 1.4 }}>
+                    Pedoman dermatologi praktis saat memeriksa komposisi skincare
+                  </p>
+                </div>
+                <div className="cluv-guide-item">
+                  <span className="cluv-guide-num is-teal">1</span>
+                  <div className="cluv-guide-content">
+                    <strong className="cluv-guide-title">Aturan 5 Bahan Teratas</strong>
+                    <p className="cluv-guide-desc">Menyusun 70%–80% dari keseluruhan formula produk skincare.</p>
+                  </div>
+                </div>
+                <div className="cluv-guide-item">
+                  <span className="cluv-guide-num is-gold">2</span>
+                  <div className="cluv-guide-content">
+                    <strong className="cluv-guide-title">Batas 1% Konsentrasi</strong>
+                    <p className="cluv-guide-desc">Di bawah 1% (pewarna, pengawet, parfum) urutan penulisan boleh acak.</p>
+                  </div>
+                </div>
+                <div className="cluv-guide-item">
+                  <span className="cluv-guide-num is-rose">3</span>
+                  <div className="cluv-guide-content">
+                    <strong className="cluv-guide-title">Indeks Komedogenik (0–5)</strong>
+                    <p className="cluv-guide-desc">Skor 0–1 aman pori, sedangkan skor 4–5 rawan memicu komedo &amp; jerawat.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
 
           {/* STAGE 2: NEURAL AI SCANNER HUD */}
@@ -1297,55 +1343,6 @@ PETUNJUK OCR & ANALISIS WAJIB:
               </div>
             </div>
           )}
-        </div>
-
-        {/* RIGHT COLUMN: Side Summary & Active Skin Profile Panel (Desktop Only; on mobile accessed via BottomSheet) */}
-        <div className="cluv-scan-aside cluv-hide-mobile">
-          {/* Active Skin Profile Context Card */}
-          <div className="cluv-card is-highlight">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-2">
-              <div className="cluv-card-icon-wrap is-sm">
-                <User size={18} />
-              </div>
-              <h3 className="cluv-title-item cluv-m-0">Profil Kulit Aktif Anda</h3>
-            </div>
-            <div className="cluv-flex-row cluv-gap-1 cluv-flex-wrap cluv-mb-2">
-              <Badge variant="teal" size="sm">{userSkinType}</Badge>
-              {activeSkinProfile?.skin_concerns && activeSkinProfile.skin_concerns.length > 0 ? (
-                activeSkinProfile.skin_concerns.slice(0, 2).map((c, i) => (
-                  <Badge key={i} variant="slate" size="sm">{c.toUpperCase()}</Badge>
-                ))
-              ) : (
-                <Badge variant="slate" size="sm">KOMBINASI SEHAT</Badge>
-              )}
-            </div>
-            <p className="cluv-micro cluv-text-muted cluv-m-0">
-              Analisis keamanan bahan kosmetik secara otomatis disesuaikan dengan keluhan {userConcerns.toLowerCase()} & sensitivitas kulit Anda.
-            </p>
-          </div>
-
-          {/* Educational Guide Card */}
-          <div className="cluv-card">
-            <div className="cluv-flex-row cluv-items-center cluv-gap-2 cluv-mb-2">
-              <div className="cluv-card-icon-wrap is-sm is-gold">
-                <BookOpen size={18} />
-              </div>
-              <h3 className="cluv-title-item cluv-m-0">Panduan Membaca Label</h3>
-            </div>
-            <ul className="cluv-list-disc cluv-pl-4 cluv-micro cluv-text-muted cluv-space-y-2 cluv-m-0">
-              <li>
-                <b className="cluv-text-dark">Aturan 5 Bahan Pertama:</b> 5 komposisi teratas menyusun hingga 80% dari total formula produk.
-              </li>
-              <li>
-                <b className="cluv-text-dark">BHA / Salicylic Acid:</b> Sangat baik untuk kulit berminyak, namun hindari pemakaian berlebih jika kulit kemerahan.
-              </li>
-              <li>
-                <b className="cluv-text-dark">Fragrance / Parfum:</b> Berada di urutan paling bawah namun merupakan pemicu utama alergi kulit sensitif.
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
 
       {/* Mobile Bottom Sheet: Label Reading Guide & Skin Profile Context */}
       <BottomSheet

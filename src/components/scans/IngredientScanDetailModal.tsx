@@ -74,6 +74,7 @@ export default function IngredientScanDetailModal({
       isOpen={Boolean(scan)}
       onClose={onClose}
       title={scan.product_name || 'Laporan Evaluasi Formula'}
+      className="is-report-modal"
     >
       <div className="cluv-flex-col cluv-gap-4">
 

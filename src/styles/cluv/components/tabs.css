@@ -36,6 +36,34 @@
   padding: 10px 12px;
 }
 
+/* Responsive Segmented Tabs: 100% on Mobile, Fit-Content on Desktop */
+.cluv-tabs.is-responsive {
+  display: flex;
+  width: 100%;
+  overflow: visible;
+}
+
+.cluv-tabs.is-responsive .cluv-tab-btn {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  padding: 10px 12px;
+}
+
+@media (min-width: 880px) {
+  .cluv-tabs.is-responsive {
+    display: inline-flex;
+    width: auto;
+    max-width: max-content;
+    align-self: flex-start;
+  }
+
+  .cluv-tabs.is-responsive .cluv-tab-btn {
+    flex: initial;
+    padding: 9px 24px;
+  }
+}
+
 /* Tab Button */
 .cluv-tab-btn {
   display: inline-flex;

@@ -3,7 +3,7 @@
 // Architecture: Compact 1-Section Bento Cards + Canonical Cluv Modal
 // Compliance: Invariant 13 (Defensible claims), Invariant 14 (MCID Guardrail), Invariant 19 (Non-therapeutic)
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Calendar,
@@ -42,6 +42,27 @@ export default function ScanHistoryPage() {
   const [faceFilter, setFaceFilter] = useState<'all' | 'optimal' | 'attention'>('all')
   const [ingFilter, setIngFilter] = useState<'all' | 'safe' | 'attention'>('all')
   const [showFilterSheet, setShowFilterSheet] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+  const filterDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close filter dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (
+        filterDropdownRef.current &&
+        !filterDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowFilterDropdown(false)
+      }
+    }
+    if (showFilterDropdown) {
+      document.addEventListener('mousedown', handleOutsideClick)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [showFilterDropdown])
+
 
   // Compact datetime formatter: 1/10/2026 18.32
   const formatCompactDateTime = (isoString?: string | null): string => {
@@ -217,8 +238,8 @@ export default function ScanHistoryPage() {
         </p>
       </header>
 
-      {/* ── 2. TAB NAVIGASI (50:50 Segmented, Tanpa Scroll Horizontal) ── */}
-      <div className="cluv-tabs is-full cluv-mb-4">
+      {/* ── 2. TAB NAVIGASI (Responsive Segmented: 50:50 di Mobile, Fit-Content di Desktop) ── */}
+      <div className="cluv-tabs is-responsive cluv-mb-4">
         <button
           type="button"
           className={`cluv-tab-btn ${activeTab === 'face' ? 'active' : ''}`}
@@ -270,41 +291,131 @@ export default function ScanHistoryPage() {
           )}
         </div>
 
-        {/* Filter Trigger Button (Sejajar di sebelah kanan) */}
-        <button
-          type="button"
-          className={`cluv-btn ${isFilterActive ? 'is-primary' : 'is-outline'}`}
-          style={{
-            minWidth: '44px',
-            width: '44px',
-            height: '44px',
-            padding: 0,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            position: 'relative',
-          }}
-          onClick={() => setShowFilterSheet(true)}
-          title="Buka Filter Riwayat"
-          aria-label="Filter Riwayat"
-        >
-          <Filter size={18} />
-          {isFilterActive && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '7px',
-                right: '7px',
-                width: '9px',
-                height: '9px',
-                borderRadius: '9999px',
-                backgroundColor: 'var(--cluv-gold, #f59e0b)',
-                boxShadow: '0 0 0 2px #ffffff',
-              }}
-            />
+        {/* Filter Trigger Container & Desktop Floating Popover */}
+        <div style={{ position: 'relative' }} ref={filterDropdownRef}>
+          <button
+            type="button"
+            className={`cluv-btn ${isFilterActive ? 'is-primary' : 'is-outline'}`}
+            style={{
+              minWidth: '44px',
+              width: '44px',
+              height: '44px',
+              padding: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              position: 'relative',
+            }}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 880) {
+                setShowFilterSheet(true)
+              } else {
+                setShowFilterDropdown((prev) => !prev)
+              }
+            }}
+            title="Buka Filter Riwayat"
+            aria-label="Filter Riwayat"
+          >
+            <Filter size={18} />
+            {isFilterActive && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '7px',
+                  right: '7px',
+                  width: '9px',
+                  height: '9px',
+                  borderRadius: '9999px',
+                  backgroundColor: 'var(--cluv-gold, #f59e0b)',
+                  boxShadow: '0 0 0 2px #ffffff',
+                }}
+              />
+            )}
+          </button>
+
+          {/* Desktop Floating Filter Popover Dropdown */}
+          {showFilterDropdown && (
+            <div className="cluv-filter-dropdown cluv-hide-mobile" role="menu" aria-label="Filter Riwayat">
+              <div className="cluv-filter-dropdown-header">
+                {activeTab === 'face' ? 'Status Kondisi Kulit' : 'Status Evaluasi Formula'}
+              </div>
+              {activeTab === 'face' ? (
+                <>
+                  <button
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${faceFilter === 'all' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setFaceFilter('all')
+                      setShowFilterDropdown(false)
+                    }}
+                  >
+                    <span>Semua Hasil ({totalFaceScans})</span>
+                    {faceFilter === 'all' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${faceFilter === 'optimal' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setFaceFilter('optimal')
+                      setShowFilterDropdown(false)
+                    }}
+                  >
+                    <span>Kondisi Optimal 80+ ({optimalFaceCount})</span>
+                    {faceFilter === 'optimal' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${faceFilter === 'attention' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setFaceFilter('attention')
+                      setShowFilterDropdown(false)
+                    }}
+                  >
+                    <span>Perlu Perhatian ({attentionFaceCount})</span>
+                    {faceFilter === 'attention' && <Check size={16} />}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${ingFilter === 'all' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setIngFilter('all')
+                      setShowFilterDropdown(false)
+                    }}
+                  >
+                    <span>Semua Formula ({totalIngScans})</span>
+                    {ingFilter === 'all' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${ingFilter === 'safe' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setIngFilter('safe')
+                      setShowFilterDropdown(false)
+                    }}
+                  >
+                    <span>Formula Baik ({safeProductsCount})</span>
+                    {ingFilter === 'safe' && <Check size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`cluv-filter-dropdown-item ${ingFilter === 'attention' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setIngFilter('attention')
+                      setShowFilterDropdown(false)
+                    }}
+                  >
+                    <span>Perlu Perhatian ({attentionIngCount})</span>
+                    {ingFilter === 'attention' && <Check size={16} />}
+                  </button>
+                </>
+              )}
+            </div>
           )}
-        </button>
+        </div>
       </div>
 
       {/* Active Filter Chip Indicator */}

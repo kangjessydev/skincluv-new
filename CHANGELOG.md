@@ -21,8 +21,38 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
     - **Scan Komposisi**: 1) Foto Label Komposisi, 2) Pencocokan Profil Kulit, 3) Status Kompatibilitas Produk.
 - **Komponen Scan Trust Strip Kanonikal (`cards.css`, `.cluv-scan-trust-strip`, `.cluv-scan-trust-badge`, `.cluv-scan-trust-text`)**:
   - Menggantikan `.cluv-alert.is-info` yang kaku dan terkesan seperti peringatan sistem dengan strip penenang berdesain trust badge yang elegan (badge pill kredit AI + teks edukasi mandiri & privasi).
+- **Popover Dropdown Notifikasi Desktop Topbar (`AppLayout.tsx`, `shell.css`)**:
+  - Mengubah aksi tombol lonceng (*Bell*) di Topbar desktop dari navigasi langsung menjadi **Popover Dropdown** mengambang (380px, radius 20px, animasi pop lembut).
+  - Menampilkan ringkasan maksimal 4 notifikasi terbaru dengan kategori, waktu, cuplikan isi, dan status unread (dot teal).
+  - Aksi cepat *"Tandai Dibaca"* dan tautan footer *"Lihat Semua Notifikasi"* menuju halaman penuh `/notifications`.
+  - Otomatis tertutup saat klik di luar popover (*outside click*) atau saat navigasi halaman.
 
-### Diubah
+- **Gamifikasi Desktop Kelas Enterprise & Ergonomi Tombol Misi (`MissionsPage.tsx`, `cards.css`)**:
+  - **7 Day Quest Tiles Desktop (`.cluv-quest-tiles-grid`, `.cluv-quest-tile`)**: Mengadaptasi pola gamifikasi web desktop terbukti (seperti HoYoLAB Web Check-In & Duolingo Web). Menggantikan bulatan kecil mengambang di desktop dengan 7 kartu reward kotak mandiri yang kokoh: memuat label hari, ikon koin/kado timbul, dan badge status interaktif (*Klaim ✓*, *Hari Ini ⚡*, atau *Bonus H-7 🎁*).
+  - **Penempatan Tombol Aksi Inline Header di Desktop**: Tombol *"Check-in Sekarang"* di desktop tidak lagi melar canggung di bawah kartu, melainkan ditempatkan di sisi kanan atas sejajar dengan judul kartu (*inline header CTA*).
+  - **Zero Regression Mobile & Relokasi Badge Streak**: Di layar ponsel (`<= 879px`), tampilan check-in secara otomatis mempertahankan format timeline lingkaran dan tombol jempol di bawah yang ringkas dan hemat ruang. Badge *"Streak Aktif 🔥"* di mobile dipindahkan tepat di bawah judul agar judul tidak patah dua baris (*unwrapped*).
+  - **Tombol Seragam Arrow Chevron di Mobile (`.cluv-simple-mission-btn`, `ChevronRight`)**: Tombol aksi navigasi misi di mobile diubah menjadi tombol lingkaran ergonomis 36x36px dengan ikon panah chevron `>` saja. Menghilangkan tombol teks panjang ("Tanya Skinsistant →") yang sebelumnya memakan 45% lebar kartu dan membuat teks judul/deskripsi terhimpit di layar ponsel. Di desktop tetap mempertahankan tombol penuh deskriptif ("Mulai Scan", "Pindai Produk", dll.).
+  - **Micro Progress Bar Misi Gamifikasi (`.cluv-simple-mission-progress`)**: Menggantikan angka telanjang `0/3` yang kaku di samping koin reward dengan bar progres visual mini (track 5px abu-abu halus, fill gradien teal-cyan dinamis, dan counter tabular rapi) yang ditempatkan secara terstruktur di bawah deskripsi misi untuk misi dengan target bertahap (`target > 1`).
+
+- **Penyempurnaan Antarmuka Desktop Riwayat Scan (`ScanHistoryPage.tsx`, `tabs.css`, `cards.css`, `modals.css`)**:
+  - **Tab Navigasi Sesuai Isi (`.cluv-tabs.is-responsive`)**: Di mobile tetap 50:50 membentang penuh (*full-width*) agar simetris, sedangkan di desktop (`min-width: 880px`) otomatis beralih menjadi `width: fit-content; max-width: max-content;` dan rata kiri, rapi mengikuti panjang teks tanpa membentang kosong melintasi layar.
+  - **Filter Popover Melayang Desktop (`.cluv-filter-dropdown`)**: Tombol filter di desktop tidak lagi memicu modal/bottomsheet, melainkan memunculkan menu dropdown mengambang (280px, radius 16px, animasi pop lembut, checkmark aktif) dengan penutupan otomatis saat klik di luar (*outside-click*). Mobile tetap mempertahankan *Bottom Sheet*.
+  - **Modal Detail Riwayat Lebih Lebar (`.cluv-sheet-panel.is-report-modal`)**: Modal laporan riwayat scan wajah & komposisi di desktop diperlebar dari `640px` menjadi `820px` (`max-width: 820px`), memberikan ruang ekstra 180px yang lega untuk metrik, skor, dan evaluasi zona tanpa memenuhi seluruh layar.
+- **Reverse Styling Kolom Kanan Desktop Scan Wajah (`FaceScanPage.tsx`)**:
+  - Mengganti kartu profil kulit lama (highlight biru kaku) dan checklist terpisah menjadi **Bento Paspor Emas (`.cluv-bento-wallet`)** dengan tabel metadata 2 kolom (*Tipe Kulit, Pantangan, Target*) dan blok *Fokus Perhatian*.
+  - Mengganti checklist panduan foto lama menjadi **1 Kartu Panduan Berpenomoran Terpadu (Numbered Guide)** dengan nomor lingkaran beraksen warna (`.cluv-guide-item`, `.cluv-guide-num`).
+  - Menciptakan keseragaman estetika 100% (Mobile-to-Desktop Parity) antara antarmuka mobile dan desktop.
+- **Reverse Styling Kolom Kanan Desktop Scan Ingredient (`IngredientScanPage.tsx`)**:
+  - Menerapkan arsitektur layout Bento Hero (`.cluv-bento-grid.is-hero`) pada Stage 1 upload, menghapus wrapper usang `.cluv-scan-layout` dan `.cluv-scan-aside`.
+  - Menggantikan sidebar kanan desktop lama dengan **Bento Paspor Emas (`.cluv-bento-wallet`)** dan **3 Prinsip Membaca Label (`.cluv-guide-item`, `.cluv-guide-num`)** yang identik dengan versi mobile.
+  - Menghapus kartu tips fotografi kemasan lama yang sebelumnya menempel kaku di dalam kartu upload dropzone sehingga kotak dropzone menjadi lapang dan rapi.
+  - Menjamin Stage 2 (HUD Scanner) dan Stage 3 (Hasil Analisis Komposisi) memiliki kanvas penuh (*full-width*) tanpa terhimpit sidebar samping.
+- **Penyembunyian Tombol Panduan Dropzone pada Desktop (`FaceScanPage.tsx`, `IngredientScanPage.tsx`, `cards.css`)**:
+  - Tombol info bundar `(i)` di sudut kanan atas kotak upload dropzone kini disembunyikan secara eksklusif pada desktop (`.cluv-hide-desktop` / `@media (min-width: 880px) { display: none !important; }`).
+  - Mengeliminasi redundansi visual di desktop karena kartu panduan kualitas foto dan Bento Paspor Kulit sudah terpampang langsung di kolom kanan layar, namun tetap mempertahankan tombol tersebut di mobile untuk membuka bottom sheet panduan hemat ruang.
+- **Perbaikan Scroll Mobile & Full-Width Canvas Halaman Notifikasi (`NotificationsPage.tsx`, `layout.css`)**:
+  - Menerapkan `flex-shrink: 0`, `min-height: min-content`, dan `touch-action: pan-y` pada `.cluv-canvas-grid` (dengan padding bawah 96px di mobile) sehingga seluruh daftar notifikasi dapat di-scroll lancar hingga tuntas tanpa terpotong (*flex collapse fix*).
+  - Di desktop, kanvas tetap membentang penuh 1240px (*full-width*) tanpa ruang kosong terpotong di sebelah kanan.
 - **Penyempurnaan Hirarki Teks Dropzone & Trust Notice (`cards.css`, `FaceScanPage.tsx`, `IngredientScanPage.tsx`)**:
   - Mengganti teks reguler `.cluv-body` di dalam dropzone dengan class kanonikal `.cluv-dropzone-title` (1.0625rem / 17px, font-weight 700, letter-spacing -0.01em) dan `.cluv-dropzone-subtitle` (0.8125rem) sehingga judul upload terlihat lebih berwibawa, tegas, dan tidak tenggelam di layar smartphone.
 - **Penyempurnaan Hirarki Teks & Padding Panduan Label (`cards.css`, `IngredientScanPage.tsx`)**:
