@@ -9,6 +9,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-31
 
 ### Ditambahkan
+- **Isolasi Rilis Produksi Netlify Khusus Git Tag (`netlify.toml`)**:
+  - Mengonfigurasi `build.ignore` di `netlify.toml` dengan evaluasi tag ganda `(test -n "$TAG" || git describe --tags --exact-match > /dev/null 2>&1) && exit 1 || exit 0` agar Netlify (Production) hanya melakukan build & deploy saat ada Git Tag rilis resmi (`v*`), mengabaikan seluruh push commit eksperimen di branch `dev` dan menghemat 100% menit build cloud.
+- **Otomasi Supabase Keep-Alive Latar Belakang (`.github/workflows/supabase-keepalive.yml`)**:
+  - Menambahkan workflow GitHub Actions terjadwal dengan cron `0 4 */3 * *` (setiap 3 hari sekali pada 11:00 WIB) yang mem-ping REST API tabel `ai_features` pada kedua project Supabase (Development `gapctakvmorjafqxaqjk` dan Production `vxyyediuoyxbozbizswi`) secara simultan untuk mereset penghitung inaktivitas 7 hari Free Tier tanpa perlu login manual.
 - **Redesain Loading Skeleton Bersih (Tanpa Logo & Spinner) (`LoadingScreen.tsx`, `PageLoader.tsx`, `ui-components.css`)**:
   - **Zero-Logo Refresh Placeholder**: Menghilangkan logo mengambang (`✦`), teks branding, dan spinner berputar saat refresh / inisialisasi aplikasi. Menggantikannya dengan layout wireframe skeleton lengkap (`.app-skeleton-shell`, `.app-skeleton-topbar`, `.app-skeleton-body`, `.app-skeleton-grid`) dengan efek shimmer lembut (`.skincluv-skeleton`) yang mencerminkan struktur nyata aplikasi, mencegah layout shift dan kesan lambat.
   - **Suspense Route Skeleton**: Menggantikan spinner berputar pada `PageLoader` dengan konten skeleton bertingkat (`.page-skeleton-shell`) untuk transisi antar halaman yang mulus dan bebas kedip (*flicker-free*).

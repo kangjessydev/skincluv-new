@@ -1,0 +1,59 @@
+name: Supabase Database Keep-Alive
+
+# Scheduled cron to prevent Supabase Free Tier auto-pausing after 7 days of inactivity.
+# Runs every 3 days at 04:00 UTC (11:00 WIB).
+
+on:
+  schedule:
+    - cron: '0 4 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping-databases:
+    name: Ping Dev & Prod Supabase DB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Development Database (gapctakvmorjafqxaqjk)
+        run: |
+          DEV_URL="${{ secrets.SUPABASE_DEV_URL || 'https://gapctakvmorjafqxaqjk.supabase.co' }}"
+          DEV_KEY="${{ secrets.SUPABASE_DEV_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}"
+          
+          if [ -z "$DEV_KEY" ]; then
+            echo "::warning ::DEV Anon key is not set in secrets, attempting ping without key"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEV_URL/rest/v1/")
+          else
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "apikey: $DEV_KEY" \
+              -H "Authorization: Bearer $DEV_KEY" \
+              "$DEV_URL/rest/v1/ai_features?select=slug&limit=1")
+          fi
+          
+          echo "Development Supabase Ping HTTP Status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Development database is ACTIVE and refreshed!"
+          else
+            echo "⚠️ Unexpected status code: $STATUS (check credentials)"
+          fi
+
+      - name: Ping Production Database (vxyyediuoyxbozbizswi)
+        run: |
+          PROD_URL="${{ secrets.SUPABASE_PROD_URL || 'https://vxyyediuoyxbozbizswi.supabase.co' }}"
+          PROD_KEY="${{ secrets.SUPABASE_PROD_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}"
+          
+          if [ -z "$PROD_KEY" ]; then
+            echo "::warning ::PROD Anon key is not set in secrets, attempting ping without key"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/rest/v1/")
+          else
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "apikey: $PROD_KEY" \
+              -H "Authorization: Bearer $PROD_KEY" \
+              "$PROD_URL/rest/v1/ai_features?select=slug&limit=1")
+          fi
+          
+          echo "Production Supabase Ping HTTP Status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Production database is ACTIVE and refreshed!"
+          else
+            echo "⚠️ Unexpected status code: $STATUS (check credentials)"
+          fi

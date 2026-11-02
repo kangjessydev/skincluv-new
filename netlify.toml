@@ -1,6 +1,8 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  # Only build & deploy on official Git Tag releases (e.g. v1.0.0). Normal branch commits are ignored.
+  ignore = "(test -n \"$TAG\" || git describe --tags --exact-match > /dev/null 2>&1) && exit 1 || exit 0"
 
 [build.environment]
   NODE_VERSION = "22"
