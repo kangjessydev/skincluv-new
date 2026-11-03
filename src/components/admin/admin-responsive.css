@@ -398,6 +398,103 @@ textarea.input-field {
   resize: vertical;
 }
 
+/* Admin Overview Grid & Cards */
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 20px;
+  margin-bottom: 36px;
+}
+
+.admin-overview-card {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.admin-overview-card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-overview-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+}
+
+.admin-overview-card-desc {
+  font-size: 13px;
+  color: var(--cluv-neutral-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.admin-overview-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cluv-teal);
+  margin-top: 20px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.admin-overview-card:hover .admin-overview-card-cta {
+  transform: translateX(3px);
+  color: var(--cluv-teal-dark);
+}
+
+.admin-overview-card-cta.is-purple {
+  color: var(--cluv-purple);
+}
+.admin-overview-card:hover .admin-overview-card-cta.is-purple {
+  color: var(--cluv-purple-light);
+}
+
+.admin-overview-card-cta.is-gold {
+  color: var(--cluv-gold);
+}
+.admin-overview-card:hover .admin-overview-card-cta.is-gold {
+  color: var(--cluv-gold-light);
+}
+
+.admin-overview-card-cta.is-blue {
+  color: var(--cluv-status-info);
+}
+
+.admin-overview-card-cta.is-rose {
+  color: var(--cluv-rose);
+}
+
+.admin-overview-card-cta.is-emerald {
+  color: var(--cluv-status-success);
+}
+
+.admin-section-block {
+  margin-bottom: 16px;
+}
+
+.admin-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--cluv-neutral-800);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.admin-section-desc {
+  font-size: 13px;
+  color: var(--cluv-neutral-500);
+  margin: 3px 0 0 0;
+}
+
 /* ============================================================
    Media Queries
    ============================================================ */
