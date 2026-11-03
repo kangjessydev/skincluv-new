@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Admin Products Management Styles (Skincluv Admin)
+   Pure Cluv Design System tokens & classes
+   ========================================================================== */
+
+.admin-products-card {
+  margin-bottom: 28px;
+}
+
+.admin-products-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-products-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.admin-products-desc {
+  font-size: 13px;
+  color: var(--cluv-neutral-500);
+  margin: 4px 0 0 0;
+  line-height: 1.5;
+}
+
+/* Search bar wrapper */
+.admin-products-search-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.admin-products-search-input {
+  width: 100%;
+  padding: 8px 34px 8px 36px;
+  background: var(--cluv-neutral-50);
+  border: 1.5px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md, 8px);
+  font-size: 13px;
+  color: var(--cluv-neutral-900);
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.admin-products-search-input:focus {
+  border-color: var(--cluv-teal);
+  background: var(--cluv-surface);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
+}
+
+.admin-products-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cluv-neutral-400);
+  pointer-events: none;
+}
