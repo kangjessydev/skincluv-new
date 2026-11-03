@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Target, Plus, CheckCircle2, AlertCircle, RefreshCw, Pencil } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import '@/styles/admin-missions.css'
 
 interface Mission {
   id: string
@@ -134,14 +135,17 @@ export default function AdminMissionsPage() {
   }
 
   return (
-    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
+    <div className="admin-page-container">
       {/* Header */}
       <div className="admin-page-header">
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
+        <div className="admin-page-header-title">
+          <div className="cluv-badge is-teal is-sm" style={{ marginBottom: 6 }}>
+            <Target size={12} /> Gamifikasi & Retensi
+          </div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--cluv-neutral-900)', margin: 0, letterSpacing: '-0.02em' }}>
             Misi Glow (Rewards & Gamifikasi)
           </h1>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
+          <p style={{ color: 'var(--cluv-neutral-500)', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
             Kelola misi harian, mingguan, dan reward kredit koin untuk pengguna Skincluv.
           </p>
         </div>
@@ -150,130 +154,86 @@ export default function AdminMissionsPage() {
           <button
             onClick={loadMissions}
             disabled={isLoading}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1px solid #d1d5db',
-              background: '#ffffff',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
+            className="cluv-btn is-outline is-sm"
           >
-            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Segarkan
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <span>Segarkan</span>
           </button>
 
           <button
             onClick={startNew}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: '#111827',
-              color: '#ffffff',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="cluv-btn is-primary is-sm"
           >
-            <Plus size={16} /> Misi Baru
+            <Plus size={16} />
+            <span>Misi Baru</span>
           </button>
         </div>
       </div>
 
       {feedback && (
         <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
-            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
-            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-          }}
+          className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`}
+          style={{ marginBottom: 24 }}
         >
-          {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-          <span>{feedback.message}</span>
+          <div className="cluv-alert-icon">
+            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          </div>
+          <div className="cluv-alert-content">
+            <p className="cluv-alert-message" style={{ fontWeight: 600 }}>{feedback.message}</p>
+          </div>
         </div>
       )}
 
       {/* Form Drawer / Card */}
       {isEditing && (
-        <div
-          style={{
-            background: '#ffffff',
-            borderRadius: 12,
-            border: '1px solid #e5e7eb',
-            padding: 24,
-            marginBottom: 32,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <Target size={18} color="#6366f1" />
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
-              {form.id ? 'Edit Konfigurasi Misi' : 'Tambah Misi Baru'}
-            </h2>
+        <div className="cluv-card admin-missions-card">
+          <div className="admin-missions-header">
+            <div className="cluv-card-icon-wrap is-teal">
+              <Target size={18} />
+            </div>
+            <div>
+              <h2 className="admin-missions-title">
+                {form.id ? 'Edit Konfigurasi Misi' : 'Tambah Misi Baru'}
+              </h2>
+              <p className="admin-missions-desc">
+                Konfigurasi syarat penyelesaian misi, cooldown jam, dan besaran reward credits.
+              </p>
+            </div>
           </div>
 
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="admin-grid-2col">
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                  Slug Unik <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
+                  Slug Unik <span style={{ color: 'var(--cluv-rose)' }}>*</span>
                 </label>
                 <input
                   placeholder="misal: daily_face_scan"
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 14,
-                    boxSizing: 'border-box',
-                    background: form.id ? '#f3f4f6' : '#ffffff',
-                  }}
+                  className="admin-input"
                   disabled={!!form.id}
+                  style={form.id ? { background: 'var(--cluv-neutral-100)', cursor: 'not-allowed' } : {}}
                   required
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                  Nama Misi <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
+                  Nama Misi <span style={{ color: 'var(--cluv-rose)' }}>*</span>
                 </label>
                 <input
                   placeholder="misal: Scan Wajah Pertama Hari Ini"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 14,
-                    boxSizing: 'border-box',
-                  }}
+                  className="admin-input"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
                 Deskripsi Misi
               </label>
               <textarea
@@ -281,34 +241,19 @@ export default function AdminMissionsPage() {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  fontSize: 14,
-                  boxSizing: 'border-box',
-                  resize: 'vertical',
-                }}
+                className="input-field"
               />
             </div>
 
             <div className="admin-grid-4col">
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
                   Tipe Misi
                 </label>
                 <select
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value as Mission['type'] })}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 14,
-                    background: '#ffffff',
-                  }}
+                  className="admin-select"
                 >
                   <option value="daily">Daily (Harian)</option>
                   <option value="weekly">Weekly (Mingguan)</option>
@@ -319,27 +264,20 @@ export default function AdminMissionsPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                  Reward Koin (Credit)
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
+                  Reward Credits
                 </label>
                 <input
                   type="number"
                   min={0}
                   value={form.coin_reward}
                   onChange={(e) => setForm({ ...form, coin_reward: parseInt(e.target.value, 10) || 0 })}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 14,
-                    boxSizing: 'border-box',
-                  }}
+                  className="admin-input"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
                   Target Count
                 </label>
                 <input
@@ -347,19 +285,12 @@ export default function AdminMissionsPage() {
                   min={1}
                   value={form.target_count}
                   onChange={(e) => setForm({ ...form, target_count: parseInt(e.target.value, 10) || 1 })}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 14,
-                    boxSizing: 'border-box',
-                  }}
+                  className="admin-input"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
                   Cooldown (Jam)
                 </label>
                 <input
@@ -368,14 +299,7 @@ export default function AdminMissionsPage() {
                   placeholder="Kosongkan jika default"
                   value={form.cooldown_hours}
                   onChange={(e) => setForm({ ...form, cooldown_hours: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 14,
-                    boxSizing: 'border-box',
-                  }}
+                  className="admin-input"
                 />
               </div>
             </div>
@@ -386,9 +310,9 @@ export default function AdminMissionsPage() {
                 id="mission_is_active"
                 checked={form.is_active}
                 onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                style={{ width: 16, height: 16, cursor: 'pointer' }}
+                style={{ width: 16, height: 16, cursor: 'pointer', accentColor: 'var(--cluv-teal)' }}
               />
-              <label htmlFor="mission_is_active" style={{ fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+              <label htmlFor="mission_is_active" style={{ fontSize: 13, fontWeight: 700, color: 'var(--cluv-neutral-800)', cursor: 'pointer' }}>
                 Status Misi Aktif (Bisa dikerjakan oleh user)
               </label>
             </div>
@@ -397,16 +321,7 @@ export default function AdminMissionsPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: isSaving ? '#9ca3af' : '#111827',
-                  color: '#ffffff',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: isSaving ? 'not-allowed' : 'pointer',
-                }}
+                className="cluv-btn is-primary is-sm"
               >
                 {isSaving ? 'Menyimpan...' : 'Simpan Misi'}
               </button>
@@ -414,15 +329,7 @@ export default function AdminMissionsPage() {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  background: '#ffffff',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                className="cluv-btn is-outline is-sm"
               >
                 Batal
               </button>
@@ -432,152 +339,94 @@ export default function AdminMissionsPage() {
       )}
 
       {/* Tabel Misi */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          padding: 24,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Target size={18} color="#4b5563" />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
+      <div className="cluv-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--cluv-border)' }}>
+          <Target size={18} style={{ color: 'var(--cluv-teal)' }} />
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--cluv-neutral-900)', margin: 0 }}>
             Semua Misi Terdaftar ({missions.length})
           </h2>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="admin-table-container">
+          <table className="admin-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Nama & Slug</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Tipe</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Reward</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Target</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Cooldown</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Status</th>
-                <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Aksi</th>
+              <tr>
+                <th style={{ width: 280 }}>NAMA & SLUG</th>
+                <th style={{ width: 120 }}>TIPE</th>
+                <th style={{ textAlign: 'center', width: 130 }}>REWARD</th>
+                <th style={{ textAlign: 'center', width: 100 }}>TARGET</th>
+                <th style={{ textAlign: 'center', width: 120 }}>COOLDOWN</th>
+                <th style={{ textAlign: 'center', width: 110 }}>STATUS</th>
+                <th style={{ textAlign: 'right', width: 100 }}>AKSI</th>
               </tr>
             </thead>
             <tbody>
               {missions.map((m) => (
                 <tr
                   key={m.id}
-                  style={{
-                    borderBottom: '1px solid #f3f4f6',
-                    background: m.is_active ? '#ffffff' : '#fafafa',
-                  }}
+                  className="admin-table-row"
+                  style={!m.is_active ? { opacity: 0.7 } : {}}
                 >
-                  <td style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 600, color: m.is_active ? '#111827' : '#6b7280' }}>
+                  <td>
+                    <div style={{ fontWeight: 700, color: 'var(--cluv-neutral-900)' }}>
                       {m.name}
                     </div>
-                    <code style={{ fontSize: 11, background: '#f3f4f6', padding: '2px 6px', borderRadius: 4, color: '#4b5563' }}>
+                    <code className="admin-mission-code">
                       {m.slug}
                     </code>
                     {m.description && (
-                      <p style={{ fontSize: 12, color: '#6b7280', margin: '4px 0 0 0' }}>
+                      <p style={{ fontSize: 12, color: 'var(--cluv-neutral-500)', margin: '4px 0 0 0', lineHeight: 1.4 }}>
                         {m.description}
                       </p>
                     )}
                   </td>
-                  <td style={{ padding: '12px', textTransform: 'capitalize' }}>
+                  <td>
                     <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background:
-                          m.type === 'daily'
-                            ? '#dbeafe'
-                            : m.type === 'weekly'
-                            ? '#fef3c7'
-                            : m.type === 'streak'
-                            ? '#fce7f3'
-                            : '#f3f4f6',
-                        color:
-                          m.type === 'daily'
-                            ? '#1d4ed8'
-                            : m.type === 'weekly'
-                            ? '#b45309'
-                            : m.type === 'streak'
-                            ? '#be185d'
-                            : '#374151',
-                      }}
+                      className={`cluv-badge ${
+                        m.type === 'daily'
+                          ? 'is-teal'
+                          : m.type === 'weekly'
+                          ? 'is-gold'
+                          : m.type === 'streak'
+                          ? 'is-purple'
+                          : 'is-neutral'
+                      } is-sm`}
+                      style={{ textTransform: 'capitalize' }}
                     >
                       {m.type}
                     </span>
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center', fontWeight: 600, color: '#059669' }}>
-                    +{m.coin_reward} credit
+                  <td style={{ textAlign: 'center' }}>
+                    <strong style={{ color: 'var(--cluv-teal)', fontVariantNumeric: 'tabular-nums' }}>
+                      +{m.coin_reward} Credits
+                    </strong>
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center', color: '#4b5563' }}>
+                  <td style={{ textAlign: 'center', color: 'var(--cluv-neutral-600)', fontVariantNumeric: 'tabular-nums' }}>
                     {m.target_count}x
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center', color: '#6b7280' }}>
+                  <td style={{ textAlign: 'center', color: 'var(--cluv-neutral-500)', fontVariantNumeric: 'tabular-nums' }}>
                     {m.cooldown_hours ? `${m.cooldown_hours} jam` : '—'}
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
-                    {m.is_active ? (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '3px 8px',
-                          borderRadius: 9999,
-                          background: '#dcfce7',
-                          color: '#15803d',
-                          fontSize: 11,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Aktif
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '3px 8px',
-                          borderRadius: 9999,
-                          background: '#f3f4f6',
-                          color: '#6b7280',
-                          fontSize: 11,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Nonaktif
-                      </span>
-                    )}
+                  <td style={{ textAlign: 'center' }}>
+                    <span className={`cluv-badge ${m.is_active ? 'is-teal' : 'is-neutral'} is-sm`}>
+                      {m.is_active ? 'Aktif' : 'Nonaktif'}
+                    </span>
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'right' }}>
+                  <td style={{ textAlign: 'right' }}>
                     <button
                       onClick={() => startEdit(m)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '5px 10px',
-                        borderRadius: 6,
-                        border: '1px solid #d1d5db',
-                        background: '#ffffff',
-                        fontSize: 12,
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                      }}
+                      className="cluv-btn is-outline is-sm"
+                      style={{ padding: '4px 8px', fontSize: 12 }}
                     >
-                      <Pencil size={12} /> Edit
+                      <Pencil size={12} />
+                      <span>Edit</span>
                     </button>
                   </td>
                 </tr>
               ))}
               {missions.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={7} style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>
+                  <td colSpan={7} style={{ padding: 36, textAlign: 'center', color: 'var(--cluv-neutral-400)' }}>
                     Belum ada misi terdaftar.
                   </td>
                 </tr>
