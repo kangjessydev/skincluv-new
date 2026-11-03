@@ -1,0 +1,164 @@
+/* src/styles/admin-logs.css
+   =============================================================================
+   Admin AI Logs Page Stylesheet (Cluv Framework Compliant)
+   AI Inference Telemetry, Latency, Token Accounting & UU PDP Privacy Compliance.
+   ============================================================================= */
+
+/* Filter Card */
+.alogs-filter-card {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alogs-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 8px 14px;
+  min-width: 280px;
+  flex: 1;
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+}
+
+.alogs-search-wrap:focus-within {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+.alogs-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  width: 100%;
+  color: var(--cluv-neutral-900);
+}
+
+.alogs-search-input::placeholder {
+  color: var(--cluv-neutral-400);
+}
+
+.alogs-filter-select {
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  background: var(--cluv-surface);
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-700);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+}
+
+.alogs-filter-select:focus {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+/* Table Card & Elements */
+.alogs-table-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.alogs-model-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alogs-model-name {
+  font-weight: 600;
+  color: var(--cluv-neutral-900);
+}
+
+.alogs-version-sub {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+}
+
+.alogs-req-id {
+  font-size: 0.6875rem;
+  background: var(--cluv-neutral-100);
+  padding: 2px 6px;
+  border-radius: var(--cluv-radius-xs);
+  color: var(--cluv-neutral-600);
+  font-family: monospace;
+}
+
+.alogs-token-val {
+  color: var(--cluv-neutral-900);
+  font-weight: 700;
+}
+
+.alogs-token-split {
+  font-size: 0.625rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.alogs-cost-idr {
+  font-size: 0.6875rem;
+  color: var(--cluv-teal);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Modal details */
+.alogs-modal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  background: var(--cluv-neutral-50);
+  padding: 16px;
+  border-radius: var(--cluv-radius-md);
+  border: 1px solid var(--cluv-border);
+}
+
+.alogs-modal-stat-box {
+  background: var(--cluv-neutral-50);
+  padding: 14px;
+  border-radius: var(--cluv-radius-md);
+  border: 1px solid var(--cluv-border);
+}
+
+.alogs-modal-stat-label {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.alogs-modal-stat-val {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 2px;
+  color: var(--cluv-neutral-900);
+}
+
+@media (max-width: 768px) {
+  .alogs-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .alogs-search-wrap {
+    min-width: 100%;
+  }
+
+  .alogs-filter-select {
+    width: 100%;
+  }
+}

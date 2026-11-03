@@ -16,6 +16,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import '@/styles/admin-logs.css'
 
 interface AiLogRecord {
   id: string
@@ -146,247 +147,129 @@ export default function AdminLogsPage() {
     return { count, avgLatency, totalTokens, totalInputTokens, totalOutputTokens, totalCostUSD, totalCostIDR, successRate }
   }, [logs])
 
-  const getLatencyBadge = (ms: number | null) => {
-    if (ms === null) return { color: '#6b7280', text: '-' }
-    if (ms < 1500) return { color: '#059669', text: `${ms} ms` }
-    if (ms < 3500) return { color: '#d97706', text: `${ms} ms` }
-    return { color: '#dc2626', text: `${ms} ms` }
+  const renderLatencyBadge = (ms: number | null) => {
+    if (ms === null) return <span style={{ color: 'var(--cluv-neutral-400)' }}>-</span>
+    if (ms < 1500) return <span className="cluv-badge is-success cluv-tabular-nums">{ms} ms</span>
+    if (ms < 3500) return <span className="cluv-badge is-warning cluv-tabular-nums">{ms} ms</span>
+    return <span className="cluv-badge is-danger cluv-tabular-nums">{ms} ms</span>
   }
 
-  const getStatusBadge = (status: string) => {
+  const renderStatusBadge = (status: string) => {
     switch (status) {
       case 'success':
-        return { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: 'Sukses' }
+        return (
+          <span className="cluv-badge is-success">
+            <CheckCircle2 size={11} /> Sukses
+          </span>
+        )
       case 'error':
-        return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', label: 'Error' }
+        return (
+          <span className="cluv-badge is-danger">
+            <XCircle size={11} /> Error
+          </span>
+        )
       case 'timeout':
-        return { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: 'Timeout' }
+        return (
+          <span className="cluv-badge is-warning">
+            <Clock size={11} /> Timeout
+          </span>
+        )
       default:
-        return { bg: '#f3f4f6', text: '#4b5563', border: '#e5e7eb', label: status }
+        return <span className="cluv-badge is-neutral">{status}</span>
     }
   }
 
   return (
-    <div className="admin-page-container">
+    <div className="admin-page-container cluv-animate-fade">
       {/* Header */}
       <div className="admin-page-header">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: '#fef3c7',
-                color: '#d97706',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+          <div className="admin-header-title-row">
+            <div className="admin-header-icon-wrap" style={{ background: 'var(--cluv-gold-soft)', color: 'var(--cluv-gold)' }}>
               <Activity size={22} />
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
-              Log Permintaan & Metrik AI
+            <h1 className="admin-page-title">
+              Log Permintaan &amp; Metrik AI
             </h1>
           </div>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
+          <p className="admin-page-subtitle">
             Observabilitas performa inferensi, latensi respons, penggunaan token, dan status eksekusi prompt AI.
           </p>
         </div>
 
-        <button
-          onClick={loadLogs}
-          disabled={isLoading}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            borderRadius: 8,
-            border: '1px solid #d1d5db',
-            background: '#ffffff',
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: 'pointer',
-            color: '#374151',
-          }}
-        >
-          <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Segarkan Log
-        </button>
+        <div className="admin-header-actions">
+          <button
+            type="button"
+            onClick={loadLogs}
+            disabled={isLoading}
+            className="cluv-btn is-outline is-sm"
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Segarkan Log
+          </button>
+        </div>
       </div>
 
       {/* Error Feedback */}
       {errorMessage && (
-        <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            background: '#fef2f2',
-            color: '#991b1b',
-            border: '1px solid #fecaca',
-          }}
-        >
+        <div className="cluv-alert is-danger cluv-mb-4">
           <AlertCircle size={18} />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Top Metrics Cards */}
-      <div className="admin-grid-cards">
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#eff6ff',
-              color: '#2563eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+      <div className="cluv-stat-grid cols-4">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
             <Activity size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Sampel Log
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.count} requests
-            </div>
+            <div className="cluv-stat-label">Sampel Log</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.count} requests</div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#ecfdf5',
-              color: '#059669',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
             <Clock size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Rata-rata Latensi
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.avgLatency} ms
-            </div>
+            <div className="cluv-stat-label">Rata-rata Latensi</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.avgLatency} ms</div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#fef3c7',
-              color: '#d97706',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-gold">
             <Coins size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Total Token & Biaya
-            </div>
+            <div className="cluv-stat-label">Total Token &amp; Biaya</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
+              <div className="cluv-stat-value cluv-tabular-nums">
                 {metrics.totalTokens.toLocaleString('id-ID')}
               </div>
               {metrics.totalCostIDR > 0 && (
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#059669' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cluv-teal)' }}>
                   (≈ Rp {metrics.totalCostIDR.toLocaleString('id-ID', { maximumFractionDigits: 0 })})
                 </div>
               )}
             </div>
             {(metrics.totalInputTokens > 0 || metrics.totalOutputTokens > 0) && (
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-500)', marginTop: 2 }}>
                 {metrics.totalInputTokens.toLocaleString('id-ID')} in • {metrics.totalOutputTokens.toLocaleString('id-ID')} out
               </div>
             )}
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#f5f3ff',
-              color: '#7c3aed',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-rose">
             <CheckCircle2 size={20} />
           </div>
           <div>
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Tingkat Keberhasilan
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
+            <div className="cluv-stat-label">Tingkat Keberhasilan</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: metrics.successRate >= 95 ? 'var(--cluv-teal)' : 'var(--cluv-rose)' }}>
               {metrics.successRate}%
             </div>
           </div>
@@ -394,51 +277,22 @@ export default function AdminLogsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          marginBottom: 20,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            minWidth: 260,
-            display: 'flex',
-            gap: 10,
-            background: '#ffffff',
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #e5e7eb',
-            alignItems: 'center',
-          }}
-        >
-          <Search size={16} color="#9ca3af" />
+      <div className="cluv-card alogs-filter-card">
+        <div className="alogs-search-wrap">
+          <Search size={16} className="text-slate-400" />
           <input
             type="text"
             placeholder="Cari user, model, prompt, atau konten..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              border: 'none',
-              outline: 'none',
-              fontSize: 13,
-              width: '100%',
-              color: '#111827',
-            }}
+            className="alogs-search-input"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: '#9ca3af',
-                padding: 2,
-              }}
+              className="cluv-link is-muted"
+              aria-label="Bersihkan pencarian"
             >
               <X size={14} />
             </button>
@@ -448,16 +302,7 @@ export default function AdminLogsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={{
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #d1d5db',
-            background: '#ffffff',
-            fontSize: 13,
-            fontWeight: 500,
-            color: '#374151',
-            cursor: 'pointer',
-          }}
+          className="alogs-filter-select"
         >
           <option value="all">Semua Status</option>
           <option value="success">Sukses Saja</option>
@@ -467,70 +312,42 @@ export default function AdminLogsPage() {
       </div>
 
       {/* Table Container */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <div className="cluv-card alogs-table-card">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Fitur AI
-                </th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Model & Versi
-                </th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Permintaan ID
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Latensi
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Token & Biaya
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Status
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Feedback
-                </th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Waktu
-                </th>
-                <th style={{ textAlign: 'right', padding: '12px 16px', fontWeight: 600, color: '#374151' }}>
-                  Aksi
-                </th>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Fitur AI</th>
+                <th style={{ textAlign: 'left' }}>Model &amp; Versi</th>
+                <th style={{ textAlign: 'left' }}>Permintaan ID</th>
+                <th style={{ textAlign: 'center' }}>Latensi</th>
+                <th style={{ textAlign: 'center' }}>Token &amp; Biaya</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th style={{ textAlign: 'center' }}>Feedback</th>
+                <th style={{ textAlign: 'left' }}>Waktu</th>
+                <th style={{ textAlign: 'right' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: 48, color: '#6b7280' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px auto' }} />
                     <div>Memuat riwayat log AI...</div>
                   </td>
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: 48, color: '#6b7280' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <Activity size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                    <div style={{ fontWeight: 600, color: '#374151' }}>Tidak ada log ditemukan</div>
-                    <div style={{ fontSize: 12, marginTop: 4 }}>
+                    <div style={{ fontWeight: 600, color: 'var(--cluv-neutral-800)' }}>Tidak ada log ditemukan</div>
+                    <div style={{ fontSize: '0.75rem', marginTop: 4 }}>
                       {searchQuery || statusFilter !== 'all' ? 'Coba ganti filter pencarian.' : 'Belum ada permintaan AI yang tercatat.'}
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredLogs.map((log) => {
-                  const statusInfo = getStatusBadge(log.status)
-                  const latencyInfo = getLatencyBadge(log.latency_ms)
                   const time = new Date(log.created_at).toLocaleString('id-ID', {
                     day: 'numeric',
                     month: 'short',
@@ -539,127 +356,83 @@ export default function AdminLogsPage() {
                   })
 
                   return (
-                    <tr
-                      key={log.id}
-                      style={{
-                        borderBottom: '1px solid #f3f4f6',
-                        transition: 'background 0.15s ease',
-                      }}
-                    >
-                      <td style={{ padding: '12px 16px' }}>
-                        <span
-                          style={{
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            background: '#eff6ff',
-                            color: '#1e40af',
-                          }}
-                        >
+                    <tr key={log.id}>
+                      <td>
+                        <span className="cluv-badge is-neutral">
                           {log.ai_features?.name || log.feature_id}
                         </span>
                       </td>
 
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <Cpu size={13} color="#6b7280" />
-                          <span style={{ fontWeight: 600, color: '#111827' }}>
+                      <td>
+                        <div className="alogs-model-wrap">
+                          <Cpu size={13} style={{ color: 'var(--cluv-neutral-500)' }} />
+                          <span className="alogs-model-name">
                             {log.model_configs?.model_name || 'LLM Model'}
                           </span>
                         </div>
                         {log.prompt_versions?.version && (
-                          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                          <div className="alogs-version-sub">
                             Prompt v{log.prompt_versions.version}
                           </div>
                         )}
                       </td>
 
-                      <td style={{ padding: '12px 16px' }}>
-                        <code style={{ fontSize: 11, background: '#f3f4f6', padding: '3px 6px', borderRadius: 4, color: '#4b5563', fontFamily: 'monospace' }}>
+                      <td>
+                        <code className="alogs-req-id">
                           #{log.id.slice(0, 8)}
                         </code>
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <span style={{ fontWeight: 600, color: latencyInfo.color }}>
-                          {latencyInfo.text}
-                        </span>
+                      <td style={{ textAlign: 'center' }}>
+                        {renderLatencyBadge(log.latency_ms)}
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <div style={{ color: '#111827', fontWeight: 700 }}>
+                      <td style={{ textAlign: 'center' }}>
+                        <div className="alogs-token-val cluv-tabular-nums">
                           {log.tokens_used ? log.tokens_used.toLocaleString('id-ID') : '-'}
-                          <span style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginLeft: 4 }}>tk</span>
+                          <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--cluv-neutral-500)', marginLeft: 4 }}>tk</span>
                         </div>
                         {(log.input_tokens !== null || log.output_tokens !== null) && (
-                          <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'center', gap: 5 }}>
+                          <div className="alogs-token-split cluv-tabular-nums">
                             <span title="Input Tokens">in: {log.input_tokens?.toLocaleString('id-ID') ?? 0}</span>
-                            <span style={{ color: '#d1d5db' }}>|</span>
+                            <span style={{ color: 'var(--cluv-border)' }}>|</span>
                             <span title="Output Tokens">out: {log.output_tokens?.toLocaleString('id-ID') ?? 0}</span>
                           </div>
                         )}
                         {log.cost_usd !== null && log.cost_usd !== undefined && log.cost_usd > 0 && (
-                          <div style={{ fontSize: 11, color: '#059669', fontWeight: 600, marginTop: 2 }}>
+                          <div className="alogs-cost-idr cluv-tabular-nums">
                             ≈ Rp {(Number(log.cost_usd) * USD_TO_IDR).toLocaleString('id-ID', { maximumFractionDigits: 1 })}
                           </div>
                         )}
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            padding: '2px 8px',
-                            borderRadius: 4,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            background: statusInfo.bg,
-                            color: statusInfo.text,
-                            border: `1px solid ${statusInfo.border}`,
-                          }}
-                        >
-                          {log.status === 'success' ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-                          {statusInfo.label}
-                        </span>
+                      <td style={{ textAlign: 'center' }}>
+                        {renderStatusBadge(log.status)}
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <td style={{ textAlign: 'center' }}>
                         {log.user_feedback === 1 ? (
-                          <span style={{ color: '#059669', display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600 }}>
-                            <ThumbsUp size={12} /> Puas
+                          <span className="cluv-badge is-success">
+                            <ThumbsUp size={11} /> Puas
                           </span>
                         ) : log.user_feedback === -1 ? (
-                          <span style={{ color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600 }}>
-                            <ThumbsDown size={12} /> Kurang
+                          <span className="cluv-badge is-danger">
+                            <ThumbsDown size={11} /> Kurang
                           </span>
                         ) : (
-                          <span style={{ color: '#9ca3af', fontSize: 11 }}>-</span>
+                          <span style={{ color: 'var(--cluv-neutral-400)', fontSize: '0.75rem' }}>-</span>
                         )}
                       </td>
 
-                      <td style={{ padding: '12px 16px', color: '#6b7280', fontSize: 12, whiteSpace: 'nowrap' }}>
+                      <td style={{ color: 'var(--cluv-neutral-600)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {time}
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <td style={{ textAlign: 'right' }}>
                         <button
+                          type="button"
                           onClick={() => setSelectedLog(log)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 5,
-                            padding: '6px 12px',
-                            borderRadius: 6,
-                            border: '1px solid #d1d5db',
-                            background: '#ffffff',
-                            color: '#111827',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
+                          className="cluv-btn is-outline is-sm"
                         >
                           <Eye size={13} /> Detail
                         </button>
@@ -676,167 +449,115 @@ export default function AdminLogsPage() {
       {/* Detail Modal */}
       {selectedLog && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: 12,
-          }}
+          className="cluv-modal-overlay"
           onClick={() => setSelectedLog(null)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 16,
-              width: '100%',
-              maxWidth: 820,
-              maxHeight: '90vh',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            }}
+            className="cluv-modal-content"
+            style={{ maxWidth: 800 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div
-              style={{
-                padding: '18px 24px',
-                borderBottom: '1px solid #e5e7eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
+            <div className="cluv-modal-header">
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>
+                <h2 className="cluv-modal-title">
                   Detail Log Permintaan AI
                 </h2>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                  Log ID: <code style={{ color: '#4b5563' }}>{selectedLog.id}</code>
-                </div>
+                <p className="cluv-modal-subtitle">
+                  Log ID: <code>{selectedLog.id}</code>
+                </p>
               </div>
 
               <button
+                type="button"
                 onClick={() => setSelectedLog(null)}
-                style={{
-                  border: 'none',
-                  background: '#f3f4f6',
-                  borderRadius: 8,
-                  padding: 6,
-                  cursor: 'pointer',
-                  color: '#6b7280',
-                }}
+                className="cluv-modal-close-btn"
+                aria-label="Tutup modal"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div className="cluv-modal-body">
               {/* Telemetry Stats */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-                  gap: 12,
-                  background: '#f9fafb',
-                  padding: 16,
-                  borderRadius: 12,
-                  border: '1px solid #f3f4f6',
-                }}
-              >
+              <div className="alogs-modal-stats-grid">
                 <div>
-                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Fitur & Model
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 2 }}>
+                  <div className="alogs-modal-stat-label">Fitur &amp; Model</div>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-neutral-900)', marginTop: 2 }}>
                     {selectedLog.ai_features?.name || selectedLog.feature_id}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-500)' }}>
                     {selectedLog.model_configs?.model_name}
                   </div>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Latensi
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginTop: 2 }}>
+                  <div className="alogs-modal-stat-label">Latensi</div>
+                  <div className="alogs-modal-stat-val cluv-tabular-nums">
                     {selectedLog.latency_ms ? `${selectedLog.latency_ms} ms` : '-'}
                   </div>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Tokens Used
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginTop: 2 }}>
+                  <div className="alogs-modal-stat-label">Tokens Used</div>
+                  <div className="alogs-modal-stat-val cluv-tabular-nums">
                     {selectedLog.tokens_used ? selectedLog.tokens_used.toLocaleString('id-ID') : '-'}
                   </div>
                   {(selectedLog.input_tokens !== null || selectedLog.output_tokens !== null) && (
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-500)', marginTop: 2 }}>
                       in: {selectedLog.input_tokens?.toLocaleString('id-ID') ?? 0} • out: {selectedLog.output_tokens?.toLocaleString('id-ID') ?? 0}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Status
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: selectedLog.status === 'success' ? '#059669' : '#dc2626', marginTop: 2, textTransform: 'uppercase' }}>
-                    {selectedLog.status}
+                  <div className="alogs-modal-stat-label">Status</div>
+                  <div style={{ marginTop: 4 }}>
+                    {renderStatusBadge(selectedLog.status)}
                   </div>
                 </div>
               </div>
 
               {/* Technical Telemetry Details */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-                <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Estimasi Biaya Token</div>
+              <div className="cluv-stat-grid cols-2" style={{ margin: 0 }}>
+                <div className="alogs-modal-stat-box">
+                  <div className="alogs-modal-stat-label">Estimasi Biaya Token</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cluv-neutral-900)' }} className="cluv-tabular-nums">
                       {selectedLog.cost_usd ? `$${Number(selectedLog.cost_usd).toFixed(5)}` : '$0.00000'}
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: 6, border: '1px solid #a7f3d0' }}>
+                    <span className="cluv-badge is-success cluv-tabular-nums">
                       ≈ Rp {selectedLog.cost_usd ? (Number(selectedLog.cost_usd) * USD_TO_IDR).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '0'}
                     </span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 4 }}>
                     Aktual API: USD • Estimasi konversi: $1 = Rp {USD_TO_IDR.toLocaleString('id-ID')}
                   </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
-                    {selectedLog.user_feedback === 1 ? 'Puas (Positif)' : selectedLog.user_feedback === -1 ? 'Kurang (Negatif)' : 'Belum Ada Rating'}
+                <div className="alogs-modal-stat-box">
+                  <div className="alogs-modal-stat-label">Feedback Pengguna</div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--cluv-neutral-900)', marginTop: 4 }}>
+                    {selectedLog.user_feedback === 1 ? (
+                      <span className="cluv-badge is-success"><ThumbsUp size={12} /> Puas (Positif)</span>
+                    ) : selectedLog.user_feedback === -1 ? (
+                      <span className="cluv-badge is-danger"><ThumbsDown size={12} /> Kurang (Negatif)</span>
+                    ) : (
+                      <span style={{ color: 'var(--cluv-neutral-500)', fontWeight: 500 }}>Belum Ada Rating</span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* UU PDP Compliance Box */}
-              <div
-                style={{
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: 10,
-                  padding: 16,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 12,
-                }}
-              >
-                <ShieldCheck size={22} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
+              {/* UU PDP Compliance Box (Invariant 4 & 16) */}
+              <div className="cluv-alert is-success">
+                <ShieldCheck size={22} style={{ flexShrink: 0, marginTop: 2 }} />
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 700 }}>
                     Privasi Data Pengguna Terlindungi (UU PDP No. 27/2022)
                   </div>
-                  <p style={{ fontSize: 12, color: '#15803d', margin: '4px 0 0 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.75rem', margin: '4px 0 0 0', lineHeight: 1.5 }}>
                     Sesuai dengan regulasi privasi perlindungan data pribadi dan kerahasiaan konsumen, isi percakapan konsultasi serta foto/data biometrik wajah pengguna dienkripsi secara penuh dan tidak ditampilkan pada log operasional admin.
                   </p>
                 </div>
@@ -844,27 +565,11 @@ export default function AdminLogsPage() {
             </div>
 
             {/* Modal Footer */}
-            <div
-              style={{
-                padding: '14px 24px',
-                borderTop: '1px solid #e5e7eb',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                background: '#f9fafb',
-              }}
-            >
+            <div className="cluv-modal-footer">
               <button
+                type="button"
                 onClick={() => setSelectedLog(null)}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: 8,
-                  border: '1px solid #d1d5db',
-                  background: '#ffffff',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: '#374151',
-                  cursor: 'pointer',
-                }}
+                className="cluv-btn is-outline is-sm"
               >
                 Tutup
               </button>
