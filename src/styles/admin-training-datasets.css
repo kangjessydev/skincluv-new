@@ -1,283 +1,164 @@
-/* ==========================================================================
-   Admin Training Datasets & Fine-Tuning Flywheel — Cluv Framework Extension
-   Tokens: var(--cluv-*)
-   ========================================================================== */
+/* src/styles/admin-training-datasets.css
+   =============================================================================
+   Admin Training Datasets & Fine-Tuning Flywheel (Cluv Framework Compliant)
+   High-quality dataset pairs, few-shot exemplars, JSONL exporter & 100% token consistency.
+   ============================================================================= */
 
-.admin-datasets-page {
-  max-width: 1200px;
-  width: 100%;
-}
-
-.admin-datasets-header-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--cluv-teal-50, #f0fdf4);
-  color: var(--cluv-teal-700, #15803d);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Metric Cards */
-.admin-datasets-metric-card {
-  background: var(--cluv-surface);
-  border: 1px solid var(--cluv-border);
-  border-radius: var(--cluv-radius-lg, 12px);
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.admin-datasets-metric-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.admin-datasets-metric-icon.is-blue {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.admin-datasets-metric-icon.is-gold {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.admin-datasets-metric-icon.is-gray {
-  background: var(--cluv-surface-subtle);
-  color: var(--cluv-text-muted);
-}
-
-.admin-datasets-metric-icon.is-purple {
-  background: #ede9fe;
-  color: #7c3aed;
-}
-
-.admin-datasets-metric-label {
-  font-size: 11px;
-  color: var(--cluv-text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.admin-datasets-metric-val {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--cluv-text-main);
-}
-
-.admin-datasets-metric-val.is-gold {
-  color: #d97706;
-}
-
-.admin-datasets-metric-val.is-purple {
-  color: #7c3aed;
-}
-
-/* Search and Filters Bar */
-.admin-datasets-toolbar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.admin-datasets-search-box {
-  flex: 1;
-  min-width: 260px;
-  display: flex;
-  gap: 10px;
-  background: var(--cluv-surface);
-  padding: 10px 14px;
-  border-radius: var(--cluv-radius, 8px);
-  border: 1px solid var(--cluv-border);
-  align-items: center;
-}
-
-.admin-datasets-search-input {
-  border: none;
-  outline: none;
-  font-size: 13px;
-  width: 100%;
-  color: var(--cluv-text-main);
-  background: transparent;
-}
-
-.admin-datasets-search-clear {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: var(--cluv-text-muted);
-}
-
-.admin-datasets-filter-select {
-  padding: 10px 14px;
-  border-radius: var(--cluv-radius, 8px);
-  border: 1px solid var(--cluv-border);
-  background: var(--cluv-surface);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--cluv-text-main);
-  cursor: pointer;
-}
-
-/* Datasets Table Container */
-.admin-datasets-table-card {
-  background: var(--cluv-surface);
-  border-radius: var(--cluv-radius-lg, 12px);
-  border: 1px solid var(--cluv-border);
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.admin-datasets-table-wrap {
-  overflow-x: auto;
-}
-
-.admin-datasets-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.admin-datasets-table th {
-  padding: 12px 16px;
-  font-weight: 600;
-  color: var(--cluv-text-muted);
-  background: var(--cluv-surface-subtle);
-  border-bottom: 1px solid var(--cluv-border);
-}
-
-.admin-datasets-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--cluv-border-subtle, #f3f4f6);
-}
-
-/* Feature & Tier Badges */
-.admin-datasets-feature-badge {
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.admin-datasets-tier-badge {
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.admin-datasets-tier-badge.is-gold {
-  background: #fef3c7;
-  color: #d97706;
-  border: 1px solid #fde68a;
-}
-
-.admin-datasets-tier-badge.is-silver {
-  background: var(--cluv-surface-subtle);
-  color: var(--cluv-text-main);
-  border: 1px solid var(--cluv-border);
-}
-
-.admin-datasets-tier-badge.is-candidate {
-  background: var(--cluv-surface-subtle);
-  color: var(--cluv-text-muted);
-  border: 1px solid var(--cluv-border);
-}
-
-.admin-datasets-exemplar-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.admin-datasets-exemplar-btn.is-active {
-  border: 1px solid #c4b5fd;
-  background: #ede9fe;
-  color: #6d28d9;
-}
-
-.admin-datasets-exemplar-btn.is-inactive {
-  border: 1px solid var(--cluv-border);
-  background: var(--cluv-surface);
-  color: var(--cluv-text-muted);
-}
-
-.admin-datasets-tag {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  background: var(--cluv-surface-subtle);
-  color: var(--cluv-text-muted);
-}
-
-/* Detail Modal */
-.admin-datasets-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 12px;
-}
-
-.admin-datasets-modal-content {
-  background: var(--cluv-surface);
-  border-radius: var(--cluv-radius-lg, 16px);
-  width: 100%;
-  maxWidth: 780px;
-  maxHeight: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.admin-datasets-modal-header {
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--cluv-border);
+/* Toolbar Card */
+.ad-toolbar-card {
+  padding: 14px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.admin-datasets-modal-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--cluv-text-main);
-  margin: 0;
+.ad-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 8px 14px;
+  min-width: 280px;
+  flex: 1;
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
 }
 
-.admin-datasets-modal-body {
-  padding: 24px;
+.ad-search-wrap:focus-within {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+.ad-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  width: 100%;
+  color: var(--cluv-neutral-900);
+}
+
+.ad-search-input::placeholder {
+  color: var(--cluv-neutral-400);
+}
+
+.ad-filter-select {
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  background: var(--cluv-surface);
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-700);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+}
+
+.ad-filter-select:focus {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+/* Table Card & Content */
+.ad-table-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.ad-input-preview {
+  color: var(--cluv-neutral-900);
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+}
+
+.ad-exemplar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--cluv-radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--cluv-dur-fast) var(--cluv-ease);
+}
+
+.ad-exemplar-btn.is-active {
+  background: var(--cluv-gold-soft);
+  color: var(--cluv-gold);
+  border-color: var(--cluv-gold);
+}
+
+.ad-exemplar-btn.is-inactive {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
+  border-color: var(--cluv-border);
+}
+
+.ad-tag-pill {
+  padding: 2px 6px;
+  border-radius: var(--cluv-radius-xs);
+  font-size: 0.6875rem;
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
+  border: 1px solid var(--cluv-neutral-200);
+}
+
+/* Modal details */
+.ad-tier-selector-box {
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ad-box-preview {
+  background: var(--cluv-neutral-50);
+  padding: 12px 14px;
+  border-radius: var(--cluv-radius-md);
+  border: 1px solid var(--cluv-border);
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-900);
+  white-space: pre-wrap;
+  max-height: 140px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
 }
 
-.admin-datasets-modal-footer {
-  padding: 12px 24px;
-  border-top: 1px solid var(--cluv-border);
-  display: flex;
-  justify-content: flex-end;
-  background: var(--cluv-surface-subtle);
+.ad-code-preview {
+  margin: 0;
+  background: var(--cluv-neutral-900);
+  color: var(--cluv-neutral-100);
+  padding: 14px;
+  border-radius: var(--cluv-radius-md);
+  font-size: 0.75rem;
+  font-family: monospace;
+  overflow-x: auto;
+  max-height: 220px;
+}
+
+@media (max-width: 768px) {
+  .ad-toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ad-search-wrap {
+    min-width: 100%;
+  }
+
+  .ad-filter-select {
+    width: 100%;
+  }
 }

@@ -158,25 +158,36 @@ export default function AdminTrainingDatasetsPage() {
     setTimeout(() => setCopiedResponse(false), 2000)
   }
 
+  const renderTierBadge = (tier: string) => {
+    switch (tier) {
+      case 'gold':
+        return <span className="cluv-badge is-gold"><Star size={11} /> Gold</span>
+      case 'silver':
+        return <span className="cluv-badge is-neutral">Silver</span>
+      default:
+        return <span className="cluv-badge is-neutral">{tier}</span>
+    }
+  }
+
   return (
-    <div className="admin-page-container admin-datasets-page">
+    <div className="admin-page-container cluv-animate-fade">
       {/* Header */}
       <div className="admin-page-header">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="admin-datasets-header-icon">
+          <div className="admin-header-title-row">
+            <div className="admin-header-icon-wrap" style={{ background: 'var(--cluv-teal-soft)', color: 'var(--cluv-teal)' }}>
               <FileCode size={22} />
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--cluv-text-main)', margin: 0 }}>
-              Pusat Dataset & Fine-Tuning AI (Training Flywheel)
+            <h1 className="admin-page-title">
+              Pusat Dataset &amp; Fine-Tuning AI (Training Flywheel)
             </h1>
           </div>
-          <p style={{ color: 'var(--cluv-text-muted)', fontSize: 14, marginTop: 4 }}>
+          <p className="admin-page-subtitle">
             Repositori data pasangan instruksi-jawaban terkurasi untuk melatih (fine-tune) model AI masa depan dan kalibrasi prompt aktif.
           </p>
         </div>
 
-        <div className="admin-page-header-actions">
+        <div className="admin-header-actions">
           <button
             type="button"
             onClick={loadDatasets}
@@ -192,72 +203,60 @@ export default function AdminTrainingDatasetsPage() {
             disabled={filtered.length === 0}
             className="cluv-btn is-primary is-sm"
           >
-            <Download size={16} /> Unduh Dataset (JSONL)
+            <Download size={15} /> Unduh Dataset (JSONL)
           </button>
         </div>
       </div>
 
       {/* Feedback Banner */}
       {feedback && (
-        <div className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`} style={{ marginBottom: 20 }}>
+        <div className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'} cluv-mb-4`}>
           {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{feedback.message}</span>
         </div>
       )}
 
       {/* Top Metrics Cards */}
-      <div className="admin-grid-cards">
-        <div className="admin-datasets-metric-card">
-          <div className="admin-datasets-metric-icon is-blue">
+      <div className="cluv-stat-grid cols-4">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
             <FileCode size={20} />
           </div>
           <div>
-            <div className="admin-datasets-metric-label">
-              Total Pasangan Training
-            </div>
-            <div className="admin-datasets-metric-val cluv-tabular-nums">
-              {metrics.total} sampel
-            </div>
+            <div className="cluv-stat-label">Total Pasangan Training</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.total} sampel</div>
           </div>
         </div>
 
-        <div className="admin-datasets-metric-card">
-          <div className="admin-datasets-metric-icon is-gold">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-gold">
             <Star size={20} />
           </div>
           <div>
-            <div className="admin-datasets-metric-label">
-              Gold Standard (Terkurasi)
-            </div>
-            <div className="admin-datasets-metric-val is-gold cluv-tabular-nums">
+            <div className="cluv-stat-label">Gold Standard (Terkurasi)</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: 'var(--cluv-gold)' }}>
               {metrics.gold} sampel
             </div>
           </div>
         </div>
 
-        <div className="admin-datasets-metric-card">
-          <div className="admin-datasets-metric-icon is-gray">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-neutral">
             <CheckCircle2 size={20} />
           </div>
           <div>
-            <div className="admin-datasets-metric-label">
-              Silver Standard
-            </div>
-            <div className="admin-datasets-metric-val cluv-tabular-nums">
-              {metrics.silver} sampel
-            </div>
+            <div className="cluv-stat-label">Silver Standard</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.silver} sampel</div>
           </div>
         </div>
 
-        <div className="admin-datasets-metric-card">
-          <div className="admin-datasets-metric-icon is-purple">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-rose">
             <Sparkles size={20} />
           </div>
           <div>
-            <div className="admin-datasets-metric-label">
-              Few-Shot Exemplars Aktif
-            </div>
-            <div className="admin-datasets-metric-val is-purple cluv-tabular-nums">
+            <div className="cluv-stat-label">Few-Shot Exemplars Aktif</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: 'var(--cluv-teal)' }}>
               {metrics.exemplars} contoh
             </div>
           </div>
@@ -265,21 +264,22 @@ export default function AdminTrainingDatasetsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="admin-datasets-toolbar">
-        <div className="admin-datasets-search-box">
-          <Search size={16} color="var(--cluv-text-muted)" />
+      <div className="cluv-card ad-toolbar-card">
+        <div className="ad-search-wrap">
+          <Search size={16} className="text-slate-400" />
           <input
             type="text"
             placeholder="Cari user prompt atau tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="admin-datasets-search-input"
+            className="ad-search-input"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="admin-datasets-search-clear"
+              className="cluv-link is-muted"
+              aria-label="Bersihkan pencarian"
             >
               <X size={14} />
             </button>
@@ -289,7 +289,7 @@ export default function AdminTrainingDatasetsPage() {
         <select
           value={featureFilter}
           onChange={(e) => setFeatureFilter(e.target.value)}
-          className="admin-datasets-filter-select"
+          className="ad-filter-select"
         >
           <option value="all">Semua Fitur</option>
           <option value="face_analysis">Scan Wajah</option>
@@ -300,7 +300,7 @@ export default function AdminTrainingDatasetsPage() {
         <select
           value={tierFilter}
           onChange={(e) => setTierFilter(e.target.value)}
-          className="admin-datasets-filter-select"
+          className="ad-filter-select"
         >
           <option value="all">Semua Tier Kualitas</option>
           <option value="gold">Gold (Gold Standard)</option>
@@ -310,45 +310,33 @@ export default function AdminTrainingDatasetsPage() {
       </div>
 
       {/* Table Container */}
-      <div className="admin-datasets-table-card">
-        <div className="admin-datasets-table-wrap">
-          <table className="admin-datasets-table">
+      <div className="cluv-card ad-table-card">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
             <thead>
               <tr>
-                <th style={{ textAlign: 'left' }}>
-                  Fitur AI
-                </th>
-                <th style={{ textAlign: 'left' }}>
-                  Input Prompt Pengguna
-                </th>
-                <th style={{ textAlign: 'center' }}>
-                  Tier Kualitas
-                </th>
-                <th style={{ textAlign: 'center' }}>
-                  Few-Shot Exemplar
-                </th>
-                <th style={{ textAlign: 'left' }}>
-                  Domain Tags
-                </th>
-                <th style={{ textAlign: 'right' }}>
-                  Aksi
-                </th>
+                <th style={{ textAlign: 'left' }}>Fitur AI</th>
+                <th style={{ textAlign: 'left' }}>Input Prompt Pengguna</th>
+                <th style={{ textAlign: 'center' }}>Tier Kualitas</th>
+                <th style={{ textAlign: 'center' }}>Few-Shot Exemplar</th>
+                <th style={{ textAlign: 'left' }}>Domain Tags</th>
+                <th style={{ textAlign: 'right' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: 48, color: 'var(--cluv-text-muted)' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px auto' }} />
                     <div>Memuat dataset training...</div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: 48, color: 'var(--cluv-text-muted)' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <FileCode size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                    <div style={{ fontWeight: 600, color: 'var(--cluv-text-main)' }}>Belum ada data training</div>
-                    <div style={{ fontSize: 12, marginTop: 4 }}>
+                    <div style={{ fontWeight: 600, color: 'var(--cluv-neutral-800)' }}>Belum ada data training</div>
+                    <div style={{ fontSize: '0.75rem', marginTop: 4 }}>
                       Data pasangan instruksi-jawaban akan terakumulasi dari penggunaan AI dan kurasi feedback.
                     </div>
                   </td>
@@ -357,37 +345,26 @@ export default function AdminTrainingDatasetsPage() {
                 filtered.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <span className="admin-datasets-feature-badge">
+                      <span className="cluv-badge is-neutral">
                         {item.feature_slug}
                       </span>
                     </td>
 
                     <td>
-                      <div
-                        style={{
-                          color: 'var(--cluv-text-main)',
-                          maxWidth: 380,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          fontSize: 13,
-                        }}
-                      >
+                      <div className="ad-input-preview">
                         {item.user_input || '(Attachment foto / tanpa teks)'}
                       </div>
                     </td>
 
                     <td style={{ textAlign: 'center' }}>
-                      <span className={`admin-datasets-tier-badge is-${item.quality_tier}`}>
-                        {item.quality_tier}
-                      </span>
+                      {renderTierBadge(item.quality_tier)}
                     </td>
 
                     <td style={{ textAlign: 'center' }}>
                       <button
                         type="button"
                         onClick={() => toggleExemplar(item.id, item.is_few_shot_exemplar)}
-                        className={`admin-datasets-exemplar-btn ${item.is_few_shot_exemplar ? 'is-active' : 'is-inactive'}`}
+                        className={`ad-exemplar-btn ${item.is_few_shot_exemplar ? 'is-active' : 'is-inactive'}`}
                       >
                         <Sparkles size={11} />
                         {item.is_few_shot_exemplar ? 'Exemplar Aktif' : 'Nonaktif'}
@@ -397,10 +374,7 @@ export default function AdminTrainingDatasetsPage() {
                     <td>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {item.domain_tags?.map((t, idx) => (
-                          <span
-                            key={idx}
-                            className="admin-datasets-tag"
-                          >
+                          <span key={idx} className="ad-tag-pill">
                             #{t}
                           </span>
                         ))}
@@ -413,7 +387,7 @@ export default function AdminTrainingDatasetsPage() {
                         onClick={() => setSelectedDataset(item)}
                         className="cluv-btn is-outline is-sm"
                       >
-                        <Eye size={12} /> Detail
+                        <Eye size={13} /> Detail
                       </button>
                     </td>
                   </tr>
@@ -427,53 +401,44 @@ export default function AdminTrainingDatasetsPage() {
       {/* Detail Modal */}
       {selectedDataset && (
         <div
-          className="admin-datasets-modal-overlay"
+          className="cluv-modal-overlay"
           onClick={() => setSelectedDataset(null)}
         >
           <div
-            className="admin-datasets-modal-content"
+            className="cluv-modal-content"
+            style={{ maxWidth: 780 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="admin-datasets-modal-header">
+            <div className="cluv-modal-header">
               <div>
-                <h2 className="admin-datasets-modal-title">
+                <h2 className="cluv-modal-title">
                   Detail Sampel Data Training AI
                 </h2>
-                <div style={{ fontSize: 12, color: 'var(--cluv-text-muted)', marginTop: 2 }}>
+                <p className="cluv-modal-subtitle">
                   Fitur: <code style={{ color: 'var(--cluv-teal)' }}>{selectedDataset.feature_slug}</code>
-                </div>
+                </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedDataset(null)}
-                className="cluv-btn is-sm"
-                style={{ padding: 6 }}
+                className="cluv-modal-close-btn"
+                aria-label="Tutup modal"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="admin-datasets-modal-body">
+            <div className="cluv-modal-body">
               {/* Quality Tier Selector */}
-              <div
-                style={{
-                  background: 'var(--cluv-surface-subtle)',
-                  border: '1px solid var(--cluv-border)',
-                  borderRadius: 'var(--cluv-radius, 8px)',
-                  padding: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
+              <div className="ad-tier-selector-box">
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--cluv-text-main)' }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-neutral-900)' }}>
                     Tingkat Kurasi Kualitas
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--cluv-text-muted)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--cluv-neutral-500)' }}>
                     Pilih apakah sampel ini layak menjadi standar emas untuk fine-tuning
                   </div>
                 </div>
@@ -485,7 +450,7 @@ export default function AdminTrainingDatasetsPage() {
                       type="button"
                       onClick={() => updateTier(selectedDataset.id, tier)}
                       className={`cluv-btn is-sm ${selectedDataset.quality_tier === tier ? 'is-primary' : 'is-outline'}`}
-                      style={{ textTransform: 'uppercase', fontSize: 11 }}
+                      style={{ textTransform: 'uppercase', fontSize: '0.6875rem' }}
                     >
                       {tier}
                     </button>
@@ -495,22 +460,10 @@ export default function AdminTrainingDatasetsPage() {
 
               {/* User Input Prompt */}
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-neutral-900)', marginBottom: 6 }}>
                   Input Prompt Pengguna
                 </div>
-                <div
-                  style={{
-                    background: 'var(--cluv-surface-subtle)',
-                    padding: 12,
-                    borderRadius: 'var(--cluv-radius, 8px)',
-                    border: '1px solid var(--cluv-border)',
-                    fontSize: 12,
-                    color: 'var(--cluv-text-main)',
-                    whiteSpace: 'pre-wrap',
-                    maxHeight: 120,
-                    overflowY: 'auto',
-                  }}
-                >
+                <div className="ad-box-preview">
                   {selectedDataset.user_input || '(Attachment gambar multimodal)'}
                 </div>
               </div>
@@ -525,7 +478,7 @@ export default function AdminTrainingDatasetsPage() {
                     marginBottom: 6,
                   }}
                 >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cluv-text-main)' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-neutral-900)' }}>
                     Ideal Output Response (Ground Truth)
                   </span>
                   <button
@@ -537,26 +490,14 @@ export default function AdminTrainingDatasetsPage() {
                     {copiedResponse ? 'Tersalin' : 'Salin Respon'}
                   </button>
                 </div>
-                <pre
-                  style={{
-                    margin: 0,
-                    background: 'var(--cluv-neutral-900, #0f172a)',
-                    color: '#e2e8f0',
-                    padding: 12,
-                    borderRadius: 'var(--cluv-radius, 8px)',
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                    overflowX: 'auto',
-                    maxHeight: 200,
-                  }}
-                >
+                <pre className="ad-code-preview">
                   {JSON.stringify(selectedDataset.ideal_response, null, 2)}
                 </pre>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="admin-datasets-modal-footer">
+            <div className="cluv-modal-footer">
               <button
                 type="button"
                 onClick={() => setSelectedDataset(null)}
