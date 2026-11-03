@@ -1,0 +1,159 @@
+/* ==========================================================================
+   Admin Pricing & Quota Management Styles (Skincluv Admin)
+   Pure Cluv Design System tokens & classes
+   ========================================================================== */
+
+.admin-pricing-card {
+  margin-bottom: 28px;
+}
+
+.admin-pricing-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-pricing-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.admin-pricing-card-desc {
+  font-size: 13px;
+  color: var(--cluv-neutral-500);
+  margin: 4px 0 0 0;
+  line-height: 1.5;
+}
+
+.admin-pricing-card-desc strong {
+  color: var(--cluv-neutral-800);
+}
+
+/* Code badge */
+.admin-pricing-code {
+  display: inline-block;
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-700);
+  padding: 3px 8px;
+  border-radius: var(--cluv-radius-sm, 6px);
+  font-size: 12px;
+  font-family: var(--cluv-font-mono, monospace);
+  border: 1px solid var(--cluv-border);
+  font-weight: 600;
+}
+
+/* Custom styled inputs */
+.admin-pricing-input {
+  padding: 7px 10px;
+  border-radius: var(--cluv-radius-md, 8px);
+  border: 1.5px solid var(--cluv-border);
+  background: var(--cluv-surface);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--cluv-neutral-900);
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.admin-pricing-input:focus {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
+}
+
+.admin-pricing-input.is-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.admin-pricing-input.is-locked {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-500);
+  cursor: not-allowed;
+  border-style: dashed;
+  border-color: var(--cluv-neutral-300);
+}
+
+.admin-pricing-curr {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cluv-neutral-400);
+  user-select: none;
+}
+
+/* Bullet list in modal */
+.admin-bullet-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 2px;
+}
+
+.admin-bullet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--cluv-neutral-50);
+  border-radius: var(--cluv-radius-md, 8px);
+  border: 1px solid var(--cluv-border);
+  font-size: 13px;
+  color: var(--cluv-neutral-800);
+  transition: all 0.15s ease;
+}
+
+.admin-bullet-item:hover {
+  background: var(--cluv-neutral-100);
+  border-color: var(--cluv-neutral-300);
+}
+
+.admin-bullet-del-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--cluv-rose);
+  padding: 4px;
+  border-radius: var(--cluv-radius-sm, 6px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.admin-bullet-del-btn:hover {
+  background: var(--cluv-rose-soft);
+  color: var(--cluv-rose-dark, #b91c1c);
+}
+
+.admin-bullet-input-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* Matrix Quota specific */
+.admin-matrix-tier-head {
+  text-align: center;
+  padding: 12px 14px;
+}
+
+.admin-matrix-tier-name {
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  display: block;
+}
+
+.admin-matrix-tier-price {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cluv-teal);
+  margin-top: 2px;
+}

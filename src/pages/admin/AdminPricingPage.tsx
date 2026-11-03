@@ -12,6 +12,7 @@ import {
   Tag,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import '@/styles/admin-pricing.css'
 
 export interface Tier {
   id: string
@@ -208,92 +209,76 @@ export default function AdminPricingPage() {
   }
 
   return (
-    <div className="admin-page-container" style={{ maxWidth: 1200 }}>
+    <div className="admin-page-container">
       {/* Header */}
       <div className="admin-page-header">
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>
+        <div className="admin-page-header-title">
+          <div className="cluv-badge is-teal is-sm" style={{ marginBottom: 6 }}>
+            Komersial & Akses Kuota
+          </div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--cluv-neutral-900)', margin: 0, letterSpacing: '-0.02em' }}>
             Paket Langganan, Promo & Kuota AI
           </h1>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
-            Kelola harga tagih, harga coret promosi, badge promo, dan batas kuota universal per paket (RFC 015 Tahap 4).
+          <p style={{ color: 'var(--cluv-neutral-500)', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
+            Kelola harga tagih riil Tripay, harga coret promosi, badge promo, dan batas kuota universal per paket (RFC 015 & Invarian 1, 2, 18).
           </p>
         </div>
 
-        <button
-          onClick={loadData}
-          disabled={isLoading}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            borderRadius: 8,
-            border: '1px solid #d1d5db',
-            background: '#ffffff',
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: 'pointer',
-          }}
-        >
-          <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Segarkan Data
-        </button>
+        <div className="admin-page-header-actions">
+          <button
+            onClick={loadData}
+            disabled={isLoading}
+            className="cluv-btn is-outline is-sm"
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <span>Segarkan Data</span>
+          </button>
+        </div>
       </div>
 
       {feedback && (
         <div
-          style={{
-            marginBottom: 20,
-            padding: '12px 16px',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
-            color: feedback.type === 'success' ? '#065f46' : '#991b1b',
-            border: `1px solid ${feedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-          }}
+          className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`}
+          style={{ marginBottom: 24 }}
         >
-          {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-          <span>{feedback.message}</span>
+          <div className="cluv-alert-icon">
+            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          </div>
+          <div className="cluv-alert-content">
+            <p className="cluv-alert-message" style={{ fontWeight: 600 }}>{feedback.message}</p>
+          </div>
         </div>
       )}
 
       {/* Section 1: Dynamic Subscription Tiers & Promo Engine */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          padding: 24,
-          marginBottom: 32,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <CreditCard size={18} color="#4b5563" />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
-            Daftar Paket Langganan & Pengaturan Promo
-          </h2>
+      <div className="cluv-card admin-pricing-card">
+        <div className="admin-pricing-card-header">
+          <div className="cluv-card-icon-wrap is-teal">
+            <CreditCard size={18} />
+          </div>
+          <div>
+            <h2 className="admin-pricing-card-title">
+              Daftar Paket Langganan & Pengaturan Promo
+            </h2>
+            <p className="admin-pricing-card-desc">
+              Nilai pada kolom <strong>Harga Tagih</strong> adalah nominal riil yang ditagihkan Tripay (Invarian 18). Kolom <strong>Harga Normal Coret</strong> digunakan untuk menghitung persentase diskon hemat secara otomatis di UI pengguna.
+            </p>
+          </div>
         </div>
-        <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 16px 0' }}>
-          Nilai pada kolom <strong>Harga Tagih</strong> adalah nominal riil yang ditagihkan Tripay (Invarian 18). Kolom <strong>Harga Normal Coret</strong> digunakan untuk menghitung persentase diskon hemat secara otomatis di UI pengguna.
-        </p>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="admin-table-container">
+          <table className="admin-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Nama Paket</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Slug</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Harga Tagih (Tripay)</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Harga Normal Coret</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Diskon UI</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Badge Promosi</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Popular</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Fitur Bullets</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Status</th>
+              <tr>
+                <th style={{ width: 160 }}>Nama Paket</th>
+                <th style={{ width: 130 }}>Slug</th>
+                <th style={{ width: 150 }}>Harga Tagih (Tripay)</th>
+                <th style={{ width: 150 }}>Harga Normal Coret</th>
+                <th style={{ textAlign: 'center', width: 90 }}>Diskon UI</th>
+                <th style={{ width: 160 }}>Badge Promosi</th>
+                <th style={{ textAlign: 'center', width: 80 }}>Popular</th>
+                <th style={{ textAlign: 'center', width: 120 }}>Fitur Bullets</th>
+                <th style={{ textAlign: 'center', width: 110 }}>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -304,37 +289,31 @@ export default function AdminPricingPage() {
                 const discountPct = hasDiscount ? Math.round(((orig - cur) / orig) * 100) : 0
 
                 return (
-                  <tr key={t.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={t.id} className="admin-table-row">
                     {/* Nama Tier */}
-                    <td style={{ padding: '12px' }}>
+                    <td>
                       <input
+                        className="admin-pricing-input"
                         defaultValue={t.name}
                         onBlur={(e) => {
                           const val = e.target.value.trim()
                           if (val && val !== t.name) handleTierUpdate(t, { name: val })
                         }}
-                        style={{
-                          padding: '6px 10px',
-                          borderRadius: 6,
-                          border: '1px solid #d1d5db',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          width: 130,
-                        }}
+                        style={{ width: '100%', minWidth: 120, fontWeight: 700 }}
                       />
                     </td>
 
                     {/* Slug */}
-                    <td style={{ padding: '12px' }}>
-                      <code style={{ background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, fontSize: 12 }}>
+                    <td>
+                      <code className="admin-pricing-code">
                         {t.slug}
                       </code>
                     </td>
 
                     {/* Harga Tagih Aktual */}
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ color: '#6b7280', fontSize: 12 }}>Rp</span>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="admin-pricing-curr">Rp</span>
                         <input
                           type="number"
                           min={0}
@@ -344,23 +323,16 @@ export default function AdminPricingPage() {
                             const val = parseInt(e.target.value, 10)
                             if (!isNaN(val) && val !== t.price_idr) handleTierUpdate(t, { price_idr: val })
                           }}
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: 6,
-                            border: '1px solid #d1d5db',
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: '#111827',
-                            width: 100,
-                          }}
+                          className="admin-pricing-input is-number"
+                          style={{ width: 100 }}
                         />
                       </div>
                     </td>
 
                     {/* Harga Normal Coret */}
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ color: '#6b7280', fontSize: 12 }}>Rp</span>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="admin-pricing-curr">Rp</span>
                         <input
                           type="number"
                           min={0}
@@ -372,41 +344,27 @@ export default function AdminPricingPage() {
                               handleTierUpdate(t, { original_price_idr: val })
                             }
                           }}
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: 6,
-                            border: '1px solid #d1d5db',
-                            fontSize: 13,
-                            color: '#6b7280',
-                            width: 100,
-                          }}
+                          className="admin-pricing-input is-number"
+                          style={{ width: 100, color: 'var(--cluv-neutral-500)' }}
                         />
                       </div>
                     </td>
 
                     {/* Diskon Persen Preview */}
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       {hasDiscount ? (
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            background: '#fee2e2',
-                            color: '#dc2626',
-                          }}
-                        >
+                        <span className="cluv-badge is-rose is-sm">
                           -{discountPct}%
                         </span>
                       ) : (
-                        <span style={{ color: '#9ca3af', fontSize: 12 }}>-</span>
+                        <span style={{ color: 'var(--cluv-neutral-400)', fontSize: 13 }}>-</span>
                       )}
                     </td>
 
                     {/* Promo Badge */}
-                    <td style={{ padding: '12px' }}>
+                    <td>
                       <input
+                        className="admin-pricing-input"
                         defaultValue={t.promo_badge || ''}
                         placeholder="Contoh: Ramah Kantong"
                         onBlur={(e) => {
@@ -415,60 +373,43 @@ export default function AdminPricingPage() {
                             handleTierUpdate(t, { promo_badge: val || null })
                           }
                         }}
-                        style={{
-                          padding: '6px 10px',
-                          borderRadius: 6,
-                          border: '1px solid #d1d5db',
-                          fontSize: 12,
-                          width: 140,
-                        }}
+                        style={{ width: '100%', minWidth: 130, fontSize: 12 }}
                       />
                     </td>
 
                     {/* Is Popular */}
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       <input
                         type="checkbox"
                         checked={t.is_popular || false}
                         onChange={(e) => handleTierUpdate(t, { is_popular: e.target.checked })}
-                        style={{ width: 16, height: 16, cursor: 'pointer' }}
+                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: 'var(--cluv-teal)' }}
                         title="Tandai sebagai Rekomendasi Utama"
                       />
                     </td>
 
                     {/* Kelola Fitur Bullet */}
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       <button
                         onClick={() => handleOpenBulletModal(t)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '5px 10px',
-                          borderRadius: 6,
-                          border: '1px solid #cbd5e1',
-                          background: '#f8fafc',
-                          color: '#334155',
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
+                        className="cluv-btn is-outline is-sm"
+                        style={{ padding: '4px 10px', fontSize: 12 }}
                       >
                         <Tag size={13} />
-                        {t.features_list?.length || 0} Poin
+                        <span>{t.features_list?.length || 0} Poin</span>
                       </button>
                     </td>
 
                     {/* Status Aktif */}
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                         <input
                           type="checkbox"
                           checked={t.is_active}
                           onChange={(e) => handleTierUpdate(t, { is_active: e.target.checked })}
-                          style={{ width: 16, height: 16, cursor: 'pointer' }}
+                          style={{ width: 16, height: 16, cursor: 'pointer', accentColor: 'var(--cluv-teal)' }}
                         />
-                        <span style={{ fontSize: 12, fontWeight: 500, color: t.is_active ? '#15803d' : '#9ca3af' }}>
+                        <span className={`cluv-badge ${t.is_active ? 'is-teal' : 'is-neutral'} is-sm`}>
                           {t.is_active ? 'Aktif' : 'Nonaktif'}
                         </span>
                       </label>
@@ -482,51 +423,47 @@ export default function AdminPricingPage() {
       </div>
 
       {/* Section 2: Biaya Kredit Fitur AI (Pay-per-Use) */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          padding: 24,
-          marginBottom: 32,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Coins size={18} color="#d97706" />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
-            Biaya Kredit Fitur AI (Pay-per-Use)
-          </h2>
+      <div className="cluv-card admin-pricing-card">
+        <div className="admin-pricing-card-header">
+          <div className="cluv-card-icon-wrap is-gold">
+            <Coins size={18} />
+          </div>
+          <div>
+            <h2 className="admin-pricing-card-title">
+              Biaya Kredit Fitur AI (Pay-per-Use)
+            </h2>
+            <p className="admin-pricing-card-desc">
+              Tentukan berapa Credits yang dipotong saat pengguna Free (atau subscriber yang kuota universal-nya habis) mengakses fitur AI. Perubahan langsung aktif seketika di seluruh aplikasi.
+            </p>
+          </div>
         </div>
-        <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 16px 0' }}>
-          Tentukan berapa Credits yang dipotong saat pengguna Free (atau pengguna berbayar yang kuotanya habis) mengakses fitur AI. Perubahan langsung aktif seketika di seluruh aplikasi.
-        </p>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="admin-table-container">
+          <table className="admin-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Nama Fitur</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Identifier (Slug)</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Biaya Penggunaan</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontWeight: 600, color: '#374151' }}>Status Fitur</th>
+              <tr>
+                <th style={{ width: 220 }}>Nama Fitur</th>
+                <th style={{ width: 180 }}>Identifier (Slug)</th>
+                <th>Biaya Penggunaan</th>
+                <th style={{ textAlign: 'center', width: 120 }}>Status Fitur</th>
               </tr>
             </thead>
             <tbody>
               {features.map((f) => (
-                <tr key={f.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ fontWeight: 600, color: '#111827' }}>{f.name}</span>
+                <tr key={f.id} className="admin-table-row">
+                  <td>
+                    <span style={{ fontWeight: 700, color: 'var(--cluv-neutral-900)' }}>{f.name}</span>
                   </td>
-                  <td style={{ padding: '12px' }}>
-                    <code style={{ background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, fontSize: 12 }}>
+                  <td>
+                    <code className="admin-pricing-code">
                       {f.slug}
                     </code>
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     {(() => {
                       const isInvariantLocked = f.slug === 'face_validation' || f.slug === 'universal_ai'
                       return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                           <input
                             type="number"
                             min={0}
@@ -540,41 +477,29 @@ export default function AdminPricingPage() {
                                 handleCreditCostUpdate(f, val)
                               }
                             }}
-                            style={{
-                              width: 80,
-                              padding: '6px 10px',
-                              borderRadius: 6,
-                              border: isInvariantLocked ? '1px dashed #94a3b8' : '1px solid #d1d5db',
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: isInvariantLocked ? '#64748b' : '#b45309',
-                              textAlign: 'center',
-                              background: isInvariantLocked ? '#f1f5f9' : '#fffbeb',
-                              cursor: isInvariantLocked ? 'not-allowed' : 'text',
-                            }}
+                            className={`admin-pricing-input is-number ${isInvariantLocked ? 'is-locked' : ''}`}
+                            style={{ width: 80, textAlign: 'center' }}
                           />
-                          <span style={{ fontSize: 12, fontWeight: 600, color: isInvariantLocked ? '#64748b' : '#92400e' }}>
-                            {f.slug === 'face_validation'
-                              ? '0 Credits (Invarian 2: Gatekeeper Gratis)'
-                              : f.slug === 'universal_ai'
-                              ? 'Invarian 1: Universal Quota Anchor'
-                              : 'Credits / panggil'}
-                          </span>
+                          {f.slug === 'face_validation' ? (
+                            <span className="cluv-badge is-teal is-sm">
+                              0 Credits (Invarian 2: Gatekeeper Gratis)
+                            </span>
+                          ) : f.slug === 'universal_ai' ? (
+                            <span className="cluv-badge is-gold is-sm">
+                              Invarian 1: Universal Quota Anchor
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--cluv-gold)' }}>
+                              Credits / panggil
+                            </span>
+                          )}
                         </div>
                       )
                     })()}
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     <span
-                      style={{
-                        display: 'inline-block',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        padding: '2px 8px',
-                        borderRadius: 9999,
-                        background: f.is_active !== false ? '#dcfce7' : '#fee2e2',
-                        color: f.is_active !== false ? '#15803d' : '#991b1b',
-                      }}
+                      className={`cluv-badge ${f.is_active !== false ? 'is-teal' : 'is-rose'} is-sm`}
                     >
                       {f.is_active !== false ? 'Aktif' : 'Nonaktif'}
                     </span>
@@ -587,35 +512,30 @@ export default function AdminPricingPage() {
       </div>
 
       {/* Section 3: Matriks Kuota Bulanan per Tier x Fitur */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          padding: 24,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Layers size={18} color="#4b5563" />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>
-            Matriks Kuota Bulanan (Batas Panggilan AI / Bulan)
-          </h2>
+      <div className="cluv-card admin-pricing-card">
+        <div className="admin-pricing-card-header">
+          <div className="cluv-card-icon-wrap is-teal">
+            <Layers size={18} />
+          </div>
+          <div>
+            <h2 className="admin-pricing-card-title">
+              Matriks Kuota Bulanan (Batas Panggilan AI / Bulan)
+            </h2>
+            <p className="admin-pricing-card-desc">
+              Ubah angka kuota bulanan per fitur lalu klik di luar input (blur) untuk menyimpan perubahan otomatis ke database.
+            </p>
+          </div>
         </div>
-        <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 16px 0' }}>
-          Ubah angka kuota bulanan per fitur lalu klik di luar input (blur) untuk menyimpan perubahan otomatis.
-        </p>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="admin-table-container">
+          <table className="admin-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600, color: '#374151', width: 220 }}>
-                  Fitur AI
-                </th>
+              <tr>
+                <th style={{ width: 220 }}>Fitur AI</th>
                 {tiers.map((t) => (
-                  <th key={t.id} style={{ textAlign: 'center', padding: '12px', fontWeight: 600, color: '#374151' }}>
-                    {t.name}
-                    <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#6b7280' }}>
+                  <th key={t.id} className="admin-matrix-tier-head">
+                    <span className="admin-matrix-tier-name">{t.name}</span>
+                    <span className="admin-matrix-tier-price">
                       {t.price_idr === 0 ? 'Gratis' : `Rp ${t.price_idr.toLocaleString('id-ID')}`}
                     </span>
                   </th>
@@ -624,17 +544,19 @@ export default function AdminPricingPage() {
             </thead>
             <tbody>
               {features.map((f) => (
-                <tr key={f.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 600, color: '#111827' }}>{f.name}</div>
-                    <code style={{ fontSize: 11, color: '#6b7280' }}>{f.slug}</code>
+                <tr key={f.id} className="admin-table-row">
+                  <td>
+                    <div style={{ fontWeight: 700, color: 'var(--cluv-neutral-900)' }}>{f.name}</div>
+                    <code style={{ fontSize: 11, color: 'var(--cluv-neutral-500)', fontFamily: 'var(--cluv-font-mono, monospace)' }}>
+                      {f.slug}
+                    </code>
                   </td>
                   {tiers.map((t) => {
                     const q = quotaMap[`${t.id}_${f.id}`]
                     const currentVal = q?.monthly_limit ?? 0
                     return (
-                      <td key={t.id} style={{ padding: '12px', textAlign: 'center' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <td key={t.id} style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <input
                             type="number"
                             min={0}
@@ -645,17 +567,10 @@ export default function AdminPricingPage() {
                                 handleQuotaChange(t.id, f.id, val)
                               }
                             }}
-                            style={{
-                              width: 80,
-                              padding: '6px 8px',
-                              borderRadius: 6,
-                              border: '1px solid #d1d5db',
-                              textAlign: 'center',
-                              fontSize: 13,
-                              fontWeight: 600,
-                            }}
+                            className="admin-pricing-input is-number"
+                            style={{ width: 75, textAlign: 'center' }}
                           />
-                          <span style={{ fontSize: 11, color: '#9ca3af' }}>req</span>
+                          <span style={{ fontSize: 11, color: 'var(--cluv-neutral-400)', fontWeight: 600 }}>req</span>
                         </div>
                       </td>
                     )
@@ -670,156 +585,100 @@ export default function AdminPricingPage() {
       {/* Modal: Kelola Poin Keuntungan Paket (features_list) */}
       {editingFeaturesTier && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 999,
-            padding: 16,
-          }}
+          className="cluv-modal-overlay"
           onClick={() => !isSavingBullets && setEditingFeaturesTier(null)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 12,
-              width: '100%',
-              maxWidth: 600,
-              padding: 24,
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            }}
+            className="cluv-modal-box is-md"
+            style={{ maxWidth: 580 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div className="cluv-modal-header">
               <div>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#111827' }}>
+                <h3 className="cluv-modal-title">
                   Poin Keuntungan: {editingFeaturesTier.name}
                 </h3>
-                <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#64748b' }}>
+                <p style={{ margin: '4px 0 0 0', fontSize: 12, color: 'var(--cluv-neutral-500)' }}>
                   Daftar bullet point ini akan langsung muncul pada card paket di halaman Toko Langganan pengguna.
                 </p>
               </div>
               <button
+                type="button"
+                className="cluv-modal-close"
                 onClick={() => setEditingFeaturesTier(null)}
                 disabled={isSavingBullets}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* List Poin */}
-            <div
-              style={{
-                maxHeight: 280,
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                marginBottom: 16,
-                padding: '4px 0',
-              }}
-            >
-              {tierBulletPoints.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>
-                  Belum ada poin keuntungan. Tambahkan di bawah.
-                </p>
-              ) : (
-                tierBulletPoints.map((item, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 12px',
-                      background: '#f8fafc',
-                      borderRadius: 8,
-                      border: '1px solid #e2e8f0',
-                      fontSize: 13,
-                    }}
-                  >
-                    <span style={{ color: '#1e293b' }}>{item}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveBullet(idx)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#ef4444',
-                        padding: 4,
-                      }}
-                      title="Hapus poin ini"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
+            <div className="cluv-modal-body" style={{ padding: '20px 24px' }}>
+              {/* List Poin */}
+              <div className="admin-bullet-list">
+                {tierBulletPoints.length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--cluv-neutral-400)', fontStyle: 'italic', margin: '8px 0' }}>
+                    Belum ada poin keuntungan. Tambahkan di bawah.
+                  </p>
+                ) : (
+                  tierBulletPoints.map((item, idx) => (
+                    <div key={idx} className="admin-bullet-item">
+                      <span>{item}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBullet(idx)}
+                        className="admin-bullet-del-btn"
+                        title="Hapus poin ini"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
 
-            {/* Tambah Poin Baru */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              <input
-                type="text"
-                value={newBulletText}
-                onChange={(e) => setNewBulletText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleAddBullet()
-                  }
-                }}
-                placeholder="Tambah poin keuntungan baru..."
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #cbd5e1',
-                  fontSize: 13,
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleAddBullet}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  background: '#0f172a',
-                  color: '#ffffff',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <Plus size={15} /> Tambah
-              </button>
+              {/* Tambah Poin Baru */}
+              <div className="admin-bullet-input-wrap">
+                <input
+                  type="text"
+                  value={newBulletText}
+                  onChange={(e) => setNewBulletText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddBullet()
+                    }
+                  }}
+                  placeholder="Tambah poin keuntungan baru..."
+                  className="admin-pricing-input"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddBullet}
+                  className="cluv-btn is-primary is-sm"
+                >
+                  <Plus size={15} />
+                  <span>Tambah</span>
+                </button>
+              </div>
             </div>
 
             {/* Modal Actions */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div
+              style={{
+                padding: '16px 24px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 10,
+                borderTop: '1px solid var(--cluv-border)',
+                background: 'var(--cluv-neutral-50)',
+              }}
+            >
               <button
                 type="button"
                 onClick={() => setEditingFeaturesTier(null)}
                 disabled={isSavingBullets}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid #cbd5e1',
-                  background: '#ffffff',
-                  color: '#334155',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
+                className="cluv-btn is-outline is-sm"
               >
                 Batal
               </button>
@@ -827,16 +686,7 @@ export default function AdminPricingPage() {
                 type="button"
                 onClick={handleSaveBulletPoints}
                 disabled={isSavingBullets}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#2563eb',
-                  color: '#ffffff',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
+                className="cluv-btn is-primary is-sm"
               >
                 {isSavingBullets ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
