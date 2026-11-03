@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Admin Product Handbook Styles (Skincluv Admin)
+   Pure Cluv Design System tokens & classes
+   ========================================================================== */
+
+.admin-handbook-page {
+  width: 100%;
+}
+
+/* Search Bar Wrapper */
+.admin-handbook-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 440px;
+}
+
+.admin-handbook-search-input {
+  width: 100%;
+  padding: 8px 34px 8px 36px;
+  background: var(--cluv-neutral-50);
+  border: 1.5px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md, 8px);
+  font-size: 13px;
+  color: var(--cluv-neutral-900);
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.admin-handbook-search-input:focus {
+  border-color: var(--cluv-teal);
+  background: var(--cluv-surface);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
+}
+
+.admin-handbook-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cluv-neutral-400);
+  pointer-events: none;
+}
+
+.admin-handbook-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--cluv-neutral-400);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-handbook-clear-btn:hover {
+  color: var(--cluv-neutral-700);
+}
+
+/* Handbook Card Entry */
+.admin-handbook-entry-card {
+  margin-bottom: 14px;
+  transition: all 0.15s ease;
+}
+
+.admin-handbook-entry-card:hover {
+  border-color: var(--cluv-neutral-300);
+}
+
+.admin-handbook-entry-card.is-draft {
+  opacity: 0.65;
+}
+
+/* Anti-Halusinasi "What It Is Not" Box */
+.admin-handbook-anti-box {
+  background: var(--cluv-rose-soft);
+  border: 1px solid var(--cluv-rose-line);
+  border-radius: var(--cluv-radius-md, 8px);
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--cluv-rose);
+  line-height: 1.45;
+}
+
+.admin-handbook-anti-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Simulator code box */
+.admin-handbook-code-block {
+  background: var(--cluv-neutral-900);
+  color: #f8fafc;
+  padding: 14px 16px;
+  border-radius: var(--cluv-radius-md, 8px);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  font-family: var(--cluv-font-mono, monospace);
+  border: 1px solid var(--cluv-neutral-800);
+}

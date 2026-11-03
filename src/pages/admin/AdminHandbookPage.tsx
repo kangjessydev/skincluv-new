@@ -18,6 +18,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import '@/styles/admin-handbook.css'
 
 export interface HandbookEntry {
   id: string
@@ -106,23 +107,21 @@ export default function AdminHandbookPage() {
       if (statusFilter === 'published' && !item.is_published) return false
       if (statusFilter === 'draft' && item.is_published) return false
 
-      if (!searchQuery.trim()) return true
-      const q = searchQuery.toLowerCase()
-      const name = item.canonical_name.toLowerCase()
-      const slug = item.slug.toLowerCase()
-      const desc = item.description.toLowerCase()
-      const notDesc = item.what_it_is_not.toLowerCase()
-      const aliases = (item.aliases || []).join(' ').toLowerCase()
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const matchName = item.canonical_name.toLowerCase().includes(q)
+        const matchSlug = item.slug.toLowerCase().includes(q)
+        const matchDesc = item.description.toLowerCase().includes(q)
+        const matchNot = item.what_it_is_not.toLowerCase().includes(q)
+        const matchAliases = item.aliases?.some((a) => a.toLowerCase().includes(q))
+        if (!matchName && !matchSlug && !matchDesc && !matchNot && !matchAliases) {
+          return false
+        }
+      }
 
-      return (
-        name.includes(q) ||
-        slug.includes(q) ||
-        desc.includes(q) ||
-        notDesc.includes(q) ||
-        aliases.includes(q)
-      )
+      return true
     })
-  }, [entries, searchQuery, categoryFilter, statusFilter])
+  }, [entries, categoryFilter, statusFilter, searchQuery])
 
   const metrics = useMemo(() => {
     const total = entries.length
@@ -145,11 +144,13 @@ export default function AdminHandbookPage() {
       is_published: entry.is_published,
     })
     setIsEditing(true)
+    setFeedback(null)
   }
 
   const startNew = () => {
     setForm(emptyForm)
     setIsEditing(true)
+    setFeedback(null)
   }
 
   const handleTogglePublish = async (entry: HandbookEntry) => {
@@ -157,10 +158,7 @@ export default function AdminHandbookPage() {
       const nextStatus = !entry.is_published
       const { error } = await supabase
         .from('skincluv_handbook')
-        .update({
-          is_published: nextStatus,
-          last_reviewed: new Date().toISOString(),
-        })
+        .update({ is_published: nextStatus, last_reviewed: new Date().toISOString() })
         .eq('id', entry.id)
 
       if (error) throw error
@@ -170,13 +168,13 @@ export default function AdminHandbookPage() {
       )
       setFeedback({
         type: 'success',
-        message: `Status publikasi "${entry.canonical_name}" berhasil diubah menjadi ${
-          nextStatus ? 'Aktif' : 'Draft'
+        message: `Status entri "${entry.canonical_name}" diubah menjadi ${
+          nextStatus ? 'Aktif (Terinjeksi ke AI)' : 'Draft (Nonaktif)'
         }.`,
       })
     } catch (err: any) {
       console.error('[AdminHandbook] Toggle error:', err)
-      setFeedback({ type: 'error', message: err.message || 'Gagal mengubah status.' })
+      setFeedback({ type: 'error', message: err.message || 'Gagal mengubah status publikasi.' })
     }
   }
 
@@ -184,18 +182,15 @@ export default function AdminHandbookPage() {
     if (!entryToDelete) return
     setIsLoading(true)
     try {
-      const { error } = await supabase
-        .from('skincluv_handbook')
-        .delete()
-        .eq('id', entryToDelete.id)
-
+      const { error } = await supabase.from('skincluv_handbook').delete().eq('id', entryToDelete.id)
       if (error) throw error
-      setEntries((prev) => prev.filter((e) => e.id !== entryToDelete.id))
+
       setFeedback({
         type: 'success',
-        message: `Entri "${entryToDelete.canonical_name}" berhasil dihapus.`,
+        message: `Entri "${entryToDelete.canonical_name}" berhasil dihapus dari buku panduan.`,
       })
       setEntryToDelete(null)
+      loadEntries()
     } catch (err: any) {
       console.error('[AdminHandbook] Delete error:', err)
       setFeedback({ type: 'error', message: err.message || 'Gagal menghapus entri.' })
@@ -263,24 +258,16 @@ export default function AdminHandbookPage() {
 
   const CATEGORY_CONFIG: Record<
     string,
-    { label: string; bg: string; text: string; border: string }
+    { label: string; badgeModifier: string }
   > = {
-    feature: { label: 'Fitur Inti', bg: '#e0f2fe', text: '#0284c7', border: '#bae6fd' },
-    billing: { label: 'Tagihan & Kredit', bg: '#fef3c7', text: '#d97706', border: '#fde68a' },
-    subscription: { label: 'Paket Langganan', bg: '#fef9c3', text: '#a16207', border: '#fef08a' },
-    gamification: { label: 'Gamifikasi & Misi', bg: '#f3e8ff', text: '#9333ea', border: '#e9d5ff' },
-    policy: { label: 'Kebijakan & Privasi', bg: '#e0e7ff', text: '#4338ca', border: '#c7d2fe' },
-    profile: { label: 'Profil Pengguna', bg: '#fce7f3', text: '#be185d', border: '#fbcfe8' },
-    architecture: { label: 'Arsitektur & Akun', bg: '#ede9fe', text: '#6d28d9', border: '#ddd6fe' },
-    clinical: { label: 'Klinis & Medis', bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' },
-  }
-
-  const getCategoryBadge = (category: string) => {
-    const config = CATEGORY_CONFIG[category]
-    if (config) {
-      return { bg: config.bg, text: config.text, border: config.border, label: config.label }
-    }
-    return { bg: '#f3f4f6', text: '#4b5563', border: '#e5e7eb', label: category }
+    feature: { label: 'Fitur Inti', badgeModifier: 'is-teal' },
+    billing: { label: 'Tagihan & Kredit', badgeModifier: 'is-gold' },
+    subscription: { label: 'Paket Langganan', badgeModifier: 'is-gold' },
+    gamification: { label: 'Gamifikasi & Misi', badgeModifier: 'is-purple' },
+    policy: { label: 'Kebijakan & Privasi', badgeModifier: 'is-purple' },
+    profile: { label: 'Profil Pengguna', badgeModifier: 'is-rose' },
+    architecture: { label: 'Arsitektur & Akun', badgeModifier: 'is-purple' },
+    clinical: { label: 'Klinis & Medis', badgeModifier: 'is-teal' },
   }
 
   // Preview Prompt yang diinjeksi ke LLM (Skinsistant)
@@ -298,47 +285,25 @@ export default function AdminHandbookPage() {
   }, [entries])
 
   return (
-    <div className="admin-page-container">
+    <div className="admin-page-container admin-handbook-page">
       {/* Header */}
       <div className="admin-page-header">
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: '#e0e7ff',
-                color: '#4f46e5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <BookMarked size={22} />
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
-                Buku Panduan Fitur Skincluv
-              </h1>
-              <p
-                style={{
-                  margin: '2px 0 0',
-                  fontSize: '0.8125rem',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
-                Ontologi produk internal untuk mencegah Skinsistant halusinasi fitur dan batasan
-                layanan (RFC 013).
-              </p>
-            </div>
+        <div className="admin-page-header-title">
+          <div className="cluv-badge is-teal is-sm" style={{ marginBottom: 6 }}>
+            <BookMarked size={12} /> AI Ontology & Anti-Halusinasi
           </div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--cluv-neutral-900)', margin: 0, letterSpacing: '-0.02em' }}>
+            Buku Panduan Fitur Skincluv
+          </h1>
+          <p style={{ color: 'var(--cluv-neutral-500)', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
+            Ontologi produk internal untuk mencegah Skinsistant halusinasi fitur dan batasan layanan (RFC 013 & Invarian 15).
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="admin-page-header-actions">
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="cluv-btn is-outline is-sm"
             onClick={() => setShowPromptPreview((v) => !v)}
             title="Lihat simulasi prompt injeksi"
           >
@@ -347,384 +312,199 @@ export default function AdminHandbookPage() {
           </button>
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="cluv-btn is-outline is-sm"
             onClick={loadEntries}
             disabled={isLoading}
             title="Segarkan data"
           >
-            <RefreshCw size={14} className={isLoading ? 'spin' : ''} />
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
             <span>Segarkan</span>
           </button>
-          <button type="button" className="btn btn-primary btn-sm" onClick={startNew}>
-            <Plus size={14} />
+          <button
+            type="button"
+            className="cluv-btn is-primary is-sm"
+            onClick={startNew}
+          >
+            <Plus size={15} />
             <span>Tambah Entri</span>
           </button>
         </div>
       </div>
 
+      {feedback && (
+        <div
+          className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`}
+          style={{ marginBottom: 24 }}
+        >
+          <div className="cluv-alert-icon">
+            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+          </div>
+          <div className="cluv-alert-content">
+            <p className="cluv-alert-message" style={{ fontWeight: 600 }}>{feedback.message}</p>
+          </div>
+        </div>
+      )}
+
       {/* Prompt Simulator Drawer */}
       {showPromptPreview && (
-        <div
-          style={{
-            background: 'var(--color-surface-container-low)',
-            border: '1px solid var(--color-secondary-container)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-md) var(--space-lg)',
-            marginBottom: 'var(--space-lg)',
-          }}
-        >
+        <div className="cluv-card is-compact" style={{ padding: '16px 20px', marginBottom: 24 }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: 8,
+              marginBottom: 10,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Shield size={16} color="var(--color-primary)" />
-              <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>
+              <Shield size={16} style={{ color: 'var(--cluv-teal)' }} />
+              <span style={{ fontWeight: 800, fontSize: 13, color: 'var(--cluv-neutral-900)' }}>
                 Simulasi Injeksi System Prompt (RFC 013 Handbook Context)
               </span>
             </div>
             <span
               style={{
-                fontSize: '0.75rem',
-                color: 'var(--color-text-muted)',
+                fontSize: 11,
+                color: 'var(--cluv-neutral-400)',
                 fontWeight: 600,
               }}
             >
               Hanya entri dengan status &quot;Aktif&quot; yang diinjeksi ke AI
             </span>
           </div>
-          <pre
-            style={{
-              background: '#0f172a',
-              color: '#f8fafc',
-              padding: '12px 16px',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '0.75rem',
-              lineHeight: 1.5,
-              whiteSpace: 'pre-wrap',
-              maxHeight: 220,
-              overflowY: 'auto',
-              margin: 0,
-              fontFamily: 'monospace',
-            }}
-          >
+          <pre className="admin-handbook-code-block">
             {renderedPromptPreview}
           </pre>
         </div>
       )}
 
       {/* Metric Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 'var(--space-md)',
-          marginBottom: 'var(--space-lg)',
-        }}
-      >
-        <div
-          style={{
-            background: 'var(--color-surface-container-lowest, #ffffff)',
-            border: '1px solid var(--color-secondary-container, #e5e7eb)',
-            borderRadius: 'var(--radius-xl, 12px)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#e0e7ff',
-              color: '#4f46e5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <BookMarked size={20} />
+      <div className="cluv-stat-grid cols-4" style={{ marginBottom: 24 }}>
+        <div className="cluv-stat-card">
+          <div className="cluv-card-icon-wrap is-teal" style={{ marginBottom: 12 }}>
+            <BookMarked size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Total Entri
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>
-              {metrics.total}
-            </div>
-          </div>
+          <div className="cluv-stat-label">Total Entri</div>
+          <div className="cluv-stat-value">{metrics.total}</div>
+          <div className="cluv-stat-subtext">Katalog ontologi produk</div>
         </div>
 
-        <div
-          style={{
-            background: 'var(--color-surface-container-lowest, #ffffff)',
-            border: '1px solid var(--color-secondary-container, #e5e7eb)',
-            borderRadius: 'var(--radius-xl, 12px)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#ecfdf5',
-              color: '#059669',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <CheckCircle2 size={20} />
+        <div className="cluv-stat-card">
+          <div className="cluv-card-icon-wrap is-teal" style={{ marginBottom: 12 }}>
+            <CheckCircle2 size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Entri Aktif (AI)
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#059669' }}>
-              {metrics.published}
-            </div>
-          </div>
+          <div className="cluv-stat-label">Aktif Di AI</div>
+          <div className="cluv-stat-value">{metrics.published}</div>
+          <div className="cluv-stat-subtext">Terinjeksi ke Skinsistant</div>
         </div>
 
-        <div
-          style={{
-            background: 'var(--color-surface-container-lowest, #ffffff)',
-            border: '1px solid var(--color-secondary-container, #e5e7eb)',
-            borderRadius: 'var(--radius-xl, 12px)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#f3f4f6',
-              color: '#6b7280',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <EyeOff size={20} />
+        <div className="cluv-stat-card">
+          <div className="cluv-card-icon-wrap is-neutral" style={{ marginBottom: 12 }}>
+            <EyeOff size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Entri Draft
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#6b7280' }}>
-              {metrics.drafts}
-            </div>
-          </div>
+          <div className="cluv-stat-label">Entri Draft</div>
+          <div className="cluv-stat-value">{metrics.drafts}</div>
+          <div className="cluv-stat-subtext">Tersimpan nonaktif</div>
         </div>
 
-        <div
-          style={{
-            background: 'var(--color-surface-container-lowest, #ffffff)',
-            border: '1px solid var(--color-secondary-container, #e5e7eb)',
-            borderRadius: 'var(--radius-xl, 12px)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#e0f2fe',
-              color: '#0284c7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Layers size={20} />
+        <div className="cluv-stat-card">
+          <div className="cluv-card-icon-wrap is-gold" style={{ marginBottom: 12 }}>
+            <Layers size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-              Kategori
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#0284c7' }}>
-              {metrics.categories}
-            </div>
-          </div>
+          <div className="cluv-stat-label">Kategori</div>
+          <div className="cluv-stat-value">{metrics.categories}</div>
+          <div className="cluv-stat-subtext">Taksonomi terdefinisi</div>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 12,
-          marginBottom: 'var(--space-lg)',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className="cluv-card is-compact" style={{ padding: '16px 20px', marginBottom: 24 }}>
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
+            gap: 14,
             alignItems: 'center',
-            gap: 10,
-            background: '#ffffff',
-            border: '1px solid #d1d5db',
-            borderRadius: 8,
-            padding: '0 12px',
-            height: 38,
-            flex: 1,
-            minWidth: 260,
-            maxWidth: 440,
-            boxSizing: 'border-box',
+            justifyContent: 'space-between',
           }}
         >
-          <Search size={16} color="#9ca3af" />
-          <input
-            type="text"
-            placeholder="Cari fitur, slug, definisi, atau apa yang bukan..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              border: 'none',
-              outline: 'none',
-              background: 'transparent',
-              fontSize: 13,
-              width: '100%',
-              color: '#111827',
-              height: '100%',
-            }}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: '#9ca3af',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-              }}
+          <div className="admin-handbook-search-wrap">
+            <Search size={16} className="admin-handbook-search-icon" />
+            <input
+              type="text"
+              placeholder="Cari fitur, slug, definisi, atau apa yang bukan..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="admin-handbook-search-input"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="admin-handbook-clear-btn"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="admin-select"
+              style={{ width: 180 }}
             >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+              <option value="all">Semua Kategori</option>
+              {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
+                <option key={key} value={key}>
+                  {cfg.label}
+                </option>
+              ))}
+            </select>
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{
-              height: 38,
-              padding: '0 14px',
-              borderRadius: 8,
-              border: '1px solid #d1d5db',
-              background: '#ffffff',
-              fontSize: 13,
-              fontWeight: 500,
-              color: '#374151',
-              cursor: 'pointer',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          >
-            <option value="all">Semua Kategori</option>
-            {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
-              <option key={key} value={key}>
-                {cfg.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            style={{
-              height: 38,
-              padding: '0 14px',
-              borderRadius: 8,
-              border: '1px solid #d1d5db',
-              background: '#ffffff',
-              fontSize: 13,
-              fontWeight: 500,
-              color: '#374151',
-              cursor: 'pointer',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          >
-            <option value="all">Semua Status</option>
-            <option value="published">Hanya Aktif</option>
-            <option value="draft">Hanya Draft</option>
-          </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="admin-select"
+              style={{ width: 140 }}
+            >
+              <option value="all">Semua Status</option>
+              <option value="published">Hanya Aktif</option>
+              <option value="draft">Hanya Draft</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Main Content List */}
       {isLoading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-muted)' }}>
-          <RefreshCw size={24} className="spin" style={{ margin: '0 auto 12px' }} />
+        <div style={{ padding: 48, textAlign: 'center', color: 'var(--cluv-neutral-400)' }}>
+          <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px', color: 'var(--cluv-teal)' }} />
           <div>Memuat buku panduan Skincluv...</div>
         </div>
       ) : filteredEntries.length === 0 ? (
-        <div
-          style={{
-            padding: 48,
-            textAlign: 'center',
-            background: 'var(--color-surface-container-lowest)',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--color-secondary-container)',
-          }}
-        >
-          <Info size={32} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px' }} />
-          <h3 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 700 }}>
+        <div className="cluv-card" style={{ padding: 48, textAlign: 'center' }}>
+          <Info size={32} style={{ color: 'var(--cluv-neutral-400)', margin: '0 auto 12px' }} />
+          <h3 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 800, color: 'var(--cluv-neutral-900)' }}>
             Tidak ada entri panduan yang sesuai
           </h3>
-          <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+          <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--cluv-neutral-500)' }}>
             Coba ubah kata kunci pencarian atau reset filter kategori di atas.
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {filteredEntries.map((entry) => {
-            const badge = getCategoryBadge(entry.category)
+            const catCfg = CATEGORY_CONFIG[entry.category]
+            const badgeModifier = catCfg?.badgeModifier || 'is-neutral'
+            const catLabel = catCfg?.label || entry.category
+
             return (
               <div
                 key={entry.id}
-                style={{
-                  background: 'var(--color-surface-container-lowest)',
-                  border: '1px solid var(--color-secondary-container)',
-                  borderRadius: 'var(--radius-xl)',
-                  padding: 'var(--space-md) var(--space-lg)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  opacity: entry.is_published ? 1 : 0.65,
-                  transition: 'box-shadow 0.2s',
-                }}
+                className={`cluv-card admin-handbook-entry-card ${!entry.is_published ? 'is-draft' : ''}`}
+                style={{ padding: '18px 22px' }}
               >
                 <div
                   style={{
@@ -733,6 +513,7 @@ export default function AdminHandbookPage() {
                     justifyContent: 'space-between',
                     gap: 12,
                     flexWrap: 'wrap',
+                    marginBottom: 10,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -740,7 +521,7 @@ export default function AdminHandbookPage() {
                       style={{
                         fontSize: '0.9375rem',
                         fontWeight: 800,
-                        color: 'var(--color-text-main)',
+                        color: 'var(--cluv-neutral-900)',
                       }}
                     >
                       {entry.canonical_name}
@@ -748,73 +529,39 @@ export default function AdminHandbookPage() {
                     <code
                       style={{
                         fontSize: '0.6875rem',
-                        background: 'var(--color-surface-container-low)',
+                        background: 'var(--cluv-neutral-100)',
                         padding: '2px 8px',
-                        borderRadius: 'var(--radius-sm)',
-                        color: 'var(--color-text-muted)',
+                        borderRadius: 4,
+                        color: 'var(--cluv-neutral-600)',
+                        fontFamily: 'var(--cluv-font-mono, monospace)',
+                        border: '1px solid var(--cluv-border)',
                       }}
                     >
                       slug: {entry.slug}
                     </code>
-                    <span
-                      style={{
-                        fontSize: '0.6875rem',
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: 'var(--radius-full)',
-                        background: badge.bg,
-                        color: badge.text,
-                        border: `1px solid ${badge.border || '#e5e7eb'}`,
-                      }}
-                    >
-                      {badge.label}
+                    <span className={`cluv-badge ${badgeModifier} is-sm`}>
+                      {catLabel}
                     </span>
                     {entry.is_published ? (
-                      <span
-                        style={{
-                          fontSize: '0.6875rem',
-                          fontWeight: 700,
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-full)',
-                          background: '#ecfdf5',
-                          color: '#047857',
-                          border: '1px solid #a7f3d0',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
+                      <span className="cluv-badge is-teal is-sm">
                         <span
                           style={{
                             width: 6,
                             height: 6,
                             borderRadius: '50%',
-                            background: '#10b981',
+                            background: 'var(--cluv-teal)',
                           }}
                         />
                         Aktif di AI
                       </span>
                     ) : (
-                      <span
-                        style={{
-                          fontSize: '0.6875rem',
-                          fontWeight: 700,
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-full)',
-                          background: '#f8fafc',
-                          color: '#64748b',
-                          border: '1px solid #e2e8f0',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
+                      <span className="cluv-badge is-neutral is-sm">
                         <span
                           style={{
                             width: 6,
                             height: 6,
                             borderRadius: '50%',
-                            background: '#94a3b8',
+                            background: 'var(--cluv-neutral-400)',
                           }}
                         />
                         Draft (Nonaktif)
@@ -827,30 +574,17 @@ export default function AdminHandbookPage() {
                       type="button"
                       onClick={() => handleTogglePublish(entry)}
                       title={entry.is_published ? 'Nonaktifkan entri ini dari injeksi AI' : 'Aktifkan entri ini ke injeksi AI'}
-                      style={{
-                        height: 32,
-                        padding: '0 10px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        transition: 'all 0.15s ease',
-                        background: entry.is_published ? '#fff7ed' : '#ecfdf5',
-                        color: entry.is_published ? '#c2410c' : '#047857',
-                        border: `1px solid ${entry.is_published ? '#fed7aa' : '#a7f3d0'}`,
-                      }}
+                      className="cluv-btn is-outline is-sm"
+                      style={{ padding: '4px 8px', fontSize: 12 }}
                     >
                       {entry.is_published ? (
                         <>
-                          <EyeOff size={14} />
+                          <EyeOff size={13} />
                           <span>Nonaktifkan</span>
                         </>
                       ) : (
                         <>
-                          <Eye size={14} />
+                          <Eye size={13} />
                           <span>Aktifkan</span>
                         </>
                       )}
@@ -859,70 +593,32 @@ export default function AdminHandbookPage() {
                       type="button"
                       onClick={() => startEdit(entry)}
                       title="Edit rincian entri"
-                      style={{
-                        height: 32,
-                        padding: '0 10px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        transition: 'all 0.15s ease',
-                        background: '#ffffff',
-                        color: '#374151',
-                        border: '1px solid #d1d5db',
-                      }}
+                      className="cluv-btn is-outline is-sm"
+                      style={{ padding: '4px 8px', fontSize: 12 }}
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={13} />
                       <span>Edit</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setEntryToDelete(entry)}
                       title="Hapus entri ini"
-                      style={{
-                        height: 32,
-                        padding: '0 8px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.15s ease',
-                        background: '#fef2f2',
-                        color: '#dc2626',
-                        border: '1px solid #fecaca',
-                      }}
+                      className="cluv-btn is-outline is-sm"
+                      style={{ padding: '4px 8px', fontSize: 12, color: 'var(--cluv-rose)' }}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
 
                 {/* Deskripsi */}
-                <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-main)', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--cluv-neutral-800)', lineHeight: 1.5, marginBottom: 8 }}>
                   {entry.description}
                 </div>
 
                 {/* APA ITU BUKAN (KOTAK MERAH MUDA ANTI-HALUSINASI) */}
-                <div
-                  style={{
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '8px 12px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 8,
-                    fontSize: '0.75rem',
-                    color: '#991b1b',
-                  }}
-                >
-                  <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                <div className="admin-handbook-anti-box">
+                  <AlertTriangle size={15} className="admin-handbook-anti-icon" />
                   <div>
                     <strong style={{ fontWeight: 800 }}>APA ITU BUKAN (ANTI-HALUSINASI): </strong>
                     <span>{entry.what_it_is_not}</span>
@@ -930,116 +626,136 @@ export default function AdminHandbookPage() {
                 </div>
 
                 {/* Workflow & Aliases */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    gap: 16,
-                    fontSize: '0.75rem',
-                    color: 'var(--color-text-muted)',
-                    borderTop: '1px solid var(--color-secondary-container)',
-                    paddingTop: 8,
-                    marginTop: 2,
-                  }}
-                >
-                  {entry.workflow && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Layers size={13} />
-                      <span>Alur: {entry.workflow}</span>
-                    </div>
-                  )}
-                  {entry.aliases && entry.aliases.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Sparkles size={13} />
-                      <span>Sinonim: {entry.aliases.join(', ')}</span>
-                    </div>
-                  )}
-                </div>
+                {(entry.workflow || (entry.aliases && entry.aliases.length > 0)) && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 16,
+                      fontSize: '0.75rem',
+                      color: 'var(--cluv-neutral-400)',
+                      borderTop: '1px solid var(--cluv-border)',
+                      paddingTop: 8,
+                      marginTop: 4,
+                    }}
+                  >
+                    {entry.workflow && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Layers size={13} />
+                        <span>Alur: {entry.workflow}</span>
+                      </div>
+                    )}
+                    {entry.aliases && entry.aliases.length > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Sparkles size={13} />
+                        <span>Sinonim: {entry.aliases.join(', ')}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Modal Edit / Tambah (Fixed Overlay Popup) */}
+      {/* Modal Edit / Tambah */}
       {isEditing && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.55)',
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: 16,
-          }}
-          onClick={() => setIsEditing(false)}
-        >
+        <div className="cluv-modal-overlay" onClick={() => setIsEditing(false)}>
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 16,
-              maxWidth: 640,
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              padding: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="cluv-modal-box is-lg"
+            style={{ maxWidth: 640 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 'var(--space-md)',
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 800 }}>
+            <div className="cluv-modal-header">
+              <h2 className="cluv-modal-title">
                 {form.id ? 'Edit Entri Panduan' : 'Tambah Entri Panduan Baru'}
               </h2>
               <button
                 type="button"
+                className="cluv-modal-close"
                 onClick={() => setIsEditing(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--color-text-muted)',
-                }}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <form onSubmit={handleSave}>
+              <div className="cluv-modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="admin-grid-2col">
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 4 }}>
+                      Nama Kanonikal Fitur <span style={{ color: 'var(--cluv-rose)' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="misal: Misi Glow & Koin"
+                      value={form.canonical_name}
+                      onChange={(e) => setForm({ ...form, canonical_name: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 4 }}>
+                      Slug Identifikasi (Unik) <span style={{ color: 'var(--cluv-rose)' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="misal: misi_glow"
+                      value={form.slug}
+                      onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="admin-grid-2col">
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 4 }}>
+                      Kategori <span style={{ color: 'var(--cluv-rose)' }}>*</span>
+                    </label>
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="admin-select"
+                    >
+                      {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
+                        <option key={key} value={key}>
+                          {cfg.label} ({key})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 4 }}>
+                      Sinonim / Aliases (Pisahkan koma)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="misal: misi, tugas harian, klaim koin"
+                      value={form.aliases}
+                      onChange={(e) => setForm({ ...form, aliases: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      marginBottom: 4,
-                    }}
-                  >
-                    Nama Kanonikal Fitur *
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 4 }}>
+                    Deskripsi Resmi Fitur <span style={{ color: 'var(--cluv-rose)' }}>*</span>
                   </label>
-                  <input
-                    type="text"
+                  <textarea
+                    rows={3}
                     required
-                    placeholder="misal: Misi Glow & Koin"
-                    value={form.canonical_name}
-                    onChange={(e) => setForm({ ...form, canonical_name: e.target.value })}
+                    placeholder="Jelaskan fungsi, tujuan, dan mekanisme fitur ini secara lugas..."
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
                     className="input-field"
-                    style={{ width: '100%', height: 38 }}
                   />
                 </div>
 
@@ -1047,155 +763,53 @@ export default function AdminHandbookPage() {
                   <label
                     style={{
                       display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      color: 'var(--cluv-rose)',
                       marginBottom: 4,
                     }}
                   >
-                    Slug Identifikasi (Unik) *
+                    APA ITU BUKAN (PENTING - Anti-Halusinasi AI) <span style={{ color: 'var(--cluv-rose)' }}>*</span>
                   </label>
-                  <input
-                    type="text"
+                  <textarea
+                    rows={2}
                     required
-                    placeholder="misal: misi_glow"
-                    value={form.slug}
-                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                    placeholder="Tuliskan dengan tegas apa saja yang BUKAN bagian dari fitur ini agar AI tidak keliru menyamakan istilah (misal: 'Bukan produk skincare, bukan checklist medis')."
+                    value={form.what_it_is_not}
+                    onChange={(e) => setForm({ ...form, what_it_is_not: e.target.value })}
                     className="input-field"
-                    style={{ width: '100%', height: 38 }}
+                    style={{
+                      borderColor: 'var(--cluv-rose-line)',
+                      background: 'var(--cluv-rose-soft)',
+                    }}
                   />
                 </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      marginBottom: 4,
-                    }}
-                  >
-                    Kategori *
-                  </label>
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="input-field"
-                    style={{ width: '100%', height: 38 }}
-                  >
-                    {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
-                      <option key={key} value={key}>
-                        {cfg.label} ({key})
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      marginBottom: 4,
-                    }}
-                  >
-                    Sinonim / Aliases (Pisahkan koma)
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 4 }}>
+                    Alur Pengguna (Workflow / User Journey)
                   </label>
                   <input
                     type="text"
-                    placeholder="misal: misi, tugas harian, klaim koin"
-                    value={form.aliases}
-                    onChange={(e) => setForm({ ...form, aliases: e.target.value })}
-                    className="input-field"
-                    style={{ width: '100%', height: 38 }}
+                    placeholder="misal: Buka tab Misi -> Jalankan scan -> Klaim hadiah koin"
+                    value={form.workflow}
+                    onChange={(e) => setForm({ ...form, workflow: e.target.value })}
+                    className="admin-input"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    marginBottom: 4,
-                  }}
-                >
-                  Deskripsi Resmi Fitur *
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Jelaskan fungsi, tujuan, dan mekanisme fitur ini secara lugas..."
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="input-field"
-                  style={{ width: '100%', padding: '8px 12px' }}
-                />
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
-                    color: '#b91c1c',
-                    marginBottom: 4,
-                  }}
-                >
-                  APA ITU BUKAN (PENTING - Anti-Halusinasi AI) *
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="Tuliskan dengan tegas apa saja yang BUKAN bagian dari fitur ini agar AI tidak keliru menyamakan istilah (misal: 'Bukan produk skincare, bukan checklist medis')."
-                  value={form.what_it_is_not}
-                  onChange={(e) => setForm({ ...form, what_it_is_not: e.target.value })}
-                  className="input-field"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderColor: '#fca5a5',
-                    background: '#fffbfb',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    marginBottom: 4,
-                  }}
-                >
-                  Alur Pengguna (Workflow / User Journey)
-                </label>
-                <input
-                  type="text"
-                  placeholder="misal: Buka tab Misi -> Jalankan scan -> Klaim hadiah koin"
-                  value={form.workflow}
-                  onChange={(e) => setForm({ ...form, workflow: e.target.value })}
-                  className="input-field"
-                  style={{ width: '100%', height: 38 }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
-                <input
-                  type="checkbox"
-                  id="is_published"
-                  checked={form.is_published}
-                  onChange={(e) => setForm({ ...form, is_published: e.target.checked })}
-                  style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }}
-                />
-                <label htmlFor="is_published" style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                  Publikasikan ke Injeksi Prompt AI (Skinsistant akan langsung membaca entri ini)
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <input
+                    type="checkbox"
+                    id="is_published"
+                    checked={form.is_published}
+                    onChange={(e) => setForm({ ...form, is_published: e.target.checked })}
+                    style={{ width: 16, height: 16, accentColor: 'var(--cluv-teal)', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="is_published" style={{ fontSize: 13, fontWeight: 700, color: 'var(--cluv-neutral-800)', cursor: 'pointer' }}>
+                    Publikasikan ke Injeksi Prompt AI (Skinsistant akan langsung membaca entri ini)
+                  </label>
+                </div>
               </div>
 
               <div
@@ -1203,20 +817,24 @@ export default function AdminHandbookPage() {
                   display: 'flex',
                   justifyContent: 'flex-end',
                   gap: 10,
-                  marginTop: 'var(--space-md)',
-                  borderTop: '1px solid var(--color-secondary-container)',
-                  paddingTop: 12,
+                  padding: '16px 24px',
+                  borderTop: '1px solid var(--cluv-border)',
+                  background: 'var(--cluv-neutral-50)',
                 }}
               >
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="cluv-btn is-outline is-sm"
                   onClick={() => setIsEditing(false)}
                   disabled={isSaving}
                 >
                   Batal
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                <button
+                  type="submit"
+                  className="cluv-btn is-primary is-sm"
+                  disabled={isSaving}
+                >
                   {isSaving ? 'Menyimpan...' : form.id ? 'Simpan Perubahan' : 'Tambahkan ke Buku Panduan'}
                 </button>
               </div>
@@ -1224,67 +842,47 @@ export default function AdminHandbookPage() {
           </div>
         </div>
       )}
-      {/* Modal Konfirmasi Hapus In-App (Tanpa window.confirm) */}
+
+      {/* Modal Konfirmasi Hapus */}
       {entryToDelete && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.55)',
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: 16,
-          }}
-          onClick={() => setEntryToDelete(null)}
-        >
+        <div className="cluv-modal-overlay" onClick={() => setEntryToDelete(null)}>
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 16,
-              maxWidth: 440,
-              width: '100%',
-              padding: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
+            className="cluv-modal-box is-sm"
+            style={{ maxWidth: 440 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: '#fef2f2',
-                  color: '#dc2626',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <Trash2 size={20} />
+            <div className="cluv-modal-body" style={{ padding: '24px 24px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: 'var(--cluv-rose-soft)',
+                    color: 'var(--cluv-rose)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--cluv-neutral-900)' }}>
+                    Hapus Entri Panduan
+                  </h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--cluv-neutral-500)' }}>
+                    Konfirmasi penghapusan data
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#111827' }}>
-                  Hapus Entri Panduan
-                </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#6b7280' }}>
-                  Konfirmasi penghapusan data
-                </p>
-              </div>
-            </div>
 
-            <div style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.5 }}>
-              Apakah Anda yakin ingin menghapus permanen entri{' '}
-              <strong>&quot;{entryToDelete.canonical_name}&quot;</strong> (<code>{entryToDelete.slug}</code>)?
-              Entri ini tidak akan diinjeksi lagi ke Skinsistant AI.
+              <div style={{ fontSize: '0.875rem', color: 'var(--cluv-neutral-700)', lineHeight: 1.5 }}>
+                Apakah Anda yakin ingin menghapus permanen entri{' '}
+                <strong>&quot;{entryToDelete.canonical_name}&quot;</strong> (<code>{entryToDelete.slug}</code>)?
+                Entri ini tidak akan diinjeksi lagi ke Skinsistant AI.
+              </div>
             </div>
 
             <div
@@ -1292,14 +890,14 @@ export default function AdminHandbookPage() {
                 display: 'flex',
                 justifyContent: 'flex-end',
                 gap: 10,
-                marginTop: 8,
-                paddingTop: 14,
-                borderTop: '1px solid #f3f4f6',
+                padding: '14px 24px',
+                borderTop: '1px solid var(--cluv-border)',
+                background: 'var(--cluv-neutral-50)',
               }}
             >
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="cluv-btn is-outline is-sm"
                 onClick={() => setEntryToDelete(null)}
                 disabled={isLoading}
               >
@@ -1309,81 +907,14 @@ export default function AdminHandbookPage() {
                 type="button"
                 onClick={confirmDelete}
                 disabled={isLoading}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  background: '#dc2626',
-                  color: '#ffffff',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
+                className="cluv-btn is-primary is-sm"
+                style={{ background: 'var(--cluv-rose)' }}
               >
-                <Trash2 size={15} />
+                <Trash2 size={14} />
                 <span>{isLoading ? 'Menghapus...' : 'Hapus Permanen'}</span>
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Floating Toast Notification (Tidak merusak layout halaman) */}
-      {feedback && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            zIndex: 10000,
-            maxWidth: 380,
-            padding: '12px 16px',
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            background: '#ffffff',
-            color: '#111827',
-            border: `1px solid ${feedback.type === 'success' ? '#86efac' : '#fca5a5'}`,
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: feedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
-              color: feedback.type === 'success' ? '#059669' : '#dc2626',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-          </div>
-          <span style={{ flex: 1, fontSize: '0.8125rem', lineHeight: 1.4, fontWeight: 500 }}>
-            {feedback.message}
-          </span>
-          <button
-            type="button"
-            onClick={() => setFeedback(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#9ca3af',
-              padding: 4,
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <X size={14} />
-          </button>
         </div>
       )}
     </div>
