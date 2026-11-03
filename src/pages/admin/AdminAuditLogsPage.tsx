@@ -6,7 +6,6 @@ import {
   Eye,
   X,
   Clock,
-  Filter,
   Download,
   UserCheck,
   UserX,
@@ -14,6 +13,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  AlertCircle,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { AdminAuditLog } from '@/types/database'
@@ -123,26 +123,26 @@ export default function AdminAuditLogsPage() {
     switch (action) {
       case 'ASSIGN_ROLE':
         return (
-          <span className="audit-badge audit-badge-green">
-            <UserCheck size={12} /> ASSIGN ROLE
+          <span className="cluv-badge is-success">
+            <UserCheck size={11} /> ASSIGN ROLE
           </span>
         )
       case 'REVOKE_ROLE':
         return (
-          <span className="audit-badge audit-badge-red">
-            <UserX size={12} /> REVOKE ROLE
+          <span className="cluv-badge is-danger">
+            <UserX size={11} /> REVOKE ROLE
           </span>
         )
       case 'ADJUST_CREDITS':
         return (
-          <span className="audit-badge audit-badge-amber">
-            <Coins size={12} /> ADJUST CREDITS
+          <span className="cluv-badge is-warning">
+            <Coins size={11} /> ADJUST CREDITS
           </span>
         )
       default:
         return (
-          <span className="audit-badge audit-badge-blue">
-            <Settings size={12} /> {action}
+          <span className="cluv-badge is-neutral">
+            <Settings size={11} /> {action}
           </span>
         )
     }
@@ -150,39 +150,18 @@ export default function AdminAuditLogsPage() {
 
   const renderRoleBadge = (role: string | null) => {
     const r = role || 'staff'
-    let bg = '#f1f5f9'
-    let color = '#475569'
-
-    if (r === 'super_admin') {
-      bg = '#f3e8ff'
-      color = '#7e22ce'
-    } else if (r === 'tech_lead') {
-      bg = '#ecfdf5'
-      color = '#047857'
-    } else if (r === 'business_lead') {
-      bg = '#fffbeb'
-      color = '#b45309'
-    } else if (r === 'support_agent') {
-      bg = '#eff6ff'
-      color = '#1d4ed8'
+    switch (r) {
+      case 'super_admin':
+        return <span className="cluv-badge is-gold">super admin</span>
+      case 'tech_lead':
+        return <span className="cluv-badge is-teal">tech lead</span>
+      case 'business_lead':
+        return <span className="cluv-badge is-warning">business lead</span>
+      case 'support_agent':
+        return <span className="cluv-badge is-neutral">support agent</span>
+      default:
+        return <span className="cluv-badge is-neutral">{r.replace('_', ' ')}</span>
     }
-
-    return (
-      <span
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          padding: '2px 8px',
-          borderRadius: 9999,
-          background: bg,
-          color: color,
-          textTransform: 'uppercase',
-          letterSpacing: '0.03em',
-        }}
-      >
-        {r.replace('_', ' ')}
-      </span>
-    )
   }
 
   const formatTimestamp = (iso: string) => {
@@ -202,69 +181,98 @@ export default function AdminAuditLogsPage() {
   }
 
   return (
-    <div className="audit-page-container">
+    <div className="admin-page-container cluv-animate-fade">
       {/* Header Halaman */}
-      <div className="audit-header">
+      <div className="admin-page-header">
         <div>
-          <div className="audit-title-wrapper">
-            <ShieldCheck size={24} className="text-indigo-600" />
-            <h1 className="audit-page-title">Log Audit Tata Kelola Admin</h1>
+          <div className="admin-header-title-row">
+            <div className="admin-header-icon-wrap" style={{ background: 'var(--cluv-teal-soft)', color: 'var(--cluv-teal)' }}>
+              <ShieldCheck size={22} />
+            </div>
+            <h1 className="admin-page-title">Log Audit Tata Kelola Admin</h1>
           </div>
-          <p className="audit-page-subtitle">
+          <p className="admin-page-subtitle">
             Rekam jejak mutasi hak akses, penyesuaian kuota/kredit, dan perubahan konfigurasi tata kelola sistem sesuai UU PDP No. 27/2022.
           </p>
         </div>
 
-        <div className="audit-header-actions">
+        <div className="admin-header-actions">
           <button
             type="button"
             onClick={handleExportJson}
-            className="btn-audit btn-audit-secondary"
+            className="cluv-btn is-outline is-sm"
             title="Unduh log terfilter dalam format JSON"
           >
-            <Download size={15} />
+            <Download size={14} />
             <span>Ekspor JSON</span>
           </button>
           <button
             type="button"
             onClick={loadLogs}
             disabled={isLoading}
-            className="btn-audit btn-audit-primary"
+            className="cluv-btn is-primary is-sm"
           >
-            <RefreshCw size={15} className={isLoading ? 'animate-spin' : ''} />
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
             <span>Segarkan</span>
           </button>
         </div>
       </div>
 
       {/* Baris Statistik Cepat */}
-      <div className="audit-stats-grid">
-        <div className="audit-stat-card">
-          <span className="stat-label">Total Log Tercatat</span>
-          <span className="stat-val">{stats.total}</span>
-          <span className="stat-hint">300 entri terbaru</span>
+      <div className="cluv-stat-grid cols-4">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Total Log Tercatat</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{stats.total}</div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>300 entri terbaru</div>
+          </div>
         </div>
-        <div className="audit-stat-card">
-          <span className="stat-label">Mutasi Role / Akses</span>
-          <span className="stat-val text-indigo-600">{stats.roleChanges}</span>
-          <span className="stat-hint">Assign & Revoke</span>
+
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-rose">
+            <UserCheck size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Mutasi Role / Akses</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: 'var(--cluv-teal)' }}>
+              {stats.roleChanges}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>Assign &amp; Revoke</div>
+          </div>
         </div>
-        <div className="audit-stat-card">
-          <span className="stat-label">Penyesuaian Kredit</span>
-          <span className="stat-val text-amber-600">{stats.creditAdjustments}</span>
-          <span className="stat-hint">Manual admin adjustments</span>
+
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-gold">
+            <Coins size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Penyesuaian Kredit</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: 'var(--cluv-gold)' }}>
+              {stats.creditAdjustments}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>Manual adjustments</div>
+          </div>
         </div>
-        <div className="audit-stat-card">
-          <span className="stat-label">Staf Aktor Aktif</span>
-          <span className="stat-val text-emerald-600">{stats.uniqueActors}</span>
-          <span className="stat-hint">Akun unik pelaksana</span>
+
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-neutral">
+            <Settings size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Staf Aktor Aktif</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{stats.uniqueActors}</div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>Akun unik pelaksana</div>
+          </div>
         </div>
       </div>
 
       {/* Toolbar Filter & Pencarian */}
-      <div className="audit-toolbar">
-        <div className="audit-search-wrapper">
-          <Search size={16} className="search-icon" />
+      <div className="cluv-card aal-toolbar-card">
+        <div className="aal-search-wrap">
+          <Search size={16} className="text-slate-400" />
           <input
             type="text"
             placeholder="Cari email aktor, aksi, tipe target, atau ID..."
@@ -273,80 +281,87 @@ export default function AdminAuditLogsPage() {
               setSearchQuery(e.target.value)
               setCurrentPage(1)
             }}
-            className="audit-search-input"
+            className="aal-search-input"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('')
+                setCurrentPage(1)
+              }}
+              className="cluv-link is-muted"
+              aria-label="Bersihkan pencarian"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
-        <div className="audit-filter-group">
-          <div className="filter-select-wrapper">
-            <Filter size={14} className="filter-icon" />
-            <select
-              value={actionFilter}
-              onChange={(e) => {
-                setActionFilter(e.target.value)
-                setCurrentPage(1)
-              }}
-              className="audit-select"
-            >
-              <option value="ALL">Semua Aksi</option>
-              <option value="ASSIGN_ROLE">ASSIGN ROLE</option>
-              <option value="REVOKE_ROLE">REVOKE ROLE</option>
-              <option value="ADJUST_CREDITS">ADJUST CREDITS</option>
-              <option value="UPDATE_PRICING">UPDATE PRICING</option>
-              <option value="UPDATE_CONFIG">UPDATE CONFIG</option>
-            </select>
-          </div>
+        <div className="aal-filter-group">
+          <select
+            value={actionFilter}
+            onChange={(e) => {
+              setActionFilter(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="aal-filter-select"
+          >
+            <option value="ALL">Semua Aksi</option>
+            <option value="ASSIGN_ROLE">ASSIGN ROLE</option>
+            <option value="REVOKE_ROLE">REVOKE ROLE</option>
+            <option value="ADJUST_CREDITS">ADJUST CREDITS</option>
+            <option value="UPDATE_PRICING">UPDATE PRICING</option>
+            <option value="UPDATE_CONFIG">UPDATE CONFIG</option>
+          </select>
 
-          <div className="filter-select-wrapper">
-            <select
-              value={roleFilter}
-              onChange={(e) => {
-                setRoleFilter(e.target.value)
-                setCurrentPage(1)
-              }}
-              className="audit-select"
-            >
-              <option value="ALL">Semua Role Aktor</option>
-              <option value="super_admin">Super Admin</option>
-              <option value="tech_lead">Tech Lead</option>
-              <option value="business_lead">Business Lead</option>
-              <option value="support_agent">Support Agent</option>
-              <option value="admin">Administrator</option>
-            </select>
-          </div>
+          <select
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="aal-filter-select"
+          >
+            <option value="ALL">Semua Role Aktor</option>
+            <option value="super_admin">Super Admin</option>
+            <option value="tech_lead">Tech Lead</option>
+            <option value="business_lead">Business Lead</option>
+            <option value="support_agent">Support Agent</option>
+            <option value="admin">Administrator</option>
+          </select>
 
-          <div className="filter-select-wrapper">
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value))
-                setCurrentPage(1)
-              }}
-              className="audit-select"
-            >
-              <option value={15}>15 baris</option>
-              <option value={25}>25 baris</option>
-              <option value={50}>50 baris</option>
-              <option value={100}>100 baris</option>
-            </select>
-          </div>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value))
+              setCurrentPage(1)
+            }}
+            className="aal-filter-select"
+          >
+            <option value={15}>15 baris</option>
+            <option value={25}>25 baris</option>
+            <option value={50}>50 baris</option>
+            <option value={100}>100 baris</option>
+          </select>
         </div>
       </div>
 
       {errorMessage && (
-        <div className="audit-error-banner">
+        <div className="cluv-alert is-danger cluv-mb-4">
+          <AlertCircle size={18} />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Tabel Data Audit Log */}
-      <div className="audit-table-card">
-        <div className="table-responsive">
-          <table className="audit-table">
+      <div className="cluv-card aal-table-card">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
             <thead>
               <tr>
                 <th style={{ width: '170px' }}>Waktu Pelaksanaan</th>
-                <th>Aktor & Peran</th>
+                <th>Aktor &amp; Peran</th>
                 <th style={{ width: '160px' }}>Aksi</th>
                 <th>Target Mutasi</th>
                 <th>Ringkasan Rincian</th>
@@ -356,17 +371,17 @@ export default function AdminAuditLogsPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
-                    <RefreshCw size={22} className="animate-spin inline-block mb-2" />
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
+                    <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px auto' }} />
                     <div>Memuat riwayat audit log...</div>
                   </td>
                 </tr>
               ) : paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <ShieldCheck size={36} style={{ margin: '0 auto 12px auto', opacity: 0.3 }} />
-                    <div style={{ fontSize: 15, fontWeight: 500 }}>Tidak ada log audit yang cocok</div>
-                    <div style={{ fontSize: 13, marginTop: 4 }}>Ubah parameter filter atau kata kunci pencarian.</div>
+                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--cluv-neutral-800)' }}>Tidak ada log audit yang cocok</div>
+                    <div style={{ fontSize: '0.75rem', marginTop: 4 }}>Ubah parameter filter atau kata kunci pencarian.</div>
                   </td>
                 </tr>
               ) : (
@@ -375,14 +390,14 @@ export default function AdminAuditLogsPage() {
                   return (
                     <tr key={log.id}>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#4b5563' }}>
-                          <Clock size={13} className="text-gray-400" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--cluv-neutral-600)' }}>
+                          <Clock size={13} style={{ color: 'var(--cluv-neutral-400)' }} />
                           <span>{formatTimestamp(log.created_at)}</span>
                         </div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cluv-neutral-900)' }}>
                             {log.actor_email || 'Sistem / Anonim'}
                           </span>
                           <div>{renderRoleBadge(log.actor_role)}</div>
@@ -390,24 +405,24 @@ export default function AdminAuditLogsPage() {
                       </td>
                       <td>{renderActionBadge(log.action)}</td>
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+                        <div className="aal-target-wrap">
+                          <span className="aal-target-type">
                             {log.target_type}
                           </span>
                           {log.target_id && (
-                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#6b7280' }}>
+                            <span className="aal-target-id">
                               {log.target_id.slice(0, 18)}...
                             </span>
                           )}
                         </div>
                       </td>
                       <td>
-                        <div style={{ fontSize: 12, color: '#4b5563', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div className="aal-details-preview">
                           {detailsObj.new_role && (
                             <span>Role baru: <strong>{detailsObj.new_role}</strong> (sebelumnya: {detailsObj.previous_role || 'none'})</span>
                           )}
                           {detailsObj.amount !== undefined && (
-                            <span>Penyesuaian: <strong>{detailsObj.amount > 0 ? `+${detailsObj.amount}` : detailsObj.amount}</strong> koin ({detailsObj.reason})</span>
+                            <span>Penyesuaian: <strong>{detailsObj.amount > 0 ? `+${detailsObj.amount}` : detailsObj.amount}</strong> credits ({detailsObj.reason})</span>
                           )}
                           {!detailsObj.new_role && detailsObj.amount === undefined && (
                             <span>{JSON.stringify(detailsObj)}</span>
@@ -418,10 +433,11 @@ export default function AdminAuditLogsPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedLog(log)}
-                          className="btn-view-detail"
+                          className="cluv-btn is-outline is-sm"
                           title="Lihat Rincian JSON Lengkap"
+                          style={{ padding: '4px 8px' }}
                         >
-                          <Eye size={15} />
+                          <Eye size={13} />
                         </button>
                       </td>
                     </tr>
@@ -434,8 +450,8 @@ export default function AdminAuditLogsPage() {
 
         {/* Baris Pagination */}
         {filteredLogs.length > pageSize && (
-          <div className="audit-pagination">
-            <span style={{ fontSize: 12, color: '#6b7280' }}>
+          <div className="aal-pagination">
+            <span style={{ fontSize: '0.75rem', color: 'var(--cluv-neutral-600)' }} className="cluv-tabular-nums">
               Menampilkan {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredLogs.length)} dari {filteredLogs.length} entri
             </span>
 
@@ -444,18 +460,20 @@ export default function AdminAuditLogsPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="btn-page"
+                className="aal-page-btn"
+                aria-label="Halaman sebelumnya"
               >
                 <ChevronLeft size={16} />
               </button>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cluv-neutral-800)' }} className="cluv-tabular-nums">
                 Halaman {currentPage} dari {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="btn-page"
+                className="aal-page-btn"
+                aria-label="Halaman berikutnya"
               >
                 <ChevronRight size={16} />
               </button>
@@ -466,67 +484,68 @@ export default function AdminAuditLogsPage() {
 
       {/* Modal Detail Log JSON */}
       {selectedLog && (
-        <div className="audit-modal-backdrop" onClick={() => setSelectedLog(null)}>
-          <div className="audit-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="audit-modal-header">
+        <div className="cluv-modal-overlay" onClick={() => setSelectedLog(null)}>
+          <div className="cluv-modal-content" style={{ maxWidth: 760 }} onClick={(e) => e.stopPropagation()}>
+            <div className="cluv-modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ShieldCheck size={20} className="text-indigo-600" />
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>
+                <ShieldCheck size={20} style={{ color: 'var(--cluv-teal)' }} />
+                <h3 className="cluv-modal-title">
                   Rincian Log Audit
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="audit-modal-close"
+                className="cluv-modal-close-btn"
+                aria-label="Tutup modal"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="audit-modal-body">
-              <div className="modal-info-grid">
+            <div className="cluv-modal-body">
+              <div className="aal-modal-grid">
                 <div>
-                  <label className="modal-field-label">ID Log</label>
-                  <div className="modal-field-val font-mono">{selectedLog.id}</div>
+                  <div className="aal-modal-field-label">ID Log</div>
+                  <div className="aal-modal-field-val font-mono">{selectedLog.id}</div>
                 </div>
                 <div>
-                  <label className="modal-field-label">Waktu Pelaksanaan</label>
-                  <div className="modal-field-val">{formatTimestamp(selectedLog.created_at)}</div>
+                  <div className="aal-modal-field-label">Waktu Pelaksanaan</div>
+                  <div className="aal-modal-field-val">{formatTimestamp(selectedLog.created_at)}</div>
                 </div>
                 <div>
-                  <label className="modal-field-label">Aktor (Email)</label>
-                  <div className="modal-field-val">{selectedLog.actor_email || 'Tidak diketahui'}</div>
+                  <div className="aal-modal-field-label">Aktor (Email)</div>
+                  <div className="aal-modal-field-val">{selectedLog.actor_email || 'Tidak diketahui'}</div>
                 </div>
                 <div>
-                  <label className="modal-field-label">Peran Aktor</label>
+                  <div className="aal-modal-field-label">Peran Aktor</div>
                   <div>{renderRoleBadge(selectedLog.actor_role)}</div>
                 </div>
                 <div>
-                  <label className="modal-field-label">Aksi</label>
+                  <div className="aal-modal-field-label">Aksi</div>
                   <div>{renderActionBadge(selectedLog.action)}</div>
                 </div>
                 <div>
-                  <label className="modal-field-label">Target</label>
-                  <div className="modal-field-val">
+                  <div className="aal-modal-field-label">Target</div>
+                  <div className="aal-modal-field-val">
                     {selectedLog.target_type} ({selectedLog.target_id || '-'})
                   </div>
                 </div>
               </div>
 
-              <div style={{ marginTop: 16 }}>
-                <label className="modal-field-label">Muatan Rincian (Raw Payload JSON)</label>
-                <pre className="modal-json-pre">
+              <div>
+                <div className="aal-modal-field-label" style={{ marginBottom: 6 }}>Muatan Rincian (Raw Payload JSON)</div>
+                <pre className="aal-code-preview">
                   {JSON.stringify(selectedLog.details, null, 2)}
                 </pre>
               </div>
             </div>
 
-            <div className="audit-modal-footer">
+            <div className="cluv-modal-footer">
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="btn-audit btn-audit-primary"
+                className="cluv-btn is-outline is-sm"
               >
                 Tutup
               </button>
@@ -534,8 +553,6 @@ export default function AdminAuditLogsPage() {
           </div>
         </div>
       )}
-
-
     </div>
   )
 }
