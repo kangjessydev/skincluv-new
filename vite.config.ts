@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -5,6 +7,17 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
+    {
+      name: 'spa-fallback-generator',
+      closeBundle() {
+        const distDir = path.resolve(__dirname, 'dist')
+        const indexHtml = path.join(distDir, 'index.html')
+        if (fs.existsSync(indexHtml)) {
+          fs.copyFileSync(indexHtml, path.join(distDir, '200.html'))
+          fs.copyFileSync(indexHtml, path.join(distDir, '404.html'))
+        }
+      },
+    },
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons.svg'],
