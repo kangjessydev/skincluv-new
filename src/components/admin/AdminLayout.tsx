@@ -83,13 +83,13 @@ export default function AdminLayout() {
   }, [isSuper, userRoles])
 
   const roleBadgeInfo = useMemo(() => {
-    if (userRoles.includes('super_admin')) return { label: 'Super Admin', bg: '#f3e8ff', color: '#7e22ce', border: '#e9d5ff' }
-    if (userRoles.includes('tech_lead')) return { label: 'Tech Lead', bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' }
-    if (userRoles.includes('business_lead')) return { label: 'Business Lead', bg: '#fffbeb', color: '#b45309', border: '#fde68a' }
-    if (userRoles.includes('support_agent')) return { label: 'Customer Support', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' }
-    if (userRoles.includes('clinical_reviewer')) return { label: 'Clinical Reviewer', bg: '#f0fdfa', color: '#0f766e', border: '#99f6e4' }
-    if (userRoles.includes('admin') || isAdmin) return { label: 'Administrator', bg: '#eef2ff', color: '#4338ca', border: '#c7d2fe' }
-    return { label: 'Staff', bg: '#f1f5f9', color: '#475569', border: '#cbd5e1' }
+    if (userRoles.includes('super_admin')) return { label: 'Super Admin', className: 'is-purple' }
+    if (userRoles.includes('tech_lead')) return { label: 'Tech Lead', className: 'is-teal' }
+    if (userRoles.includes('business_lead')) return { label: 'Business Lead', className: 'is-gold' }
+    if (userRoles.includes('support_agent')) return { label: 'Customer Support', className: 'is-blue' }
+    if (userRoles.includes('clinical_reviewer')) return { label: 'Clinical Reviewer', className: 'is-teal' }
+    if (userRoles.includes('admin') || isAdmin) return { label: 'Administrator', className: 'is-purple' }
+    return { label: 'Staff', className: 'is-neutral' }
   }, [userRoles, isAdmin])
 
   // Close drawer on route change
@@ -125,22 +125,10 @@ export default function AdminLayout() {
         key={item.to}
         to={item.to}
         onClick={() => setIsMobileOpen(false)}
-        style={({ isActive }) => ({
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '8px 12px',
-          borderRadius: 8,
-          textDecoration: 'none',
-          fontSize: 13,
-          fontWeight: isActive ? 600 : 500,
-          color: isActive ? '#ffffff' : '#374151',
-          background: isActive ? '#111827' : 'transparent',
-          transition: 'all 0.15s ease',
-        })}
+        className={({ isActive }) => `admin-nav-item ${isActive ? 'is-active' : ''}`}
       >
-        <item.icon size={16} />
-        {item.label}
+        <item.icon size={16} strokeWidth={2} />
+        <span>{item.label}</span>
       </NavLink>
     ))
   }
@@ -160,21 +148,10 @@ export default function AdminLayout() {
           </button>
 
           <div className="admin-top-bar-brand">
-            <span className="admin-top-bar-sub">Skincluv</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="admin-top-bar-sub">skincluv.</span>
+            <div className="admin-top-bar-title-wrap">
               <span className="admin-top-bar-title">Control Center</span>
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 600,
-                  padding: '1px 6px',
-                  borderRadius: 9999,
-                  background: roleBadgeInfo.bg,
-                  color: roleBadgeInfo.color,
-                  border: `1px solid ${roleBadgeInfo.border}`,
-                  textTransform: 'uppercase',
-                }}
-              >
+              <span className={`cluv-badge is-sm ${roleBadgeInfo.className}`}>
                 {roleBadgeInfo.label}
               </span>
             </div>
@@ -200,37 +177,13 @@ export default function AdminLayout() {
       <aside className={`admin-sidebar ${isMobileOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
           <div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                color: '#6366f1',
-                textTransform: 'uppercase',
-                marginBottom: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-              }}
-            >
+            <div className="admin-sidebar-brand-eyebrow">
               <ShieldCheck size={13} />
               Skincluv Admin
             </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="admin-sidebar-brand-title">
               Control Center
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  padding: '2px 8px',
-                  borderRadius: 9999,
-                  background: roleBadgeInfo.bg,
-                  color: roleBadgeInfo.color,
-                  border: `1px solid ${roleBadgeInfo.border}`,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
+              <span className={`cluv-badge is-sm ${roleBadgeInfo.className}`}>
                 {roleBadgeInfo.label}
               </span>
             </div>
@@ -249,52 +202,29 @@ export default function AdminLayout() {
         <Link
           to="/"
           onClick={() => setIsMobileOpen(false)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            marginBottom: 16,
-            fontSize: 13,
-            fontWeight: 500,
-            color: '#4b5563',
-            textDecoration: 'none',
-            padding: '7px 12px',
-            borderRadius: 8,
-            background: '#f3f4f6',
-            transition: 'background 0.15s ease',
-          }}
+          className="admin-back-app-pill"
+          style={{ marginBottom: '16px', width: 'fit-content' }}
         >
-          <ArrowLeft size={15} /> Kembali ke App
+          <ArrowLeft size={14} />
+          <span>Kembali ke App</span>
         </Link>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 28 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px', paddingBottom: '28px' }}>
           <NavLink
             to="/admin"
             end
             onClick={() => setIsMobileOpen(false)}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 12px',
-              borderRadius: 8,
-              textDecoration: 'none',
-              fontSize: 13,
-              fontWeight: isActive ? 600 : 500,
-              color: isActive ? '#ffffff' : '#374151',
-              background: isActive ? '#111827' : 'transparent',
-              transition: 'all 0.15s ease',
-              marginBottom: 8,
-            })}
+            className={({ isActive }) => `admin-nav-item ${isActive ? 'is-active' : ''}`}
+            style={{ marginBottom: '6px' }}
           >
-            <LayoutDashboard size={17} />
-            Overview
+            <LayoutDashboard size={17} strokeWidth={2} />
+            <span>Overview</span>
           </NavLink>
 
           {/* Bisnis & Keuangan (Person B) */}
           {canSeeBusiness && (
             <>
-              <div style={groupHeaderStyle}>Bisnis & Keuangan</div>
+              <div className="admin-nav-section-title">Bisnis & Keuangan</div>
               {renderNavGroup(businessNavItems)}
             </>
           )}
@@ -302,7 +232,7 @@ export default function AdminLayout() {
           {/* Pengguna & CRM */}
           {canSeeUsers && (
             <>
-              <div style={groupHeaderStyle}>Pengguna & CRM</div>
+              <div className="admin-nav-section-title">Pengguna & CRM</div>
               {renderNavGroup(userNavItems)}
             </>
           )}
@@ -310,7 +240,7 @@ export default function AdminLayout() {
           {/* Konfigurasi Sistem (Person A) */}
           {canSeeConfig && (
             <>
-              <div style={groupHeaderStyle}>Konfigurasi Sistem</div>
+              <div className="admin-nav-section-title">Konfigurasi Sistem</div>
               {renderNavGroup(configNavItems)}
             </>
           )}
@@ -318,7 +248,7 @@ export default function AdminLayout() {
           {/* AI Knowledge & Training Hub (Person A & Clinical) */}
           {canSeeAiBrain && (
             <>
-              <div style={groupHeaderStyle}>AI Brain & Training Hub</div>
+              <div className="admin-nav-section-title">AI Brain & Training Hub</div>
               {renderNavGroup(aiHubNavItems)}
             </>
           )}
@@ -326,7 +256,7 @@ export default function AdminLayout() {
           {/* Tata Kelola & Audit (Super Admin & Tech Lead) */}
           {isSuper && (
             <>
-              <div style={groupHeaderStyle}>Tata Kelola & Audit</div>
+              <div className="admin-nav-section-title">Tata Kelola & Audit</div>
               {renderNavGroup(governanceNavItems)}
             </>
           )}
@@ -341,11 +271,3 @@ export default function AdminLayout() {
   )
 }
 
-const groupHeaderStyle: React.CSSProperties = {
-  fontSize: 10,
-  fontWeight: 700,
-  color: '#9ca3af',
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  padding: '12px 12px 3px 12px',
-}

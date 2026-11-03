@@ -9,6 +9,10 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-31
 
 ### Ditambahkan
+- **Modernisasi Shell & Drawer Sidebar Mobile Admin (`AdminLayout.tsx`, `admin-responsive.css`)**:
+  - **Mobile Off-Canvas Drawer (Zero Bottom Nav)**: Menggantikan navigasi kaku dengan mobile topbar modern (sticky, backdrop blur) + hamburger toggle yang membuka sidebar drawer dari sisi kiri (*slide-over*) dengan backdrop overlay gelap dan tombol tutup. Tidak menggunakan bottom navigation bar sama sekali di mobile agar ruang kerja grafik metrik, log audit, dan tabel manajemen data di ponsel tetap maksimal 100%.
+  - **Adopsi Cluv Framework & Eliminasi Hardcoded Hex**: Menghilangkan seluruh warna hex statis (`#111827`, `#6366f1`) dan objek inline style di `AdminLayout.tsx`. Mengadopsi CSS variables kanonikal (`var(--cluv-*)`) dan menyelaraskan badge peran staf dengan komponen `.cluv-badge.is-sm` (`.is-purple`, `.is-teal`, `.is-gold`, `.is-blue`, `.is-neutral`).
+  - **Item Navigasi Ergonomis (`.admin-nav-item`)**: Menstandarkan link menu navigasi dengan gaya pill lembut, state hover halus, indikator aktif berwarna tema teal lembut (`var(--cluv-teal-soft)` & `var(--cluv-teal-dark)`), serta judul seksi kategori humanist.
 - **Isolasi Rilis Produksi Netlify Khusus Git Tag (`netlify.toml`)**:
   - Mengonfigurasi `build.ignore` di `netlify.toml` dengan evaluasi tag ganda `(test -n "$TAG" || git describe --tags --exact-match > /dev/null 2>&1) && exit 1 || exit 0` agar Netlify (Production) hanya melakukan build & deploy saat ada Git Tag rilis resmi (`v*`), mengabaikan seluruh push commit eksperimen di branch `dev` dan menghemat 100% menit build cloud.
 - **Otomasi Supabase Keep-Alive Latar Belakang (`.github/workflows/supabase-keepalive.yml`)**:
