@@ -171,38 +171,38 @@ export default function AdminKnowledgeBasePage() {
     }
   }
 
-  const getBadgeStyle = (rating: string) => {
+  const renderSafetyBadge = (rating: string) => {
     switch (rating) {
       case 'aman':
-        return { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: 'Aman' }
+        return <span className="cluv-badge is-success">Aman</span>
       case 'hati':
-        return { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: 'Hati-hati' }
+        return <span className="cluv-badge is-warning">Perlu Perhatian</span>
       case 'hindari':
-        return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', label: 'Hindari' }
+        return <span className="cluv-badge is-danger">Hindari</span>
       default:
-        return { bg: '#f3f4f6', text: '#4b5563', border: '#e5e7eb', label: rating }
+        return <span className="cluv-badge is-neutral">{rating}</span>
     }
   }
 
   return (
-    <div className="cluv-canvas-grid cluv-animate-fade">
+    <div className="admin-page-container cluv-animate-fade">
       {/* Header */}
-      <div className="akb-page-header">
+      <div className="admin-page-header">
         <div>
-          <div className="akb-header-title-row">
-            <div className="akb-header-icon-wrap">
+          <div className="admin-header-title-row">
+            <div className="admin-header-icon-wrap">
               <BookOpen size={22} />
             </div>
-            <h1 className="akb-header-title">
+            <h1 className="admin-page-title">
               Kamus Bahan Skincare (Knowledge Base AI)
             </h1>
           </div>
-          <p className="akb-header-subtitle">
+          <p className="admin-page-subtitle">
             Ensiklopedia bahan kosmetik terstandar yang secara otomatis dipelajari dan diperkaya oleh AI dari setiap scan pengguna.
           </p>
         </div>
 
-        <div className="akb-header-actions">
+        <div className="admin-header-actions">
           <button
             type="button"
             onClick={loadIngredients}
@@ -230,50 +230,50 @@ export default function AdminKnowledgeBasePage() {
       )}
 
       {/* Top Metric Cards */}
-      <div className="akb-stats-grid">
-        <div className="akb-stat-card">
-          <div className="akb-stat-icon-wrap is-teal">
+      <div className="cluv-stat-grid cols-4">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
             <BookOpen size={20} />
           </div>
           <div>
-            <div className="akb-stat-label">Bahan Terindeks</div>
-            <div className="akb-stat-value cluv-tabular-nums">{metrics.total} bahan</div>
+            <div className="cluv-stat-label">Bahan Terindeks</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.total} bahan</div>
           </div>
         </div>
 
-        <div className="akb-stat-card">
-          <div className="akb-stat-icon-wrap is-teal">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
             <Sparkles size={20} />
           </div>
           <div>
-            <div className="akb-stat-label">Bahan Aktif Klinis</div>
-            <div className="akb-stat-value cluv-tabular-nums">{metrics.actives} bahan</div>
+            <div className="cluv-stat-label">Bahan Aktif Klinis</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.actives} bahan</div>
           </div>
         </div>
 
-        <div className="akb-stat-card">
-          <div className="akb-stat-icon-wrap is-gold">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-gold">
             <AlertTriangle size={20} />
           </div>
           <div>
-            <div className="akb-stat-label">Potensi Iritasi / Waspada</div>
-            <div className="akb-stat-value cluv-tabular-nums">{metrics.cautions} bahan</div>
+            <div className="cluv-stat-label">Potensi Iritasi / Waspada</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.cautions} bahan</div>
           </div>
         </div>
 
-        <div className="akb-stat-card">
-          <div className="akb-stat-icon-wrap is-rose">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-rose">
             <Hash size={20} />
           </div>
           <div>
-            <div className="akb-stat-label">Akumulasi Deteksi Scan</div>
-            <div className="akb-stat-value cluv-tabular-nums">{metrics.totalDetections.toLocaleString('id-ID')} kali</div>
+            <div className="cluv-stat-label">Akumulasi Deteksi Scan</div>
+            <div className="cluv-stat-value cluv-tabular-nums">{metrics.totalDetections.toLocaleString('id-ID')} kali</div>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="akb-filter-card">
+      <div className="cluv-card akb-filter-card">
         <div className="akb-search-wrap">
           <Search size={16} className="text-slate-400" />
           <input
@@ -306,6 +306,8 @@ export default function AdminKnowledgeBasePage() {
             <option value="Hydrating">Hydrating</option>
             <option value="Antioxidant">Antioxidant</option>
             <option value="Preservative">Preservative</option>
+            <option value="Emollient">Emollient</option>
+            <option value="Exfoliant">Exfoliant</option>
             <option value="Other">Other</option>
           </select>
 
@@ -323,9 +325,9 @@ export default function AdminKnowledgeBasePage() {
       </div>
 
       {/* Table Container */}
-      <div className="akb-table-card">
-        <div className="akb-table-wrap">
-          <table className="akb-table">
+      <div className="cluv-card akb-table-card">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
             <thead>
               <tr>
                 <th style={{ textAlign: 'left' }}>Nama Bahan &amp; INCI</th>
@@ -340,138 +342,88 @@ export default function AdminKnowledgeBasePage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: 48, color: '#6b7280' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px auto' }} />
                     <div>Memuat kamus bahan...</div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: 48, color: '#6b7280' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
                     <BookOpen size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                    <div style={{ fontWeight: 600, color: '#374151' }}>Kamus bahan belum terisi</div>
-                    <div style={{ fontSize: 12, marginTop: 4 }}>
-                      Bahan akan terisi secara otomatis seiring user melakukan scan label skincare.
+                    <div style={{ fontWeight: 600, color: 'var(--cluv-neutral-800)' }}>Kamus bahan tidak ditemukan</div>
+                    <div style={{ fontSize: '0.75rem', marginTop: 4 }}>
+                      {searchQuery ? 'Coba ubah kata kunci atau reset filter pencarian.' : 'Bahan akan terisi otomatis saat pengguna memindai komposisi skincare.'}
                     </div>
                   </td>
                 </tr>
               ) : (
-                filtered.map((item) => {
-                  const badge = getBadgeStyle(item.safety_rating)
-                  return (
-                    <tr
-                      key={item.id}
-                      style={{
-                        borderBottom: '1px solid #f3f4f6',
-                        transition: 'background 0.15s ease',
-                      }}
-                    >
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontWeight: 700, color: '#111827' }}>
-                          {item.canonical_name}
+                filtered.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <div className="akb-ingredient-name">
+                        {item.canonical_name}
+                      </div>
+                      {item.inci_name && (
+                        <div className="akb-inci-name">
+                          INCI: {item.inci_name}
                         </div>
-                        {item.inci_name && (
-                          <div style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic', marginTop: 2 }}>
-                            INCI: {item.inci_name}
-                          </div>
-                        )}
-                        {item.description && (
-                          <div style={{ fontSize: 12, color: '#4b5563', marginTop: 4, maxWidth: 360, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {item.description}
-                          </div>
-                        )}
-                      </td>
+                      )}
+                      {item.description && (
+                        <div className="akb-desc-text">
+                          {item.description}
+                        </div>
+                      )}
+                    </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            background: '#eff6ff',
-                            color: '#2563eb',
-                          }}
-                        >
-                          {item.category}
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="cluv-badge is-neutral">
+                        {item.category}
+                      </span>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      {renderSafetyBadge(item.safety_rating)}
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          color: item.comedogenic_rating > 2 ? 'var(--cluv-rose)' : 'var(--cluv-neutral-800)',
+                        }}
+                      >
+                        {item.comedogenic_rating} / 5
+                      </span>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="akb-scan-count-pill cluv-tabular-nums">
+                        {item.occurrence_count}x
+                      </span>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      {item.is_verified ? (
+                        <span className="akb-verified-badge">
+                          <ShieldCheck size={14} /> Terverifikasi
                         </span>
-                      </td>
+                      ) : (
+                        <span className="akb-auto-badge">Auto-Learned</span>
+                      )}
+                    </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            background: badge.bg,
-                            color: badge.text,
-                            border: `1px solid ${badge.border}`,
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {badge.label}
-                        </span>
-                      </td>
-
-                      <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600 }}>
-                        <span
-                          style={{
-                            color: item.comedogenic_rating > 2 ? '#dc2626' : '#111827',
-                          }}
-                        >
-                          {item.comedogenic_rating} / 5
-                        </span>
-                      </td>
-
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: 12,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            background: '#f3f4f6',
-                            color: '#374151',
-                          }}
-                        >
-                          {item.occurrence_count}x
-                        </span>
-                      </td>
-
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        {item.is_verified ? (
-                          <span style={{ color: '#059669', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600 }}>
-                            <ShieldCheck size={14} /> Terverifikasi
-                          </span>
-                        ) : (
-                          <span style={{ color: '#9ca3af', fontSize: 11 }}>Auto-Learned</span>
-                        )}
-                      </td>
-
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => startEdit(item)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 5,
-                            padding: '6px 12px',
-                            borderRadius: 6,
-                            border: '1px solid #d1d5db',
-                            background: '#ffffff',
-                            color: '#111827',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Edit2 size={12} /> Edit / Kalibrasi
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        type="button"
+                        onClick={() => startEdit(item)}
+                        className="cluv-btn is-outline is-sm"
+                      >
+                        <Edit2 size={13} /> Edit / Kalibrasi
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -481,69 +433,38 @@ export default function AdminKnowledgeBasePage() {
       {/* Edit Form Modal */}
       {isEditing && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: 12,
-          }}
+          className="cluv-modal-overlay"
           onClick={() => setIsEditing(false)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 16,
-              width: '100%',
-              maxWidth: 680,
-              maxHeight: '90vh',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            }}
+            className="cluv-modal-content"
+            style={{ maxWidth: 680 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                padding: '18px 24px',
-                borderBottom: '1px solid #e5e7eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
+            <div className="cluv-modal-header">
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>
+                <h2 className="cluv-modal-title">
                   {form.id ? 'Kalibrasi Parameter Bahan' : 'Tambah Entri Bahan Baru'}
                 </h2>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                <p className="cluv-modal-subtitle">
                   Parameter ini menjadi basis acuan ilmiah AI saat mengevaluasi kecocokan kulit.
-                </div>
+                </p>
               </div>
 
               <button
+                type="button"
                 onClick={() => setIsEditing(false)}
-                style={{
-                  border: 'none',
-                  background: '#f3f4f6',
-                  borderRadius: 8,
-                  padding: 6,
-                  cursor: 'pointer',
-                  color: '#6b7280',
-                }}
+                className="cluv-modal-close-btn"
+                aria-label="Tutup modal"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} style={{ padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="admin-grid-2col">
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+            <form onSubmit={handleSave} className="cluv-modal-body">
+              <div className="akb-grid-2col">
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Nama Bahan (Canonical) *
                   </label>
                   <input
@@ -551,54 +472,32 @@ export default function AdminKnowledgeBasePage() {
                     value={form.canonical_name}
                     onChange={(e) => setForm({ ...form, canonical_name: e.target.value })}
                     placeholder="misal: Niacinamide"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
+                    className="cluv-input"
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Nama Standar INCI
                   </label>
                   <input
                     value={form.inci_name}
                     onChange={(e) => setForm({ ...form, inci_name: e.target.value })}
                     placeholder="misal: Niacinamide"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
+                    className="cluv-input"
                   />
                 </div>
               </div>
 
-              <div className="admin-grid-3col">
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+              <div className="akb-grid-3col">
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Kategori
                   </label>
                   <select
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                      background: '#ffffff',
-                    }}
+                    className="cluv-input"
                   >
                     <option value="Active">Active</option>
                     <option value="Hydrating">Hydrating</option>
@@ -610,22 +509,14 @@ export default function AdminKnowledgeBasePage() {
                   </select>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Rating Keamanan
                   </label>
                   <select
                     value={form.safety_rating}
                     onChange={(e) => setForm({ ...form, safety_rating: e.target.value as any })}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                      background: '#ffffff',
-                    }}
+                    className="cluv-input"
                   >
                     <option value="aman">Aman</option>
                     <option value="hati">Perlu Perhatian</option>
@@ -633,8 +524,8 @@ export default function AdminKnowledgeBasePage() {
                   </select>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Skor Komedogenik (0-5)
                   </label>
                   <input
@@ -643,92 +534,62 @@ export default function AdminKnowledgeBasePage() {
                     max={5}
                     value={form.comedogenic_rating}
                     onChange={(e) => setForm({ ...form, comedogenic_rating: Number(e.target.value) })}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
+                    className="cluv-input cluv-tabular-nums"
                   />
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-                  Deskripsi & Manfaat Klinis
+              <div className="cluv-field">
+                <label className="cluv-label">
+                  Deskripsi &amp; Manfaat Klinis
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Penjelasan fungsi bagi skin barrier, hiperpigmentasi, atau sebum..."
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    border: '1px solid #d1d5db',
-                    fontSize: 13,
-                    boxSizing: 'border-box',
-                  }}
+                  className="cluv-input"
                 />
               </div>
 
-              <div className="admin-grid-2col">
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+              <div className="akb-grid-2col">
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Fungsi Utama (pisahkan dengan koma)
                   </label>
                   <input
                     value={form.common_functions}
                     onChange={(e) => setForm({ ...form, common_functions: e.target.value })}
                     placeholder="misal: Mencerahkan, Mengontrol Sebum, Memperkuat Barrier"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
+                    className="cluv-input"
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                <div className="cluv-field">
+                  <label className="cluv-label">
                     Hindari Dikombinasikan Dengan
                   </label>
                   <input
                     value={form.incompatible_with}
                     onChange={(e) => setForm({ ...form, incompatible_with: e.target.value })}
                     placeholder="misal: AHA/BHA tinggi, Vitamin C murni"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #d1d5db',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
+                    className="cluv-input"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <label className="akb-checkbox-label">
                 <input
                   type="checkbox"
                   id="is_verified_check"
                   checked={form.is_verified}
                   onChange={(e) => setForm({ ...form, is_verified: e.target.checked })}
-                  style={{ width: 16, height: 16, cursor: 'pointer' }}
+                  className="akb-checkbox-input"
                 />
-                <label htmlFor="is_verified_check" style={{ fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
-                  Tandai sebagai parameter ilmiah terverifikasi ahli
-                </label>
-              </div>
+                <span>Tandai sebagai parameter ilmiah terverifikasi ahli</span>
+              </label>
 
-              <div className="akb-drawer-footer">
+              <div className="cluv-modal-footer" style={{ margin: '8px -20px -20px -20px' }}>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
