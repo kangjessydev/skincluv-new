@@ -9,6 +9,28 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 ## [Unreleased] - 2026-10-31
 
 ### Ditambahkan
+- **Modernisasi Menyeluruh Seluruh Halaman Panel Admin Skincluv (Cluv Framework Standardized)**:
+  - **Modernisasi Berurutan 17 Rute Admin**: Menstandarkan 100% halaman admin agar selaras dengan estetika Cluv Framework aplikasi pengguna (`var(--cluv-*)` tokens, `.cluv-stat-grid`, `.cluv-stat-card`, `.cluv-badge`, `.admin-table`, `.cluv-modal-*`):
+    1. **Overview / Beranda (`/admin`)**: Bento grid metrik, rasio margin kotor, sparklines, dan navigasi cepat.
+    2. **Tren & Riset Pasar (`/admin/market-intelligence`)**: Distribusi tipe kulit, radar isu dominan, matriks bahan aktif populer, dan demand tracking.
+    3. **Riwayat Transaksi (`/admin/transactions`)**: Audit feed Tripay, filter status pembayaran, inspeksi raw invoice modal, dan rekonsiliasi kas.
+    4. **Unit Economics AI (`/admin/financials`)**: Akuntansi dual-track (prepaid cash deposit vs accrual token cost), valuasi WAC, margin kotor per fitur, dan simulasi margin.
+    5. **Paket & Kuota (`/admin/pricing`)**: Editor parameter kuota bulanan, proteksi invariant `universal_ai` via DB CHECK constraint, dan harga IDR defensible.
+    6. **Manajemen Pengguna (`/admin/users`)**: Stat pengguna, filter peran staf/konsumen, audit mutasi saldo credits atomik, dan modal penyesuaian hak akses.
+    7. **Misi Glow (`/admin/missions`)**: Manajemen kartu misi harian, reward credit, toggle aktif/nonaktif, dan urutan tampilan pengguna.
+    8. **Produk Rekomendasi (`/admin/products`)**: Katalog inventori kurasi dermatologi, pemetaan bahan aktif, dan target isu kulit.
+    9. **Prompt & Fitur AI (`/admin/prompts`)**: Tata kelola system prompt berversi, proteksi register non-terapeutik (RFC 016/017), dan uji coba live playground prompt.
+    10. **Model & API Key (`/admin/models`)**: Konfigurasi multi-provider (Google DeepMind, OpenRouter, Groq), failover matrix redundan, dan pengujian latensi provider real-time.
+    11. **Handbook Produk (`/admin/handbook`)**: Knowledge engine terverifikasi, hierarki otoritas (Invarian 15: DB/Transaksi > Handbook > LLM), dan proteksi halusinasi scope `what_it_is_not`.
+    12. **Knowledge Base (`/admin/knowledge-base`)**: Ensiklopedia kamus bahan kosmetik (INCI), rating komedogenik, filter keamanan, dan kalibrasi parameter ilmiah.
+    13. **Kamus Bahan & Formula (`/admin/product-formulas`)**: Database formula produk skincare, semantic cache hash, dan kalkulasi penghematan token AI.
+    14. **Logging AI Provider (`/admin/logs`)**: Observabilitas RTT latensi, pemecahan token in/out, isolasi privasi percakapan/biometrik (UU PDP No. 27/2022).
+    15. **Dataset Pelatihan AI (`/admin/training-datasets`)**: Kurasi pasangan instruksi-jawaban (Gold/Silver/Candidate), penandaan few-shot exemplars, dan 1-click exporter JSONL.
+    16. **Tata Kelola & Audit Logs (`/admin/audit-logs`)**: Rekam jejak mutasi hak akses, penyesuaian kredit, pagination server, dan inspeksi payload JSON.
+    17. **Observabilitas & Kesehatan Sistem (`/admin/system-health`)**: Ping diagnostik mandiri ke 6 dependensi kritis (Supabase DB, Storage, Gemini Vision, OpenRouter, Tavily, Tripay), banner status real-time, dan telemetri 24 jam.
+  - **Zero Bottom Navigation pada Mobile Admin**: Seluruh halaman admin di mobile (<768px) tidak menampilkan bottom navigation bar pengguna, melainkan menggunakan header sticky dengan hamburger button yang memicu drawer sidebar slide-over dari sisi kiri, menjamin visibilitas data tabel dan metrik 100% penuh.
+  - **Zero Raw Hex Colors & Zero Inline Layout Styles**: Seluruh 17 berkas halaman dan CSS admin telah dimurnikan dari kode hex manual dan menggunakan variabel CSS kanonikal resmi (`var(--cluv-teal)`, `var(--cluv-surface)`, `var(--cluv-border)`, `var(--cluv-radius)`, dll).
+
 - **Modernisasi Shell & Drawer Sidebar Mobile Admin (`AdminLayout.tsx`, `admin-responsive.css`)**:
   - **Mobile Off-Canvas Drawer (Zero Bottom Nav)**: Menggantikan navigasi kaku dengan mobile topbar modern (sticky, backdrop blur) + hamburger toggle yang membuka sidebar drawer dari sisi kiri (*slide-over*) dengan backdrop overlay gelap dan tombol tutup. Tidak menggunakan bottom navigation bar sama sekali di mobile agar ruang kerja grafik metrik, log audit, dan tabel manajemen data di ponsel tetap maksimal 100%.
   - **Adopsi Cluv Framework & Eliminasi Hardcoded Hex**: Menghilangkan seluruh warna hex statis (`#111827`, `#6366f1`) dan objek inline style di `AdminLayout.tsx`. Mengadopsi CSS variables kanonikal (`var(--cluv-*)`) dan menyelaraskan badge peran staf dengan komponen `.cluv-badge.is-sm` (`.is-purple`, `.is-teal`, `.is-gold`, `.is-blue`, `.is-neutral`).
