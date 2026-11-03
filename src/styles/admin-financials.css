@@ -3,141 +3,139 @@
    Dedicated modular stylesheet for AdminFinancialsPage
    ========================================================================== */
 .admin-financials-page {
-          padding: 24px;
-          max-width: 1300px;
-          margin: 0 auto;
-          font-family: inherit;
-        }
+  width: 100%;
+}
 
-        .admin-fin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-        }
+.admin-fin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
 
-        .badge-category {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          font-weight: 700;
-          color: #4f46e5;
-          background: #eef2ff;
-          padding: 4px 10px;
-          border-radius: 999px;
-          margin-bottom: 8px;
-          letter-spacing: 0.04em;
-        }
+.badge-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cluv-teal);
+  background: var(--cluv-teal-soft);
+  padding: 4px 10px;
+  border-radius: var(--cluv-radius-pill, 9999px);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
 
-        .admin-fin-header h1 {
-          font-size: 24px;
-          font-weight: 800;
-          color: #0f172a;
-          margin: 0 0 4px 0;
-        }
+.admin-fin-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  margin: 0 0 4px 0;
+}
 
-        .admin-fin-header p {
-          font-size: 14px;
-          color: #64748b;
-          margin: 0;
-        }
+.admin-fin-header p {
+  font-size: 14px;
+  color: var(--cluv-neutral-600);
+  margin: 0;
+}
 
-        .btn-refresh {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 14px;
-          background: #ffffff;
-          border: 1px solid #cbd5e1;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #334155;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md, 10px);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cluv-neutral-700);
+  cursor: pointer;
+  transition: all 0.15s;
+}
 
-        .btn-refresh:hover:not(:disabled) {
-          background: #f8fafc;
-          border-color: #94a3b8;
-        }
+.btn-refresh:hover:not(:disabled) {
+  background: var(--cluv-neutral-100);
+  border-color: var(--cluv-neutral-400);
+  color: var(--cluv-neutral-900);
+}
 
-        /* Period Filter Bar */
-        .period-filter-bar {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 14px 18px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 14px;
-          margin-bottom: 20px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        }
+/* Period Filter Bar */
+.period-filter-bar {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-lg, 12px);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+  box-shadow: var(--cluv-shadow-sm);
+}
 
-        .period-filter-left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
+.period-filter-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-        .period-filter-title {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 700;
-          color: #1e293b;
-        }
+.period-filter-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
 
-        .period-tabs {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
+.period-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
 
-        .period-tab {
-          padding: 6px 12px;
-          background: #f8fafc;
-          border: 1px solid #cbd5e1;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 600;
-          color: #475569;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
+.period-tab {
+  padding: 6px 12px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md, 8px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cluv-neutral-600);
+  cursor: pointer;
+  transition: all 0.15s;
+}
 
-        .period-tab:hover {
-          background: #f1f5f9;
-          border-color: #94a3b8;
-          color: #0f172a;
-        }
+.period-tab:hover {
+  background: var(--cluv-neutral-100);
+  border-color: var(--cluv-neutral-400);
+  color: var(--cluv-neutral-900);
+}
 
-        .period-tab.active {
-          background: #4f46e5;
-          color: #ffffff;
-          border-color: #4f46e5;
-          box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
-        }
+.period-tab.active {
+  background: var(--cluv-teal);
+  color: #ffffff;
+  border-color: var(--cluv-teal);
+  box-shadow: 0 2px 4px rgba(31, 157, 151, 0.2);
+}
 
-        .period-custom-inputs {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: #f8fafc;
-          padding: 6px 12px;
-          border-radius: 8px;
-          border: 1px solid #e2e8f0;
-        }
+.period-custom-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  padding: 6px 12px;
+  border-radius: var(--cluv-radius-md, 8px);
+  border: 1px solid var(--cluv-border);
+}
 
-        .custom-date-field {
-          display: flex;
-          align-items: center;
+.custom-date-field {
+  display: flex;
+  align-items: center;
           gap: 6px;
           font-size: 11px;
           font-weight: 600;

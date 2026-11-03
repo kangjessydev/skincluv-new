@@ -1002,27 +1002,35 @@ export default function AdminFinancialsPage() {
   const simMarginPercent = ((simProfitPerUser / discountedPricePro) * 100).toFixed(1)
 
   return (
-    <div className="admin-financials-page">
+    <div className="admin-page-container">
       {/* Header */}
-      <div className="admin-fin-header">
-        <div>
-          <div className="badge-category">
-            <TrendingUp size={14} /> ANALITIK BISNIS & UNIT ECONOMICS
+      <div className="admin-page-header">
+        <div className="admin-page-header-title">
+          <div className="cluv-flex cluv-items-center cluv-gap-2 cluv-mb-1">
+            <span className="cluv-badge is-sm is-teal">
+              <TrendingUp size={12} /> Analitik Bisnis
+            </span>
+            <span className="cluv-badge is-sm is-purple">Unit Economics</span>
           </div>
-          <h1>AI Unit Economics & Multi-Provider Accounting</h1>
-          <p>
+          <h1 className="cluv-title-section" style={{ margin: 0 }}>
+            AI Unit Economics & Multi-Provider Accounting
+          </h1>
+          <p className="cluv-subtitle cluv-mt-1">
             Bandingkan pendapatan penjualan langganan dengan biaya modal token API riil, lacak deposit kas ke Google/Groq/DeepSeek, dan pantau daya tahan runway.
           </p>
         </div>
-        <button
-          className="btn-refresh"
-          onClick={loadFinancialData}
-          disabled={isLoading}
-          title="Segarkan Data"
-        >
-          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
+        <div className="admin-page-header-actions">
+          <button
+            type="button"
+            className="cluv-btn is-outline is-sm"
+            onClick={loadFinancialData}
+            disabled={isLoading}
+            title="Segarkan Data"
+          >
+            <RefreshCw size={15} className={isLoading ? 'cluv-animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Periode Bar */}
