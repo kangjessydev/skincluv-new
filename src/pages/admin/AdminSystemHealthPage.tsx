@@ -204,7 +204,6 @@ export default function AdminSystemHealthPage() {
         )
         addHistoryLog(`Supabase Storage bucket face-images terverifikasi (${latency} ms)`, 'success')
       } else if (serviceId === 'google_gemini') {
-        // Ambil metrik latensi riil dari pemanggilan AI terakhir di log
         const start = performance.now()
         const { data: latestLog } = await supabase
           .from('ai_request_logs')
@@ -388,26 +387,26 @@ export default function AdminSystemHealthPage() {
     switch (status) {
       case 'operational':
         return (
-          <span className="health-badge health-badge-green">
-            <CheckCircle2 size={12} /> OPERASIONAL
+          <span className="cluv-badge is-success">
+            <CheckCircle2 size={11} /> OPERASIONAL
           </span>
         )
       case 'degraded':
         return (
-          <span className="health-badge health-badge-amber">
-            <AlertTriangle size={12} /> LAMBAT
+          <span className="cluv-badge is-warning">
+            <AlertTriangle size={11} /> LAMBAT
           </span>
         )
       case 'down':
         return (
-          <span className="health-badge health-badge-red">
-            <XCircle size={12} /> GANGGUAN
+          <span className="cluv-badge is-danger">
+            <XCircle size={11} /> GANGGUAN
           </span>
         )
       case 'testing':
         return (
-          <span className="health-badge health-badge-blue">
-            <RefreshCw size={12} className="animate-spin" /> MENGUJI...
+          <span className="cluv-badge is-neutral">
+            <RefreshCw size={11} className="animate-spin" /> MENGUJI...
           </span>
         )
     }
@@ -416,137 +415,178 @@ export default function AdminSystemHealthPage() {
   const renderCategoryIcon = (category: string) => {
     switch (category) {
       case 'database':
-        return <Database size={18} className="text-sky-600" />
+        return <Database size={18} />
       case 'storage':
-        return <HardDrive size={18} className="text-indigo-600" />
+        return <HardDrive size={18} />
       case 'ai':
-        return <Cpu size={18} className="text-violet-600" />
+        return <Cpu size={18} />
       case 'search':
-        return <Globe size={18} className="text-teal-600" />
+        return <Globe size={18} />
       case 'payment':
-        return <CreditCard size={18} className="text-emerald-600" />
+        return <CreditCard size={18} />
       default:
-        return <Server size={18} className="text-gray-600" />
+        return <Server size={18} />
     }
   }
 
   return (
-    <div className="system-health-page">
+    <div className="admin-page-container cluv-animate-fade">
       {/* Header Halaman */}
-      <div className="health-header">
+      <div className="admin-page-header">
         <div>
-          <div className="health-title-row">
-            <Server size={24} className="text-indigo-600" />
-            <h1 className="health-title">Status Layanan & Kesehatan Sistem</h1>
+          <div className="admin-header-title-row">
+            <div className="admin-header-icon-wrap" style={{ background: 'var(--cluv-teal-soft)', color: 'var(--cluv-teal)' }}>
+              <Server size={22} />
+            </div>
+            <h1 className="admin-page-title">Status Layanan &amp; Kesehatan Sistem</h1>
           </div>
-          <p className="health-subtitle">
+          <p className="admin-page-subtitle">
             Pemantauan ketersediaan real-time, latensi respons (RTT), dan metrik kinerja penyedia pihak ketiga (Supabase, Gemini AI, OpenRouter, Tavily Search, Tripay Gateway).
           </p>
         </div>
 
-        <div className="health-header-actions">
+        <div className="admin-header-actions">
           <button
             type="button"
             onClick={handleExportReport}
-            className="btn-health btn-health-secondary"
+            className="cluv-btn is-outline is-sm"
             title="Unduh laporan status diagnostik format JSON"
           >
-            <Download size={15} />
+            <Download size={14} />
             <span>Ekspor Laporan</span>
           </button>
           <button
             type="button"
             onClick={runAllDiagnostics}
             disabled={isDiagnosingAll}
-            className="btn-health btn-health-primary"
+            className="cluv-btn is-primary is-sm"
           >
-            <RefreshCw size={15} className={isDiagnosingAll ? 'animate-spin' : ''} />
+            <RefreshCw size={14} className={isDiagnosingAll ? 'animate-spin' : ''} />
             <span>Uji Semua Layanan</span>
           </button>
         </div>
       </div>
 
       {/* Banner Status Keseluruhan */}
-      <div className={`health-status-banner banner-${overallStatus.status}`}>
-        <div className="banner-left">
-          {overallStatus.status === 'operational' && <CheckCircle2 size={24} className="banner-icon-green" />}
-          {overallStatus.status === 'degraded' && <AlertTriangle size={24} className="banner-icon-amber" />}
-          {overallStatus.status === 'down' && <XCircle size={24} className="banner-icon-red" />}
-          {overallStatus.status === 'testing' && <RefreshCw size={24} className="banner-icon-blue animate-spin" />}
+      <div className={`ash-status-banner is-${overallStatus.status}`}>
+        <div className="ash-banner-left">
+          {overallStatus.status === 'operational' && <CheckCircle2 size={24} style={{ flexShrink: 0 }} />}
+          {overallStatus.status === 'degraded' && <AlertTriangle size={24} style={{ flexShrink: 0 }} />}
+          {overallStatus.status === 'down' && <XCircle size={24} style={{ flexShrink: 0 }} />}
+          {overallStatus.status === 'testing' && <RefreshCw size={24} className="animate-spin" style={{ flexShrink: 0 }} />}
           <div>
-            <h2 className="banner-heading">{overallStatus.label}</h2>
-            <p className="banner-desc">{overallStatus.desc}</p>
+            <h2 className="ash-banner-heading">{overallStatus.label}</h2>
+            <p className="ash-banner-desc">{overallStatus.desc}</p>
           </div>
         </div>
-        <div className="banner-right">
-          <span className="banner-last-checked">
+        <div className="ash-banner-right">
+          <span className="ash-banner-last-checked">
             <Clock size={13} /> Diperbarui: {new Date().toLocaleTimeString('id-ID')}
           </span>
         </div>
       </div>
 
       {/* Grid Telemetri 24 Jam Riil */}
-      <div className="health-telemetry-grid">
-        <div className="telemetry-card">
-          <span className="telemetry-label">Tingkat Keberhasilan AI (24 Jam)</span>
-          <span className="telemetry-val text-emerald-600">{telemetry.successRate}%</span>
-          <span className="telemetry-hint">Dari {telemetry.totalAiCalls} total eksekusi AI</span>
+      <div className="cluv-stat-grid cols-4">
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
+            <CheckCircle2 size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Keberhasilan AI (24 Jam)</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: 'var(--cluv-teal)' }}>
+              {telemetry.successRate}%
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>
+              Dari {telemetry.totalAiCalls} eksekusi
+            </div>
+          </div>
         </div>
-        <div className="telemetry-card">
-          <span className="telemetry-label">Rata-Rata Latensi AI (24 Jam)</span>
-          <span className="telemetry-val text-indigo-600">
-            {telemetry.avgLatencyMs > 0 ? `${(telemetry.avgLatencyMs / 1000).toFixed(2)}s` : '0s'}
-          </span>
-          <span className="telemetry-hint">Roundtrip inference waktu nyata</span>
+
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-neutral">
+            <Clock size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Rata-Rata Latensi AI</div>
+            <div className="cluv-stat-value cluv-tabular-nums">
+              {telemetry.avgLatencyMs > 0 ? `${(telemetry.avgLatencyMs / 1000).toFixed(2)}s` : '0s'}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>
+              Roundtrip inference
+            </div>
+          </div>
         </div>
-        <div className="telemetry-card">
-          <span className="telemetry-label">Total Pemanggilan AI (24 Jam)</span>
-          <span className="telemetry-val text-gray-800">{telemetry.totalAiCalls}</span>
-          <span className="telemetry-hint">Face Scan + Ingredient + Chat</span>
+
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-teal">
+            <Cpu size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Total Pemanggilan AI</div>
+            <div className="cluv-stat-value cluv-tabular-nums">
+              {telemetry.totalAiCalls}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>
+              Face + Ingredient + Chat
+            </div>
+          </div>
         </div>
-        <div className="telemetry-card">
-          <span className="telemetry-label">Transaksi Berhasil (24 Jam)</span>
-          <span className="telemetry-val text-amber-600">{telemetry.paidInvoices24h}</span>
-          <span className="telemetry-hint">Faktur terbayar via Tripay</span>
+
+        <div className="cluv-stat-card">
+          <div className="cluv-stat-icon-wrap is-gold">
+            <CreditCard size={20} />
+          </div>
+          <div>
+            <div className="cluv-stat-label">Transaksi Berhasil (24h)</div>
+            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: 'var(--cluv-gold)' }}>
+              {telemetry.paidInvoices24h}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 2 }}>
+              Faktur terbayar Tripay
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Grid Kartu Status Dependensi Layanan */}
-      <div className="service-matrix-grid">
+      <div className="ash-service-grid">
         {services.map((svc) => (
-          <div key={svc.id} className="service-card">
-            <div className="service-card-header">
-              <div className="service-meta">
-                <div className="service-icon-box">{renderCategoryIcon(svc.category)}</div>
+          <div key={svc.id} className="cluv-card ash-service-card">
+            <div className="ash-service-card-header">
+              <div className="ash-service-meta">
+                <div className="ash-service-icon-box">{renderCategoryIcon(svc.category)}</div>
                 <div>
-                  <h3 className="service-name">{svc.name}</h3>
-                  <span className="service-provider">{svc.provider}</span>
+                  <h3 className="ash-service-name">{svc.name}</h3>
+                  <span className="ash-service-provider">{svc.provider}</span>
                 </div>
               </div>
               <div>{renderStatusBadge(svc.status)}</div>
             </div>
 
-            <p className="service-desc">{svc.description}</p>
+            <p className="ash-service-desc">{svc.description}</p>
 
-            <div className="service-endpoint-box">
-              <span className="endpoint-label">Endpoint:</span>
-              <span className="endpoint-val">{svc.endpoint}</span>
+            <div className="ash-endpoint-box">
+              <span className="ash-endpoint-label">Endpoint:</span>
+              <span className="ash-endpoint-val">{svc.endpoint}</span>
             </div>
 
-            <div className="service-card-footer">
-              <div className="latency-indicator">
-                <Zap size={14} className="text-gray-400" />
-                <span className="latency-label">Latensi:</span>
+            <div className="ash-service-card-footer">
+              <div className="ash-latency-indicator">
+                <Zap size={14} style={{ color: 'var(--cluv-neutral-400)' }} />
+                <span className="ash-latency-label">Latensi:</span>
                 <span
-                  className={`latency-val ${
-                    svc.latencyMs === null
-                      ? 'text-gray-400'
-                      : svc.latencyMs < 300
-                      ? 'text-emerald-600'
-                      : svc.latencyMs < 1000
-                      ? 'text-amber-600'
-                      : 'text-rose-600'
-                  }`}
+                  className="ash-latency-val cluv-tabular-nums"
+                  style={{
+                    color:
+                      svc.latencyMs === null
+                        ? 'var(--cluv-neutral-400)'
+                        : svc.latencyMs < 300
+                        ? 'var(--cluv-teal)'
+                        : svc.latencyMs < 1000
+                        ? 'var(--cluv-gold)'
+                        : 'var(--cluv-rose)',
+                  }}
                 >
                   {svc.latencyMs !== null ? `${svc.latencyMs} ms` : '-'}
                 </span>
@@ -556,10 +596,11 @@ export default function AdminSystemHealthPage() {
                 type="button"
                 onClick={() => runDiagnosticForService(svc.id)}
                 disabled={svc.status === 'testing' || isDiagnosingAll}
-                className="btn-ping"
+                className="cluv-btn is-outline is-sm"
                 title="Kirim ping uji mandiri"
+                style={{ padding: '4px 10px', fontSize: '0.75rem' }}
               >
-                <RefreshCw size={13} className={svc.status === 'testing' ? 'animate-spin' : ''} />
+                <RefreshCw size={12} className={svc.status === 'testing' ? 'animate-spin' : ''} />
                 <span>Uji Ping</span>
               </button>
             </div>
@@ -568,36 +609,34 @@ export default function AdminSystemHealthPage() {
       </div>
 
       {/* Papan Riwayat Aktivitas Diagnostik */}
-      <div className="diagnostic-log-card">
-        <div className="log-card-header">
+      <div className="cluv-card ash-diag-card">
+        <div className="ash-diag-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Activity size={18} className="text-indigo-600" />
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>
+            <Activity size={18} style={{ color: 'var(--cluv-teal)' }} />
+            <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 700, color: 'var(--cluv-neutral-900)' }}>
               Jejak Audit Diagnostik Sesi Ini
             </h3>
           </div>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>20 catatan pengujian terbaru</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--cluv-neutral-500)' }}>20 catatan pengujian terbaru</span>
         </div>
 
-        <div className="log-card-body">
+        <div className="ash-diag-body">
           {diagnosticHistory.length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--cluv-neutral-400)', fontSize: '0.8125rem' }}>
               Belum ada log diagnostik tercatat pada sesi ini.
             </div>
           ) : (
-            <div className="log-stream">
+            <div className="ash-diag-stream">
               {diagnosticHistory.map((item, idx) => (
-                <div key={idx} className={`log-row log-type-${item.type}`}>
-                  <span className="log-time">{item.time}</span>
-                  <span className="log-msg">{item.message}</span>
+                <div key={idx} className={`ash-diag-row is-${item.type}`}>
+                  <span className="ash-diag-time">{item.time}</span>
+                  <span className="ash-diag-msg">{item.message}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
-
-
     </div>
   )
 }
