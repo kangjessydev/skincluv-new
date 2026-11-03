@@ -1,0 +1,127 @@
+/* src/styles/admin-product-formulas.css
+   =============================================================================
+   Admin Product Formulas Page Stylesheet (Cluv Framework Compliant)
+   Semantic Cache & Big Data Formula Management with 100% token consistency.
+   ============================================================================= */
+
+/* Search card */
+.apf-search-card {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.apf-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 8px 14px;
+  width: 100%;
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+}
+
+.apf-search-wrap:focus-within {
+  border-color: var(--cluv-teal);
+  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+}
+
+.apf-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  width: 100%;
+  color: var(--cluv-neutral-900);
+}
+
+.apf-search-input::placeholder {
+  color: var(--cluv-neutral-400);
+}
+
+/* Table card & details */
+.apf-table-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.apf-product-name {
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
+
+.apf-brand-name {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+}
+
+.apf-ingredients-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.apf-tag-pill {
+  padding: 2px 6px;
+  border-radius: var(--cluv-radius-xs);
+  font-size: 0.6875rem;
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-700);
+  border: 1px solid var(--cluv-neutral-200);
+}
+
+/* Modal details */
+.apf-hash-box {
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.apf-hash-code {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-900);
+  word-break: break-all;
+  font-family: monospace;
+}
+
+.apf-modal-stat-box {
+  padding: 12px;
+  border-radius: var(--cluv-radius-md);
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+}
+
+.apf-modal-stat-label {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.apf-modal-stat-val {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.apf-code-preview {
+  margin: 0;
+  background: var(--cluv-neutral-900);
+  color: var(--cluv-neutral-100);
+  padding: 14px;
+  border-radius: var(--cluv-radius-md);
+  font-size: 0.75rem;
+  font-family: monospace;
+  overflow-x: auto;
+  max-height: 200px;
+}
