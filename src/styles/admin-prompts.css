@@ -4,25 +4,7 @@
    ========================================================================== */
 
 .admin-prompts-page {
-  max-width: 1200px;
   width: 100%;
-}
-
-.admin-prompts-header {
-  margin-bottom: 28px;
-}
-
-.admin-prompts-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--cluv-text-main);
-  margin: 0;
-}
-
-.admin-prompts-subtitle {
-  color: var(--cluv-text-muted);
-  font-size: 14px;
-  margin-top: 4px;
 }
 
 .admin-prompts-layout {
@@ -49,8 +31,8 @@
 
 .admin-prompts-sidebar-heading {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--cluv-text-muted);
+  font-weight: 800;
+  color: var(--cluv-neutral-400);
   text-transform: uppercase;
   margin-bottom: 12px;
   letter-spacing: 0.05em;
@@ -68,21 +50,21 @@
   align-items: flex-start;
   width: 100%;
   padding: 10px 12px;
-  border-radius: var(--cluv-radius, 8px);
+  border-radius: var(--cluv-radius-md, 8px);
   text-align: left;
   background: transparent;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .admin-prompts-feature-item:hover {
-  background: var(--cluv-surface-subtle);
+  background: var(--cluv-neutral-50);
 }
 
 .admin-prompts-feature-item.is-selected {
-  background: var(--cluv-teal-50, #f0fdf4);
-  border-color: var(--cluv-teal-300, #86efac);
+  background: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal-line);
 }
 
 .admin-prompts-feature-meta {
@@ -93,35 +75,35 @@
 }
 
 .admin-prompts-feature-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--cluv-text-main);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--cluv-neutral-800);
 }
 
 .admin-prompts-feature-item.is-selected .admin-prompts-feature-name {
-  font-weight: 600;
-  color: var(--cluv-teal-800, #166534);
+  font-weight: 800;
+  color: var(--cluv-teal-dark);
 }
 
 .admin-prompts-feature-version {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 10.5px;
+  font-weight: 800;
   padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--cluv-surface-subtle);
-  color: var(--cluv-text-muted);
+  border-radius: var(--cluv-radius-sm, 4px);
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
 }
 
 .admin-prompts-feature-item.is-selected .admin-prompts-feature-version {
-  background: var(--cluv-teal-100, #bbf7d0);
-  color: var(--cluv-teal-700, #15803d);
+  background: var(--cluv-teal);
+  color: #ffffff;
 }
 
 .admin-prompts-feature-slug {
   font-size: 11px;
-  color: var(--cluv-text-muted);
+  color: var(--cluv-neutral-400);
   margin-top: 2px;
-  font-family: monospace;
+  font-family: var(--cluv-font-mono, monospace);
 }
 
 /* Editor Panel */
@@ -141,55 +123,59 @@
 
 .admin-prompts-selected-title {
   font-size: 18px;
-  font-weight: 700;
-  color: var(--cluv-text-main);
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
   margin: 0;
 }
 
 .admin-prompts-selected-slug {
   font-size: 13px;
-  color: var(--cluv-text-muted);
+  color: var(--cluv-neutral-500);
   margin: 4px 0 0 0;
 }
 
 .admin-prompts-slug-badge {
-  background: var(--cluv-surface-subtle);
+  background: var(--cluv-neutral-100);
   padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
+  border-radius: var(--cluv-radius-sm, 4px);
+  font-family: var(--cluv-font-mono, monospace);
+  color: var(--cluv-neutral-700);
+  border: 1px solid var(--cluv-border);
 }
 
 .admin-prompts-active-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 4px 10px;
-  border-radius: 9999px;
-  background: var(--cluv-teal-50, #f0fdf4);
-  color: var(--cluv-teal-700, #15803d);
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--cluv-teal-200, #bbf7d0);
+  border-radius: var(--cluv-radius-pill, 9999px);
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal-dark);
+  font-size: 11.5px;
+  font-weight: 800;
+  border: 1px solid var(--cluv-teal-line);
 }
 
 .admin-prompts-textarea {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   font-size: 13px;
-  font-family: Consolas, Monaco, "Courier New", monospace;
-  line-height: 1.5;
-  border: 1px solid var(--cluv-border);
-  border-radius: var(--cluv-radius, 8px);
-  background: var(--cluv-surface-subtle);
+  font-family: var(--cluv-font-mono, monospace);
+  line-height: 1.6;
+  border: 1.5px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-md, 8px);
+  background: var(--cluv-neutral-50);
   box-sizing: border-box;
   outline: none;
   resize: vertical;
-  color: var(--cluv-text-main);
+  color: var(--cluv-neutral-900);
+  transition: all 0.15s ease;
 }
 
 .admin-prompts-textarea:focus {
   border-color: var(--cluv-teal);
   background: var(--cluv-surface);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
 }
 
 /* History List */
@@ -204,14 +190,14 @@
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--cluv-text-main);
-  margin-bottom: 12px;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  margin-bottom: 14px;
 }
 
 .admin-prompts-history-card {
   padding: 10px 14px;
-  border-radius: var(--cluv-radius, 8px);
+  border-radius: var(--cluv-radius-md, 8px);
   border: 1px solid var(--cluv-border);
   background: var(--cluv-surface);
   display: flex;
@@ -219,19 +205,24 @@
   justify-content: space-between;
   font-size: 13px;
   margin-bottom: 8px;
+  transition: all 0.15s ease;
+}
+
+.admin-prompts-history-card:hover {
+  background: var(--cluv-neutral-50);
 }
 
 .admin-prompts-history-card.is-active {
-  background: var(--cluv-teal-50, #f0fdf4);
-  border-color: var(--cluv-teal-200, #bbf7d0);
+  background: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal-line);
 }
 
 .admin-prompts-history-ver {
-  font-weight: 700;
-  color: var(--cluv-text-main);
-  font-family: monospace;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  font-family: var(--cluv-font-mono, monospace);
 }
 
 .admin-prompts-history-card.is-active .admin-prompts-history-ver {
-  color: var(--cluv-teal-700, #15803d);
+  color: var(--cluv-teal-dark);
 }

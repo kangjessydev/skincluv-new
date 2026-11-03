@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Sparkles, CheckCircle2, AlertCircle, History } from 'lucide-react'
+import { Sparkles, CheckCircle2, AlertCircle, History, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import '@/styles/admin-prompts.css'
 
@@ -145,19 +145,42 @@ export default function AdminPromptsPage() {
   return (
     <div className="admin-page-container admin-prompts-page">
       {/* Header */}
-      <div className="admin-prompts-header">
-        <h1 className="admin-prompts-title">
-          Prompt & AI Features
-        </h1>
-        <p className="admin-prompts-subtitle">
-          Kelola system prompt per fitur AI. Versi baru langsung aktif dan versi lama otomatis dinonaktifkan oleh database.
-        </p>
+      <div className="admin-page-header">
+        <div className="admin-page-header-title">
+          <div className="cluv-badge is-teal is-sm" style={{ marginBottom: 6 }}>
+            <Sparkles size={12} /> AI Brain & Prompts
+          </div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--cluv-neutral-900)', margin: 0, letterSpacing: '-0.02em' }}>
+            Prompt & Fitur AI
+          </h1>
+          <p style={{ color: 'var(--cluv-neutral-500)', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
+            Kelola system prompt per fitur AI. Versi baru langsung aktif dan versi lama otomatis dinonaktifkan oleh database.
+          </p>
+        </div>
+
+        <div className="admin-page-header-actions">
+          <button
+            onClick={loadData}
+            disabled={isLoading}
+            className="cluv-btn is-outline is-sm"
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <span>Segarkan</span>
+          </button>
+        </div>
       </div>
 
       {feedback && (
-        <div className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`} style={{ marginBottom: 20 }}>
-          {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-          <span>{feedback.message}</span>
+        <div
+          className={`cluv-alert ${feedback.type === 'success' ? 'is-success' : 'is-danger'}`}
+          style={{ marginBottom: 24 }}
+        >
+          <div className="cluv-alert-icon">
+            {feedback.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          </div>
+          <div className="cluv-alert-content">
+            <p className="cluv-alert-message" style={{ fontWeight: 600 }}>{feedback.message}</p>
+          </div>
         </div>
       )}
 
@@ -218,7 +241,7 @@ export default function AdminPromptsPage() {
                     <span className="admin-prompts-active-tag">
                       <Sparkles size={13} /> Aktif: v{currentActivePrompt.version}
                     </span>
-                    <div style={{ fontSize: 11, color: 'var(--cluv-text-muted)', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: 'var(--cluv-neutral-400)', marginTop: 4 }}>
                       {new Date(currentActivePrompt.created_at).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
@@ -230,7 +253,7 @@ export default function AdminPromptsPage() {
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
                   System Prompt:
                 </label>
                 <textarea
@@ -243,7 +266,7 @@ export default function AdminPromptsPage() {
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--cluv-text-main)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--cluv-neutral-700)', marginBottom: 6 }}>
                   Catatan Versi (Opsional):
                 </label>
                 <input
@@ -251,22 +274,22 @@ export default function AdminPromptsPage() {
                   placeholder="Contoh: Kalibrasi respon panjang, perketat rekomendasi"
                   value={draftNotes}
                   onChange={(e) => setDraftNotes(e.target.value)}
-                  className="cluv-input"
+                  className="admin-input"
                   style={{ width: '100%' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={handleSavePrompt}
                   disabled={isSaving || !draftPrompt.trim()}
-                  className="cluv-btn is-primary"
+                  className="cluv-btn is-primary is-sm"
                 >
                   {isSaving ? 'Menyimpan ke Database...' : 'Simpan & Aktifkan Versi Baru'}
                 </button>
 
-                <span style={{ fontSize: 12, color: 'var(--cluv-text-muted)' }}>
+                <span style={{ fontSize: 12, color: 'var(--cluv-neutral-400)' }}>
                   Versi baru akan otomatis mendapatkan nomor versi berikutnya.
                 </span>
               </div>
@@ -275,7 +298,8 @@ export default function AdminPromptsPage() {
               {selectedHistory.length > 0 && (
                 <div className="admin-prompts-history-section">
                   <div className="admin-prompts-history-title">
-                    <History size={16} /> Riwayat Versi ({selectedHistory.length})
+                    <History size={16} style={{ color: 'var(--cluv-teal)' }} />
+                    <span>Riwayat Versi ({selectedHistory.length})</span>
                   </div>
 
                   <div>
@@ -289,17 +313,17 @@ export default function AdminPromptsPage() {
                             v{ver.version}
                           </span>
                           {ver.is_active && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--cluv-teal-700, #15803d)', background: 'var(--cluv-teal-100, #dcfce7)', padding: '2px 6px', borderRadius: 4 }}>
+                            <span className="cluv-badge is-teal is-sm">
                               Sedang Aktif
                             </span>
                           )}
-                          <span style={{ color: 'var(--cluv-text-muted)' }}>
+                          <span style={{ color: 'var(--cluv-neutral-600)' }}>
                             {ver.notes ? ver.notes : 'Tanpa catatan'}
                           </span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span style={{ fontSize: 11, color: 'var(--cluv-text-muted)' }}>
+                          <span style={{ fontSize: 11, color: 'var(--cluv-neutral-400)', fontVariantNumeric: 'tabular-nums' }}>
                             {new Date(ver.created_at).toLocaleDateString('id-ID', {
                               day: 'numeric',
                               month: 'short',
@@ -315,6 +339,7 @@ export default function AdminPromptsPage() {
                                 onClick={() => handleDirectActivate(ver.id, ver.version)}
                                 disabled={isSaving}
                                 className="cluv-btn is-outline is-sm"
+                                style={{ padding: '4px 8px', fontSize: 12 }}
                               >
                                 Aktifkan Langsung
                               </button>
@@ -324,7 +349,8 @@ export default function AdminPromptsPage() {
                                   setDraftPrompt(ver.system_prompt)
                                   setDraftNotes(`Restore dari versi v${ver.version}`)
                                 }}
-                                className="cluv-btn is-sm"
+                                className="cluv-btn is-outline is-sm"
+                                style={{ padding: '4px 8px', fontSize: 12 }}
                               >
                                 Salin ke Editor
                               </button>
@@ -338,7 +364,7 @@ export default function AdminPromptsPage() {
               )}
             </>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--cluv-text-muted)' }}>
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--cluv-neutral-400)' }}>
               {isLoading ? 'Memuat data...' : 'Pilih fitur di sebelah kiri untuk melihat dan mengedit prompt.'}
             </div>
           )}
