@@ -125,6 +125,7 @@ export default function MissionsPage() {
   const [claimingSlug, setClaimingSlug] = useState<string | null>(null)
   const [claimFeedback, setClaimFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [totalEarned, setTotalEarned] = useState<number>(0)
+  const [pastStreakDays, setPastStreakDays] = useState<number>(0)
 
   // Fetch Missions & User Progress from Database
   useEffect(() => {
@@ -157,18 +158,39 @@ export default function MissionsPage() {
           console.error('[MissionsPage] Error fetching user_missions:', umErr)
         }
 
-        // 3. Query total positive credits earned from coin_transactions
+        // 3. Query total positive credits earned from coin_transactions & compute real daily check-in streak
         const { data: coinTx } = await supabase
           .from('coin_transactions')
-          .select('amount')
+          .select('amount, type, notes, created_at')
           .eq('user_id', user.id)
           .gt('amount', 0)
+          .order('created_at', { ascending: false })
 
         if (coinTx && coinTx.length > 0) {
           const sum = coinTx.reduce((acc, curr) => acc + (curr.amount || 0), 0)
           setTotalEarned(sum)
+
+          // Calculate consecutive daily check-in claims prior to today
+          const loginClaimDates = new Set(
+            coinTx
+              .filter((tx) => tx.type === 'mission_reward' && String(tx.notes || '').toLowerCase().includes('login'))
+              .map((tx) => new Date(tx.created_at).toDateString())
+          )
+          let consecutivePriorDays = 0
+          const cursor = new Date()
+          for (let i = 1; i <= 6; i++) {
+            const d = new Date(cursor)
+            d.setDate(cursor.getDate() - i)
+            if (loginClaimDates.has(d.toDateString())) {
+              consecutivePriorDays++
+            } else {
+              break
+            }
+          }
+          setPastStreakDays(consecutivePriorDays)
         } else {
-          setTotalEarned(coinBalance?.balance || 387)
+          setTotalEarned(coinBalance?.balance ?? 0)
+          setPastStreakDays(0)
         }
 
         if (dbMissions && dbMissions.length > 0) {
@@ -310,19 +332,28 @@ export default function MissionsPage() {
     return missions.filter((m) => m.slug !== 'daily_login')
   }, [missions])
 
-  // 7-Day Gamified Check-in Days
+  // 7-Day Gamified Check-in Days (computed dynamically from user's real consecutive streak)
   const checkinDays = useMemo(() => {
     const isClaimedToday = loginMission?.is_claimed ?? false
-    return [
-      { day: 1, label: 'H1', reward: '+1', isClaimed: true },
-      { day: 2, label: 'H2', reward: '+2', isClaimed: true },
-      { day: 3, label: 'H3', reward: '+2', isToday: true, isClaimed: isClaimedToday },
-      { day: 4, label: 'H4', reward: '+3', isLocked: true },
-      { day: 5, label: 'H5', reward: '+3', isLocked: true },
-      { day: 6, label: 'H6', reward: '+4', isLocked: true },
-      { day: 7, label: 'H7', reward: '+10', isGift: true, isLocked: true },
-    ]
-  }, [loginMission?.is_claimed])
+    const activeDayNumber = Math.min(7, (pastStreakDays % 7) + 1)
+    const rewards = ['+1', '+2', '+2', '+3', '+3', '+4', '+10']
+
+    return rewards.map((reward, idx) => {
+      const dayNum = idx + 1
+      const isPast = dayNum < activeDayNumber
+      const isToday = dayNum === activeDayNumber
+      const isLocked = dayNum > activeDayNumber
+      return {
+        day: dayNum,
+        label: `H${dayNum}`,
+        reward,
+        isClaimed: isPast || (isToday && isClaimedToday),
+        isToday,
+        isLocked,
+        isGift: dayNum === 7,
+      }
+    })
+  }, [loginMission?.is_claimed, pastStreakDays])
 
   const currentBalanceDisplay = coinBalance?.balance ?? 0
 

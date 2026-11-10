@@ -255,6 +255,9 @@
   padding: 32px 40px;
   max-width: 1360px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* Page Header & Flex Wrap */
@@ -262,7 +265,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 28px;
+  margin-bottom: 4px;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -272,7 +275,57 @@
   min-width: 240px;
 }
 
-.admin-page-header-actions {
+.admin-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-header-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--cluv-radius-md, 10px);
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-header-icon-wrap.is-gold {
+  background: var(--cluv-gold-soft);
+  color: var(--cluv-gold);
+}
+
+.admin-header-icon-wrap.is-rose {
+  background: var(--cluv-rose-soft);
+  color: var(--cluv-rose);
+}
+
+.admin-header-icon-wrap.is-purple {
+  background: var(--cluv-purple-soft);
+  color: var(--cluv-purple);
+}
+
+.admin-page-title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.admin-page-subtitle {
+  font-size: 0.875rem;
+  color: var(--cluv-neutral-500);
+  margin: 4px 0 0 0;
+  line-height: 1.45;
+}
+
+.admin-page-header-actions,
+.admin-header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -311,19 +364,57 @@
   gap: 24px;
 }
 
-/* Responsive Table Wrapper */
+/* Responsive Table Wrapper & Admin Tables */
 .admin-table-card {
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  background: var(--cluv-surface, #ffffff);
+  border-radius: var(--cluv-radius-lg, 14px);
+  border: 1px solid var(--cluv-border, #e2e8f0);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
-.admin-table-wrapper {
+.admin-table-wrapper,
+.admin-table-wrap,
+.admin-table-container {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.admin-table th {
+  background: var(--cluv-neutral-50, #f8fafc);
+  color: var(--cluv-neutral-500, #64748b);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cluv-border, #e2e8f0);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--cluv-neutral-100, #f1f5f9);
+  vertical-align: middle;
+  color: var(--cluv-neutral-800, #1e293b);
+  font-size: 13px;
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--cluv-neutral-50, #f8fafc);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* Responsive Modal Box */
@@ -624,3 +715,156 @@ textarea.input-field {
     padding: 14px;
   }
 }
+
+/* ============================================================
+   Admin-Scoped Component Primitives (Zero Impact on User App)
+   Strictly scoped under .admin-layout-root
+   ============================================================ */
+.admin-layout-root {
+  --cluv-radius-xs: 4px;
+  --cluv-dur-fast: 150ms;
+  --cluv-dur-normal: 250ms;
+  --cluv-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Prevent transform on .admin-page-container from trapping position:fixed modals */
+.admin-layout-root .admin-page-container.cluv-animate-fade {
+  animation: cluvFadeIn 0.2s ease-out;
+  transform: none !important;
+}
+
+/* Admin Stat Cards with Icon Wrap */
+.admin-layout-root .cluv-stat-card:has(> .cluv-stat-icon-wrap) {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+}
+
+.admin-layout-root .cluv-stat-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--cluv-radius-md);
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
+  flex-shrink: 0;
+}
+
+.admin-layout-root .cluv-stat-icon-wrap.is-teal {
+  background: var(--cluv-teal-soft);
+  color: var(--cluv-teal);
+}
+
+.admin-layout-root .cluv-stat-icon-wrap.is-rose {
+  background: var(--cluv-rose-soft);
+  color: var(--cluv-rose);
+}
+
+.admin-layout-root .cluv-stat-icon-wrap.is-gold {
+  background: var(--cluv-gold-soft);
+  color: var(--cluv-gold);
+}
+
+.admin-layout-root .cluv-stat-icon-wrap.is-purple {
+  background: var(--cluv-purple-soft);
+  color: var(--cluv-purple);
+}
+
+.admin-layout-root .cluv-stat-icon-wrap.is-blue {
+  background: var(--color-blue-soft, var(--cluv-teal-soft));
+  color: var(--cluv-status-info);
+}
+
+.admin-layout-root .cluv-stat-icon-wrap.is-neutral {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-600);
+}
+
+.admin-layout-root .cluv-stat-value {
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-weight: 800;
+  color: var(--cluv-neutral-900);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+/* Admin Status Badges */
+.admin-layout-root .cluv-badge.is-neutral {
+  color: var(--cluv-neutral-600);
+  background: var(--cluv-neutral-100);
+  border-color: var(--cluv-neutral-200);
+}
+
+.admin-layout-root .cluv-badge.is-success {
+  color: var(--cluv-teal-dark);
+  background: var(--cluv-teal-soft);
+  border-color: var(--cluv-teal-line);
+}
+
+.admin-layout-root .cluv-badge.is-warning {
+  color: var(--cluv-gold);
+  background: var(--cluv-gold-soft);
+  border-color: var(--cluv-gold-line);
+}
+
+.admin-layout-root .cluv-badge.is-danger {
+  color: var(--cluv-rose);
+  background: var(--cluv-rose-soft);
+  border-color: var(--cluv-rose-line);
+}
+
+.admin-layout-root .cluv-badge.is-blue,
+.admin-layout-root .cluv-badge.is-info {
+  color: var(--cluv-status-info);
+  background: var(--color-blue-soft, var(--cluv-teal-soft));
+  border-color: var(--cluv-teal-line);
+}
+
+/* Admin Modal Content & Elements */
+.admin-layout-root .cluv-modal-content {
+  background: var(--cluv-surface);
+  border: 1.5px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-xl);
+  box-shadow: var(--cluv-shadow-lg);
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-layout-root .cluv-modal-subtitle {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  margin: 4px 0 0 0;
+}
+
+.admin-layout-root .cluv-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--cluv-neutral-400);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--cluv-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-layout-root .cluv-modal-close-btn:hover {
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-neutral-700);
+}
+
+.admin-layout-root .cluv-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+

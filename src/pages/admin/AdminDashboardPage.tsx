@@ -16,7 +16,6 @@ import {
   BookMarked,
   Layers,
   Server,
-  Sparkles,
   CheckCircle2,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'

@@ -18,10 +18,16 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) return jsonError('Unauthorized', 401)
 
     const body = await req.json()
-    const { reference, merchant_ref } = body
+    const rawRef = typeof body?.reference === 'string' ? body.reference.trim() : ''
+    const rawMerchantRef = typeof body?.merchant_ref === 'string' ? body.merchant_ref.trim() : ''
+
+    // Strict input sanitization to prevent PostgREST .or() filter injection and URL query injection
+    const REF_REGEX = /^[A-Za-z0-9_-]{3,80}$/
+    const reference = REF_REGEX.test(rawRef) ? rawRef : ''
+    const merchant_ref = REF_REGEX.test(rawMerchantRef) ? rawMerchantRef : ''
 
     if (!reference && !merchant_ref) {
-      return jsonError('Missing reference or merchant_ref', 400)
+      return jsonError('Missing or invalid reference / merchant_ref format', 400)
     }
 
     const apiKey = Deno.env.get('TRIPAY_API_KEY')
@@ -63,9 +69,9 @@ Deno.serve(async (req: Request) => {
     let tripayStatus = invoice.status || 'UNPAID'
     let transactionData = null
 
-    if (tripayRef) {
+    if (tripayRef && REF_REGEX.test(String(tripayRef))) {
       try {
-        const tripayRes = await fetch(`${baseUrl}/transaction/detail?reference=${tripayRef}`, {
+        const tripayRes = await fetch(`${baseUrl}/transaction/detail?reference=${encodeURIComponent(String(tripayRef))}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${apiKey}`

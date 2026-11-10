@@ -4,6 +4,8 @@ import {
   CheckCircle2, Send, ArrowRight, Sparkles
 } from 'lucide-react'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 
 const TOPIC_OPTIONS = [
   { value: 'transaksi', label: 'Kendala Pembayaran / Tagihan Tripay' },
@@ -16,6 +18,7 @@ const TOPIC_OPTIONS = [
 export default function ContactPage() {
   useScrollReveal()
 
+  const { user } = useAuthStore()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,10 +26,28 @@ export default function ContactPage() {
     message: ''
   })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const { error } = await supabase.from('contact_messages').insert({
+        user_id: user?.id ?? null,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        category: formData.category,
+        message: formData.message.trim(),
+      })
+      if (error) throw error
+      setSubmitted(true)
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Gagal mengirim pesan. Silakan coba lagi atau hubungi melalui email.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -222,10 +243,18 @@ export default function ContactPage() {
                     />
                   </div>
 
+                  {submitError && (
+                    <div className="cluv-alert is-danger is-sm">
+                      <div className="cluv-alert-content">
+                        <p className="cluv-alert-message">{submitError}</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="cluv-mt-2">
-                    <button type="submit" className="cluv-btn is-primary is-md is-block">
+                    <button type="submit" disabled={submitting} className="cluv-btn is-primary is-md is-block">
                       <Send size={16} />
-                      <span>Kirim Pesan Sahabat</span>
+                      <span>{submitting ? 'Mengirim Pesan...' : 'Kirim Pesan Sahabat'}</span>
                     </button>
                   </div>
                 </form>

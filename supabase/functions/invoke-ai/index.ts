@@ -139,13 +139,17 @@ Deno.serve(async (req: Request) => {
         .select('id, system_prompt, user_prompt')
         .eq('feature_id', feature.id)
         .eq('is_active', true)
-        .single(),
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
       supabaseService
         .from('model_configs')
         .select('id, provider, model_name, api_key_secret, parameters')
         .eq('feature_id', feature.id)
         .eq('is_active', true)
-        .single(),
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ])
 
     if (promptRes.error || !promptRes.data) {
@@ -531,6 +535,12 @@ Deno.serve(async (req: Request) => {
       ]
       const isTemporalRelevant = temporalKeywords.some((kw) => messageText.includes(kw))
 
+      const appKeywords = [
+        'skincluv', 'fitur', 'handbook', 'panduan', 'buku panduan', 'paket', 'langganan', 'glow club', 'pro club',
+        'kredit', 'credit', 'koin', 'misi', 'misi glow', 'riwayat', 'kebijakan', 'privasi', 'uu pdp', 'gratis', 'free tier', 'harga', 'biaya'
+      ]
+      const isAppRelevant = appKeywords.some((kw) => messageText.includes(kw))
+
       // RFC 013: ReDoS-Safe Temporal Parser
       if (isTemporalRelevant) {
         const formatDateStr = (d: Date) => d.toISOString().split('T')[0]
@@ -600,8 +610,8 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      // Ambil konteks jika relevan face/product/temporal
-      if (isFaceRelevant || isProductRelevant || isTemporalRelevant) {
+      // Ambil konteks jika relevan face/product/temporal/app
+      if (isFaceRelevant || isProductRelevant || isTemporalRelevant || isAppRelevant) {
         try {
           const [scanContextRes, periodScansRes] = await Promise.all([
             supabaseUser.rpc('get_chatbot_user_context'),
@@ -615,11 +625,13 @@ Deno.serve(async (req: Request) => {
           ])
 
           const scanContext = scanContextRes.data
-          if (scanContext && scanContext.master_consented) {
+          if (scanContext) {
             cachedChatbotScanContext = scanContext
-            let scanDataContent = ''
-            const conditionFlags: string[] = []
-            const ingredientCategories: string[] = []
+
+            if (scanContext.master_consented) {
+              let scanDataContent = ''
+              const conditionFlags: string[] = []
+              const ingredientCategories: string[] = []
 
             // A0. Injeksi Linimasa 5 Scan Terakhir (~30 token, RFC 013 DeepSeek & Kimi)
             if (Array.isArray(scanContext.timeline_index) && scanContext.timeline_index.length > 0) {
@@ -806,6 +818,7 @@ Deno.serve(async (req: Request) => {
    - DILARANG KERAS berbicara atau menjawab dalam bahasa Inggris.
    - DILARANG KERAS membocorkan proses penalaran internal, nama blok data sistem (seperti "STATUS REKAM JEJAK HISTORIS"), atau kata "discrepancy" kepada pengguna. Langsung jawab intinya kepada pengguna.`
             }
+          } // end if (scanContext.master_consented)
 
             // E. Injeksi Buku Panduan Resmi Fitur Skincluv (RFC 013 Kimi & ChatGPT)
             if (Array.isArray(scanContext.handbook_knowledge) && scanContext.handbook_knowledge.length > 0) {
@@ -818,7 +831,7 @@ Deno.serve(async (req: Request) => {
               hbContent += `\n[HIERARKI OTORITAS PRODUK (INVARIAN 15)]: Database/Transaksi > Buku Panduan > LLM. Dilarang mengarang kuota/koin atau mengubah scope fitur di luar panduan ini.\n`
               systemPrompt += `\n\n${hbContent}`
             }
-          }
+        }
         } catch (scanErr) {
           console.warn('[invoke-ai] Chatbot scan context retrieval non-fatal error:', scanErr)
         }
@@ -1078,8 +1091,9 @@ END PRODUCT_TEXT`
     }
 
     // ---- 9. Log successful result ----
+    const actualModelUsed = aiResult!.modelUsed || model.model_name
     const costUsd = estimateCostUsd(
-      model.model_name,
+      actualModelUsed,
       aiResult!.inputTokens,
       aiResult!.outputTokens,
       aiResult!.tokensUsed
@@ -1398,8 +1412,15 @@ END PRODUCT_TEXT`
           .map((i: any) => (i.name || '').trim())
           .filter(Boolean)
 
-        enrichMissingIngredientsWithGemini(supabaseService, scanCandidateNames)
-          .catch((err) => console.warn('[invoke-ai] Ingredient scan auto-enrichment warning:', err))
+        const enrichPromise = enrichMissingIngredientsWithGemini(supabaseService, scanCandidateNames, {
+          userId: user.id,
+          featureId: feature.id,
+          promptVersionId: prompt.id,
+          modelConfigId: model.id,
+        }).catch((err) => console.warn('[invoke-ai] Ingredient scan auto-enrichment warning:', err))
+        if (typeof (globalThis as any).EdgeRuntime !== 'undefined' && (globalThis as any).EdgeRuntime?.waitUntil) {
+          (globalThis as any).EdgeRuntime.waitUntil(enrichPromise)
+        }
       }
     }
 
@@ -1407,8 +1428,11 @@ END PRODUCT_TEXT`
     if (feature_slug === 'chatbot' && hasMemoryConsent) {
       const lastUserMsg = trimmedMessages.filter((m) => m.role === 'user').at(-1)?.content
       if (typeof lastUserMsg === 'string') {
-        const memPromise = extractMemoryWithAi(supabaseService, user.id, lastUserMsg, finalContent, model, apiKey)
-          .catch((err) => console.warn('[invoke-ai] Memory extraction skipped:', err))
+        const memPromise = extractMemoryWithAi(supabaseService, user.id, lastUserMsg, finalContent, model, apiKey, {
+          featureId: feature.id,
+          promptVersionId: prompt.id,
+          modelConfigId: model.id,
+        }).catch((err) => console.warn('[invoke-ai] Memory extraction skipped:', err))
         if (typeof (globalThis as any).EdgeRuntime !== 'undefined' && (globalThis as any).EdgeRuntime?.waitUntil) {
           (globalThis as any).EdgeRuntime.waitUntil(memPromise)
         }
@@ -1419,8 +1443,11 @@ END PRODUCT_TEXT`
     // Trigger jika chat sesi sudah memiliki >= 4 pesan (generate/update dicek di dalam fungsi)
     const msgCount = typeof message_count === 'number' ? message_count : 0
     if (feature_slug === 'chatbot' && hasMemoryConsent && session_id && msgCount >= 4) {
-      const summaryPromise = generateSessionSummary(supabaseService, session_id, user.id, model, apiKey)
-        .catch((err) => console.warn('[invoke-ai] Session summary skipped:', err))
+      const summaryPromise = generateSessionSummary(supabaseService, session_id, user.id, model, apiKey, {
+        featureId: feature.id,
+        promptVersionId: prompt.id,
+        modelConfigId: model.id,
+      }).catch((err) => console.warn('[invoke-ai] Session summary skipped:', err))
       if (typeof (globalThis as any).EdgeRuntime !== 'undefined' && (globalThis as any).EdgeRuntime?.waitUntil) {
         (globalThis as any).EdgeRuntime.waitUntil(summaryPromise)
       }
@@ -1710,7 +1737,8 @@ function tryParseAiJson(content: string): Record<string, unknown> | null {
 // ---- Fase 3d Helper: Background Auto-Enrichment via Gemini (is_verified = false) ----
 async function enrichMissingIngredientsWithGemini(
   supabase: any,
-  candidateNames: string[]
+  candidateNames: string[],
+  logCtx?: { userId: string; featureId: string; promptVersionId: string; modelConfigId: string }
 ): Promise<void> {
   const validCandidates = candidateNames
     .map((n) => n.trim())
@@ -1771,14 +1799,37 @@ Catatan:
 - safety_rating pilih salah satu dari: aman, hati, hindari
 - comedogenic_rating adalah angka bulat 0 sampai 5`
 
+      const bgStart = Date.now()
       const aiRes = await callAiProvider({
         provider: 'google',
         modelName: 'gemini-3.5-flash',
         apiKey: geminiKey,
         systemPrompt: 'Kamu adalah API database formulasi kosmetik. Selalu respon dengan JSON valid murni tanpa formatting markdown atau teks pengantar.',
         messages: [{ role: 'user', content: promptText }],
-        parameters: { temperature: 0.1, max_tokens: 400 },
+        parameters: { thinking_budget: 0, temperature: 0.1, max_tokens: 400 },
       })
+      const bgLatency = Date.now() - bgStart
+
+      if (logCtx) {
+        const bgModel = aiRes.modelUsed || 'gemini-3.5-flash'
+        const bgCost = estimateCostUsd(bgModel, aiRes.inputTokens, aiRes.outputTokens, aiRes.tokensUsed)
+        await supabase.from('ai_request_logs').insert({
+          user_id: logCtx.userId,
+          feature_id: logCtx.featureId,
+          prompt_version_id: logCtx.promptVersionId,
+          model_config_id: logCtx.modelConfigId,
+          provider_id: 'google',
+          input_summary: `[BG:enrich_ingredient] ${name}`,
+          output_summary: aiRes.content.slice(0, 300),
+          raw_output: aiRes.rawResponse,
+          tokens_used: aiRes.tokensUsed,
+          input_tokens: aiRes.inputTokens,
+          output_tokens: aiRes.outputTokens,
+          latency_ms: bgLatency,
+          cost_usd: bgCost,
+          status: 'success',
+        })
+      }
 
       const parsed = tryParseAiJson(aiRes.content)
       if (parsed && parsed.is_skincare_ingredient !== false && parsed.canonical_name) {
@@ -1823,7 +1874,8 @@ async function extractMemoryWithAi(
   userMessage: string,
   assistantReply: string,
   model: { provider: string; model_name: string; api_key_secret?: string },
-  apiKey: string
+  apiKey: string,
+  logCtx?: { featureId: string; promptVersionId: string; modelConfigId: string }
 ): Promise<void> {
   if (!userMessage || userMessage.trim().length < 5) return
 
@@ -1842,7 +1894,7 @@ Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
 ]`
 
   let callProvider: 'google' | 'groq' | 'anthropic' = 'google'
-  let callModel = 'gemini-3.6-flash'
+  let callModel = 'gemini-3.5-flash'
   let callKey = apiKey
   let callParams: Record<string, any> = { thinking_budget: 0, max_tokens: 400, temperature: 0.1 }
 
@@ -1852,7 +1904,7 @@ Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
     callParams = { max_tokens: 400, temperature: 0.1 }
   } else if (model.provider === 'google') {
     callProvider = 'google'
-    callModel = 'gemini-3.6-flash'
+    callModel = model.model_name || 'gemini-3.5-flash'
   } else {
     try {
       const { data: keyData } = await supabaseService.rpc('get_decrypted_secret', {
@@ -1860,7 +1912,7 @@ Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
       })
       if (keyData) {
         callProvider = 'google'
-        callModel = 'gemini-3.6-flash'
+        callModel = 'gemini-3.5-flash'
         callKey = keyData as string
       }
     } catch {
@@ -1868,6 +1920,7 @@ Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
     }
   }
 
+  const bgStart = Date.now()
   const result = await callAiProvider({
     provider: callProvider,
     modelName: callModel,
@@ -1876,6 +1929,28 @@ Format WAJIB JSON murni tanpa markdown, tanpa teks pengantar:
     messages: [{ role: 'user', content: extractionPrompt }],
     parameters: callParams,
   })
+  const bgLatency = Date.now() - bgStart
+
+  if (logCtx) {
+    const bgModel = result.modelUsed || callModel
+    const bgCost = estimateCostUsd(bgModel, result.inputTokens, result.outputTokens, result.tokensUsed)
+    await supabaseService.from('ai_request_logs').insert({
+      user_id: userId,
+      feature_id: logCtx.featureId,
+      prompt_version_id: logCtx.promptVersionId,
+      model_config_id: logCtx.modelConfigId,
+      provider_id: callProvider,
+      input_summary: `[BG:extract_memory] ${userMessage.slice(0, 160)}`,
+      output_summary: result.content.slice(0, 300),
+      raw_output: result.rawResponse,
+      tokens_used: result.tokensUsed,
+      input_tokens: result.inputTokens,
+      output_tokens: result.outputTokens,
+      latency_ms: bgLatency,
+      cost_usd: bgCost,
+      status: 'success',
+    })
+  }
 
   const parsed = tryParseAiJson(result.content)
   const items = Array.isArray(parsed)
@@ -1941,7 +2016,8 @@ async function generateSessionSummary(
   sessionId: string,
   userId: string,
   model: { provider: string; model_name: string },
-  apiKey: string
+  apiKey: string,
+  logCtx?: { featureId: string; promptVersionId: string; modelConfigId: string }
 ): Promise<void> {
   try {
     // Ambil semua pesan dalam sesi ini (maksimal 40 pesan untuk summary)
@@ -1994,14 +2070,37 @@ async function generateSessionSummary(
       }
     }
 
+    const bgStart = Date.now()
     const result = await callAiProvider({
       provider: callProvider,
       modelName: callModel,
       apiKey: callKey,
       systemPrompt: 'Kamu adalah asisten yang membuat ringkasan percakapan skincare singkat dan informatif. Jawab langsung tanpa label, prefix, atau markdown.',
       messages: [{ role: 'user', content: summaryPrompt }],
-      parameters: { temperature: 0.2, max_tokens: 200 },
+      parameters: { thinking_budget: 0, temperature: 0.2, max_tokens: 200 },
     })
+    const bgLatency = Date.now() - bgStart
+
+    if (logCtx) {
+      const bgModel = result.modelUsed || callModel
+      const bgCost = estimateCostUsd(bgModel, result.inputTokens, result.outputTokens, result.tokensUsed)
+      await supabaseService.from('ai_request_logs').insert({
+        user_id: userId,
+        feature_id: logCtx.featureId,
+        prompt_version_id: logCtx.promptVersionId,
+        model_config_id: logCtx.modelConfigId,
+        provider_id: callProvider,
+        input_summary: `[BG:session_summary] session=${sessionId}`,
+        output_summary: result.content.slice(0, 300),
+        raw_output: result.rawResponse,
+        tokens_used: result.tokensUsed,
+        input_tokens: result.inputTokens,
+        output_tokens: result.outputTokens,
+        latency_ms: bgLatency,
+        cost_usd: bgCost,
+        status: 'success',
+      })
+    }
 
     const summaryText = result?.content ? result.content.trim().slice(0, 600) : ''
     if (summaryText.length < 10) return

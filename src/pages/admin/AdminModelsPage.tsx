@@ -38,9 +38,9 @@ const RECOMMENDED_MODELS: Record<'google' | 'anthropic' | 'openai' | 'groq', Arr
     { name: 'deepseek-r1-distill-llama-70b', desc: 'Reasoning Model' },
   ],
   google: [
-    { name: 'gemini-2.5-flash', desc: 'Default Gemini (Cepat & Stabil)' },
-    { name: 'gemini-3.6-flash', desc: 'Generasi Terbaru (Tinggi Akurasi & Hemat)' },
-    { name: 'gemini-2.0-flash', desc: 'Ultra Hemat' },
+    { name: 'gemini-3.5-flash', desc: 'Rekomendasi Utama (Multimodal & Reasoning Stabil)' },
+    { name: 'gemini-3.6-flash', desc: 'Generasi Terbaru (Akurasi Tinggi & Cepat)' },
+    { name: 'gemini-2.5-flash', desc: 'Fallback Stabil (1M Context)' },
   ],
   anthropic: [
     { name: 'claude-3-5-sonnet-20241022', desc: 'Akurasi Medis Tinggi' },
@@ -60,7 +60,7 @@ export default function AdminModelsPage() {
   // Form states
   const [selectedFeatureId, setSelectedFeatureId] = useState<string>('')
   const [provider, setProvider] = useState<'google' | 'anthropic' | 'openai' | 'groq'>('google')
-  const [modelName, setModelName] = useState('gemini-2.5-flash')
+  const [modelName, setModelName] = useState('gemini-3.5-flash')
   const [secretName, setSecretName] = useState('')
   const [secretValue, setSecretValue] = useState('')
   const [thinkingBudget, setThinkingBudget] = useState<string>('')
@@ -105,7 +105,7 @@ export default function AdminModelsPage() {
     if (!secretName || secretName.includes('_api_key')) {
       if (newProvider === 'google') {
         setSecretName('gemini_api_key')
-        setModelName('gemini-2.5-flash')
+        setModelName('gemini-3.5-flash')
       } else if (newProvider === 'anthropic') {
         setSecretName('anthropic_api_key')
         setModelName('claude-3-5-sonnet-20241022')

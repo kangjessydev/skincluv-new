@@ -994,12 +994,12 @@ export default function AdminFinancialsPage() {
     }).format(val)
   }
 
-  // Simulator Diskon
-  const simPricePro = 69000
+  // Simulator Diskon (Sinkron dengan harga kanonikal Pro Club Rp 49.000)
+  const simPricePro = 49000
   const discountedPricePro = Math.round(simPricePro * (1 - discountPercent / 100))
-  const estimatedTokenCostPerUserPro = 350
+  const estimatedTokenCostPerUserPro = Math.max(350, Math.round((periodFilteredData.currLogs.reduce((s, l) => s + (l.cost_usd || 0), 0) * wacRate) / Math.max(1, invoices.length)))
   const simProfitPerUser = discountedPricePro - estimatedTokenCostPerUserPro
-  const simMarginPercent = ((simProfitPerUser / discountedPricePro) * 100).toFixed(1)
+  const simMarginPercent = ((simProfitPerUser / Math.max(1, discountedPricePro)) * 100).toFixed(1)
 
   return (
     <div className="admin-page-container">
@@ -1800,8 +1800,15 @@ export default function AdminFinancialsPage() {
                   const avgTokens = f.calls > 0 ? Math.round(f.totalTokens / f.calls) : 0
                   const avgInput = f.calls > 0 ? Math.round(f.totalInputTokens / f.calls) : 0
                   const avgOutput = f.calls > 0 ? Math.round(f.totalOutputTokens / f.calls) : 0
-                  const avgCostIDR =
-                    f.calls > 0 ? ((f.totalCostUSD * wacRate) / f.calls).toFixed(1) : '0'
+                  const avgCostIDRNum = f.calls > 0 ? (f.totalCostUSD * wacRate) / f.calls : 0
+                  const avgCostIDR = f.calls > 0 ? avgCostIDRNum.toFixed(1) : '0'
+                  const costPerCredit = f.creditCost > 0 ? Math.round(avgCostIDRNum / f.creditCost) : Math.round(avgCostIDRNum)
+                  const marginLabel =
+                    f.calls === 0
+                      ? 'Belum Ada Panggilan'
+                      : f.creditCost === 0
+                      ? `Gatekeeper (~Rp ${avgCostIDR}/cek)`
+                      : `Efisien (~Rp ${costPerCredit}/credit)`
 
                   return (
                     <tr key={f.slug} className="table-row">
@@ -1830,7 +1837,7 @@ export default function AdminFinancialsPage() {
                       </td>
                       <td>
                         <span className="badge-safe">
-                          <CheckCircle2 size={12} /> Margin Super Tebal (&gt;90%)
+                          <CheckCircle2 size={12} /> {marginLabel}
                         </span>
                       </td>
                     </tr>

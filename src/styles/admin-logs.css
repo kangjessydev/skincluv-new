@@ -4,10 +4,12 @@
    AI Inference Telemetry, Latency, Token Accounting & UU PDP Privacy Compliance.
    ============================================================================= */
 
-/* Filter Card */
+/* Filter Card (high specificity to override .cluv-card flex-direction & padding) */
+.cluv-card.alogs-filter-card,
 .alogs-filter-card {
   padding: 14px 18px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -24,12 +26,18 @@
   padding: 8px 14px;
   min-width: 280px;
   flex: 1;
-  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease), box-shadow var(--cluv-dur-fast) var(--cluv-ease);
 }
 
 .alogs-search-wrap:focus-within {
   border-color: var(--cluv-teal);
-  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+  background: var(--cluv-surface);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
+}
+
+.alogs-search-icon {
+  color: var(--cluv-neutral-400);
+  flex-shrink: 0;
 }
 
 .alogs-search-input {
@@ -51,27 +59,112 @@
   background: var(--cluv-surface);
   padding: 8px 14px;
   font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--cluv-neutral-700);
   cursor: pointer;
   outline: none;
-  transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+  transition: border-color var(--cluv-dur-fast) var(--cluv-ease), box-shadow var(--cluv-dur-fast) var(--cluv-ease);
 }
 
 .alogs-filter-select:focus {
   border-color: var(--cluv-teal);
-  box-shadow: 0 0 0 3px rgba(31, 157, 151, 0.15);
+  box-shadow: 0 0 0 3px var(--cluv-teal-soft);
+}
+
+/* Stat sub-elements */
+.alogs-stat-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.alogs-stat-cost-inline {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cluv-teal);
+}
+
+.alogs-stat-sub {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+}
+
+.alogs-stat-val-good {
+  color: var(--cluv-teal);
+}
+
+.alogs-stat-val-alert {
+  color: var(--cluv-rose);
 }
 
 /* Table Card & Elements */
+.cluv-card.alogs-table-card,
 .alogs-table-card {
   overflow: hidden;
   padding: 0;
+}
+
+.alogs-th-left {
+  text-align: left;
+}
+
+.alogs-th-center,
+.alogs-td-center {
+  text-align: center;
+}
+
+.alogs-th-right,
+.alogs-td-right {
+  text-align: right;
+}
+
+.alogs-td-time {
+  color: var(--cluv-neutral-600);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.alogs-empty-cell {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--cluv-neutral-500);
+}
+
+.alogs-empty-icon {
+  margin: 0 auto 8px auto;
+  display: block;
+}
+
+.alogs-empty-icon.is-muted {
+  opacity: 0.4;
+}
+
+.alogs-empty-title {
+  font-weight: 600;
+  color: var(--cluv-neutral-800);
+}
+
+.alogs-empty-sub {
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.alogs-muted-dash {
+  color: var(--cluv-neutral-400);
+  font-size: 0.75rem;
 }
 
 .alogs-model-wrap {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.alogs-model-icon {
+  color: var(--cluv-neutral-500);
+  flex-shrink: 0;
 }
 
 .alogs-model-name {
@@ -91,7 +184,7 @@
   padding: 2px 6px;
   border-radius: var(--cluv-radius-xs);
   color: var(--cluv-neutral-600);
-  font-family: monospace;
+  font-family: var(--cluv-font-mono);
 }
 
 .alogs-token-val {
@@ -99,13 +192,24 @@
   font-weight: 700;
 }
 
+.alogs-token-unit {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--cluv-neutral-500);
+  margin-left: 4px;
+}
+
 .alogs-token-split {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: var(--cluv-neutral-500);
   margin-top: 2px;
   display: flex;
   justify-content: center;
   gap: 4px;
+}
+
+.alogs-token-sep {
+  color: var(--cluv-border);
 }
 
 .alogs-cost-idr {
@@ -116,6 +220,11 @@
 }
 
 /* Modal details */
+.admin-layout-root .cluv-modal-content.alogs-modal-wide,
+.cluv-modal-content.alogs-modal-wide {
+  max-width: 780px;
+}
+
 .alogs-modal-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -148,7 +257,63 @@
   color: var(--cluv-neutral-900);
 }
 
+.alogs-modal-feature-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  margin-top: 2px;
+}
+
+.alogs-modal-cost-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.alogs-modal-cost-usd {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
+
+.alogs-modal-cost-note {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-400);
+  margin-top: 4px;
+}
+
+.alogs-modal-feedback-wrap {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+  margin-top: 4px;
+}
+
+.alogs-modal-no-rating {
+  color: var(--cluv-neutral-500);
+  font-weight: 500;
+}
+
+.alogs-pdp-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alogs-pdp-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.alogs-pdp-desc {
+  font-size: 0.75rem;
+  margin: 4px 0 0 0;
+  line-height: 1.5;
+}
+
 @media (max-width: 768px) {
+  .cluv-card.alogs-filter-card,
   .alogs-filter-card {
     flex-direction: column;
     align-items: stretch;

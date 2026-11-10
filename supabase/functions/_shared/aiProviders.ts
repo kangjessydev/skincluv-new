@@ -25,6 +25,8 @@ export interface AiResponse {
   tokensUsed: number
   inputTokens: number
   outputTokens: number
+  thoughtsTokens?: number
+  modelUsed?: string
   rawResponse: unknown
 }
 
@@ -227,12 +229,14 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
         }
 
         const inputTokens = data.usageMetadata?.promptTokenCount ?? 0
-        const outputTokens = data.usageMetadata?.candidatesTokenCount ?? 0
-        const _thoughtsTokens = data.usageMetadata?.thoughtsTokenCount ?? 0
-        const tokensUsed = inputTokens + outputTokens
-        console.log(`[callGemini] [TELEMETRY] model=${currentModel} (fallback=${currentModel !== opts.modelName}) inTokens=${inputTokens} outTokens=${outputTokens} total=${tokensUsed}`)
+        const candidatesTokens = data.usageMetadata?.candidatesTokenCount ?? 0
+        const thoughtsTokens = data.usageMetadata?.thoughtsTokenCount ?? 0
+        // Google AI Studio bills thinking/reasoning tokens at the output token rate
+        const outputTokens = candidatesTokens + thoughtsTokens
+        const tokensUsed = data.usageMetadata?.totalTokenCount ?? (inputTokens + outputTokens)
+        console.log(`[callGemini] [TELEMETRY] model=${currentModel} (fallback=${currentModel !== opts.modelName}) inTokens=${inputTokens} outTokens=${outputTokens} (candidates=${candidatesTokens} thoughts=${thoughtsTokens}) total=${tokensUsed}`)
 
-        return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
+        return { content, tokensUsed, inputTokens, outputTokens, thoughtsTokens, modelUsed: currentModel, rawResponse: data }
       } catch (err: any) {
         clearTimeout(timeoutId)
         if (err instanceof AiProviderError && !err.details.isTransient) {
@@ -328,7 +332,7 @@ async function callClaude(opts: AiRequestOptions): Promise<AiResponse> {
   const outputTokens = data.usage?.output_tokens ?? 0
   const tokensUsed = inputTokens + outputTokens
 
-  return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
+  return { content, tokensUsed, inputTokens, outputTokens, modelUsed: modelName, rawResponse: data }
 }
 
 // ---- Groq (OpenAI-Compatible LPU) ----
@@ -382,7 +386,7 @@ async function callGroq(opts: AiRequestOptions): Promise<AiResponse> {
   const outputTokens = data.usage?.completion_tokens ?? 0
   const tokensUsed = data.usage?.total_tokens ?? (inputTokens + outputTokens)
 
-  return { content, tokensUsed, inputTokens, outputTokens, rawResponse: data }
+  return { content, tokensUsed, inputTokens, outputTokens, modelUsed: modelName, rawResponse: data }
 }
 
 // ---- Router ----
@@ -412,12 +416,14 @@ export interface TokenRate {
   outputPer1k: number
 }
 
-// Pricing benchmark rates per 1,000 tokens (USD)
+// Pricing benchmark rates per 1,000 tokens (USD) — Aligned with Google AI Studio Paid Tier 1 ($0.30/1M in, $2.50/1M out+thinking)
 const MODEL_TOKEN_RATES: Record<string, TokenRate> = {
-  'gemini-3.6-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
-  'gemini-3.5-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
-  'gemini-2.5-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
-  'gemini-2.0-flash':              { inputPer1k: 0.000075, outputPer1k: 0.0003 },
+  'gemini-3.6-flash':              { inputPer1k: 0.0003,   outputPer1k: 0.0025 },
+  'gemini-3.5-flash':              { inputPer1k: 0.0003,   outputPer1k: 0.0025 },
+  'gemini-2.5-flash':              { inputPer1k: 0.0003,   outputPer1k: 0.0025 },
+  'gemini-3.5-flash-lite':         { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
+  'gemini-2.5-flash-lite':         { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
+  'gemini-2.0-flash':              { inputPer1k: 0.0001,   outputPer1k: 0.0004 },
   'claude-sonnet-4-6':             { inputPer1k: 0.003,    outputPer1k: 0.015 },
   'claude-sonnet-4-5':             { inputPer1k: 0.003,    outputPer1k: 0.015 },
   'claude-sonnet-4-5-20250514':    { inputPer1k: 0.003,    outputPer1k: 0.015 },
@@ -434,10 +440,12 @@ const MODEL_TOKEN_RATES: Record<string, TokenRate> = {
 }
 
 const BLENDED_FALLBACK_PER_1K: Record<string, number> = {
-  'gemini-3.6-flash':              0.00025,
-  'gemini-3.5-flash':              0.00025,
-  'gemini-2.5-flash':              0.00025,
-  'gemini-2.0-flash':              0.00015,
+  'gemini-3.6-flash':              0.0014,
+  'gemini-3.5-flash':              0.0014,
+  'gemini-2.5-flash':              0.0014,
+  'gemini-3.5-flash-lite':         0.00025,
+  'gemini-2.5-flash-lite':         0.00025,
+  'gemini-2.0-flash':              0.00025,
   'claude-sonnet-4-6':             0.009,
   'claude-sonnet-4-5':             0.009,
   'claude-sonnet-4-5-20250514':    0.009,

@@ -58,7 +58,8 @@ Deno.serve(async (req: Request) => {
     const planSku     = isGlow ? 'SKINCLUV-GLOW' : 'SKINCLUV-PRO'
     const planName    = isGlow ? 'Skincluv GLOW — 1 Bulan' : 'Skincluv PRO — 1 Bulan'
     const merchantRef = `INV-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
-    const channel     = method || 'BRIVA' // Default BRIVA if not specified
+    const rawChannel = typeof method === 'string' ? method.trim().toUpperCase() : 'BRIVA'
+    const channel    = /^[A-Z0-9_]{2,30}$/.test(rawChannel) ? rawChannel : 'BRIVA'
 
     // ---- Generate HMAC-SHA256 Signature ----
     // Format: merchantCode + merchantRef + amount

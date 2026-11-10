@@ -5,9 +5,11 @@
    ============================================================================= */
 
 /* Toolbar Card */
+.cluv-card.ad-toolbar-card,
 .ad-toolbar-card {
   padding: 14px 18px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -63,6 +65,7 @@
 }
 
 /* Table Card & Content */
+.cluv-card.ad-table-card,
 .ad-table-card {
   overflow: hidden;
   padding: 0;

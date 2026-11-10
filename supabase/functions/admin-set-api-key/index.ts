@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
-import { callAiProvider } from '../_shared/aiProviders.ts'
+import { callAiProvider, estimateCostUsd } from '../_shared/aiProviders.ts'
 
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req)
@@ -70,11 +70,61 @@ Deno.serve(async (req: Request) => {
           systemPrompt: 'Kamu adalah model AI sistem. Jawab hanya dengan 1 kalimat singkat bahwa kamu aktif dan siap.',
           messages: [{ role: 'user', content: 'Tes koneksi sistem Skincluv. Konfirmasi status kamu.' }],
           parameters: {
+            thinking_budget: 0,
             max_tokens: 60,
             temperature: 0.2,
           },
         })
         const latencyMs = Math.round(performance.now() - startTime)
+
+        // Log test connection token consumption to ai_request_logs so provider_balances stays in sync with AI Studio
+        try {
+          const { data: cfg } = await supabaseService
+            .from('model_configs')
+            .select('id, feature_id')
+            .eq('provider', provider)
+            .eq('is_active', true)
+            .limit(1)
+            .maybeSingle()
+
+          if (cfg?.id && cfg?.feature_id) {
+            const { data: pv } = await supabaseService
+              .from('prompt_versions')
+              .select('id')
+              .eq('feature_id', cfg.feature_id)
+              .eq('is_active', true)
+              .limit(1)
+              .maybeSingle()
+
+            if (pv?.id) {
+              const actualModel = aiResponse.modelUsed || model_name.trim()
+              const costUsd = estimateCostUsd(
+                actualModel,
+                aiResponse.inputTokens,
+                aiResponse.outputTokens,
+                aiResponse.tokensUsed
+              )
+              await supabaseService.from('ai_request_logs').insert({
+                user_id: userData.user.id,
+                feature_id: cfg.feature_id,
+                prompt_version_id: pv.id,
+                model_config_id: cfg.id,
+                provider_id: provider,
+                input_summary: '[ADMIN:test_connection] Ping model status',
+                output_summary: aiResponse.content.trim().slice(0, 300),
+                raw_output: aiResponse.rawResponse ?? {},
+                tokens_used: aiResponse.tokensUsed,
+                input_tokens: aiResponse.inputTokens,
+                output_tokens: aiResponse.outputTokens,
+                latency_ms: latencyMs,
+                cost_usd: costUsd,
+                status: 'success',
+              })
+            }
+          }
+        } catch (logErr) {
+          console.warn('[admin-set-api-key] Warning logging test_connection:', logErr)
+        }
 
         return new Response(
           JSON.stringify({

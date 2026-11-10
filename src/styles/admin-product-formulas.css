@@ -5,9 +5,11 @@
    ============================================================================= */
 
 /* Search card */
+.cluv-card.apf-search-card,
 .apf-search-card {
   padding: 14px 18px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 12px;
 }
@@ -43,6 +45,7 @@
 }
 
 /* Table card & details */
+.cluv-card.apf-table-card,
 .apf-table-card {
   overflow: hidden;
   padding: 0;

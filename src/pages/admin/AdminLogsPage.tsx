@@ -20,9 +20,10 @@ import '@/styles/admin-logs.css'
 
 interface AiLogRecord {
   id: string
-  feature_id: string
-  prompt_version_id: string
-  model_config_id: string
+  feature_id: string | null
+  prompt_version_id: string | null
+  model_config_id: string | null
+  provider_id: string | null
   tokens_used: number | null
   input_tokens: number | null
   output_tokens: number | null
@@ -65,6 +66,7 @@ export default function AdminLogsPage() {
           feature_id,
           prompt_version_id,
           model_config_id,
+          provider_id,
           tokens_used,
           input_tokens,
           output_tokens,
@@ -115,7 +117,7 @@ export default function AdminLogsPage() {
       const featureName = log.ai_features?.name?.toLowerCase() || ''
       const featureSlug = log.ai_features?.slug?.toLowerCase() || ''
       const model = log.model_configs?.model_name?.toLowerCase() || ''
-      const provider = log.model_configs?.provider?.toLowerCase() || ''
+      const provider = (log.model_configs?.provider || log.provider_id || '').toLowerCase()
       const reqId = log.id.toLowerCase()
 
       return (
@@ -148,7 +150,7 @@ export default function AdminLogsPage() {
   }, [logs])
 
   const renderLatencyBadge = (ms: number | null) => {
-    if (ms === null) return <span style={{ color: 'var(--cluv-neutral-400)' }}>-</span>
+    if (ms === null) return <span className="alogs-muted-dash">-</span>
     if (ms < 1500) return <span className="cluv-badge is-success cluv-tabular-nums">{ms} ms</span>
     if (ms < 3500) return <span className="cluv-badge is-warning cluv-tabular-nums">{ms} ms</span>
     return <span className="cluv-badge is-danger cluv-tabular-nums">{ms} ms</span>
@@ -185,7 +187,7 @@ export default function AdminLogsPage() {
       <div className="admin-page-header">
         <div>
           <div className="admin-header-title-row">
-            <div className="admin-header-icon-wrap" style={{ background: 'var(--cluv-gold-soft)', color: 'var(--cluv-gold)' }}>
+            <div className="admin-header-icon-wrap is-gold">
               <Activity size={22} />
             </div>
             <h1 className="admin-page-title">
@@ -211,7 +213,7 @@ export default function AdminLogsPage() {
 
       {/* Error Feedback */}
       {errorMessage && (
-        <div className="cluv-alert is-danger cluv-mb-4">
+        <div className="cluv-alert is-danger">
           <AlertCircle size={18} />
           <span>{errorMessage}</span>
         </div>
@@ -245,18 +247,18 @@ export default function AdminLogsPage() {
           </div>
           <div>
             <div className="cluv-stat-label">Total Token &amp; Biaya</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+            <div className="alogs-stat-row">
               <div className="cluv-stat-value cluv-tabular-nums">
                 {metrics.totalTokens.toLocaleString('id-ID')}
               </div>
               {metrics.totalCostIDR > 0 && (
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cluv-teal)' }}>
+                <div className="alogs-stat-cost-inline cluv-tabular-nums">
                   (≈ Rp {metrics.totalCostIDR.toLocaleString('id-ID', { maximumFractionDigits: 0 })})
                 </div>
               )}
             </div>
             {(metrics.totalInputTokens > 0 || metrics.totalOutputTokens > 0) && (
-              <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-500)', marginTop: 2 }}>
+              <div className="alogs-stat-sub cluv-tabular-nums">
                 {metrics.totalInputTokens.toLocaleString('id-ID')} in • {metrics.totalOutputTokens.toLocaleString('id-ID')} out
               </div>
             )}
@@ -269,7 +271,7 @@ export default function AdminLogsPage() {
           </div>
           <div>
             <div className="cluv-stat-label">Tingkat Keberhasilan</div>
-            <div className="cluv-stat-value cluv-tabular-nums" style={{ color: metrics.successRate >= 95 ? 'var(--cluv-teal)' : 'var(--cluv-rose)' }}>
+            <div className={`cluv-stat-value cluv-tabular-nums ${metrics.successRate >= 95 ? 'alogs-stat-val-good' : 'alogs-stat-val-alert'}`}>
               {metrics.successRate}%
             </div>
           </div>
@@ -279,10 +281,10 @@ export default function AdminLogsPage() {
       {/* Filter and Search Bar */}
       <div className="cluv-card alogs-filter-card">
         <div className="alogs-search-wrap">
-          <Search size={16} className="text-slate-400" />
+          <Search size={16} className="alogs-search-icon" />
           <input
             type="text"
-            placeholder="Cari user, model, prompt, atau konten..."
+            placeholder="Cari fitur, model, provider, atau ID log..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="alogs-search-input"
@@ -317,31 +319,31 @@ export default function AdminLogsPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th style={{ textAlign: 'left' }}>Fitur AI</th>
-                <th style={{ textAlign: 'left' }}>Model &amp; Versi</th>
-                <th style={{ textAlign: 'left' }}>Permintaan ID</th>
-                <th style={{ textAlign: 'center' }}>Latensi</th>
-                <th style={{ textAlign: 'center' }}>Token &amp; Biaya</th>
-                <th style={{ textAlign: 'center' }}>Status</th>
-                <th style={{ textAlign: 'center' }}>Feedback</th>
-                <th style={{ textAlign: 'left' }}>Waktu</th>
-                <th style={{ textAlign: 'right' }}>Aksi</th>
+                <th className="alogs-th-left">Fitur AI</th>
+                <th className="alogs-th-left">Model &amp; Versi</th>
+                <th className="alogs-th-left">Permintaan ID</th>
+                <th className="alogs-th-center">Latensi</th>
+                <th className="alogs-th-center">Token &amp; Biaya</th>
+                <th className="alogs-th-center">Status</th>
+                <th className="alogs-th-center">Feedback</th>
+                <th className="alogs-th-left">Waktu</th>
+                <th className="alogs-th-right">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
-                    <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px auto' }} />
+                  <td colSpan={9} className="alogs-empty-cell">
+                    <RefreshCw size={24} className="animate-spin alogs-empty-icon" />
                     <div>Memuat riwayat log AI...</div>
                   </td>
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--cluv-neutral-500)' }}>
-                    <Activity size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                    <div style={{ fontWeight: 600, color: 'var(--cluv-neutral-800)' }}>Tidak ada log ditemukan</div>
-                    <div style={{ fontSize: '0.75rem', marginTop: 4 }}>
+                  <td colSpan={9} className="alogs-empty-cell">
+                    <Activity size={32} className="alogs-empty-icon is-muted" />
+                    <div className="alogs-empty-title">Tidak ada log ditemukan</div>
+                    <div className="alogs-empty-sub">
                       {searchQuery || statusFilter !== 'all' ? 'Coba ganti filter pencarian.' : 'Belum ada permintaan AI yang tercatat.'}
                     </div>
                   </td>
@@ -359,15 +361,15 @@ export default function AdminLogsPage() {
                     <tr key={log.id}>
                       <td>
                         <span className="cluv-badge is-neutral">
-                          {log.ai_features?.name || log.feature_id}
+                          {log.ai_features?.name || log.feature_id || 'Sistem / Tes Koneksi'}
                         </span>
                       </td>
 
                       <td>
                         <div className="alogs-model-wrap">
-                          <Cpu size={13} style={{ color: 'var(--cluv-neutral-500)' }} />
+                          <Cpu size={13} className="alogs-model-icon" />
                           <span className="alogs-model-name">
-                            {log.model_configs?.model_name || 'LLM Model'}
+                            {log.model_configs?.model_name || log.provider_id || 'LLM Model'}
                           </span>
                         </div>
                         {log.prompt_versions?.version && (
@@ -383,19 +385,19 @@ export default function AdminLogsPage() {
                         </code>
                       </td>
 
-                      <td style={{ textAlign: 'center' }}>
+                      <td className="alogs-td-center">
                         {renderLatencyBadge(log.latency_ms)}
                       </td>
 
-                      <td style={{ textAlign: 'center' }}>
+                      <td className="alogs-td-center">
                         <div className="alogs-token-val cluv-tabular-nums">
                           {log.tokens_used ? log.tokens_used.toLocaleString('id-ID') : '-'}
-                          <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--cluv-neutral-500)', marginLeft: 4 }}>tk</span>
+                          <span className="alogs-token-unit">tk</span>
                         </div>
                         {(log.input_tokens !== null || log.output_tokens !== null) && (
                           <div className="alogs-token-split cluv-tabular-nums">
                             <span title="Input Tokens">in: {log.input_tokens?.toLocaleString('id-ID') ?? 0}</span>
-                            <span style={{ color: 'var(--cluv-border)' }}>|</span>
+                            <span className="alogs-token-sep">|</span>
                             <span title="Output Tokens">out: {log.output_tokens?.toLocaleString('id-ID') ?? 0}</span>
                           </div>
                         )}
@@ -406,11 +408,11 @@ export default function AdminLogsPage() {
                         )}
                       </td>
 
-                      <td style={{ textAlign: 'center' }}>
+                      <td className="alogs-td-center">
                         {renderStatusBadge(log.status)}
                       </td>
 
-                      <td style={{ textAlign: 'center' }}>
+                      <td className="alogs-td-center">
                         {log.user_feedback === 1 ? (
                           <span className="cluv-badge is-success">
                             <ThumbsUp size={11} /> Puas
@@ -420,15 +422,15 @@ export default function AdminLogsPage() {
                             <ThumbsDown size={11} /> Kurang
                           </span>
                         ) : (
-                          <span style={{ color: 'var(--cluv-neutral-400)', fontSize: '0.75rem' }}>-</span>
+                          <span className="alogs-muted-dash">-</span>
                         )}
                       </td>
 
-                      <td style={{ color: 'var(--cluv-neutral-600)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                      <td className="alogs-td-time">
                         {time}
                       </td>
 
-                      <td style={{ textAlign: 'right' }}>
+                      <td className="alogs-td-right">
                         <button
                           type="button"
                           onClick={() => setSelectedLog(log)}
@@ -453,8 +455,7 @@ export default function AdminLogsPage() {
           onClick={() => setSelectedLog(null)}
         >
           <div
-            className="cluv-modal-content"
-            style={{ maxWidth: 800 }}
+            className="cluv-modal-content alogs-modal-wide"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -484,11 +485,11 @@ export default function AdminLogsPage() {
               <div className="alogs-modal-stats-grid">
                 <div>
                   <div className="alogs-modal-stat-label">Fitur &amp; Model</div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cluv-neutral-900)', marginTop: 2 }}>
-                    {selectedLog.ai_features?.name || selectedLog.feature_id}
+                  <div className="alogs-modal-feature-title">
+                    {selectedLog.ai_features?.name || selectedLog.feature_id || 'Sistem / Tes Koneksi'}
                   </div>
-                  <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-500)' }}>
-                    {selectedLog.model_configs?.model_name}
+                  <div className="alogs-version-sub">
+                    {selectedLog.model_configs?.model_name || selectedLog.provider_id || 'LLM Model'}
                   </div>
                 </div>
 
@@ -505,7 +506,7 @@ export default function AdminLogsPage() {
                     {selectedLog.tokens_used ? selectedLog.tokens_used.toLocaleString('id-ID') : '-'}
                   </div>
                   {(selectedLog.input_tokens !== null || selectedLog.output_tokens !== null) && (
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-500)', marginTop: 2 }}>
+                    <div className="alogs-stat-sub cluv-tabular-nums">
                       in: {selectedLog.input_tokens?.toLocaleString('id-ID') ?? 0} • out: {selectedLog.output_tokens?.toLocaleString('id-ID') ?? 0}
                     </div>
                   )}
@@ -513,38 +514,38 @@ export default function AdminLogsPage() {
 
                 <div>
                   <div className="alogs-modal-stat-label">Status</div>
-                  <div style={{ marginTop: 4 }}>
+                  <div className="cluv-mt-1">
                     {renderStatusBadge(selectedLog.status)}
                   </div>
                 </div>
               </div>
 
               {/* Technical Telemetry Details */}
-              <div className="cluv-stat-grid cols-2" style={{ margin: 0 }}>
+              <div className="cluv-stat-grid cols-2">
                 <div className="alogs-modal-stat-box">
                   <div className="alogs-modal-stat-label">Estimasi Biaya Token</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cluv-neutral-900)' }} className="cluv-tabular-nums">
+                  <div className="alogs-modal-cost-row">
+                    <span className="alogs-modal-cost-usd cluv-tabular-nums">
                       {selectedLog.cost_usd ? `$${Number(selectedLog.cost_usd).toFixed(5)}` : '$0.00000'}
                     </span>
                     <span className="cluv-badge is-success cluv-tabular-nums">
                       ≈ Rp {selectedLog.cost_usd ? (Number(selectedLog.cost_usd) * USD_TO_IDR).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '0'}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.6875rem', color: 'var(--cluv-neutral-400)', marginTop: 4 }}>
+                  <div className="alogs-modal-cost-note">
                     Aktual API: USD • Estimasi konversi: $1 = Rp {USD_TO_IDR.toLocaleString('id-ID')}
                   </div>
                 </div>
 
                 <div className="alogs-modal-stat-box">
                   <div className="alogs-modal-stat-label">Feedback Pengguna</div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--cluv-neutral-900)', marginTop: 4 }}>
+                  <div className="alogs-modal-feedback-wrap">
                     {selectedLog.user_feedback === 1 ? (
                       <span className="cluv-badge is-success"><ThumbsUp size={12} /> Puas (Positif)</span>
                     ) : selectedLog.user_feedback === -1 ? (
                       <span className="cluv-badge is-danger"><ThumbsDown size={12} /> Kurang (Negatif)</span>
                     ) : (
-                      <span style={{ color: 'var(--cluv-neutral-500)', fontWeight: 500 }}>Belum Ada Rating</span>
+                      <span className="alogs-modal-no-rating">Belum Ada Rating</span>
                     )}
                   </div>
                 </div>
@@ -552,12 +553,12 @@ export default function AdminLogsPage() {
 
               {/* UU PDP Compliance Box (Invariant 4 & 16) */}
               <div className="cluv-alert is-success">
-                <ShieldCheck size={22} style={{ flexShrink: 0, marginTop: 2 }} />
+                <ShieldCheck size={22} className="alogs-pdp-icon" />
                 <div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 700 }}>
+                  <div className="alogs-pdp-title">
                     Privasi Data Pengguna Terlindungi (UU PDP No. 27/2022)
                   </div>
-                  <p style={{ fontSize: '0.75rem', margin: '4px 0 0 0', lineHeight: 1.5 }}>
+                  <p className="alogs-pdp-desc">
                     Sesuai dengan regulasi privasi perlindungan data pribadi dan kerahasiaan konsumen, isi percakapan konsultasi serta foto/data biometrik wajah pengguna dienkripsi secara penuh dan tidak ditampilkan pada log operasional admin.
                   </p>
                 </div>

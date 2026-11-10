@@ -232,50 +232,54 @@ export default function AdminKnowledgeBasePage() {
       {/* Top Metric Cards */}
       <div className="cluv-stat-grid cols-4">
         <div className="cluv-stat-card">
-          <div className="cluv-stat-icon-wrap is-teal">
-            <BookOpen size={20} />
+          <div className="cluv-stat-header">
+            <span className="cluv-stat-label">Bahan Terindeks</span>
+            <div className="cluv-stat-icon is-teal">
+              <BookOpen size={18} />
+            </div>
           </div>
-          <div>
-            <div className="cluv-stat-label">Bahan Terindeks</div>
-            <div className="cluv-stat-value cluv-tabular-nums">{metrics.total} bahan</div>
-          </div>
+          <div className="cluv-stat-val cluv-tabular-nums">{metrics.total}</div>
+          <div className="cluv-stat-meta">bahan terdaftar</div>
         </div>
 
         <div className="cluv-stat-card">
-          <div className="cluv-stat-icon-wrap is-teal">
-            <Sparkles size={20} />
+          <div className="cluv-stat-header">
+            <span className="cluv-stat-label">Bahan Aktif Klinis</span>
+            <div className="cluv-stat-icon is-teal">
+              <Sparkles size={18} />
+            </div>
           </div>
-          <div>
-            <div className="cluv-stat-label">Bahan Aktif Klinis</div>
-            <div className="cluv-stat-value cluv-tabular-nums">{metrics.actives} bahan</div>
-          </div>
+          <div className="cluv-stat-val cluv-tabular-nums">{metrics.actives}</div>
+          <div className="cluv-stat-meta">kategori Active</div>
         </div>
 
         <div className="cluv-stat-card">
-          <div className="cluv-stat-icon-wrap is-gold">
-            <AlertTriangle size={20} />
+          <div className="cluv-stat-header">
+            <span className="cluv-stat-label">Potensi Iritasi / Waspada</span>
+            <div className="cluv-stat-icon is-gold">
+              <AlertTriangle size={18} />
+            </div>
           </div>
-          <div>
-            <div className="cluv-stat-label">Potensi Iritasi / Waspada</div>
-            <div className="cluv-stat-value cluv-tabular-nums">{metrics.cautions} bahan</div>
-          </div>
+          <div className="cluv-stat-val cluv-tabular-nums">{metrics.cautions}</div>
+          <div className="cluv-stat-meta">rating hati / hindari</div>
         </div>
 
         <div className="cluv-stat-card">
-          <div className="cluv-stat-icon-wrap is-rose">
-            <Hash size={20} />
+          <div className="cluv-stat-header">
+            <span className="cluv-stat-label">Akumulasi Deteksi Scan</span>
+            <div className="cluv-stat-icon is-rose">
+              <Hash size={18} />
+            </div>
           </div>
-          <div>
-            <div className="cluv-stat-label">Akumulasi Deteksi Scan</div>
-            <div className="cluv-stat-value cluv-tabular-nums">{metrics.totalDetections.toLocaleString('id-ID')} kali</div>
-          </div>
+          <div className="cluv-stat-val cluv-tabular-nums">{metrics.totalDetections.toLocaleString('id-ID')}</div>
+          <div className="cluv-stat-meta">kali teridentifikasi</div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="cluv-card akb-filter-card">
         <div className="akb-search-wrap">
-          <Search size={16} className="text-slate-400" />
+          <Search size={16} className="akb-search-icon" />
           <input
             type="text"
             placeholder="Cari nama bahan, nama INCI, atau deskripsi klinis..."
@@ -437,8 +441,7 @@ export default function AdminKnowledgeBasePage() {
           onClick={() => setIsEditing(false)}
         >
           <div
-            className="cluv-modal-content"
-            style={{ maxWidth: 680 }}
+            className="cluv-modal-box is-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="cluv-modal-header">
@@ -454,142 +457,147 @@ export default function AdminKnowledgeBasePage() {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="cluv-modal-close-btn"
+                className="cluv-modal-close"
                 aria-label="Tutup modal"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="cluv-modal-body">
-              <div className="akb-grid-2col">
+            <form
+              onSubmit={handleSave}
+              style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
+            >
+              <div className="cluv-modal-body akb-form-body">
+                <div className="akb-grid-2col">
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Nama Bahan (Canonical) *
+                    </label>
+                    <input
+                      required
+                      value={form.canonical_name}
+                      onChange={(e) => setForm({ ...form, canonical_name: e.target.value })}
+                      placeholder="misal: Niacinamide"
+                      className="cluv-input"
+                    />
+                  </div>
+
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Nama Standar INCI
+                    </label>
+                    <input
+                      value={form.inci_name}
+                      onChange={(e) => setForm({ ...form, inci_name: e.target.value })}
+                      placeholder="misal: Niacinamide"
+                      className="cluv-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="akb-grid-3col">
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Kategori
+                    </label>
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="cluv-input"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Hydrating">Hydrating</option>
+                      <option value="Antioxidant">Antioxidant</option>
+                      <option value="Preservative">Preservative</option>
+                      <option value="Emollient">Emollient</option>
+                      <option value="Exfoliant">Exfoliant</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Rating Keamanan
+                    </label>
+                    <select
+                      value={form.safety_rating}
+                      onChange={(e) => setForm({ ...form, safety_rating: e.target.value as any })}
+                      className="cluv-input"
+                    >
+                      <option value="aman">Aman</option>
+                      <option value="hati">Perlu Perhatian</option>
+                      <option value="hindari">Hindari</option>
+                    </select>
+                  </div>
+
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Skor Komedogenik (0-5)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={5}
+                      value={form.comedogenic_rating}
+                      onChange={(e) => setForm({ ...form, comedogenic_rating: Number(e.target.value) })}
+                      className="cluv-input cluv-tabular-nums"
+                    />
+                  </div>
+                </div>
+
                 <div className="cluv-field">
                   <label className="cluv-label">
-                    Nama Bahan (Canonical) *
+                    Deskripsi &amp; Manfaat Klinis
                   </label>
-                  <input
-                    required
-                    value={form.canonical_name}
-                    onChange={(e) => setForm({ ...form, canonical_name: e.target.value })}
-                    placeholder="misal: Niacinamide"
+                  <textarea
+                    rows={3}
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Penjelasan fungsi bagi skin barrier, hiperpigmentasi, atau sebum..."
                     className="cluv-input"
                   />
                 </div>
 
-                <div className="cluv-field">
-                  <label className="cluv-label">
-                    Nama Standar INCI
-                  </label>
+                <div className="akb-grid-2col">
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Fungsi Utama (pisahkan dengan koma)
+                    </label>
+                    <input
+                      value={form.common_functions}
+                      onChange={(e) => setForm({ ...form, common_functions: e.target.value })}
+                      placeholder="misal: Mencerahkan, Mengontrol Sebum, Memperkuat Barrier"
+                      className="cluv-input"
+                    />
+                  </div>
+
+                  <div className="cluv-field">
+                    <label className="cluv-label">
+                      Hindari Dikombinasikan Dengan
+                    </label>
+                    <input
+                      value={form.incompatible_with}
+                      onChange={(e) => setForm({ ...form, incompatible_with: e.target.value })}
+                      placeholder="misal: AHA/BHA tinggi, Vitamin C murni"
+                      className="cluv-input"
+                    />
+                  </div>
+                </div>
+
+                <label className="akb-checkbox-label">
                   <input
-                    value={form.inci_name}
-                    onChange={(e) => setForm({ ...form, inci_name: e.target.value })}
-                    placeholder="misal: Niacinamide"
-                    className="cluv-input"
+                    type="checkbox"
+                    id="is_verified_check"
+                    checked={form.is_verified}
+                    onChange={(e) => setForm({ ...form, is_verified: e.target.checked })}
+                    className="akb-checkbox-input"
                   />
-                </div>
-              </div>
-
-              <div className="akb-grid-3col">
-                <div className="cluv-field">
-                  <label className="cluv-label">
-                    Kategori
-                  </label>
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="cluv-input"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Hydrating">Hydrating</option>
-                    <option value="Antioxidant">Antioxidant</option>
-                    <option value="Preservative">Preservative</option>
-                    <option value="Emollient">Emollient</option>
-                    <option value="Exfoliant">Exfoliant</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="cluv-field">
-                  <label className="cluv-label">
-                    Rating Keamanan
-                  </label>
-                  <select
-                    value={form.safety_rating}
-                    onChange={(e) => setForm({ ...form, safety_rating: e.target.value as any })}
-                    className="cluv-input"
-                  >
-                    <option value="aman">Aman</option>
-                    <option value="hati">Perlu Perhatian</option>
-                    <option value="hindari">Hindari</option>
-                  </select>
-                </div>
-
-                <div className="cluv-field">
-                  <label className="cluv-label">
-                    Skor Komedogenik (0-5)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={5}
-                    value={form.comedogenic_rating}
-                    onChange={(e) => setForm({ ...form, comedogenic_rating: Number(e.target.value) })}
-                    className="cluv-input cluv-tabular-nums"
-                  />
-                </div>
-              </div>
-
-              <div className="cluv-field">
-                <label className="cluv-label">
-                  Deskripsi &amp; Manfaat Klinis
+                  <span>Tandai sebagai parameter ilmiah terverifikasi ahli</span>
                 </label>
-                <textarea
-                  rows={3}
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Penjelasan fungsi bagi skin barrier, hiperpigmentasi, atau sebum..."
-                  className="cluv-input"
-                />
               </div>
 
-              <div className="akb-grid-2col">
-                <div className="cluv-field">
-                  <label className="cluv-label">
-                    Fungsi Utama (pisahkan dengan koma)
-                  </label>
-                  <input
-                    value={form.common_functions}
-                    onChange={(e) => setForm({ ...form, common_functions: e.target.value })}
-                    placeholder="misal: Mencerahkan, Mengontrol Sebum, Memperkuat Barrier"
-                    className="cluv-input"
-                  />
-                </div>
-
-                <div className="cluv-field">
-                  <label className="cluv-label">
-                    Hindari Dikombinasikan Dengan
-                  </label>
-                  <input
-                    value={form.incompatible_with}
-                    onChange={(e) => setForm({ ...form, incompatible_with: e.target.value })}
-                    placeholder="misal: AHA/BHA tinggi, Vitamin C murni"
-                    className="cluv-input"
-                  />
-                </div>
-              </div>
-
-              <label className="akb-checkbox-label">
-                <input
-                  type="checkbox"
-                  id="is_verified_check"
-                  checked={form.is_verified}
-                  onChange={(e) => setForm({ ...form, is_verified: e.target.checked })}
-                  className="akb-checkbox-input"
-                />
-                <span>Tandai sebagai parameter ilmiah terverifikasi ahli</span>
-              </label>
-
-              <div className="cluv-modal-footer" style={{ margin: '8px -20px -20px -20px' }}>
+              <div className="cluv-modal-footer">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}

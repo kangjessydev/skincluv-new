@@ -144,6 +144,10 @@ export default function App() {
 
         {/* Protected admin routes */}
         <Route element={<AdminRoute />}>
+          {/* Legacy /v2/admin preview routes redirect to production /admin */}
+          <Route path="/v2/admin" element={<Navigate to="/admin" replace />} />
+          <Route path="/v2/admin/*" element={<Navigate to="/admin" replace />} />
+
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboardPage />} />
             {/* Bisnis & Transaksi */}
@@ -165,6 +169,9 @@ export default function App() {
             <Route path="/admin/knowledge/handbook" element={<AdminHandbookPage />} />
             <Route path="/admin/knowledge/ingredients" element={<AdminKnowledgeBasePage />} />
             <Route path="/admin/knowledge/formulas" element={<AdminProductFormulasPage />} />
+            <Route path="/admin/handbook" element={<Navigate to="/admin/knowledge/handbook" replace />} />
+            <Route path="/admin/knowledge-base" element={<Navigate to="/admin/knowledge/ingredients" replace />} />
+            <Route path="/admin/product-formulas" element={<Navigate to="/admin/knowledge/formulas" replace />} />
             <Route path="/admin/training/datasets" element={<AdminTrainingDatasetsPage />} />
             <Route path="/admin/logs" element={<AdminLogsPage />} />
 

@@ -6,9 +6,55 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/).
 
 ---
 
-## [Unreleased] - 2026-10-31
+## [Unreleased] - 2026-11-10
 
 ### Ditambahkan
+- **Eksklusivitas Model & Prompt di Level Database (`supabase/migrations/20240001000090_enforce_atomic_single_active_model_and_prompt.sql`)**:
+  - Menambahkan trigger PostgreSQL atomik `trg_enforce_single_active_model_config` dan `trg_enforce_single_active_prompt_version` yang secara otomatis menonaktifkan konfigurasi lama saat model/prompt baru diaktifkan per fitur. Mencegah kondisi multi-aktif / split-brain.
+  - Menambahkan fail-safe `.order('created_at', { ascending: false }).limit(1).maybeSingle()` pada `supabase/functions/invoke-ai/index.ts`.
+- **Aktivasi Ground Truth 98 Kamus Bahan Kosmetik (`supabase/migrations/20240001000091_verify_catalog_skincare_ingredients.sql`)**:
+  - Mengaktifkan status `is_verified = true` pada seluruh 98 entri bahan kosmetik terkurasi di `public.skincare_ingredients` pada database DEV dan PROD, sehingga RAG Chatbot dan pengayaan Scan Komposisi langsung menggunakan data parameter ilmiah resmi (rating keamanan, indeks komedogenik, kontraindikasi).
+- **Katalog Produk Rekomendasi Terverifikasi (`supabase/migrations/20240001000092_seed_initial_recommended_products.sql`)**:
+  - Memasukkan 8 produk skincare populer Indonesia (Somethinc, Skintific, Avoskin, Wardah, True to Skin, Glad2Glow, Azarine) dengan pemetaan bahan aktif dan tipe kulit ke dalam tabel `public.products` untuk mendukung pencocokan produk hasil Scan Wajah AI dan inventori di `/admin/products`.
+- **Injeksi Universal Handbook & Pemisahan Konteks Publik AI (`supabase/functions/invoke-ai/index.ts`)**:
+  - Menambahkan pendeteksi kata kunci aplikasi (`isAppRelevant`: `skincluv`, `paket`, `langganan`, `misi`, `kredit`, dll) dan melepaskan injeksi buku panduan resmi (`skincluv_handbook`) dari penjepit consent data biometrik privat. Handbook resmi admin kini selalu diinjeksikan untuk membasmi halusinasi fitur.
+- **Rute Alias Navigasi Admin (`src/App.tsx`)**:
+  - Menambahkan redirect otomatis untuk rute `/admin/handbook`, `/admin/knowledge-base`, dan `/admin/product-formulas` ke rute kanonikal `/admin/knowledge/*`.
+
+## [Unreleased] - 2026-11-09
+
+### Ditambahkan
+- **Perbaikan Styling Halaman `/admin/logs` & Primitif Cluv Admin (`AdminLogsPage.tsx`, `admin-logs.css`, `stats.css`, `badges.css`, `modals.css`, `admin-responsive.css`, `tokens.css`)**:
+  - Menambahkan definisi CSS yang hilang untuk `.cluv-stat-icon-wrap`, `.cluv-stat-value`, `.cluv-badge` status (`is-success`, `is-warning`, `is-danger`, `is-neutral`, `is-blue`), serta modal dialog (`.cluv-modal-content`, `.cluv-modal-subtitle`, `.cluv-modal-close-btn`).
+  - Memperbaiki spesifisitas `.cluv-card.alogs-filter-card` (`flex-direction: row`) dan `.cluv-card.alogs-table-card` (`padding: 0`) serta jarak vertikal antar blok di `.admin-page-container` (`gap: 20px`).
+- **Hardening Keamanan & Routing SPA Cloudflare Pages (`public/_headers`, `public/_redirects`)**:
+  - Menambahkan `public/_headers` (CSP ketat, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, HSTS, Permissions-Policy kamera, dan cache immutable aset) serta `public/_redirects` (`/* /index.html 200`) untuk menjamin paritas keamanan 100% antara hosting Production di **Cloudflare Pages** dan hosting Development di **Vercel** (`vercel.json`).
+- **Sinkronisasi 98 Kamus Bahan Kosmetik (`skincare_ingredients`) DEV → PROD (`supabase/migrations/20240001000089_sync_skincare_ingredients_catalog.sql`)**:
+  - Menyalin seluruh 98 entri kamus bahan kosmetik hasil scan & pengayaan dari database DEV (`gapctakvmorjafqxaqjk`) ke database PROD (`vxyyediuoyxbozbizswi`) secara idempoten (`ON CONFLICT (canonical_name) DO UPDATE`).
+- **Penyatuan Seluruh Fitur AI ke Google Gemini Free Tier (`gemini-3.5-flash`) & Reset Seed Riset Pasar (`supabase/migrations/20240001000088_switch_all_models_to_gemini_and_clear_seed_correlations.sql`)**:
+  - Mengalihkan konfigurasi model aktif untuk seluruh 4 fitur AI (`chatbot`, `face_analysis`, `face_validation`, `ingredient_scan`) ke `google` (`gemini-3.5-flash` dengan `gemini_api_key`) untuk memudahkan verifikasi pemakaian token tunggal di Google AI Studio Dashboard.
+  - Menyimpan tetap baris konfigurasi model Groq (`qwen/qwen3.8-27b`) dengan status `is_active = false` (tidak dihapus) agar dapat diaktifkan kembali kapan saja lewat `/admin/models`.
+- **Akuntansi Token Penuh Google AI Studio & Logging Background Gemini (`_shared/aiProviders.ts`, `invoke-ai/index.ts`, `admin-set-api-key/index.ts`)**:
+  - Mengikutsertakan `thoughtsTokenCount` (token penalaran/thinking Gemini) ke dalam `outputTokens` dan `tokensUsed` (`totalTokenCount`) serta mengembalikan `modelUsed` aktual saat terjadi failover model.
+  - Menyelaraskan tarif `MODEL_TOKEN_RATES` keluarga Gemini Flash ke tarif resmi Google AI Studio Paid Tier 1 (`$0.30 / 1M input`, `$2.50 / 1M output + thinking`).
+  - Mencatat seluruh panggilan Gemini background (`enrichMissingIngredientsWithGemini`, `extractMemoryWithAi`, `generateSessionSummary`, dan `admin-set-api-key` `test_connection`) ke dalam tabel `public.ai_request_logs`.
+- **Hardening Keamanan Zero-Trust RPC, View `security_invoker`, & Tabel Kontak (`supabase/migrations/20240001000087_rpc_security_and_provider_balance_hardening.sql`)**:
+  - Mencabut izin eksekusi `PUBLIC`, `anon`, dan `authenticated` pada 7 prosedur `SECURITY DEFINER` internal (`process_tripay_payment`, `rollback_deduction`, `deduct_coins`, `deduct_quota`, `ingest_ingredient_scan_knowledge`, `record_formula_cache_hit`, `record_market_correlation`) sehingga hanya dapat dieksekusi oleh `service_role`.
+  - Mencabut izin `anon` pada seluruh RPC `SECURITY DEFINER` khusus pengguna terautentikasi dan menambahkan pengecekan `public.is_admin()` pada `get_market_correlations`.
+  - Mengaktifkan `security_invoker = true` pada view `public.provider_balances` dan `public.active_subscriptions` serta membatasi perhitungan biaya `provider_balances` hanya pada log `status = 'success'` sejak tanggal deposit pertama (`created_at >= first_deposited_at`).
+  - Menambahkan tabel `public.contact_messages` ber-RLS untuk menyimpan pesan dari halaman publik `/contact`.
+- **Pembersihan Data Dummy Statis di App, Admin, & Halaman Kontak (`DashboardPage.tsx`, `MissionsPage.tsx`, `ContactPage.tsx`, `AdminFinancialsPage.tsx`)**:
+  - Mengganti suhu/UV palsu di `DashboardPage.tsx` dengan *Panduan Ritme Kulit Harian* berbasis waktu nyata.
+  - Menghapus fallback dummy `387 Credits` dan streak harian hardcoded (`H1/H2`) di `MissionsPage.tsx`, menggantinya dengan perhitungan streak klaim `daily_login` berurutan dari database.
+  - Menghubungkan formulir `ContactPage.tsx` ke tabel `public.contact_messages` di Supabase.
+  - Menyelaraskan simulator harga Pro Club (`Rp 49.000`) dan label efisiensi biaya per credit di `AdminFinancialsPage.tsx`.
+
+### Dihapus & Alasan
+- **Data Seed Awal Tabel `public.market_skin_product_correlations` (Migrasi 088)**:
+  - *Alasan*: Menghapus 8 baris seed contoh awal dari Migrasi 038 (Somethinc, Skintific, Axis-Y, Avoskin, COSRX, The Ordinary) atas permintaan pengguna agar halaman `/admin/market-intelligence` mulai dari `0` dan murni menampilkan hasil korelasi dari scan pengguna asli.
+- **Rute Preview Mock `/v2/admin/*` di `src/App.tsx`**:
+  - *Alasan*: Seluruh 17 halaman konsol admin utama di `/admin/*` telah dimodernisasi dengan data live produksi, sehingga rute prototipe `/v2/admin/*` yang berisi data dummy statis (`Toby Belhome`, `Jackson Lee`) diarahkan ulang (`<Navigate to="/admin" replace />`) agar tidak mengekspos halaman mock di produksi.
+
 - **Modernisasi Menyeluruh Seluruh Halaman Panel Admin Skincluv (Cluv Framework Standardized)**:
   - **Modernisasi Berurutan 17 Rute Admin**: Menstandarkan 100% halaman admin agar selaras dengan estetika Cluv Framework aplikasi pengguna (`var(--cluv-*)` tokens, `.cluv-stat-grid`, `.cluv-stat-card`, `.cluv-badge`, `.admin-table`, `.cluv-modal-*`):
     1. **Overview / Beranda (`/admin`)**: Bento grid metrik, rasio margin kotor, sparklines, dan navigasi cepat.

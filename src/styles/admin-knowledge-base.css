@@ -12,9 +12,11 @@
 }
 
 /* Filter Card */
+.cluv-card.akb-filter-card,
 .akb-filter-card {
   padding: 16px 20px;
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
@@ -32,6 +34,11 @@
   min-width: 280px;
   flex: 1;
   transition: border-color var(--cluv-dur-fast) var(--cluv-ease);
+}
+
+.akb-search-icon {
+  color: var(--cluv-neutral-400);
+  flex-shrink: 0;
 }
 
 .akb-search-wrap:focus-within {
@@ -77,6 +84,7 @@
 }
 
 /* Table Card & Elements */
+.cluv-card.akb-table-card,
 .akb-table-card {
   overflow: hidden;
   padding: 0;
@@ -127,6 +135,20 @@
 .akb-auto-badge {
   color: var(--cluv-neutral-400);
   font-size: 0.6875rem;
+}
+
+/* Modal & Form helpers */
+.cluv-modal-subtitle {
+  font-size: 0.8125rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.akb-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* Form layout grids */

@@ -5,9 +5,11 @@
    ============================================================================= */
 
 /* Toolbar Card */
+.cluv-card.aal-toolbar-card,
 .aal-toolbar-card {
   padding: 14px 18px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -70,6 +72,7 @@
 }
 
 /* Table Card & Elements */
+.cluv-card.aal-table-card,
 .aal-table-card {
   overflow: hidden;
   padding: 0;

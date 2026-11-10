@@ -50,33 +50,33 @@ function getEnvironmentalWeather() {
   const hour = new Date().getHours()
   if (hour >= 4 && hour < 11) {
     return {
-      temp: '26°C',
-      uvIndex: 'UV 3.2 (Sedang)',
+      temp: 'Ritme Pagi',
+      uvIndex: 'Fokus Proteksi UV',
       timeLabel: 'Pagi Hari',
-      tip: 'Pagi yang cerah bestie! Sebelum keluar, aplikasikan sunscreen SPF 50 ya :)',
+      tip: 'Pagi yang segar bestie! Sebelum beraktivitas di luar, pastikan aplikasikan sunscreen minimal SPF 30–50 secara merata ya.',
     }
   }
   if (hour >= 11 && hour < 15) {
     return {
-      temp: '31°C',
-      uvIndex: 'UV 7.8 (Tinggi)',
+      temp: 'Ritme Siang',
+      uvIndex: 'Puncak Sinar Tropis',
       timeLabel: 'Siang Hari',
-      tip: 'Siang ini terik banget loh bestie! Sampai 31 derajat. Jangan lupa re-apply sunscreen ya! :)',
+      tip: 'Jam puncak paparan sinar matahari tropis bestie! Jaga hidrasi dan jangan lupa re-apply sunscreen jika beraktivitas di luar ruangan.',
     }
   }
   if (hour >= 15 && hour < 18) {
     return {
-      temp: '29°C',
-      uvIndex: 'UV 2.0 (Teduh)',
+      temp: 'Ritme Sore',
+      uvIndex: 'Fase Pemulihan',
       timeLabel: 'Sore Hari',
-      tip: 'Matahari mulai teduh bestie. Tetap hidrasi kulit setelah seharian beraktivitas!',
+      tip: 'Matahari mulai teduh bestie. Segera bersihkan wajah dari keringat dan polusi setelah selesai beraktivitas seharian!',
     }
   }
   return {
-    temp: '25°C',
-    uvIndex: 'UV 0.0 (Malam)',
+    temp: 'Ritme Malam',
+    uvIndex: 'Regenerasi Barrier',
     timeLabel: 'Malam Hari',
-    tip: 'Malam ini sejuk bestie. Waktunya regenerasi sel kulit dengan double cleansing & moisturizer!',
+    tip: 'Waktunya istirahat bestie. Optimalkan regenerasi skin barrier malam ini dengan double cleansing dan moisturizer yang menenangkan!',
   }
 }
 
@@ -542,7 +542,7 @@ export default function DashboardPage() {
           </div>
           <div className="cluv-weather-bubble-content">
             <div className="cluv-weather-bubble-header">
-              <span className="cluv-weather-bubble-title">Skinsistant AI · Cuaca Hari Ini</span>
+              <span className="cluv-weather-bubble-title">Skinsistant AI · Ritme Kulit Hari Ini</span>
               <span className="cluv-weather-bubble-tag">
                 <SunMedium size={11} />
                 <span>{weather.temp} · {weather.uvIndex}</span>
