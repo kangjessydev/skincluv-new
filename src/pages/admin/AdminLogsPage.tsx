@@ -15,6 +15,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   ShieldCheck,
+  Database,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import '@/styles/admin-logs.css'
@@ -33,6 +34,7 @@ interface AiLogRecord {
   status: string
   user_feedback: number | null
   created_at: string
+  input_summary: string | null
   output_summary: string | null
   raw_output: Record<string, any> | null
   ai_features?: {
@@ -143,6 +145,7 @@ export default function AdminLogsPage() {
           cost_usd,
           status,
           user_feedback,
+          input_summary,
           output_summary,
           raw_output,
           created_at,
@@ -431,9 +434,20 @@ export default function AdminLogsPage() {
                   return (
                     <tr key={log.id}>
                       <td>
-                        <span className="cluv-badge is-neutral">
-                          {log.ai_features?.name || log.feature_id || 'Sistem / Tes Koneksi'}
-                        </span>
+                        {log.input_summary?.startsWith('[BG:') ? (
+                          <div>
+                            <span className="cluv-badge is-neutral">
+                              <Database size={11} /> Auto-Enrich DB
+                            </span>
+                            <div className="alogs-bg-sub" title={log.input_summary}>
+                              {log.input_summary.replace(/^\[BG:[^\]]+\]\s*/, '')}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="cluv-badge is-neutral">
+                            {log.ai_features?.name || log.feature_id || 'Sistem / Tes Koneksi'}
+                          </span>
+                        )}
                       </td>
 
                       <td>
@@ -563,12 +577,16 @@ export default function AdminLogsPage() {
               {/* Telemetry Stats */}
               <div className="alogs-modal-stats-grid">
                 <div>
-                  <div className="alogs-modal-stat-label">Fitur &amp; Model</div>
+                  <div className="alogs-modal-stat-label">Fitur &amp; Tipe Eksekusi</div>
                   <div className="alogs-modal-feature-title">
-                    {selectedLog.ai_features?.name || selectedLog.feature_id || 'Sistem / Tes Koneksi'}
+                    {selectedLog.input_summary?.startsWith('[BG:')
+                      ? 'Auto-Enrich Database (Background Worker)'
+                      : selectedLog.ai_features?.name || selectedLog.feature_id || 'Sistem / Tes Koneksi'}
                   </div>
                   <div className="alogs-version-sub">
-                    {selectedLog.model_configs?.model_name || selectedLog.provider_id || 'LLM Model'}
+                    {selectedLog.input_summary?.startsWith('[BG:')
+                      ? `Bahan: ${selectedLog.input_summary.replace(/^\[BG:[^\]]+\]\s*/, '')} (0 Kredit Dipotong)`
+                      : selectedLog.model_configs?.model_name || selectedLog.provider_id || 'LLM Model'}
                   </div>
                 </div>
 

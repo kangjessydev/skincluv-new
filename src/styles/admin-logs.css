@@ -338,6 +338,17 @@
   line-height: 1.2;
 }
 
+/* Background Worker Sub-Label in Table */
+.alogs-bg-sub {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 3px;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Modal Error Diagnostics Card */
 .alogs-diag-card {
   background: var(--cluv-surface);
