@@ -338,15 +338,19 @@
   line-height: 1.2;
 }
 
-/* Background Worker Sub-Label in Table */
-.alogs-bg-sub {
+/* Background Enrichment Badge in Table */
+.alogs-bg-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.6875rem;
-  color: var(--cluv-neutral-500);
-  margin-top: 3px;
-  max-width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--cluv-teal);
+  background: var(--cluv-neutral-100);
+  border: 1px solid var(--cluv-border);
+  border-radius: 9999px;
+  padding: 1px 7px;
+  margin-top: 4px;
+  font-weight: 600;
 }
 
 /* Modal Error Diagnostics Card */
@@ -357,6 +361,88 @@
   border-radius: var(--cluv-radius-md);
   padding: 16px;
   margin-top: 14px;
+}
+
+/* Background Enrichment Section in Modal */
+.alogs-enrichment-card {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-left: 4px solid var(--cluv-teal);
+  border-radius: var(--cluv-radius-md);
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+
+.alogs-enrichment-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.alogs-enrichment-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--cluv-radius-sm);
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.alogs-enrichment-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
+
+.alogs-enrichment-sub {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+}
+
+.alogs-enrichment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alogs-enrichment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-sm);
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.alogs-enrichment-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.alogs-enrichment-check {
+  color: var(--cluv-teal);
+  flex-shrink: 0;
+}
+
+.alogs-enrichment-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-900);
+}
+
+.alogs-enrichment-meta {
+  font-size: 0.6875rem;
+  color: var(--cluv-neutral-500);
+  flex-shrink: 0;
 }
 
 .alogs-diag-header {

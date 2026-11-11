@@ -180,6 +180,11 @@ export default function AdminLogsPage() {
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
+      // Hide background tasks from main table so 1 user action = strictly 1 row
+      if (log.input_summary?.startsWith('[BG:')) {
+        return false
+      }
+
       // Status filter
       if (statusFilter !== 'all' && log.status !== statusFilter) {
         return false
@@ -434,19 +439,15 @@ export default function AdminLogsPage() {
                   return (
                     <tr key={log.id}>
                       <td>
-                        {log.input_summary?.startsWith('[BG:') ? (
+                        <span className="cluv-badge is-neutral">
+                          {log.ai_features?.name || log.feature_id || 'Sistem / Tes Koneksi'}
+                        </span>
+                        {Array.isArray(log.raw_output?.background_enrichments) && log.raw_output.background_enrichments.length > 0 && (
                           <div>
-                            <span className="cluv-badge is-neutral">
-                              <Database size={11} /> Auto-Enrich DB
+                            <span className="alogs-bg-badge-pill" title={`${log.raw_output.background_enrichments.length} bahan baru didaftarkan ke kamus di latar belakang`}>
+                              <Database size={10} /> +{log.raw_output.background_enrichments.length} bahan baru DB
                             </span>
-                            <div className="alogs-bg-sub" title={log.input_summary}>
-                              {log.input_summary.replace(/^\[BG:[^\]]+\]\s*/, '')}
-                            </div>
                           </div>
-                        ) : (
-                          <span className="cluv-badge is-neutral">
-                            {log.ai_features?.name || log.feature_id || 'Sistem / Tes Koneksi'}
-                          </span>
                         )}
                       </td>
 
@@ -577,16 +578,12 @@ export default function AdminLogsPage() {
               {/* Telemetry Stats */}
               <div className="alogs-modal-stats-grid">
                 <div>
-                  <div className="alogs-modal-stat-label">Fitur &amp; Tipe Eksekusi</div>
+                  <div className="alogs-modal-stat-label">Fitur AI</div>
                   <div className="alogs-modal-feature-title">
-                    {selectedLog.input_summary?.startsWith('[BG:')
-                      ? 'Auto-Enrich Database (Background Worker)'
-                      : selectedLog.ai_features?.name || selectedLog.feature_id || 'Sistem / Tes Koneksi'}
+                    {selectedLog.ai_features?.name || selectedLog.feature_id || 'Sistem / Tes Koneksi'}
                   </div>
                   <div className="alogs-version-sub">
-                    {selectedLog.input_summary?.startsWith('[BG:')
-                      ? `Bahan: ${selectedLog.input_summary.replace(/^\[BG:[^\]]+\]\s*/, '')} (0 Kredit Dipotong)`
-                      : selectedLog.model_configs?.model_name || selectedLog.provider_id || 'LLM Model'}
+                    {selectedLog.model_configs?.model_name || selectedLog.provider_id || 'LLM Model'}
                   </div>
                 </div>
 
@@ -660,6 +657,42 @@ export default function AdminLogsPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Background Auto-Enrichments Section (RFC 021) */}
+              {Array.isArray(selectedLog.raw_output?.background_enrichments) && selectedLog.raw_output.background_enrichments.length > 0 && (
+                <div className="alogs-enrichment-card">
+                  <div className="alogs-enrichment-header">
+                    <div className="alogs-enrichment-icon-wrap">
+                      <Database size={16} />
+                    </div>
+                    <div>
+                      <div className="alogs-enrichment-title">
+                        Otomatisasi Database Bahan ({selectedLog.raw_output.background_enrichments.length} Bahan Baru)
+                      </div>
+                      <div className="alogs-enrichment-sub">
+                        Bahan berikut otomatis didaftarkan ke database kamus skincare di latar belakang • (0 Kredit Pengguna)
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="alogs-enrichment-list">
+                    {selectedLog.raw_output.background_enrichments.map((item: any, idx: number) => (
+                      <div key={idx} className="alogs-enrichment-item">
+                        <div className="alogs-enrichment-info">
+                          <CheckCircle2 size={13} className="alogs-enrichment-check" />
+                          <span className="alogs-enrichment-name">{item.name}</span>
+                          {item.category && <span className="cluv-badge is-neutral">{item.category}</span>}
+                          {item.safety_rating && <span className="cluv-badge is-success">{item.safety_rating}</span>}
+                        </div>
+                        <div className="alogs-enrichment-meta cluv-tabular-nums">
+                          {item.tokens_used ? `${item.tokens_used} tk` : ''}
+                          {item.latency_ms ? ` • ${item.latency_ms} ms` : ''}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Jika status error, tampilkan Diagnostik Masalah & Root Cause secara transparan untuk Admin */}
               {selectedLog.status === 'error' && (() => {

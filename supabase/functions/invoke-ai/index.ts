@@ -1101,7 +1101,7 @@ END PRODUCT_TEXT`
       aiResult!.tokensUsed
     )
 
-    await supabaseService.from('ai_request_logs').insert({
+    const { data: insertedMainLog } = await supabaseService.from('ai_request_logs').insert({
       user_id: user.id,
       feature_id: feature.id,
       prompt_version_id: prompt.id,
@@ -1116,7 +1116,7 @@ END PRODUCT_TEXT`
       latency_ms: latencyMs,
       cost_usd: costUsd,
       status: 'success',
-    })
+    }).select('id').maybeSingle()
 
     // ---- 9b. Track mission progress server-side (Anti-Spoofing & Anti-Abuse Gating) ----
     const MISSION_ACTION_MAP: Record<string, string> = {
@@ -1415,6 +1415,7 @@ END PRODUCT_TEXT`
           .filter(Boolean)
 
         const enrichPromise = enrichMissingIngredientsWithGemini(supabaseService, scanCandidateNames, {
+          parentLogId: insertedMainLog?.id,
           userId: user.id,
           featureId: feature.id,
           promptVersionId: prompt.id,
@@ -1740,7 +1741,7 @@ function tryParseAiJson(content: string): Record<string, unknown> | null {
 async function enrichMissingIngredientsWithGemini(
   supabase: any,
   candidateNames: string[],
-  logCtx?: { userId: string; featureId: string; promptVersionId: string; modelConfigId: string }
+  logCtx?: { parentLogId?: string; userId?: string; featureId?: string; promptVersionId?: string; modelConfigId?: string }
 ): Promise<void> {
   const validCandidates = candidateNames
     .map((n) => n.trim())
@@ -1779,6 +1780,8 @@ async function enrichMissingIngredientsWithGemini(
   }
   if (!geminiKey) return
 
+  const enrichmentsDone: Array<Record<string, any>> = []
+
   for (const name of trulyMissing) {
     try {
       const promptText = `Analisis bahan kosmetik/skincare berikut: "${name}".
@@ -1812,28 +1815,22 @@ Catatan:
       })
       const bgLatency = Date.now() - bgStart
 
-      if (logCtx) {
-        const bgModel = aiRes.modelUsed || 'gemini-3.5-flash'
-        const bgCost = estimateCostUsd(bgModel, aiRes.inputTokens, aiRes.outputTokens, aiRes.tokensUsed)
-        await supabase.from('ai_request_logs').insert({
-          user_id: logCtx.userId,
-          feature_id: logCtx.featureId,
-          prompt_version_id: logCtx.promptVersionId,
-          model_config_id: logCtx.modelConfigId,
-          provider_id: 'google',
-          input_summary: `[BG:enrich_ingredient] ${name}`,
-          output_summary: aiRes.content.slice(0, 300),
-          raw_output: aiRes.rawResponse,
-          tokens_used: aiRes.tokensUsed,
-          input_tokens: aiRes.inputTokens,
-          output_tokens: aiRes.outputTokens,
-          latency_ms: bgLatency,
-          cost_usd: bgCost,
-          status: 'success',
-        })
-      }
-
       const parsed = tryParseAiJson(aiRes.content)
+      const bgModel = aiRes.modelUsed || 'gemini-3.5-flash'
+      const bgCost = estimateCostUsd(bgModel, aiRes.inputTokens, aiRes.outputTokens, aiRes.tokensUsed)
+
+      enrichmentsDone.push({
+        name,
+        category: (parsed?.category as string) || 'Other',
+        safety_rating: (parsed?.safety_rating as string) || 'aman',
+        tokens_used: aiRes.tokensUsed,
+        input_tokens: aiRes.inputTokens,
+        output_tokens: aiRes.outputTokens,
+        latency_ms: bgLatency,
+        cost_usd: bgCost,
+        status: 'success',
+      })
+
       if (parsed && parsed.is_skincare_ingredient !== false && parsed.canonical_name) {
         const safety = ['aman', 'hati', 'hindari'].includes(String(parsed.safety_rating).toLowerCase())
           ? String(parsed.safety_rating).toLowerCase()
@@ -1862,6 +1859,33 @@ Catatan:
       }
     } catch (ingErr) {
       console.warn(`[invoke-ai] Auto-enrichment error for "${name}":`, ingErr)
+    }
+  }
+
+  // Attach background enrichments to parent log raw_output so main table stays strictly 1 row per scan (RFC 021)
+  if (logCtx?.parentLogId && enrichmentsDone.length > 0) {
+    try {
+      const { data: parentRow } = await supabase
+        .from('ai_request_logs')
+        .select('raw_output')
+        .eq('id', logCtx.parentLogId)
+        .maybeSingle()
+
+      const currentRaw = (parentRow?.raw_output && typeof parentRow.raw_output === 'object')
+        ? parentRow.raw_output
+        : {}
+
+      await supabase
+        .from('ai_request_logs')
+        .update({
+          raw_output: {
+            ...currentRaw,
+            background_enrichments: enrichmentsDone,
+          },
+        })
+        .eq('id', logCtx.parentLogId)
+    } catch (updateErr) {
+      console.warn('[invoke-ai] Failed to attach background enrichments to parent log:', updateErr)
     }
   }
 }
