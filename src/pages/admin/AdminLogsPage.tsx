@@ -6,6 +6,7 @@ import {
   Eye,
   X,
   AlertCircle,
+  AlertTriangle,
   Clock,
   Coins,
   Cpu,
@@ -32,6 +33,8 @@ interface AiLogRecord {
   status: string
   user_feedback: number | null
   created_at: string
+  output_summary: string | null
+  raw_output: Record<string, any> | null
   ai_features?: {
     slug: string
     name: string
@@ -43,6 +46,72 @@ interface AiLogRecord {
   prompt_versions?: {
     version: number
   } | null
+}
+
+interface ErrorDiagnostics {
+  code: string
+  label: string
+  badgeClass: string
+  httpStatus: number | string
+  modelAttempted: string
+  creditStatus: string
+  details: string
+  recommendation: string
+}
+
+function parseLogDiagnostics(log: AiLogRecord): ErrorDiagnostics | null {
+  if (log.status !== 'error') return null
+
+  const raw = log.raw_output || {}
+  const errorCode = raw.error_code || 'AI_SERVICE_ERROR'
+  const prov = raw.provider_details || {}
+  const httpStatus = prov.httpStatus || (errorCode === 'AI_REQUEST_TIMEOUT' ? 504 : 500)
+  const creditStatus = raw.credit_status || 'RELEASED'
+  const modelAttempted = prov.modelUsed || log.model_configs?.model_name || log.provider_id || 'Gemini Flash'
+
+  let label = '500 Gangguan Layanan'
+  let badgeClass = 'is-danger'
+  let recommendation = 'Periksa kuota dan status server penyedia AI.'
+
+  if (httpStatus === 503 || prov.providerCode === 'UNAVAILABLE' || errorCode === 'AI_TEMPORARILY_UNAVAILABLE') {
+    label = '503 Antrean Padat (High Demand)'
+    badgeClass = 'is-warning'
+    recommendation = 'Model Google Free Tier sedang mengalami lonjakan antrean trafik di server Google. Saran: Masukkan API key Paid Tier 1 di /admin/models untuk prioritas tanpa antrean, atau tunggu beberapa saat.'
+  } else if (httpStatus === 429 || prov.providerCode === 'RESOURCE_EXHAUSTED' || errorCode === 'AI_RATE_LIMITED') {
+    label = '429 Batas Limit (Rate Limit RPM)'
+    badgeClass = 'is-warning'
+    recommendation = 'Permintaan per menit (RPM) akun Free Tier telah melampaui limit kuota Google. Saran: Upgrade API Key ke Google AI Studio Tier 1 (Pay-as-you-go).'
+  } else if (httpStatus === 504 || errorCode === 'AI_REQUEST_TIMEOUT' || (log.latency_ms && log.latency_ms > 8500 && log.tokens_used === null)) {
+    label = '504 Timeout Pemrosesan SLA'
+    badgeClass = 'is-warning'
+    recommendation = 'AI membutuhkan waktu lebih lama dari batas waktu SLA untuk memproses gambar/JSON. Batas timeout multimodal telah diperpanjang menjadi 35 detik.'
+  } else if (httpStatus === 400 || errorCode === 'AI_INVALID_REQUEST') {
+    label = '400 Format Data Tidak Valid'
+    badgeClass = 'is-danger'
+    recommendation = 'Input foto atau teks dari pengguna tidak dapat di-parse atau tidak memuat elemen wajah/skincare yang sah.'
+  } else if (errorCode === 'INSUFFICIENT_CREDITS') {
+    label = '402 Kredit Tidak Cukup'
+    badgeClass = 'is-neutral'
+    recommendation = 'Pengguna mencoba memanggil fitur AI tanpa saldo koin/kuota yang mencukupi.'
+  }
+
+  const rawMsg = prov.providerMessage || prov.rawBody || prov.message || log.output_summary || ''
+  let cleanedMsg = rawMsg
+  try {
+    const parsed = JSON.parse(rawMsg)
+    if (parsed.error?.message) cleanedMsg = parsed.error.message
+  } catch {}
+
+  return {
+    code: errorCode,
+    label,
+    badgeClass,
+    httpStatus,
+    modelAttempted,
+    creditStatus,
+    details: cleanedMsg || 'Tidak ada pesan error mendalam dari penyedia.',
+    recommendation,
+  }
 }
 
 const USD_TO_IDR = 16000 // Kurs acuan standar konversi USD ke IDR
@@ -74,6 +143,8 @@ export default function AdminLogsPage() {
           cost_usd,
           status,
           user_feedback,
+          output_summary,
+          raw_output,
           created_at,
           ai_features:feature_id (
             slug,
@@ -410,6 +481,14 @@ export default function AdminLogsPage() {
 
                       <td className="alogs-td-center">
                         {renderStatusBadge(log.status)}
+                        {log.status === 'error' && (() => {
+                          const diag = parseLogDiagnostics(log)
+                          return diag ? (
+                            <span className="alogs-error-sub-label" title={diag.details}>
+                              {diag.label}
+                            </span>
+                          ) : null
+                        })()}
                       </td>
 
                       <td className="alogs-td-center">
@@ -563,6 +642,66 @@ export default function AdminLogsPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Jika status error, tampilkan Diagnostik Masalah & Root Cause secara transparan untuk Admin */}
+              {selectedLog.status === 'error' && (() => {
+                const diag = parseLogDiagnostics(selectedLog)
+                if (!diag) return null
+                return (
+                  <div className="alogs-diag-card">
+                    <div className="alogs-diag-header">
+                      <div className="alogs-diag-icon-wrap">
+                        <AlertTriangle size={18} />
+                      </div>
+                      <div>
+                        <div className="alogs-diag-title">
+                          Diagnostik Kegagalan &amp; Root Cause
+                        </div>
+                        <div className="alogs-diag-subtitle">
+                          {diag.label} • Kode: <code>{diag.code}</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="alogs-diag-grid">
+                      <div className="alogs-diag-item">
+                        <div className="alogs-diag-label">HTTP / Provider Status</div>
+                        <div className="alogs-diag-value cluv-tabular-nums">
+                          HTTP {diag.httpStatus}
+                        </div>
+                      </div>
+
+                      <div className="alogs-diag-item">
+                        <div className="alogs-diag-label">Model yang Dieksekusi</div>
+                        <div className="alogs-diag-value">
+                          {diag.modelAttempted}
+                        </div>
+                      </div>
+
+                      <div className="alogs-diag-item">
+                        <div className="alogs-diag-label">Status Saldo Pengguna</div>
+                        <div className="alogs-diag-value">
+                          {diag.creditStatus === 'RELEASED' ? (
+                            <span className="cluv-badge is-success">Aman (Di-Refund Otomatis)</span>
+                          ) : (
+                            <span className="cluv-badge is-warning">{diag.creditStatus}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="alogs-diag-detail-box">
+                      <div className="alogs-diag-label">Detail Pesan dari Penyedia AI:</div>
+                      <pre className="alogs-diag-pre">{diag.details}</pre>
+                    </div>
+
+                    <div className="alogs-diag-solution-box">
+                      <div className="alogs-diag-label">Saran / Rekomendasi Tindakan Admin:</div>
+                      <p className="alogs-diag-solution-text">{diag.recommendation}</p>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Modal Footer */}

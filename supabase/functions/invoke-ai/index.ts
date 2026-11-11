@@ -1057,6 +1057,7 @@ END PRODUCT_TEXT`
       }
 
       // Log raw Google error strictly server-side for telemetry & admin audit (INV-AI-ERR-01)
+      const errorSummary = `[${httpStatus} ${errorCode}] ${providerDetails?.providerCode || providerDetails?.message?.slice(0, 150) || aiError.message?.slice(0, 150) || 'Service error'}`
       await supabaseService.from('ai_request_logs').insert({
         user_id: user.id,
         feature_id: feature.id,
@@ -1064,6 +1065,7 @@ END PRODUCT_TEXT`
         model_config_id: model.id,
         provider_id: model.provider,
         input_summary: messages.at(-1)?.content?.slice(0, 200),
+        output_summary: errorSummary,
         raw_output: {
           error_code: errorCode,
           credit_status: creditStatus,

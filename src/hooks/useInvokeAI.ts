@@ -212,9 +212,18 @@ export function useInvokeAI() {
           }
         }
 
-        // Defense-in-depth: intercept any raw vendor strings leaking through
-        if (msg.includes('Gemini API error') || msg.includes('{"error"') || msg.includes('UNAVAILABLE')) {
-          msg = 'Layanan AI sedang mengalami antrean padat sesaat. Silakan coba kembali dalam 15–20 detik. Saldo Credit kamu aman.'
+        // Defense-in-depth: humanize provider and network error messages
+        const lowerMsg = msg.toLowerCase()
+        if (lowerMsg.includes('failed to fetch') || lowerMsg.includes('networkerror') || lowerMsg.includes('connection')) {
+          msg = 'Koneksi internet terputus atau tidak stabil. Periksa jaringan Anda dan coba lagi. Saldo Credit tetap aman.'
+        } else if (lowerMsg.includes('timeout') || lowerMsg.includes('aborterror') || lowerMsg.includes('504')) {
+          msg = 'Waktu pemrosesan AI habis karena server memakan waktu lebih lama. Silakan coba kembali. Saldo Credit kamu tetap aman.'
+        } else if (lowerMsg.includes('503') || lowerMsg.includes('unavailable') || lowerMsg.includes('high demand') || lowerMsg.includes('gemini api error')) {
+          msg = 'Layanan AI Google sedang mengalami lonjakan antrean padat sesaat. Silakan coba kembali dalam 15–20 detik. Saldo Credit kamu aman.'
+        } else if (lowerMsg.includes('429') || lowerMsg.includes('resource_exhausted') || lowerMsg.includes('rate limit')) {
+          msg = 'Batas permintaan AI per menit tercapai. Silakan jeda sebentar (30 detik) lalu coba kembali. Saldo Credit kamu aman.'
+        } else if (msg.includes('{"error"')) {
+          msg = 'Layanan AI sedang mengalami gangguan sementara. Silakan coba beberapa saat lagi. Saldo Credit kamu aman.'
         }
 
         updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
@@ -234,8 +243,17 @@ export function useInvokeAI() {
           msg = data.error
         }
 
-        if (msg.includes('Gemini API error') || msg.includes('{"error"') || msg.includes('UNAVAILABLE')) {
-          msg = 'Layanan AI sedang mengalami antrean padat sesaat. Silakan coba kembali dalam 15–20 detik. Saldo Credit kamu aman.'
+        const lowerMsg = msg.toLowerCase()
+        if (lowerMsg.includes('failed to fetch') || lowerMsg.includes('networkerror') || lowerMsg.includes('connection')) {
+          msg = 'Koneksi internet terputus atau tidak stabil. Periksa jaringan Anda dan coba lagi. Saldo Credit tetap aman.'
+        } else if (lowerMsg.includes('timeout') || lowerMsg.includes('aborterror') || lowerMsg.includes('504')) {
+          msg = 'Waktu pemrosesan AI habis karena respon server memakan waktu lebih lama. Silakan coba kembali. Saldo Credit kamu tetap aman.'
+        } else if (lowerMsg.includes('503') || lowerMsg.includes('unavailable') || lowerMsg.includes('high demand') || lowerMsg.includes('gemini api error')) {
+          msg = 'Layanan AI Google sedang mengalami lonjakan antrean padat sesaat. Silakan coba kembali dalam 15–20 detik. Saldo Credit kamu aman.'
+        } else if (lowerMsg.includes('429') || lowerMsg.includes('resource_exhausted') || lowerMsg.includes('rate limit')) {
+          msg = 'Batas permintaan AI per menit tercapai. Silakan jeda sebentar (30 detik) lalu coba kembali. Saldo Credit kamu aman.'
+        } else if (msg.includes('{"error"')) {
+          msg = 'Layanan AI sedang mengalami gangguan sementara. Silakan coba beberapa saat lagi. Saldo Credit kamu aman.'
         }
 
         updateError(isCreditErr ? 'INSUFFICIENT_CREDITS' : msg)
@@ -293,7 +311,12 @@ export function useInvokeAI() {
       }
     } catch (err: any) {
       console.error('[useInvokeAI] Unexpected error:', err)
-      updateError('Koneksi gagal. Periksa koneksi internet kamu.')
+      const errStr = (err?.message || '').toLowerCase()
+      let msg = 'Koneksi ke server terputus atau tidak stabil. Periksa koneksi internet Anda dan coba lagi. Saldo Credit kamu aman.'
+      if (errStr.includes('abort') || errStr.includes('timeout')) {
+        msg = 'Waktu pemrosesan AI habis. Silakan coba klik Mulai Analisis lagi. Saldo Credit kamu tetap aman.'
+      }
+      updateError(msg)
       return null
     } finally {
       setIsLoading(false)

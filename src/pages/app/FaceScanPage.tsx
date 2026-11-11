@@ -427,7 +427,14 @@ export default function FaceScanPage() {
 
         if (!isSubscribed) return
 
-        if (valRes && valRes.is_valid_face === false) {
+        if (!valRes) {
+          const valErr = getLastError()
+          setErrorMsg(valErr || 'Validasi foto wajah tidak dapat diselesaikan karena kendala koneksi AI. Silakan coba lagi. Saldo Credit kamu aman.')
+          setStage('upload')
+          return
+        }
+
+        if (valRes.is_valid_face === false) {
           setErrorMsg(
             valRes.reason ||
             'Wajah tidak terlihat cukup jelas untuk analisis. Silakan gunakan foto dengan pencahayaan alami tanpa filter.'

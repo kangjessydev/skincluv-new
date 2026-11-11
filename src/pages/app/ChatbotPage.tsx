@@ -694,7 +694,7 @@ export default function ChatbotPage() {
           const tempBotMsg: Message = {
             id: `error-${Date.now()}`,
             sender: 'bot',
-            text: 'Maaf, terjadi kendala teknis pada server saat memproses jawaban. Credit kamu tidak berkurang. Silakan coba kirim pesan lagi.',
+            text: lastErr || 'Maaf, server AI sedang mengalami kendala sesaat saat memproses jawaban. Credit kamu tidak berkurang. Silakan coba kirim pesan lagi.',
             created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           }
           setMessages((prev) => [...prev, tempBotMsg])

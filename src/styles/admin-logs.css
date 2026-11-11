@@ -327,3 +327,119 @@
     width: 100%;
   }
 }
+
+/* Error Sub-Label in Table */
+.alogs-error-sub-label {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--cluv-rose);
+  font-weight: 600;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+/* Modal Error Diagnostics Card */
+.alogs-diag-card {
+  background: var(--cluv-surface);
+  border: 1px solid var(--cluv-border);
+  border-left: 4px solid var(--cluv-rose);
+  border-radius: var(--cluv-radius-md);
+  padding: 16px;
+  margin-top: 14px;
+}
+
+.alogs-diag-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.alogs-diag-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--cluv-radius-sm);
+  background: var(--cluv-neutral-100);
+  color: var(--cluv-rose);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.alogs-diag-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--cluv-neutral-900);
+}
+
+.alogs-diag-subtitle {
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-500);
+  margin-top: 2px;
+}
+
+.alogs-diag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  background: var(--cluv-neutral-50);
+  padding: 12px;
+  border-radius: var(--cluv-radius-sm);
+  border: 1px solid var(--cluv-border);
+  margin-bottom: 12px;
+}
+
+.alogs-diag-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alogs-diag-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.alogs-diag-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cluv-neutral-800);
+}
+
+.alogs-diag-detail-box {
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-border);
+  border-radius: var(--cluv-radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.alogs-diag-pre {
+  margin: 6px 0 0;
+  font-family: var(--cluv-font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--cluv-rose);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.alogs-diag-solution-box {
+  background: var(--cluv-neutral-50);
+  border: 1px solid var(--cluv-teal);
+  border-radius: var(--cluv-radius-sm);
+  padding: 10px 12px;
+}
+
+.alogs-diag-solution-text {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--cluv-neutral-800);
+  line-height: 1.5;
+  font-weight: 500;
+}
