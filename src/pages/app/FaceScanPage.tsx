@@ -436,6 +436,10 @@ export default function FaceScanPage() {
           return
         }
 
+        // Brief 400ms settle delay to prevent back-to-back connection burst on client socket
+        await new Promise((resolve) => setTimeout(resolve, 400))
+        if (!isSubscribed) return
+
         // GERBANG 4: Analisis Spesialis Wajah (5 Credits)
         setScanTextIndex(1)
         textInterval = setInterval(() => {

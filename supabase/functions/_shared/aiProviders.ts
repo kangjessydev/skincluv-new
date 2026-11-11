@@ -57,10 +57,10 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
   // Model failover list: RFC 021 Multi-Tier Failover
   // 1. Primary requested (gemini-3.5-flash)
   // 2. Secondary Flash (gemini-3.6-flash)
-  // 3. Fallback Active Flash (gemini-2.5-flash)
-  // (Note: gemini-2.0-flash excluded as Google retired it in June 2026)
+  // 3. Fallback Fast Active Flash (gemini-2.5-flash-lite)
+  // 4. Fallback Active Flash (gemini-2.5-flash)
   const candidateModels = [opts.modelName]
-  const flashFallbacks = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']
+  const flashFallbacks = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-flash']
   for (const fallback of flashFallbacks) {
     if (!candidateModels.includes(fallback)) {
       candidateModels.push(fallback)
@@ -87,7 +87,12 @@ async function callGemini(opts: AiRequestOptions): Promise<AiResponse> {
   })
 
   // DeepSeek & ChatGPT Consensus: SLA Latency & Full Jitter Exponential Backoff
-  const SLA_DEADLINE_MS = 9000
+  // Dynamic SLA Deadline: 35s for Vision/Image analysis & heavy generation, 18s for pure text chat
+  const hasImage = messages.some((m) =>
+    Array.isArray(m.content) && m.content.some((part: any) => part && typeof part === 'object' && 'inlineData' in part)
+  )
+  const isHeavyOutput = (parameters?.max_tokens ?? 2500) > 1000
+  const SLA_DEADLINE_MS = (hasImage || isHeavyOutput) ? 35000 : 18000
   const MIN_ATTEMPT_TIME_MS = 500
   const BASE_DELAY_MS = 300
   const MAX_DELAY_MS = 2000
